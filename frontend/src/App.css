@@ -56,10 +56,10 @@
 
 .yomifuda-level {
   position: absolute;
-  bottom: 15px;
-  right: 15px;
-  font-size: 14px;
-  color: #666;
+  bottom: 20px;
+  right: 20px;
+  font-size: 1.1rem;
+  color: #e44d26;
 }
 
 .category-selection-container {
