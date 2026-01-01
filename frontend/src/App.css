@@ -6,6 +6,11 @@
   overflow-x: hidden;
 }
 
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -42,6 +47,7 @@
   display: flex;
   gap: 10px;
   justify-content: center;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 

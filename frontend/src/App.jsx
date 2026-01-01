@@ -84,15 +84,6 @@ function App() {
     <div className="App">
       <h1>カルタ読み上げアプリ</h1>
       <div className="card">
-        <div className="button-group">
-          <button onClick={playKaruta} disabled={loading}>
-            {loading ? "読み込み中..." : "次の札を読み上げる"}
-          </button>
-          <button onClick={repeatPhrase} disabled={loading || !currentPhrase}>
-            もう一度読み上げる
-          </button>
-        </div>
-
         {currentPhrase && (
           <div className="yomifuda-container">
             <div className="yomifuda">
@@ -108,6 +99,15 @@ function App() {
             </div>
           </div>
         )}
+
+        <div className="button-group">
+          <button onClick={playKaruta} disabled={loading}>
+            {loading ? "読み込み中..." : "次の札を読み上げる"}
+          </button>
+          <button onClick={repeatPhrase} disabled={loading || !currentPhrase}>
+            もう一度読み上げる
+          </button>
+        </div>
       </div>
 
       <div className="history">
