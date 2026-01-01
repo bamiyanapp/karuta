@@ -47,13 +47,14 @@ async function seed() {
           TableName: TABLE_NAME,
           Item: {
             id: crypto.randomUUID(), // UUIDを生成してIDとする
+            category: record.category.trim(),
             level: parseInt(record.level.trim(), 10),
             kana: record.kana.trim(),
             phrase: record.phrase.trim(),
           },
         })
       );
-      console.log(`Seeded: [Lv${record.level}] ${record.kana} - ${record.phrase}`);
+      console.log(`Seeded: [${record.category}][Lv${record.level}] ${record.kana} - ${record.phrase}`);
     }
 
     console.log("Seeding completed successfully (Full Replace).");

@@ -8,10 +8,21 @@ const pollyClient = new PollyClient({ region: "ap-northeast-1" });
 
 exports.getPhrase = async (event) => {
   try {
-    // 1. DynamoDBから全件取得
+    const category = event.queryStringParameters ? event.queryStringParameters.category : null;
+
+    // 1. DynamoDBから取得
     const scanParams = {
       TableName: process.env.TABLE_NAME,
     };
+    
+    // カテゴリが指定されている場合はフィルタリング（ScanでのFilterExpressionはコストがかかるが、小規模なので許容）
+    if (category) {
+      scanParams.FilterExpression = "category = :category";
+      scanParams.ExpressionAttributeValues = {
+        ":category": category,
+      };
+    }
+
     const scanResult = await docClient.send(new ScanCommand(scanParams));
     const items = scanResult.Items;
 
@@ -53,10 +64,42 @@ exports.getPhrase = async (event) => {
       },
       body: JSON.stringify({
         id: selectedItem.id,
+        category: selectedItem.category,
         phrase: phrase,
         level: level,
+        kana: selectedItem.kana,
         audioData: `data:audio/mp3;base64,${base64Audio}`,
       }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+    };
+  }
+};
+
+exports.getCategories = async (event) => {
+  try {
+    const scanParams = {
+      TableName: process.env.TABLE_NAME,
+      ProjectionExpression: "category",
+    };
+    const scanResult = await docClient.send(new ScanCommand(scanParams));
+    const items = scanResult.Items || [];
+    
+    // 重複を排除してカテゴリ名のリストを作成
+    const categories = [...new Set(items.map(item => item.category))];
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: JSON.stringify({ categories }),
     };
   } catch (error) {
     console.error(error);

@@ -2,9 +2,27 @@ import { useState, useCallback, useEffect } from "react";
 import "./App.css";
 
 function App() {
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [currentPhrase, setCurrentPhrase] = useState(null);
   const [loading, setLoading] = useState(false);
   const [readPhrases, setReadPhrases] = useState([]);
+
+  // カテゴリ一覧を取得
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-categories");
+        const data = await response.json();
+        if (response.ok) {
+          setCategories(data.categories || []);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
@@ -26,17 +44,19 @@ function App() {
   }, []);
 
   const playKaruta = async () => {
+    if (!selectedCategory) return;
+    
     setLoading(true);
     // 0.5秒スリープ
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
-      const apiUrl = "https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase";
+      const apiUrl = `https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?category=${encodeURIComponent(selectedCategory)}`;
       
       let data;
       let isDuplicate = true;
       let retryCount = 0;
-      const maxRetries = 10; // 連続で重複した場合の制限
+      const maxRetries = 10;
 
       while (isDuplicate && retryCount < maxRetries) {
         const response = await fetch(apiUrl);
@@ -46,12 +66,10 @@ function App() {
           throw new Error(data.message || "Fetch failed");
         }
 
-        // すでに読んだ札（ID）に含まれていないかチェック
         if (!readPhrases.find(p => p.id === data.id)) {
           isDuplicate = false;
         } else {
           retryCount++;
-          console.log(`Duplicate found: ${data.phrase}, retrying... (${retryCount})`);
         }
       }
 
@@ -83,9 +101,43 @@ function App() {
     }
   };
 
+  const resetGame = () => {
+    setSelectedCategory(null);
+    setCurrentPhrase(null);
+    setReadPhrases([]);
+  };
+
+  // カテゴリ選択画面
+  if (!selectedCategory) {
+    return (
+      <div className="App">
+        <h1>カルタ読み上げアプリ</h1>
+        <div className="category-selection">
+          <h2>カルタの種類を選んでね</h2>
+          <div className="category-buttons">
+            {categories.length === 0 ? (
+              <p>読み込み中...</p>
+            ) : (
+              categories.map(cat => (
+                <button key={cat} onClick={() => setSelectedCategory(cat)} className="category-button">
+                  {cat}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // カルタプレイ画面
   return (
     <div className="App">
-      <h1>カルタ読み上げアプリ</h1>
+      <div className="header-nav">
+        <button onClick={resetGame} className="back-button">← 種類を選び直す</button>
+        <h1>{selectedCategory}</h1>
+      </div>
+      
       <div className="card">
         {currentPhrase && (
           <div className="yomifuda-container">
@@ -104,10 +156,10 @@ function App() {
         )}
 
         <div className="button-group">
-          <button onClick={playKaruta} disabled={loading}>
+          <button onClick={playKaruta} disabled={loading} className="main-button">
             {loading ? "読み込み中..." : "次の札を読み上げる"}
           </button>
-          <button onClick={repeatPhrase} disabled={loading || !currentPhrase}>
+          <button onClick={repeatPhrase} disabled={loading || !currentPhrase} className="sub-button">
             もう一度読み上げる
           </button>
         </div>

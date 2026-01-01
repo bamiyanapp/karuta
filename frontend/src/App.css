@@ -50,6 +50,64 @@ h1 {
   justify-content: center;
   margin-top: 20px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.category-selection {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #fffaf0;
+  border-radius: 12px;
+  border: 2px solid #2d5a27;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.category-button {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background-color: #e44d26;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-weight: bold;
+}
+
+.category-button:hover {
+  background-color: #d33d16;
+  transform: scale(1.05);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  position: absolute;
+  left: 0;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background-color: #ddd;
 }
 
 .yomifuda-container {
