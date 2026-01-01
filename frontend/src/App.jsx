@@ -20,8 +20,20 @@ function App() {
         setAudioUrl(data.audioUrl);
         
         // 音声を再生
-        const audio = new Audio(data.audioUrl);
-        audio.play();
+        console.log("Playing audio from:", data.audioUrl);
+        const audio = new Audio();
+        audio.src = data.audioUrl;
+        audio.oncanplaythrough = () => {
+          audio.play().catch(e => {
+            console.error("Playback failed:", e);
+            alert("再生に失敗しました。ブラウザの自動再生設定を確認してください。");
+          });
+        };
+        audio.onerror = (e) => {
+          console.error("Audio loading error:", audio.error);
+          alert(`音声の読み込みに失敗しました (Error Code: ${audio.error?.code})`);
+        };
+        audio.load();
       } else {
         alert("エラーが発生しました: " + data.message);
       }

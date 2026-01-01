@@ -44,6 +44,7 @@ exports.getPhrase = async (event) => {
     
     // getSignedUrlを確実に実行する
     const url = await getSignedUrl(pollyClient, command, { expiresIn: 300 });
+    console.log("Generated URL (first 100 chars):", url.substring(0, 100));
 
     return {
       statusCode: 200,
