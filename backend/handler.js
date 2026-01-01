@@ -26,11 +26,13 @@ exports.getPhrase = async (event) => {
     // 2. ランダムに1つ選択
     const randomIndex = Math.floor(Math.random() * items.length);
     const selectedItem = items[randomIndex];
-    const text = selectedItem.phrase;
+    const level = selectedItem.level;
+    const phrase = selectedItem.phrase;
+    const speechText = `ピンチレベル、${level}。${phrase}`;
 
     // 3. Pollyで音声を生成し、バイナリを直接取得する
     const pollyParams = {
-      Text: text,
+      Text: speechText,
       OutputFormat: "mp3",
       VoiceId: "Mizuki",
       Engine: "standard"
@@ -51,7 +53,8 @@ exports.getPhrase = async (event) => {
       },
       body: JSON.stringify({
         id: selectedItem.id,
-        phrase: text,
+        phrase: phrase,
+        level: level,
         audioData: `data:audio/mp3;base64,${base64Audio}`,
       }),
     };

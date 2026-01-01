@@ -37,6 +37,56 @@
   padding: 2em;
 }
 
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.phrase-container {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  color: #333;
+}
+
+.pinch-level {
+  font-weight: bold;
+  color: #e44d26;
+  margin-bottom: 5px;
+}
+
+.phrase-text {
+  font-size: 1.2em;
+}
+
+.history {
+  margin-top: 40px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.history ul {
+  list-style: none;
+  padding: 0;
+}
+
+.history li {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.history-level {
+  font-weight: bold;
+  color: #e44d26;
+  margin-right: 10px;
+}
+
 .read-the-docs {
   color: #888;
+  margin-top: 40px;
 }
