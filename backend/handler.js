@@ -15,16 +15,28 @@ exports.getPhrase = async (event) => {
       TableName: process.env.TABLE_NAME,
     };
     
-    // カテゴリが指定されている場合はフィルタリング（ScanでのFilterExpressionはコストがかかるが、小規模なので許容）
-    if (category) {
-      scanParams.FilterExpression = "category = :category";
-      scanParams.ExpressionAttributeValues = {
-        ":category": category,
-      };
-    }
-
+    // 全件取得してからメモリ上でフィルタリングする（確実性の向上とデバッグのため）
     const scanResult = await docClient.send(new ScanCommand(scanParams));
-    const items = scanResult.Items;
+    let items = scanResult.Items || [];
+
+    console.log(`Total items in DB: ${items.length}`);
+    if (items.length > 0) {
+      console.log(`First item category sample: '${items[0].category}'`);
+    }
+    console.log(`Requested category: '${category}'`);
+
+    if (category) {
+      const filteredItems = items.filter(item => item.category === category);
+      console.log(`Filtered items count: ${filteredItems.length}`);
+      
+      // もしフィルタリングで0件になったが、全件にはデータがある場合、カテゴリ名の不一致を疑う
+      if (filteredItems.length === 0 && items.length > 0) {
+        console.warn("Category mismatch detected. Attempting loose matching...");
+        items = items.filter(item => (item.category || "").trim() === category.trim());
+      } else {
+        items = filteredItems;
+      }
+    }
 
     if (!items || items.length === 0) {
       return {
