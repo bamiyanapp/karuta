@@ -3,7 +3,11 @@ import "./App.css";
 
 function App() {
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    // 初回ロード時にURLパラメータからカテゴリを取得
+    const params = new URLSearchParams(window.location.search);
+    return params.get("category");
+  });
   const [currentPhrase, setCurrentPhrase] = useState(null);
   const [loading, setLoading] = useState(false);
   const [readPhrases, setReadPhrases] = useState([]);
@@ -105,6 +109,28 @@ function App() {
       }
     }
   };
+
+  // URLパラメータと状態を同期させる
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (selectedCategory) {
+      params.set("category", selectedCategory);
+      window.history.pushState({}, "", `?${params.toString()}`);
+    } else {
+      params.delete("category");
+      window.history.pushState({}, "", window.location.pathname);
+    }
+  }, [selectedCategory]);
+
+  // ブラウザの「戻る」「進む」に対応
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedCategory(params.get("category"));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const resetGame = () => {
     setSelectedCategory(null);
