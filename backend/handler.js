@@ -1,7 +1,7 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
-const pollyPresigner = require("@aws-sdk/polly-request-presigner");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -42,9 +42,8 @@ exports.getPhrase = async (event) => {
 
     const command = new SynthesizeSpeechCommand(pollyParams);
     
-    // getSignedUrlを確実に取得する
-    const getSignedUrlFunc = pollyPresigner.getSignedUrl || pollyPresigner;
-    const url = await getSignedUrlFunc(pollyClient, command, { expiresIn: 300 });
+    // getSignedUrlを確実に実行する
+    const url = await getSignedUrl(pollyClient, command, { expiresIn: 300 });
 
     return {
       statusCode: 200,
