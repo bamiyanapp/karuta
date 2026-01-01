@@ -1,7 +1,11 @@
 #root {
   font-family: 'M PLUS Rounded 1c', sans-serif;
   width: 100%;
-  margin: 0 auto;
+}
+
+/* ページ全体の中央寄せを保証 */
+.container {
+  max-width: 800px; /* PCで見やすい幅に制限 */
 }
 
 /* カルタ固有のデザイン（Bootstrapで表現しにくい部分） */
@@ -23,6 +27,8 @@
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .yomifuda-kana {
