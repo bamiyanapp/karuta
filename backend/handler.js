@@ -52,9 +52,10 @@ exports.getPhrase = async (event) => {
     const level = selectedItem.level;
     const phrase = selectedItem.phrase;
 
-    // レベルが "-" または数値以外の場合は読み上げない
-    const isLevelValid = level !== "-" && level !== null && level !== undefined && !isNaN(Number(level));
-    const speechText = isLevelValid ? `レベル、${level}。${phrase}` : phrase;
+    // レベルが "-" でない、かつ有効な値であれば読み上げる
+    // 文字列（上級、初級など）も読み上げ対象とする
+    const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
+    const speechText = hasLevel ? `レベル、${level}。${phrase}` : phrase;
 
     // 3. Pollyで音声を生成し、バイナリを直接取得する
     const pollyParams = {
