@@ -32,8 +32,14 @@ jobs:
           cd frontend
           npm run build
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
           publish_dir: ./frontend/dist
+          # cname: example.com  # 独自ドメインを使う場合はこちらを設定
+      - name: Show GitHub Pages URL
+        run: |
+          echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
