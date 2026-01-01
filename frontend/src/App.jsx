@@ -28,7 +28,7 @@ function App() {
   const playKaruta = async () => {
     setLoading(true);
     // 0.5秒スリープ
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     try {
       const apiUrl = "https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase";
