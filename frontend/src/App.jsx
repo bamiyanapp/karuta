@@ -135,7 +135,7 @@ function App() {
   // カテゴリ選択画面
   if (!selectedCategory) {
     return (
-      <div className="container py-5">
+      <div className="container py-5 mx-auto">
         <header className="text-center mb-5">
           <h1 className="display-4 fw-bold">カルタ読み上げアプリ</h1>
         </header>
@@ -165,7 +165,7 @@ function App() {
 
   // カルタプレイ画面
   return (
-    <div className="container py-4">
+    <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
         <h1 className="h2 fw-bold">{selectedCategory}</h1>
       </header>

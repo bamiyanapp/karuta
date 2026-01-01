@@ -1,5 +1,7 @@
 #root {
   font-family: 'M PLUS Rounded 1c', sans-serif;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* カルタ固有のデザイン（Bootstrapで表現しにくい部分） */
