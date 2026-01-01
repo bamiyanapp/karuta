@@ -94,9 +94,18 @@ function App() {
         </div>
 
         {currentPhrase && (
-          <div className="phrase-container">
-            <p className="pinch-level">ピンチレベル: {currentPhrase.level}</p>
-            <p className="phrase-text">{currentPhrase.phrase}</p>
+          <div className="yomifuda-container">
+            <div className="yomifuda">
+              <div className="yomifuda-kana">
+                <span>{currentPhrase.kana || currentPhrase.phrase[0]}</span>
+              </div>
+              <div className="yomifuda-phrase">
+                {currentPhrase.phrase}
+              </div>
+              <div className="yomifuda-level">
+                ピンチレベル: {currentPhrase.level}
+              </div>
+            </div>
           </div>
         )}
       </div>
