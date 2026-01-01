@@ -43,6 +43,7 @@ pnpm-lock.yaml
 # Large data files
 # =========================
 *.csv
+!package.json
 *.json
 
 # =========================
