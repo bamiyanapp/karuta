@@ -94,7 +94,15 @@ exports.getCategories = async (event) => {
     const items = scanResult.Items || [];
     
     // 重複を排除してカテゴリ名のリストを作成
-    const categories = [...new Set(items.map(item => item.category))];
+    let categories = [...new Set(items.map(item => item.category || "大ピンチ図鑑"))];
+    
+    // 空文字やnullを除外
+    categories = categories.filter(cat => !!cat);
+    
+    // それでも空ならデフォルトを返す
+    if (categories.length === 0) {
+      categories = ["大ピンチ図鑑"];
+    }
 
     return {
       statusCode: 200,

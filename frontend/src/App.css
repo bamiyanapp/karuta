@@ -107,6 +107,13 @@ button:disabled {
   margin-bottom: 20px;
 }
 
+.loading-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2d5a27;
+  padding: 20px;
+}
+
 .category-buttons {
   display: flex;
   flex-wrap: wrap;

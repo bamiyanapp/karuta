@@ -121,7 +121,7 @@ function App() {
           <h2>カルタの種類を選んでね</h2>
           <div className="category-buttons">
             {categories.length === 0 ? (
-              <p>読み込み中...</p>
+              <p className="loading-text">読み込み中...</p>
             ) : (
               categories.map(cat => (
                 <button key={cat} onClick={() => setSelectedCategory(cat)} className="category-button">
