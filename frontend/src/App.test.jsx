@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Mock Audio
-global.Audio = vi.fn().mockImplementation(() => ({
+window.Audio = vi.fn().mockImplementation(() => ({
   play: vi.fn().mockResolvedValue(),
   load: vi.fn(),
   // Simulate successful loading
