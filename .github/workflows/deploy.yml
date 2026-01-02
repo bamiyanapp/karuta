@@ -1,37 +1,74 @@
-name: Deploy to GitHub Pages
+name: Deploy (with Tests)
 
 on:
   push:
     branches:
-      - main # または使用しているデフォルトブランチ名
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy-frontend:
+  frontend-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Test
+        working-directory: frontend
+        run: npm test -- --run
+      - name: Build
+        working-directory: frontend
+        run: npm run build
 
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Test
+        working-directory: backend
+        run: npm test -- --run
+
+  build-and-deploy-frontend:
+    needs: frontend-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
-
+        working-directory: frontend
+        run: npm ci
       - name: Build
-        run: |
-          cd frontend
-          npm run build
-
+        working-directory: frontend
+        run: npm run build
       - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3
@@ -39,41 +76,34 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./frontend/dist
-          # cname: example.com  # 独自ドメインを使う場合はこちらを設定
       - name: Show GitHub Pages URL
         run: |
           echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
 
   deploy-backend:
+    needs: backend-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
-
       - name: Install dependencies
-        run: |
-          cd backend
-          npm install
-
+        working-directory: backend
+        run: npm ci
       - name: 🚀 Deploy Backend (Serverless Framework)
-        run: |
-          cd backend
-          npx serverless deploy
+        working-directory: backend
+        run: npx serverless deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - name: 🌱 Seed Database
-        run: |
-          cd backend
-          node seed.js
+        working-directory: backend
+        run: node seed.js
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
