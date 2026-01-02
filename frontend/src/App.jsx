@@ -404,7 +404,12 @@ function App() {
               <div className="text-success fw-bold p-3">読み込み中...</div>
             ) : (
               categories.map(cat => (
-                <button key={cat} onClick={() => handleCategoryClick(cat)} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm" style={{ backgroundColor: "#e44d26", color: "white" }}>
+                <button 
+                  key={cat} 
+                  onClick={() => handleCategoryClick(cat)} 
+                  className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate" 
+                  style={{ backgroundColor: "#e44d26", color: "white" }}
+                >
                   {cat}
                 </button>
               ))
@@ -444,7 +449,7 @@ function App() {
         <header className="text-center mb-4 border-bottom pb-3">
           <div className="d-flex justify-content-between align-items-center">
             <button onClick={closeDetail} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold">{selectedCategory} の詳細</h1>
+            <h1 className="h4 m-0 fw-bold notranslate">{selectedCategory} の詳細</h1>
             <div style={{ width: "60px" }}></div>
           </div>
         </header>
@@ -500,7 +505,7 @@ function App() {
   return (
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
-        <h1 className="h2 fw-bold text-dark">{selectedCategory}</h1>
+        <h1 className="h2 fw-bold text-dark notranslate">{selectedCategory}</h1>
       </header>
       
       <main className="text-center">
