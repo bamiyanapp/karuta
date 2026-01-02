@@ -484,7 +484,7 @@ function App() {
                 <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button">
                   <div className="yomifuda-kana"><span>{detailPhrase.kana || (detailPhrase.phrase && detailPhrase.phrase[0])}</span></div>
                   <div className="yomifuda-phrase">{detailPhrase.phrase}</div>
-                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en" style={{ fontSize: "1.0em", color: "#666", marginTop: "0.5rem" }}>{detailPhrase.phrase_en}</div>}
+                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en" style={{ fontSize: "1.5em", color: "#666", marginTop: "0.5rem" }}>{detailPhrase.phrase_en}</div>}
                   {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
                 </div>
               </div>
