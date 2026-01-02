@@ -7,6 +7,7 @@ provider:
   environment:
     TABLE_NAME: ${self:custom.tableName}
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
+    POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
   iam:
     role:
       statements:
@@ -19,6 +20,7 @@ provider:
           Resource: 
             - !GetAtt KarutaTable.Arn
             - !GetAtt CommentsTable.Arn
+            - !GetAtt PollyCacheTable.Arn # 追加
         - Effect: Allow
           Action:
             - polly:SynthesizeSpeech
@@ -27,6 +29,7 @@ provider:
 custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
+  pollyCacheTableName: karuta-polly-cache # 追加
 
 functions:
   getPhrase:
@@ -89,6 +92,17 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:custom.commentsTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    PollyCacheTable: # 追加
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.pollyCacheTableName}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
