@@ -55,11 +55,23 @@ exports.getPhrase = async (event) => {
     // レベルが "-" でない、かつ有効な値であれば読み上げる
     // 文字列（上級、初級など）も読み上げ対象とする
     const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
-    const speechText = hasLevel ? `レベル、${level}。${phrase}` : phrase;
+    const phraseWithLevel = hasLevel ? `レベル、${level}。${phrase}` : phrase;
+
+    // 2回繰り返し、スピードを少し落とすための SSML
+    const ssmlText = `
+      <speak>
+        <prosody rate="90%">
+          ${phraseWithLevel}
+          <break time="1500ms"/>
+          ${phraseWithLevel}
+        </prosody>
+      </speak>
+    `.trim();
 
     // 3. Pollyで音声を生成し、バイナリを直接取得する
     const pollyParams = {
-      Text: speechText,
+      Text: ssmlText,
+      TextType: "ssml", // SSMLを使用
       OutputFormat: "mp3",
       VoiceId: "Mizuki",
       Engine: "standard"
