@@ -12,6 +12,7 @@ yarn.lock
 dist/
 build/
 out/
+*/coverage/
 
 # IDE
 .vscode/
