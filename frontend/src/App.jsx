@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import "./App.css";
 
+const API_BASE_URL = "https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev";
+
 function App() {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(() => {
@@ -51,7 +53,7 @@ function App() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-categories");
+        const response = await fetch(`${API_BASE_URL}/get-categories`);
         const data = await response.json();
         if (response.ok) {
           const availableCategories = data.categories || [];
@@ -63,9 +65,9 @@ function App() {
             }
           }
         }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
+    } catch {
+      alert("送信に失敗しました。");
+    }
     };
     fetchCategories();
   }, [selectedCategory, view]);
@@ -79,7 +81,7 @@ function App() {
 
     const fetchPhrasesList = async () => {
       try {
-        const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrases-list?category=${encodeURIComponent(selectedCategory)}`);
+        const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(selectedCategory)}`);
         const data = await response.json();
         if (response.ok) {
           setAllPhrasesForCategory(data.phrases || []);
@@ -96,7 +98,7 @@ function App() {
     if (detailPhraseId) {
       const fetchDetail = async () => {
         try {
-          const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${detailPhraseId}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
+          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
           const data = await response.json();
           if (response.ok) {
             setDetailPhrase(data);
@@ -116,7 +118,7 @@ function App() {
     if (view === "comments") {
       const fetchComments = async () => {
         try {
-          const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-comments");
+          const response = await fetch(`${API_BASE_URL}/get-comments`);
           const data = await response.json();
           if (response.ok) {
             setAllComments(data.comments || []);
@@ -140,7 +142,7 @@ function App() {
         });
       };
       audio.onended = () => resolve();
-      audio.onerror = (e) => {
+      audio.onerror = () => {
         console.error("Audio loading error:", audio.error);
         reject(audio.error);
       };
@@ -179,7 +181,7 @@ function App() {
       const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
       const targetPhrase = unreadPhrases[randomIndex];
 
-      const apiUrl = `https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
+      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
       const response = await fetch(apiUrl);
       const data = await response.json();
       
@@ -218,7 +220,7 @@ function App() {
       try {
         await playIntroSound();
         await playAudio(target.audioData);
-      } catch (error) {
+      } catch {
         alert("再生成に失敗しました。");
       }
     }
@@ -226,13 +228,13 @@ function App() {
 
   const playCongratulationAudio = async () => {
     try {
-      const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
+      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
       const data = await response.json();
       if (response.ok) {
         await playAudio(data.audioData);
       }
-    } catch (error) {
-      console.error("Error playing congratulation audio:", error);
+    } catch {
+      alert("送信に失敗しました。");
     }
   };
 
@@ -242,7 +244,7 @@ function App() {
 
     setPostingComment(true);
     try {
-      const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/post-comment", {
+      const response = await fetch(`${API_BASE_URL}/post-comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -259,7 +261,7 @@ function App() {
       } else {
         throw new Error("Failed to post comment");
       }
-    } catch (error) {
+    } catch {
       alert("送信に失敗しました。");
     } finally {
       setPostingComment(false);
@@ -304,7 +306,7 @@ function App() {
 
   useEffect(() => {
     if (view === "comments") {
-      document.title = "指摘一覧 | かるた読み上げアプリ";
+      document.title = "指摘一覧 | カルタ読み上げアプリ";
     } else if (detailPhraseId && detailPhrase) {
       document.title = `${detailPhrase.phrase} | ${selectedCategory}`;
     } else if (selectedCategory) {
@@ -428,8 +430,7 @@ function App() {
                 <button 
                   key={cat} 
                   onClick={() => handleCategoryClick(cat)} 
-                  className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate" 
-                  style={{ backgroundColor: "#e44d26", color: "white" }}
+                  className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta" 
                 >
                   {cat}
                 </button>
@@ -445,7 +446,7 @@ function App() {
         </div>
 
         {showConfirmModal && (
-          <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal fade show d-block modal-overlay" tabIndex="-1">
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content rounded-4 border-0 shadow">
                 <div className="modal-body p-5 text-center">
@@ -484,15 +485,14 @@ function App() {
                 <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button">
                   <div className="yomifuda-kana"><span>{detailPhrase.kana || (detailPhrase.phrase && detailPhrase.phrase[0])}</span></div>
                   <div className="yomifuda-phrase">{detailPhrase.phrase}</div>
-                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en" style={{ fontSize: "1.5em", color: "#666", marginTop: "0.5rem" }}>{detailPhrase.phrase_en}</div>}
+                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en">{detailPhrase.phrase_en}</div>}
                   {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
                 </div>
               </div>
               <div className="mb-5">
                 <button 
                   onClick={repeatPhrase} 
-                  className="btn btn-lg px-5 py-3 fw-bold rounded-pill shadow"
-                  style={{ backgroundColor: "#e44d26", color: "white" }}
+                  className="btn btn-lg px-5 py-3 fw-bold rounded-pill shadow btn-karuta"
                 >
                   読み上げる
                 </button>
@@ -549,7 +549,7 @@ function App() {
               </div>
             )}
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-              <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow" style={{ backgroundColor: "#e44d26", color: "white" }}>
+              <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
                 {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
                 {loading ? "読み込み中..." : "次の札を読み上げる"}
               </button>
