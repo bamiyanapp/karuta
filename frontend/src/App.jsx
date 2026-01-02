@@ -449,10 +449,10 @@ function App() {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content rounded-4 border-0 shadow">
                 <div className="modal-body p-5 text-center">
-                  <h3 className="h4 mb-4 fw-bold">「{pendingCategory}」をお手元に持っていますか？</h3>
-                  <div className="d-flex gap-3 justify-content-center">
-                    <button onClick={confirmCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">はい</button>
-                    <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-5 rounded-pill">いいえ</button>
+                  <h3 className="h5 mb-4 fw-bold">「{pendingCategory}」をお手元に持っていますか？</h3>
+                  <div className="d-flex gap-2 justify-content-center">
+                    <button onClick={confirmCategory} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">はい</button>
+                    <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">いいえ</button>
                   </div>
                 </div>
               </div>
@@ -484,7 +484,7 @@ function App() {
                 <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button">
                   <div className="yomifuda-kana"><span>{detailPhrase.kana || (detailPhrase.phrase && detailPhrase.phrase[0])}</span></div>
                   <div className="yomifuda-phrase">{detailPhrase.phrase}</div>
-                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en" style={{ fontSize: "0.8em", color: "#666", marginTop: "0.5rem" }}>{detailPhrase.phrase_en}</div>}
+                  {detailPhrase.phrase_en && <div className="yomifuda-phrase-en" style={{ fontSize: "1.0em", color: "#666", marginTop: "0.5rem" }}>{detailPhrase.phrase_en}</div>}
                   {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
                 </div>
               </div>
