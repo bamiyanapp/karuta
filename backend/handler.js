@@ -172,7 +172,10 @@ exports.getPhrase = async (event) => {
     // 2. DynamoDBから取得
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "id, category, phrase, level, kana, phrase_en", // phrase_enを追加
+      ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en", // phrase_enを追加
+      ExpressionAttributeNames: {
+        "#lvl": "level",
+      },
     };
     
     const scanResult = await docClient.send(new ScanCommand(scanParams));
