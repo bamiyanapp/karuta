@@ -241,8 +241,8 @@ function App() {
           <img 
             src="favicon.png" 
             alt="カルタのアイコン" 
-            className="mb-4 shadow-sm rounded-circle" 
-            style={{ width: "120px", height: "120px", objectFit: "cover" }}
+            className="mb-4" 
+            style={{ width: "120px", height: "auto" }}
           />
           <h1 className="display-4 fw-bold">カルタ読み上げアプリ</h1>
         </header>
