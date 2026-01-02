@@ -8,12 +8,18 @@ function App() {
     return params.get("category");
   });
   
-  // 詳細表示用の状態
   const [detailPhraseId, setDetailPhraseId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("id");
   });
   const [detailPhrase, setDetailPhrase] = useState(null);
+
+  // 指摘一覧表示用の状態
+  const [view, setView] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("view") || "game";
+  });
+  const [allComments, setAllComments] = useState([]);
 
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]); 
   const [currentPhrase, setCurrentPhrase] = useState(null);
@@ -30,6 +36,10 @@ function App() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingCategory, setPendingCategory] = useState(null);
 
+  // コメント投稿用の状態
+  const [commentText, setCommentText] = useState("");
+  const [postingComment, setPostingComment] = useState(false);
+
   const currentHistory = useMemo(() => {
     return selectedCategory ? (historyByCategory[selectedCategory] || []) : [];
   }, [selectedCategory, historyByCategory]);
@@ -44,7 +54,7 @@ function App() {
           const availableCategories = data.categories || [];
           setCategories(availableCategories);
 
-          if (selectedCategory && availableCategories.length > 0) {
+          if (selectedCategory && availableCategories.length > 0 && view === "game") {
             if (!availableCategories.includes(selectedCategory)) {
               setSelectedCategory(null);
             }
@@ -55,7 +65,7 @@ function App() {
       }
     };
     fetchCategories();
-  }, [selectedCategory]);
+  }, [selectedCategory, view]);
 
   // カテゴリが選択されたら、そのカテゴリの全札IDリストを取得する
   useEffect(() => {
@@ -97,6 +107,24 @@ function App() {
       setDetailPhrase(null);
     }
   }, [detailPhraseId, repeatCount, speechRate]);
+
+  // 指摘一覧の取得
+  useEffect(() => {
+    if (view === "comments") {
+      const fetchComments = async () => {
+        try {
+          const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-comments");
+          const data = await response.json();
+          if (response.ok) {
+            setAllComments(data.comments || []);
+          }
+        } catch (error) {
+          console.error("Error fetching comments:", error);
+        }
+      };
+      fetchComments();
+    }
+  }, [view]);
 
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
@@ -191,6 +219,36 @@ function App() {
     }
   };
 
+  const postComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    setPostingComment(true);
+    try {
+      const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/post-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phraseId: detailPhrase.id,
+          category: selectedCategory,
+          phrase: detailPhrase.phrase,
+          comment: commentText,
+        }),
+      });
+
+      if (response.ok) {
+        alert("指摘内容を送信しました。ありがとうございます。");
+        setCommentText("");
+      } else {
+        throw new Error("Failed to post comment");
+      }
+    } catch (error) {
+      alert("送信に失敗しました。");
+    } finally {
+      setPostingComment(false);
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (selectedCategory) {
@@ -205,30 +263,39 @@ function App() {
       params.delete("id");
     }
 
+    if (view === "comments") {
+      params.set("view", "comments");
+    } else {
+      params.delete("view");
+    }
+
     const newSearch = params.toString();
     const url = newSearch ? `?${newSearch}` : window.location.pathname;
     window.history.pushState({}, "", url);
-  }, [selectedCategory, detailPhraseId]);
+  }, [selectedCategory, detailPhraseId, view]);
 
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       setSelectedCategory(params.get("category"));
       setDetailPhraseId(params.get("id"));
+      setView(params.get("view") || "game");
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   useEffect(() => {
-    if (detailPhraseId && detailPhrase) {
+    if (view === "comments") {
+      document.title = "指摘一覧 | カルタ読み上げアプリ";
+    } else if (detailPhraseId && detailPhrase) {
       document.title = `${detailPhrase.phrase} | ${selectedCategory}`;
     } else if (selectedCategory) {
       document.title = selectedCategory;
     } else {
       document.title = "カルタ読み上げアプリ";
     }
-  }, [selectedCategory, detailPhraseId, detailPhrase]);
+  }, [selectedCategory, detailPhraseId, detailPhrase, view]);
 
   useEffect(() => {
     localStorage.setItem("repeatCount", repeatCount.toString());
@@ -243,6 +310,7 @@ function App() {
     setCurrentPhrase(null);
     setDetailPhraseId(null);
     setIsAllRead(false);
+    setView("game");
   };
 
   const restartCategory = () => {
@@ -263,6 +331,7 @@ function App() {
     setSelectedCategory(pendingCategory);
     setShowConfirmModal(false);
     setPendingCategory(null);
+    setView("game");
   };
 
   const cancelCategory = () => {
@@ -279,39 +348,75 @@ function App() {
     setDetailPhraseId(null);
   };
 
+  // 指摘一覧画面
+  if (view === "comments") {
+    return (
+      <div className="container py-4 mx-auto">
+        <header className="text-center mb-5 border-bottom pb-3">
+          <div className="d-flex justify-content-between align-items-center">
+            <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+            <h1 className="h2 fw-bold m-0 text-dark">指摘された内容一覧</h1>
+            <div style={{ width: "60px" }}></div>
+          </div>
+        </header>
+
+        <main className="mx-auto" style={{ maxWidth: "800px" }}>
+          {allComments.length === 0 ? (
+            <p className="text-muted text-center py-5">まだ指摘はありません。</p>
+          ) : (
+            <div className="row g-4">
+              {allComments.map(c => (
+                <div key={c.id} className="col-12">
+                  <div className="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div className="card-body p-4">
+                      <div className="d-flex justify-content-between align-items-start mb-3">
+                        <span className="badge bg-secondary rounded-pill">{c.category}</span>
+                        <small className="text-muted">{new Date(c.createdAt).toLocaleString()}</small>
+                      </div>
+                      <h5 className="card-title fw-bold text-dark mb-3">「{c.phrase}」</h5>
+                      <div className="p-3 bg-light rounded-3 border-start border-4 border-danger">
+                        <p className="card-text mb-0 text-dark">{c.comment}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
   // カテゴリ選択画面
   if (!selectedCategory) {
     return (
       <div className="container py-5 mx-auto">
         <header className="text-center mb-5">
-          <img 
-            src="favicon.png" 
-            alt="カルタのアイコン" 
-            className="mb-4" 
-            style={{ width: "120px", height: "auto" }}
-          />
+          <img src="favicon.png" alt="カルタのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
           <h1 className="display-4 fw-bold">カルタ読み上げアプリ</h1>
         </header>
         
-        <main className="category-selection-container p-4 mx-auto" style={{ maxWidth: "600px" }}>
+        <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
           <h2 className="h4 text-center mb-4 text-dark">カルタの種類を選んでね</h2>
           <div className="d-flex flex-wrap gap-3 justify-content-center">
             {categories.length === 0 ? (
               <div className="text-success fw-bold p-3">読み込み中...</div>
             ) : (
               categories.map(cat => (
-                <button 
-                  key={cat} 
-                  onClick={() => handleCategoryClick(cat)} 
-                  className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm"
-                  style={{ backgroundColor: "#e44d26", color: "white" }}
-                >
+                <button key={cat} onClick={() => handleCategoryClick(cat)} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm" style={{ backgroundColor: "#e44d26", color: "white" }}>
                   {cat}
                 </button>
               ))
             )}
           </div>
         </main>
+
+        <div className="text-center">
+          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted">
+            指摘された内容の一覧を確認する →
+          </button>
+        </div>
 
         {showConfirmModal && (
           <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
@@ -320,12 +425,8 @@ function App() {
                 <div className="modal-body p-5 text-center">
                   <h3 className="h4 mb-4 fw-bold">「{pendingCategory}」をお手元に持っていますか？</h3>
                   <div className="d-flex gap-3 justify-content-center">
-                    <button onClick={confirmCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
-                      はい
-                    </button>
-                    <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-5 rounded-pill">
-                      いいえ
-                    </button>
+                    <button onClick={confirmCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">はい</button>
+                    <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-5 rounded-pill">いいえ</button>
                   </div>
                 </div>
               </div>
@@ -343,7 +444,7 @@ function App() {
         <header className="text-center mb-4 border-bottom pb-3">
           <div className="d-flex justify-content-between align-items-center">
             <button onClick={closeDetail} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold">{selectedCategory} の説明</h1>
+            <h1 className="h4 m-0 fw-bold">{selectedCategory} の詳細</h1>
             <div style={{ width: "60px" }}></div>
           </div>
         </header>
@@ -352,32 +453,37 @@ function App() {
           {!detailPhrase ? (
             <div className="p-5 text-muted">読み込み中...</div>
           ) : (
-            <>
+            <div className="mx-auto" style={{ maxWidth: "600px" }}>
               <div className="d-flex justify-content-center mb-4">
-                <div 
-                  className="yomifuda shadow-lg" 
-                  onClick={repeatPhrase}
-                  role="button"
-                >
-                  <div className="yomifuda-kana">
-                    <span>{detailPhrase.kana || detailPhrase.phrase[0]}</span>
-                  </div>
-                  <div className="yomifuda-phrase">
-                    {detailPhrase.phrase}
-                  </div>
-                  {detailPhrase.level !== "-" && (
-                    <div className="yomifuda-level fw-bold">
-                      レベル: {detailPhrase.level}
-                    </div>
-                  )}
+                <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button">
+                  <div className="yomifuda-kana"><span>{detailPhrase.kana || detailPhrase.phrase[0]}</span></div>
+                  <div className="yomifuda-phrase">{detailPhrase.phrase}</div>
+                  {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
                 </div>
               </div>
               <div className="mb-5">
-                <button onClick={repeatPhrase} className="btn btn-primary btn-lg px-5 rounded-pill shadow">
-                  読み上げる
-                </button>
+                <button onClick={repeatPhrase} className="btn btn-primary btn-lg px-5 rounded-pill shadow">読み上げる</button>
               </div>
-            </>
+
+              <section className="comment-form-container text-start p-4 bg-light rounded-4 shadow-sm border">
+                <h2 className="h5 fw-bold mb-3 text-dark">カルタの誤りを指摘する</h2>
+                <form onSubmit={postComment}>
+                  <div className="mb-3">
+                    <textarea 
+                      className="form-control rounded-3" 
+                      rows="3" 
+                      placeholder="例：かなが間違っている、フレーズが違うなど"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" disabled={postingComment} className="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm">
+                    {postingComment ? "送信中..." : "指摘内容を送信する"}
+                  </button>
+                </form>
+              </section>
+            </div>
           )}
         </main>
       </div>
@@ -388,7 +494,7 @@ function App() {
   return (
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
-        <h1 className="h2 fw-bold">{selectedCategory}</h1>
+        <h1 className="h2 fw-bold text-dark">{selectedCategory}</h1>
       </header>
       
       <main className="text-center">
@@ -396,76 +502,43 @@ function App() {
           <div className="alert alert-success py-5 mb-5 shadow-sm rounded-4 border-0">
             <h2 className="display-5 fw-bold mb-3">🎉 おめでとう！ 🎉</h2>
             <p className="lead mb-4">すべての札を読み上げました！</p>
-            <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">
-              もう一度最初から遊ぶ
-            </button>
+            <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">もう一度最初から遊ぶ</button>
           </div>
         ) : (
           <>
             {currentPhrase && (
               <div className="d-flex justify-content-center mb-4">
-                <div 
-                  className="yomifuda shadow-lg" 
-                  onClick={repeatPhrase}
-                  role="button"
-                  aria-label="もう一度読み上げる"
-                >
-                  <div className="yomifuda-kana">
-                    <span>{currentPhrase.kana || currentPhrase.phrase[0]}</span>
-                  </div>
-                  <div className="yomifuda-phrase">
-                    {currentPhrase.phrase}
-                  </div>
-                  {currentPhrase.level !== "-" && (
-                    <div className="yomifuda-level fw-bold">
-                      レベル: {currentPhrase.level}
-                    </div>
-                  )}
+                <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button" aria-label="もう一度読み上げる">
+                  <div className="yomifuda-kana"><span>{currentPhrase.kana || currentPhrase.phrase[0]}</span></div>
+                  <div className="yomifuda-phrase">{currentPhrase.phrase}</div>
+                  {currentPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {currentPhrase.level}</div>}
                 </div>
               </div>
             )}
-
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-              <button 
-                onClick={playKaruta} 
-                disabled={loading} 
-                className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow"
-                style={{ backgroundColor: "#e44d26", color: "white" }}
-              >
-                {loading ? (
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                ) : null}
+              <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow" style={{ backgroundColor: "#e44d26", color: "white" }}>
+                {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
                 {loading ? "読み込み中..." : "次の札を読み上げる"}
               </button>
-              <button 
-                onClick={repeatPhrase} 
-                disabled={loading || !currentPhrase} 
-                className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-dark bg-white text-dark shadow-sm"
-              >
-                もう一度読み上げる
-              </button>
+              <button onClick={repeatPhrase} disabled={loading || !currentPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-dark bg-white text-dark shadow-sm">もう一度読み上げる</button>
             </div>
           </>
         )}
       </main>
 
       <section className="history mx-auto" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 fw-bold mb-3 border-bottom pb-2">これまでに読み上げた札</h2>
+        <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
         {currentHistory.length === 0 ? (
           <p className="text-muted text-center py-3">まだ読み上げた札はありません。</p>
         ) : (
           <div className="list-group shadow-sm rounded">
             {currentHistory.map((p, index) => (
-              <button 
-                key={`${p.id}-${currentHistory.length - index}`} 
-                onClick={() => openDetail(p.id)}
-                className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
-              >
+              <button key={`${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
                 <div>
                   {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
                   <span className="text-dark">{p.phrase}</span>
                 </div>
-                <span className="text-primary small">詳細 →</span>
+                <span className="text-primary small">詳細・報告 →</span>
               </button>
             ))}
           </div>
@@ -490,7 +563,6 @@ function App() {
             </div>
           </div>
         </section>
-
         <p className="text-muted small mb-4">リロードすると履歴はリセットされます。</p>
         <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">カルタの種類を選び直す</button>
       </footer>

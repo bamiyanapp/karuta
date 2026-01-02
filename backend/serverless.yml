@@ -6,6 +6,7 @@ provider:
   region: ap-northeast-1
   environment:
     TABLE_NAME: ${self:custom.tableName}
+    COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
   iam:
     role:
       statements:
@@ -14,7 +15,10 @@ provider:
             - dynamodb:Scan
             - dynamodb:Query
             - dynamodb:GetItem
-          Resource: !GetAtt KarutaTable.Arn
+            - dynamodb:PutItem
+          Resource: 
+            - !GetAtt KarutaTable.Arn
+            - !GetAtt CommentsTable.Arn
         - Effect: Allow
           Action:
             - polly:SynthesizeSpeech
@@ -22,6 +26,7 @@ provider:
 
 custom:
   tableName: karuta-phrases
+  commentsTableName: karuta-comments
 
 functions:
   getPhrase:
@@ -52,6 +57,20 @@ functions:
           path: get-phrases-list
           method: get
           cors: true
+  postComment:
+    handler: handler.postComment
+    events:
+      - http:
+          path: post-comment
+          method: post
+          cors: true
+  getComments:
+    handler: handler.getComments
+    events:
+      - http:
+          path: get-comments
+          method: get
+          cors: true
 
 resources:
   Resources:
@@ -59,6 +78,17 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    CommentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.commentsTableName}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
