@@ -147,31 +147,10 @@ exports.getPhrase = async (event) => {
     const rawSpeechRate = params.speechRate || "90%";
     const speechRate = normalizeSpeechRate(rawSpeechRate);
     const lang = params.lang || "ja";
-    const targetId = params.id || null;
+    let targetId = params.id || null;
     const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME; // キャッシュテーブル名を取得
 
-    // キャッシュキーを生成
-    const cacheId = crypto.createHash("sha256").update(
-      `${targetId}-${repeatCount}-${speechRate}-${lang}`
-    ).digest("hex");
-
-    // 1. キャッシュから取得を試みる
-    if (pollyCacheTableName) {
-      const cachedAudio = await docClient.send(new GetCommand({
-        TableName: pollyCacheTableName,
-        Key: { id: cacheId },
-      }));
-      if (cachedAudio.Item) {
-        console.log("Serving audio from cache for id:", targetId);
-        return {
-          statusCode: 200,
-          headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": true },
-          body: JSON.stringify({ id: targetId, audioData: cachedAudio.Item.audioData }),
-        };
-      }
-    }
-
-    // 2. DynamoDBから取得
+    // 1. DynamoDBから取得 (ID指定でもScanしているのは既存ロジック踏襲)
     const scanParams = {
       TableName: process.env.TABLE_NAME,
       ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en", // phrase_enを追加
@@ -208,61 +187,87 @@ exports.getPhrase = async (event) => {
       };
     }
 
-    const level = selectedItem.level;
-    let phrase = selectedItem.phrase;
-    let voiceId = "Mizuki";
-    let engine = "standard";
-    let levelPrefix = "レベル";
+    // ランダム選択の場合、IDを確定させる
+    targetId = selectedItem.id;
 
-    if (lang === "en") {
-      phrase = selectedItem.phrase_en || selectedItem.phrase;
-      voiceId = "Ruth";
-      engine = "neural";
-      levelPrefix = "Level";
+    // 2. キャッシュチェック
+    let audioData = null;
+    
+    // キャッシュキーを生成
+    const cacheId = crypto.createHash("sha256").update(
+      `${targetId}-${repeatCount}-${speechRate}-${lang}`
+    ).digest("hex");
+
+    if (pollyCacheTableName) {
+      const cachedAudio = await docClient.send(new GetCommand({
+        TableName: pollyCacheTableName,
+        Key: { id: cacheId },
+      }));
+      if (cachedAudio.Item) {
+        console.log("Serving audio from cache for id:", targetId);
+        audioData = cachedAudio.Item.audioData;
+      }
     }
 
-    const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
-    const phraseWithLevel = hasLevel ? `${levelPrefix}, ${level}. ${phrase}` : phrase;
+    // 3. キャッシュになければ Polly で生成
+    if (!audioData) {
+      const level = selectedItem.level;
+      let speechPhrase = selectedItem.phrase;
+      let voiceId = "Mizuki";
+      let engine = "standard";
+      let levelPrefix = "レベル";
 
-    let innerContent = phraseWithLevel;
-    if (repeatCount >= 2) {
-      innerContent = `${phraseWithLevel}<break time="1500ms"/>${phraseWithLevel}`;
+      if (lang === "en") {
+        speechPhrase = selectedItem.phrase_en || selectedItem.phrase;
+        voiceId = "Ruth";
+        engine = "neural";
+        levelPrefix = "Level";
+      }
+
+      const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
+      const phraseWithLevel = hasLevel ? `${levelPrefix}, ${level}. ${speechPhrase}` : speechPhrase;
+
+      let innerContent = phraseWithLevel;
+      if (repeatCount >= 2) {
+        innerContent = `${phraseWithLevel}<break time="1500ms"/>${phraseWithLevel}`;
+      }
+
+      const ssmlText = `<speak><prosody rate="${speechRate}">${innerContent}</prosody></speak>`;
+
+      const command = new SynthesizeSpeechCommand({
+        Text: ssmlText,
+        TextType: "ssml",
+        OutputFormat: "mp3",
+        VoiceId: voiceId,
+        Engine: engine
+      });
+      const pollyResponse = await pollyClient.send(command);
+
+      const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
+      const base64Audio = audioBuffer.toString("base64");
+      audioData = `data:audio/mp3;base64,${base64Audio}`;
+
+      // キャッシュに保存
+      if (pollyCacheTableName) {
+        await docClient.send(new PutCommand({
+          TableName: pollyCacheTableName,
+          Item: {
+            id: cacheId,
+            audioData: audioData, // 生成した音声データを保存
+            createdAt: new Date().toISOString(), // キャッシュの作成日時
+          },
+        }));
+      }
     }
-
-    const ssmlText = `<speak><prosody rate="${speechRate}">${innerContent}</prosody></speak>`;
-
-    const command = new SynthesizeSpeechCommand({
-      Text: ssmlText,
-      TextType: "ssml",
-      OutputFormat: "mp3",
-      VoiceId: voiceId,
-      Engine: engine
-    });
-    const pollyResponse = await pollyClient.send(command);
-
-    const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
-    const base64Audio = audioBuffer.toString("base64");
 
     const responseBody = {
       id: selectedItem.id,
       category: selectedItem.category,
-      phrase: phrase,
-      level: level,
+      phrase: selectedItem.phrase, // 常に日本語 (originalPhrase)
+      level: selectedItem.level,
       kana: selectedItem.kana,
-      audioData: `data:audio/mp3;base64,${base64Audio}`,
+      audioData: audioData,
     };
-
-    // 3. キャッシュに保存
-    if (pollyCacheTableName) {
-      await docClient.send(new PutCommand({
-        TableName: pollyCacheTableName,
-        Item: {
-          id: cacheId,
-          audioData: responseBody.audioData, // 生成した音声データを保存
-          createdAt: new Date().toISOString(), // キャッシュの作成日時
-        },
-      }));
-    }
 
     return {
       statusCode: 200,
