@@ -19,14 +19,23 @@ function App() {
         const response = await fetch("https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-categories");
         const data = await response.json();
         if (response.ok) {
-          setCategories(data.categories || []);
+          const availableCategories = data.categories || [];
+          setCategories(availableCategories);
+
+          // URLから取得したカテゴリが存在するかチェック
+          if (selectedCategory && availableCategories.length > 0) {
+            if (!availableCategories.includes(selectedCategory)) {
+              console.warn(`Category "${selectedCategory}" not found. Redirecting to home.`);
+              setSelectedCategory(null);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [selectedCategory]);
 
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
