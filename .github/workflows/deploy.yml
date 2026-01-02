@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
       - name: Test
         working-directory: frontend
-        run: npm test -- --run --coverage
+        run: npx vitest run --coverage
       - name: Build
         working-directory: frontend
         run: npm run build
@@ -49,7 +49,7 @@ jobs:
         run: npm ci
       - name: Test
         working-directory: backend
-        run: npm test -- --run --coverage
+        run: npx vitest run --coverage
 
   build-and-deploy-frontend:
     needs: frontend-test
