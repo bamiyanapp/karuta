@@ -127,6 +127,15 @@ function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // ページタイトルを更新
+  useEffect(() => {
+    if (selectedCategory) {
+      document.title = selectedCategory;
+    } else {
+      document.title = "カルタ読み上げアプリ";
+    }
+  }, [selectedCategory]);
+
   const resetGame = () => {
     setSelectedCategory(null);
     setCurrentPhrase(null);
