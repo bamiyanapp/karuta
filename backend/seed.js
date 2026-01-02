@@ -42,6 +42,7 @@ async function seed() {
         level,
         kana: record.kana ? record.kana.trim() : "-",
         phrase,
+        phrase_en: record.phrase_en ? record.phrase_en.trim() : ""
       });
     }
 
@@ -75,7 +76,7 @@ async function seed() {
     }
     console.log(`Upserted ${upsertCount} records.`);
 
-    console.log("Seeding completed successfully (Incremental Sync).");
+    console.log("Seeding completed successfully (Incremental Sync with phrase_en).");
   } catch (error) {
     console.error("Seeding failed:", error);
   }

@@ -31,6 +31,9 @@ function App() {
   const [speechRate, setSpeechRate] = useState(() => {
     return localStorage.getItem("speechRate") || "80%";
   });
+  const [lang, setLang] = useState(() => {
+    return localStorage.getItem("lang") || "ja";
+  });
   const [historyByCategory, setHistoryByCategory] = useState({});
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -93,7 +96,7 @@ function App() {
     if (detailPhraseId) {
       const fetchDetail = async () => {
         try {
-          const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${detailPhraseId}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}`);
+          const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${detailPhraseId}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
           const data = await response.json();
           if (response.ok) {
             setDetailPhrase(data);
@@ -106,7 +109,7 @@ function App() {
     } else {
       setDetailPhrase(null);
     }
-  }, [detailPhraseId, repeatCount, speechRate]);
+  }, [detailPhraseId, repeatCount, speechRate, lang]);
 
   // 指摘一覧の取得
   useEffect(() => {
@@ -176,7 +179,7 @@ function App() {
       const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
       const targetPhrase = unreadPhrases[randomIndex];
 
-      const apiUrl = `https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}`;
+      const apiUrl = `https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
       const response = await fetch(apiUrl);
       const data = await response.json();
       
@@ -223,7 +226,7 @@ function App() {
 
   const playCongratulationAudio = async () => {
     try {
-      const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}`);
+      const response = await fetch(`https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
       const data = await response.json();
       if (response.ok) {
         await playAudio(data.audioData);
@@ -318,6 +321,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("speechRate", speechRate);
   }, [speechRate]);
+
+  useEffect(() => {
+    localStorage.setItem("lang", lang);
+  }, [lang]);
 
   const resetGame = () => {
     setSelectedCategory(null);
@@ -572,6 +579,13 @@ function App() {
 
       <footer className="text-center mt-5 pt-4 border-top">
         <section className="settings-container mb-4 p-3 mx-auto shadow-sm rounded-4 bg-light border" style={{ maxWidth: "500px" }}>
+          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
+            <span className="fw-bold text-dark small">言語:</span>
+            <div className="btn-group btn-group-sm" role="group">
+              <button onClick={() => setLang("ja")} className={`btn ${lang === "ja" ? 'btn-dark' : 'btn-outline-dark'}`}>日本語</button>
+              <button onClick={() => setLang("en")} className={`btn ${lang === "en" ? 'btn-dark' : 'btn-outline-dark'}`}>English</button>
+            </div>
+          </div>
           <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
             <span className="fw-bold text-dark small">読み上げスピード:</span>
             <div className="btn-group btn-group-sm" role="group">

@@ -78,15 +78,23 @@ exports.getComments = async (event) => {
 
 exports.getCongratulationAudio = async (event) => {
   try {
-    const speechText = "おめでとう、全て読み終わりました";
     const params = event.queryStringParameters || {};
     const speechRate = params.speechRate || "90%";
+    const lang = params.lang || "ja";
+
+    let speechText = "おめでとう、全て読み終わりました";
+    let voiceId = "Mizuki";
+
+    if (lang === "en") {
+      speechText = "Congratulations! You have finished all the cards.";
+      voiceId = "Ruth"; // 英語(US)の女性の声
+    }
 
     const pollyParams = {
       Text: `<speak><prosody rate="${speechRate}">${speechText}</prosody></speak>`,
       TextType: "ssml",
       OutputFormat: "mp3",
-      VoiceId: "Mizuki",
+      VoiceId: voiceId,
       Engine: "standard"
     };
 
@@ -122,6 +130,7 @@ exports.getPhrase = async (event) => {
     const category = params.category || null;
     const repeatCount = parseInt(params.repeatCount || "2", 10);
     const speechRate = params.speechRate || "90%";
+    const lang = params.lang || "ja";
     const targetId = params.id || null;
 
     // 1. DynamoDBから取得
@@ -158,10 +167,18 @@ exports.getPhrase = async (event) => {
     }
 
     const level = selectedItem.level;
-    const phrase = selectedItem.phrase;
+    let phrase = selectedItem.phrase;
+    let voiceId = "Mizuki";
+    let levelPrefix = "レベル";
+
+    if (lang === "en") {
+      phrase = selectedItem.phrase_en || selectedItem.phrase;
+      voiceId = "Ruth";
+      levelPrefix = "Level";
+    }
 
     const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
-    const phraseWithLevel = hasLevel ? `レベル、${level}。${phrase}` : phrase;
+    const phraseWithLevel = hasLevel ? `${levelPrefix}, ${level}. ${phrase}` : phrase;
 
     let innerContent = phraseWithLevel;
     if (repeatCount >= 2) {
@@ -174,7 +191,7 @@ exports.getPhrase = async (event) => {
       Text: ssmlText,
       TextType: "ssml",
       OutputFormat: "mp3",
-      VoiceId: "Mizuki",
+      VoiceId: voiceId,
       Engine: "standard"
     });
     const pollyResponse = await pollyClient.send(command);
