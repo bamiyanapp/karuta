@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand } = require("@aws-sdk/lib-dynamodb"); // GetCommand, PutCommandを追加
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 
 const dynamoClient = new DynamoDBClient({});
@@ -29,7 +29,7 @@ exports.postComment = async (event) => {
       createdAt: new Date().toISOString(),
     };
 
-    const { PutCommand } = require("@aws-sdk/lib-dynamodb");
+    // `PutCommand` のインポートは既に行われているため、ここでは不要
     await docClient.send(new PutCommand({
       TableName: process.env.COMMENTS_TABLE_NAME,
       Item: item,
@@ -132,10 +132,33 @@ exports.getPhrase = async (event) => {
     const speechRate = params.speechRate || "90%";
     const lang = params.lang || "ja";
     const targetId = params.id || null;
+    const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME; // キャッシュテーブル名を取得
 
-    // 1. DynamoDBから取得
+    // キャッシュキーを生成
+    const cacheId = crypto.createHash("sha256").update(
+      `${targetId}-${repeatCount}-${speechRate}-${lang}`
+    ).digest("hex");
+
+    // 1. キャッシュから取得を試みる
+    if (pollyCacheTableName) {
+      const cachedAudio = await docClient.send(new GetCommand({
+        TableName: pollyCacheTableName,
+        Key: { id: cacheId },
+      }));
+      if (cachedAudio.Item) {
+        console.log("Serving audio from cache for id:", targetId);
+        return {
+          statusCode: 200,
+          headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": true },
+          body: JSON.stringify({ id: targetId, audioData: cachedAudio.Item.audioData }),
+        };
+      }
+    }
+
+    // 2. DynamoDBから取得
     const scanParams = {
       TableName: process.env.TABLE_NAME,
+      ProjectionExpression: "id, category, phrase, level, kana, phrase_en", // phrase_enを追加
     };
     
     const scanResult = await docClient.send(new ScanCommand(scanParams));
@@ -199,20 +222,34 @@ exports.getPhrase = async (event) => {
     const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
     const base64Audio = audioBuffer.toString("base64");
 
+    const responseBody = {
+      id: selectedItem.id,
+      category: selectedItem.category,
+      phrase: phrase,
+      level: level,
+      kana: selectedItem.kana,
+      audioData: `data:audio/mp3;base64,${base64Audio}`,
+    };
+
+    // 3. キャッシュに保存
+    if (pollyCacheTableName) {
+      await docClient.send(new PutCommand({
+        TableName: pollyCacheTableName,
+        Item: {
+          id: cacheId,
+          audioData: responseBody.audioData, // 生成した音声データを保存
+          createdAt: new Date().toISOString(), // キャッシュの作成日時
+        },
+      }));
+    }
+
     return {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": true,
       },
-      body: JSON.stringify({
-        id: selectedItem.id,
-        category: selectedItem.category,
-        phrase: phrase,
-        level: level,
-        kana: selectedItem.kana,
-        audioData: `data:audio/mp3;base64,${base64Audio}`,
-      }),
+      body: JSON.stringify(responseBody),
     };
   } catch (error) {
     console.error(error);
