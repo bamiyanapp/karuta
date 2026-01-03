@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { parse } = require("csv-parse/sync");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({ region: "ap-northeast-1" });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -20,11 +20,20 @@ async function seed() {
     });
     console.log(`Read ${records.length} records from CSV.`);
 
-    // 2. CSVデータから現在の有効なIDリストを作成
-    const newItemsMap = new Map();
+    // 2. CSVデータと既存のDynamoDBデータをマージして新しいアイテムマップを作成
+    const newItemsMap = new Map(); // key: `${category}-${id}`
+
+    // 既存の全アイテムを一度取得 (readCountとaverageTimeを保持するため)
+    console.log("Fetching existing data from DynamoDB...");
+    const existingItemsScan = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
+    const existingItemsMap = new Map(); // key: `${category}-${id}`
+    (existingItemsScan.Items || []).forEach(item => {
+        existingItemsMap.set(`${item.category}-${item.id}`, item);
+    });
+    console.log(`Found ${existingItemsMap.size} existing items in DB.`);
+
     for (const record of records) {
       const category = record.category ? record.category.trim() : "大ピンチずかん";
-      const phrase = record.phrase ? record.phrase.trim() : "";
       const id = record.id;
       
       const levelRaw = record.level ? record.level.trim() : "-";
@@ -35,38 +44,34 @@ async function seed() {
         level = levelRaw;
       }
 
-      newItemsMap.set(id, {
+      const existingItem = existingItemsMap.get(`${category}-${id}`);
+
+      newItemsMap.set(`${category}-${id}`, {
         id,
         category,
         level,
         kana: record.kana ? record.kana.trim() : "-",
-        phrase,
+        phrase: record.phrase ? record.phrase.trim() : "",
         phrase_en: record.phrase_en ? record.phrase_en.trim() : "",
-        readCount: parseInt(record.readCount, 10) || 0,
-        averageTime: parseFloat(record.averageTime) || 0
+        readCount: existingItem ? existingItem.readCount : 0,
+        averageTime: existingItem ? existingItem.averageTime : 0
       });
     }
 
-    // 3. DBの既存データを取得
-    console.log("Checking existing data in DB...");
-    const scanResult = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
-    const oldItems = scanResult.Items || [];
-    const oldIds = new Set(oldItems.map(item => item.id));
-
-    // 4. 不要なデータを削除（CSVに存在しないIDのみ）
+    // 3. 不要なデータを削除
     let deleteCount = 0;
-    for (const oldItem of oldItems) {
-      if (!newItemsMap.has(oldItem.id)) {
+    for (const existingItem of existingItemsMap.values()) {
+      if (!newItemsMap.has(`${existingItem.category}-${existingItem.id}`)) {
         await docClient.send(new DeleteCommand({
           TableName: TABLE_NAME,
-          Key: { category: oldItem.category, id: oldItem.id },
+          Key: { category: existingItem.category, id: existingItem.id },
         }));
         deleteCount++;
       }
     }
     if (deleteCount > 0) console.log(`Deleted ${deleteCount} obsolete records.`);
 
-    // 5. 新しいデータを投入・更新（Upsert方式）
+    // 4. 新しいデータを投入・更新（Upsert方式）
     let upsertCount = 0;
     for (const item of newItemsMap.values()) {
       await docClient.send(new PutCommand({
@@ -77,7 +82,7 @@ async function seed() {
     }
     console.log(`Upserted ${upsertCount} records.`);
 
-    console.log("Seeding completed successfully (Incremental Sync with phrase_en).");
+    console.log("Seeding completed successfully (Incremental Sync with statistics).");
   } catch (error) {
     console.error("Seeding failed:", error);
   }

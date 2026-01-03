@@ -1,326 +1,326 @@
-id,category,level,kana,phrase,phrase_en,readCount,averageTime
-1,テスト用,5,あ,アメンボ赤いな　あいうえお,"A red water strider — A, I, U, E, O.",0,0
-2,テスト用,100,い,犬も歩けば　棒に当たる,"If you go out, you may run into trouble.",0,0
-3,大ピンチずかん,77,え,エスカレーターが　ぎゃくだった,The escalator was going the opposite way.,0,0
-4,大ピンチずかん,20,あ,アイスが　とけてきた,The ice cream started melting.,0,0
-5,大ピンチずかん,4,へ,へんな　ひやけを　した,Made a strange face.,0,0
-6,大ピンチずかん,30,た,たんじょうびケーキが　たおれて　イチゴが　ころがった,The birthday cake fell over and the strawberries rolled away.,0,0
-7,大ピンチずかん,23,ご,ごはんつぶを　ふんだ,Stepped on a grain of rice.,0,0
-8,大ピンチずかん,21,お,おふろの　ごみが　すくえない,Can't scoop the debris out of the bathtub.,0,0
-9,大ピンチずかん,18,ふ,ふたが　ない,There is no lid.,0,0
-10,大ピンチずかん,6,て,テープの　はしが　みつからない,Can't find the end of the tape.,0,0
-11,大ピンチずかん,28,え,えだまめが　とんだ,The edamame flew away.,0,0
-12,大ピンチずかん,24,か,カップめんの　おゆが　たりない,Not enough hot water for the cup noodles.,0,0
-13,大ピンチずかん,68,う,うんてんちゅうの　くるまの　なかに　おおきな　クモが　いる,There is a big spider in the car while driving.,0,0
-14,大ピンチずかん,35,ゆ,ゆでたまごが　ボロボロ,The boiled egg is falling apart.,0,0
-15,大ピンチずかん,5,す,ストローが　とれない,Can't take out the straw.,0,0
-16,大ピンチずかん,27,う,「う」の　もじが　はんたいだった,The letter 'u' was backwards.,0,0
-17,大ピンチずかん,19,け,おちたけしゴムがみつからない,Can't find the dropped eraser.,0,0
-18,大ピンチずかん,17,し,しょうゆをいれすぎた,Poured too much soy sauce.,0,0
-19,大ピンチずかん,34,しゃ,シャワーがみつからない,Can't find the shower.,0,0
-20,大ピンチずかん,3,こ,こおりがしたにくっついた,The ice stuck to my tongue.,0,0
-21,大ピンチずかん,26,た,たんじょうびケーキがたおれそう,The birthday cake is about to fall.,0,0
-22,大ピンチずかん,22,じ,じゅうでんができていなかった,It wasn't charged.,0,0
-23,大ピンチずかん,14,し,シャボンえきをすった,Accidentally inhaled the bubble solution.,0,0
-24,大ピンチずかん,33,け,ケチャップがとんだ,Ketchup splattered.,0,0
-25,大ピンチずかん,31,ぽ,ポケットからすながたくさんでてきた,A lot of sand came out of the pocket.,0,0
-26,大ピンチずかん,25,せ,せんたくきのうしろにくつしたがおちた,A sock fell behind the washing machine.,0,0
-27,大ピンチずかん,90,ふ,フンをふんだ,Stepped on poop.,0,0
-28,大ピンチずかん,55,い,いおうとしていたことをわすれた,Forgot what I was about to say.,0,0
-29,大ピンチずかん,46,に,にくがきれない,Can't cut the meat.,0,0
-30,大ピンチずかん,39,た,たんじょうびケーキのろうそくがきえない,The birthday cake candles won't go out.,0,0
-31,大ピンチずかん,52,む,むかしのおにぎりがでてきた,An old rice ball appeared.,0,0
-32,大ピンチずかん,54,れ,れいとうこがあかない,The freezer won't open.,0,0
-33,大ピンチずかん,48,ふ,ふくのピラピラがきになる,The loose thread on my clothes is bothering me.,0,0
-34,大ピンチずかん,43,し,しゅくだいノートと　じゆうちょうをまちがえた,Confused the homework notebook with the sketchbook.,0,0
-35,大ピンチずかん,38,ふ,ふたがしまらない,The lid won't close.,0,0
-36,大ピンチずかん,32,め,めんつゆがすごくあまった,A lot of noodle dipping sauce was left over.,0,0
-37,大ピンチずかん,53,な,ながしのみずがスプーンではねた,The water in the sink splashed off the spoon.,0,0
-38,大ピンチずかん,49,べ,べんざをあけたまますわった,Sat down with the toilet seat up.,0,0
-39,大ピンチずかん,37,あ,アメリカンドッグがまわる,The corn dog is spinning.,0,0
-40,大ピンチずかん,76,ね,ねむれない,Can't sleep.,0,0
-41,大ピンチずかん,47,し,シャンプーがめにはいった,Got shampoo in my eyes.,0,0
-42,大ピンチずかん,51,ば,バッグのなかですいとうがもれた,The water bottle leaked inside the bag.,0,0
-43,大ピンチずかん,56,な,なまえがおもいだせない,Can't remember the name.,0,0
-44,大ピンチずかん,64,き,きんじょのおばさんがずっとなまえをまちがえている,The neighborhood lady has been getting my name wrong for a long time.,0,0
-45,大ピンチずかん,50,お,おゆがない,There is no hot water.,0,0
-46,大ピンチずかん,45,ど,ドアをあけられてさむい,Someone opened the door and it's cold.,0,0
-47,大ピンチずかん,40,せ,せんせいのメガネがとんだ,The teacher's glasses flew off.,0,0
-48,大ピンチずかん,36,ほ,ほねをとっていたら　ぐちゃぐちゃになった,It became a mess while I was trying to remove the bones.,0,0
-49,大ピンチずかん,29,ぎ,ぎゅうにゅうがこぼれた,The milk spilled.,0,0
-50,大ピンチずかん,96,か,かさがうらがえった,The umbrella turned inside out.,0,0
-51,大ピンチずかん,97,じ,じてんしゃがドミノだおし,The bicycles fell over like dominoes.,0,0
-52,大ピンチずかん,98,お,おもったよりみじかくなった,It became shorter than I thought.,0,0
-53,大ピンチずかん,99,ね,ネコがついてくる,A cat is following me.,0,0
-54,大ピンチずかん,100,ど,どしゃぶりなのにかさがない,It's pouring rain but I don't have an umbrella.,0,0
-55,大ピンチずかん,58,れ,れいとうこがしまらない,The freezer won't close.,0,0
-56,大ピンチずかん,59,さ,さようならのおじぎで　ランドセルのなかみがぜんぶでた,Everything fell out of my backpack when I bowed to say goodbye.,0,0
-57,大ピンチずかん,84,ま,まいご,I'm lost.,0,0
-58,大ピンチずかん,82,か,かいものがながい,Shopping is taking a long time.,0,0
-59,大ピンチずかん,81,じ,じてんしゃにハチがとまっている,A bee is sitting on the bicycle.,0,0
-60,大ピンチずかん,60,せ,せんせいに　おかあさんといってしまった,I accidentally called my teacher 'Mom'.,0,0
-61,大ピンチずかん,61,ぎ,ギターのなかにおかしがおちた,A snack fell inside the guitar.,0,0
-62,大ピンチずかん,62,ず,ズボンのゴムがきれた,The elastic in my pants snapped.,0,0
-63,大ピンチずかん,63,さ,さなぎからかえったカブトムシが　よなかにだっそうして　とびまわっている,The beetle that emerged from its pupa escaped at night and is flying around.,0,0
-64,大ピンチずかん,57,け,けしゴムにさした　えんぴつのしんが　けしたときにつく,The pencil lead stuck in the eraser leaves marks when I erase.,0,0
-65,大ピンチずかん,89,お,おきられない,Can't wake up.,0,0
-66,大ピンチずかん,91,で,でんちゅうに　じてんしゃで　つっこんだ,Crashed my bicycle into a utility pole.,0,0
-67,大ピンチずかん,93,と,トイレがつまった,The toilet is clogged.,0,0
-68,大ピンチずかん,94,お,おかあさんがイライラしている,Mom is getting irritated.,0,0
-69,大ピンチずかん,95,お,プレゼントをわすれた,Forgot the present.,0,0
-70,大ピンチずかん,86,し,しんしつのだれかいる,Someone is in the bedroom.,0,0
-71,大ピンチずかん,87,く,クモのすにかかった,Got caught in a spider web.,0,0
-72,大ピンチずかん,88,と,トイレにおおきなガがとまっている,A large moth is sitting in the toilet.,0,0
-73,大ピンチずかん,0,し,しゃっくりがとまらない,Can't stop hiccuping.,0,0
-74,大ピンチずかん,16,わ,わりばしがうまくわれない,Can't split the chopsticks properly.,0,0
-75,大ピンチずかん,11,ご,ゴミばこがやまもり,The trash can is overflowing.,0,0
-76,大ピンチずかん,70,お,おなかがすいてうごけない,So hungry I can't move.,0,0
-77,大ピンチずかん,67,ま,まちがえてシャワーがでた,The shower came on by mistake.,0,0
-78,大ピンチずかん,13,け,パンがくろこげ,The bread is burnt to a crisp.,0,0
-79,大ピンチずかん,10,け,けずりかすいれがはいってなかった,The pencil shavings container wasn't in.,0,0
-80,大ピンチずかん,71,ふ,ふとんのなかでおならがでた,Farted under the covers.,0,0
-81,大ピンチずかん,69,じ,じぶんのいえでトイレがつまった,The toilet at my own house is clogged.,0,0
-82,大ピンチずかん,8,あ,あたまにつけたわゴムがとれない,Can't remove the rubber band I put on my head.,0,0
-83,大ピンチずかん,12,や,ビニールぶくろがめくれない,Can't open the plastic bag.,0,0
-84,大ピンチずかん,15,し,しょくばんを　がんばってスライスしているうちに　ぺしゃんこになっていた,The bread got squashed while I was trying hard to slice it.,0,0
-85,大ピンチずかん,7,ぺ,ペンがしみてつくえについた,The pen leaked onto the desk.,0,0
-86,大ピンチずかん,80,や,やっぱりさむかった,It was cold after all.,0,0
-87,大ピンチずかん,74,と,トイレのかみがない,There is no toilet paper.,0,0
-88,大ピンチずかん,73,わ,ワサビいりだった,It had wasabi in it.,0,0
-89,大ピンチずかん,72,お,おべんとうをわすれた,Forgot my lunch box.,0,0
-90,大ピンチずかん,66,あ,あしがつちだらけ,Feet are covered in mud.,0,0
-91,大ピンチずかん,65,は,ハエがじぶんにばかりとまる,Flies only land on me.,0,0
-92,大ピンチずかん,83,い,イヌがすごくなめてくる,The dog is licking me a lot.,0,0
-93,大ピンチずかん,75,し,しらないひとのてをにぎっていた,Was holding a stranger's hand.,0,0
-94,大ピンチずかん,85,し,シロツメクサの　かんむりをよくみると　アブラムシだらけだった,"When I looked closely at the clover crown, it was full of aphids.",0,0
-95,大ピンチずかん,79,ば,バッグにアリがあつまってきた,Ants gathered on the bag.,0,0
-96,大ピンチずかん,78,し,しんしつの　てんじょうのもくめが　ひとのかおにみえてきた,The wood grain on the bedroom ceiling started to look like a person's face.,0,0
-97,大ピンチずかん,41,や,やすみじかんに　おいた　すいとうが　そのまま,The water bottle I left during recess is still there.,0,0
-98,大ピンチずかん,42,ご,ごはんが　たりない,Not enough food.,0,0
-99,大ピンチずかん,43,は,はなしを　きいてなかった,Wasn't listening.,0,0
-100,大ピンチずかん,2,の,のんだガムに　まだあじが　たくさんのこっていた,Swallowed the gum; it still had a lot of flavor left.,0,0
-101,大ピンチずかん,0,む,むかしの　おにぎりが　でてきた,An old rice ball appeared.,0,0
-102,国旗王,上級,し,人口密度が高い,High population density.,0,0
-103,国旗王,上級,ひ,一人当たりGDPが高い,High GDP per capita.,0,0
-104,国旗王,上級,し,首都 最東,Easternmost capital.,0,0
-105,国旗王,上級,し,首都が最北,Northernmost capital.,0,0
-106,国旗王,上級,は,排他的経済水域,Exclusive Economic Zone.,0,0
-107,国旗王,上級,く,軍事費が最小,Smallest military expenditure.,0,0
-108,国旗王,上級,へ,平均寿命が短い,Short average life expectancy.,0,0
-109,国旗王,初級,し,人口が多い,Large population.,0,0
-110,国旗王,初級,め,面積が最小,Smallest area.,0,0
-111,国旗王,初級,は,排他的経済水域が最小,Smallest Exclusive Economic Zone.,0,0
-112,国旗王,上級,さ,最高地点が高い,Highest point is high.,0,0
-113,国旗王,初級,こ,国内総生産GDPが低い,Low GDP.,0,0
-114,国旗王,初級,し,人口が少ない,Small population.,0,0
-115,国旗王,初級,せ,正式国名が長い,Long official country name.,0,0
-116,国旗王,上級,く,軍事費が大きい,Large military expenditure.,0,0
-117,国旗王,上級,さ,最高地点が低い,Highest point is low.,0,0
-118,国旗王,初級,こ,国内総生産GDPが高い,High GDP.,0,0
-119,国旗王,初級,せ,正式国名が短い,Short official country name.,0,0
-120,国旗王,初級,め,面積が大きい,Large area.,0,0
-121,国旗王,上級,へ,平均寿命が長い,Long average life expectancy.,0,0
-122,国旗王,初級,ひ,一人当たりGDPが低い,Low GDP per capita.,0,0
-123,国旗王,初級,し,人口密度が低い,Low population density.,0,0
-124,国旗王,初級,せ,正式国名 五十音順 アに近い,Official name closest to 'A' in Japanese syllabary.,0,0
-125,国旗王,初級,し,首都が最南,Southernmost capital.,0,0
-126,おばけかるた,-,ふ,ふでこぞうが　ひとふでがき,Fudekozo draws with a single stroke.,0,0
-127,おばけかるた,-,ね,ねこまたも　ねがおはかわいい,Even Nekomata looks cute when sleeping.,0,0
-128,おばけかるた,-,ち,ちょうちんぶらり　こっちへ　くるぞ,Chochin-burari is coming this way!,0,0
-129,おばけかるた,-,た,たまごがわれて　てんぐがうまれた,An egg cracked and a Tengu was born.,0,0
-130,おばけかるた,-,け,けむくじゃらな　うでだ　まけるな！,"It's a hairy arm, don't lose!",0,0
-131,おばけかるた,-,く,くずかごからくろいてが！！！　きゃっ！！！,A black hand from the wastebasket!!! Kya!!!,0,0
-132,おばけかるた,-,あ,あめふりこぞうが　びちゃびちゃあるく,Amefuri-kozo walks with a squish-squish.,0,0
-133,おばけかるた,-,ひ,ひとつめのくには　ひとつめだらけだってさ,They say the one-eyed country is full of one-eyes.,0,0
-134,おばけかるた,-,ぬ,ぬらりとわらう　ぬっぺっぽう,Nureppon smiles eerily.,0,0
-135,おばけかるた,-,つ,つきよにでていくつく　もがみ,Tsuku-mogami goes out on a moonlit night.,0,0
-136,おばけかるた,-,そ,そろってあるく　ぞうりのおばけ,Zori ghosts walk in pairs.,0,0
-137,おばけかるた,-,こ,こんばんは～　どろどろどろどろ～,Good evening~ Doro-doro-doro-doro~,0,0
-138,おばけかるた,-,き,きゅうびのきつねは　ばけるめいじん,The nine-tailed fox is a master of disguise.,0,0
-139,おばけかるた,-,い,いったんもめんは　そらとべていいなあ,"Ittan-momen, it's nice to fly in the sky.",0,0
-140,おばけかるた,-,は,はたらけはたらけ　おばけもはたらけ,"Work, work, ghosts also work.",0,0
-141,おばけかるた,-,に,にっこりわらう　にかいのおんな,The woman on the second floor smiles.,0,0
-142,おばけかるた,-,て,てんぐのはながおれては　かわいそう,It would be pitiful if Tengu's nose broke.,0,0
-143,おばけかるた,-,せ,せんすだって　すてればばける,Even a fan will transform if you throw it away.,0,0
-144,おばけかるた,-,さ,さかさくびは　ぺろぺろなめる,Sakasa-kubi licks with a flick-flick.,0,0
-145,おばけかるた,-,か,かあさんかっぱ　とこどものかっぱ,Mother Kappa and baby Kappa.,0,0
-146,おばけかるた,-,う,うみぼうずのがっこう　せいとをぼしゅう,Umibozu's school is recruiting students.,0,0
-147,おばけかるた,-,の,のんきなのぶすま　のんびりとんだ,Carefree Nobusuma flew leisurely.,0,0
-148,おばけかるた,-,な,なきなきかえった　ちいさなゆうれい,A small ghost returned crying.,0,0
-149,おばけかるた,-,と,とらがねてたら　かみなりどしーん！！,"If a tiger sleeps, lightning strikes with a boom!!",0,0
-150,おばけかるた,-,す,すりばちこぞうは　なにすってるの？,What is Suribachi-kozo grinding?,0,0
-151,おばけかるた,-,し,しろくてみえない　ゆきのひのゆうれい,A white and invisible ghost on a snowy day.,0,0
-152,おばけかるた,-,お,おにもおじいさんになる,Even an ogre grows old.,0,0
-153,おばけかるた,-,え,えだをもやしたら　えんえんらがでたぞ,"When I burned a branch, Enenra came out!",0,0
-154,おばけかるた,-,る,るすばんしてるは　ぶるぶるひとり,"Staying home alone, trembling.",0,0
-155,おばけかるた,-,り,りゅうがいねむり　そらからおちる,"A dragon sleeping, falling from the sky.",0,0
-156,おばけかるた,-,む,むじなもばけたが　ちょっとむりだった,"Mujina tried to transform, but it was a bit impossible.",0,0
-157,おばけかるた,-,み,みこしにゅうどう　みかけよりよわい,"Mikoshi-Nyudo, weaker than he looks.",0,0
-158,おばけかるた,-,れ,れいぎただしい　ゆうれいもいる,There are polite ghosts too.,0,0
-159,おばけかるた,-,ら,らしょうもんの　おにはらんぼうだ,The demon of Rashomon is wild.,0,0
-160,おばけかるた,-,め,めだまをとられた　ひとつめこぞう,A one-eyed monster whose eye was taken.,0,0
-161,おばけかるた,-,ま,まくらがえしは　まいばんうるさい,Makura-gaeshi is noisy every night.,0,0
-162,おばけかるた,-,ろ,ろくろくねなかった　ろくろっくび,Rokurokubi who didn't sleep at all.,0,0
-163,おばけかるた,-,よ,よみちをこわがる　よわむしにゅうどう,A timid Nyudo who is scared of night roads.,0,0
-164,おばけかるた,-,も,もりんじのかまは　たぬきがばけた,Morinji's kettle was a transformed raccoon dog.,0,0
-165,おばけかるた,-,ほ,ほうきのおばけは　ほめてやろう,Let's praise the broom ghost.,0,0
-166,おばけかるた,-,を,「あしをけして　てをまえに」ゆうれいのおけいこ,"Delete legs, hands forward - a ghost's practice.",0,0
-167,おばけかるた,-,わ,わ、にゅうどうだ　わぁーっこわい！,"Oh, it's a Nyudo! Ahh, scary!",0,0
-168,おばけかるた,-,ゆ,ゆきおんな　おゆにはいってとけちゃった,Yuki-onna went into hot water and melted.,0,0
-169,おばけかるた,-,や,やなぎのしたで　ゆうれいけんか,Ghosts fighting under a willow tree.,0,0
-170,おばけかるた,-,へ,へびよりこわい　ろくろっくび,"Rokurokubi, scarier than a snake.",0,0
-171,いろはかるた,-,ま,嘘から出たまこと,A lie can sometimes turn into the truth,0,0
-172,いろはかるた,-,こ,弘法にも筆の誤り,Even experts make mistakes,0,0
-173,いろはかるた,-,あ,得手に帆を揚げる,To take advantage of a good opportunity,0,0
-174,いろはかるた,-,あ,味なもの縁は異なもの,Romance works in mysterious ways,0,0
-175,いろはかるた,-,ぞ,芋の煮えたも御存じない,Completely clueless,0,0
-176,いろはかるた,-,て,文はやりたし書く手は持たぬ,Wanting to write a letter but lacking the skill,0,0
-177,いろはかるた,-,す,亭主の好きな赤烏帽子,One must go along with the head of the household,0,0
-178,いろはかるた,-,し,知らぬが仏,Ignorance is bliss,0,0
-179,いろはかるた,-,は,背に腹はかえられぬ,Needs must when driven,0,0
-180,いろはかるた,-,げ,芸は身を助ける,A skill will always help you,0,0
-181,いろはかるた,-,の,喉元過ぎれば熱さを忘れる,"Once the pain is gone, the lesson is forgotten",0,0
-182,いろはかるた,-,あ,頭隠して尻隠さず,Trying to hide something but failing,0,0
-183,いろはかるた,-,み,身から出た錆,You reap what you sow,0,0
-184,いろはかるた,-,も,門前の小僧習わぬ経を読む,You learn things naturally by exposure,0,0
-185,いろはかるた,-,お,鬼に金棒,Adding strength to the strong,0,0
-186,いろはかるた,-,ま,負けるが勝ち,Sometimes losing leads to winning,0,0
-187,いろはかるた,-,さ,三遍回って煙草にしょ,Take time and be careful,0,0
-188,いろはかるた,-,め,目の上のたん瘤,A thorn in one’s side,0,0
-189,いろはかるた,-,ひ,貧乏暇なし,The poor have no leisure,0,0
-190,いろはかるた,-,く,臭い物に蓋をする,To cover up an inconvenient truth,0,0
-191,いろはかるた,-,や,安物買いの銭失い,Buying cheap ends up costing more,0,0
-192,いろはかるた,-,き,聞いて極楽見て地獄,Hearing and seeing are very different,0,0
-193,いろはかるた,-,ゆ,油断大敵,Carelessness is dangerous,0,0
-194,いろはかるた,-,い,犬も歩けば棒に当たる,Every action brings some result,0,0
-195,いろはかるた,-,ら,楽あれば苦あり,Life has ups and downs,0,0
-196,いろはかるた,-,む,無理が通れば道理が引っ込む,"When force prevails, reason disappears",0,0
-197,いろはかるた,-,と,年寄りの冷や水,An old person acting recklessly,0,0
-198,いろはかるた,-,す,粋は身を食う,Showing off can ruin you,0,0
-199,いろはかるた,-,き,京の夢大阪の夢,Dreams are fleeting and strange,0,0
-200,いろはかるた,-,へ,下手の長談義,The unskilled talk the longest,0,0
-201,いろはかるた,-,ろ,論より証拠,Proof is better than argument,0,0
-202,いろはかるた,-,く,くたびれ儲け,All effort and no reward,0,0
-203,いろはかるた,-,に,憎まれっ子世にはばかる,The disliked often survive well,0,0
-204,いろはかるた,-,ち,塵も積もれば山となる,Many small things add up,0,0
-205,いろはかるた,-,こ,律義者の子だくさん,Honest people tend to have many children,0,0
-206,いろはかるた,-,ぬ,盗人の昼寝,Even bad acts have consequences,0,0
-207,いろはかるた,-,は,花より団子,Practicality over appearance,0,0
-208,いろはかるた,-,る,瑠璃も玻璃も照らせば光る,True talent shines anywhere,0,0
-209,いろはかるた,-,な,泣きっ面に蜂,Misfortune never comes alone,0,0
-210,いろはかるた,-,あ,葦の髄から天井のぞく,Judging the whole from a tiny part,0,0
-211,いろはかるた,-,か,蛙の面に水,Completely unfazed,0,0
-212,いろはかるた,-,わ,破れ鍋に綴じ蓋,Every pot has its lid,0,0
-213,いろはかるた,-,を,老いては子に従え,Let the younger generation lead,0,0
-214,いろはかるた,-,ね,念には念を入れよ,Double-check everything,0,0
-215,いろはかるた,-,た,旅は道連れ世は情け,Life is about helping each other,0,0
-216,いろはかるた,-,れ,良薬は口に苦し,Good medicine tastes bitter,0,0
-217,いろはかるた,-,そ,総領の甚六,The eldest son is often naive,0,0
-218,いろはかるた,-,つ,月とすっぽん,Like night and day,0,0
-219,いろはかるた（意味）,-,ま,でたらめに言ったことが、偶然にも事実になってしまうこと,A lie can sometimes turn into the truth,0,0
-220,いろはかるた（意味）,-,こ,どんな名人でも失敗することがあるというたとえ,Even experts make mistakes,0,0
-221,いろはかるた（意味）,-,あ,物事を行うのに絶好の機会を得ること,To take advantage of a good opportunity,0,0
-222,いろはかるた（意味）,-,あ,男女の仲は理屈では説明できないものだということ,Romance works in mysterious ways,0,0
-223,いろはかるた（意味）,-,ぞ,物事の様子がまったく分からない人をからかう言い方,Completely clueless,0,0
-224,いろはかるた（意味）,-,て,やりたい気持ちはあるが能力が伴わず困っていること,Wanting to write a letter but lacking the skill,0,0
-225,いろはかるた（意味）,-,す,家長の好みには家族も従うべきだという考え,One must go along with the head of the household,0,0
-226,いろはかるた（意味）,-,し,知らなければ悩まずにすむこともあるということ,Ignorance is bliss,0,0
-227,いろはかるた（意味）,-,は,大きな目的のためには多少の犠牲は仕方ないということ,Needs must when driven,0,0
-228,いろはかるた（意味）,-,げ,身につけた技や芸が困ったときに役立つこと,A skill will always help you,0,0
-229,いろはかるた（意味）,-,の,苦しい経験をしても時間がたつと忘れてしまうこと,"Once the pain is gone, the lesson is forgotten",0,0
-230,いろはかるた（意味）,-,あ,一部しか隠していないのに全部隠したつもりでいること,Trying to hide something but failing,0,0
-231,いろはかるた（意味）,-,み,自分のした悪い行いの結果で自分が苦しむこと,You reap what you sow,0,0
-232,いろはかるた（意味）,-,も,日頃見聞きしているうちに自然と身につくことがある,You learn things naturally by exposure,0,0
-233,いろはかるた（意味）,-,お,強いものがさらに力を得て一層強くなること,Adding strength to the strong,0,0
-234,いろはかるた（意味）,-,ま,一歩引いた方が結果的に有利になることがある,Sometimes losing leads to winning,0,0
-235,いろはかるた（意味）,-,さ,急がず慎重に行動することが大切だということ,Take time and be careful,0,0
-236,いろはかるた（意味）,-,め,自分にとって邪魔で目障りな存在のたとえ,A thorn in one’s side,0,0
-237,いろはかるた（意味）,-,ひ,貧しい人ほど仕事に追われ時間の余裕がないこと,The poor have no leisure,0,0
-238,いろはかるた（意味）,-,く,都合の悪いことを一時的に隠そうとすること,To cover up an inconvenient truth,0,0
-239,いろはかるた（意味）,-,や,安い物を買うとかえって損をすること,Buying cheap ends up costing more,0,0
-240,いろはかるた（意味）,-,き,聞くのと実際に見るのとでは大きな違いがあること,Hearing and seeing are very different,0,0
-241,いろはかるた（意味）,-,ゆ,油断すると失敗や災難を招くということ,Carelessness is dangerous,0,0
-242,いろはかるた（意味）,-,い,行動すれば良くも悪くも何かが起こるということ,Every action brings some result,0,0
-243,いろはかるた（意味）,-,ら,人生には楽しいことと苦しいことの両方がある,Life has ups and downs,0,0
-244,いろはかるた（意味）,-,む,無茶がまかり通る世の中では道理が通らなくなる,"When force prevails, reason disappears",0,0
-245,いろはかるた（意味）,-,と,年齢を考えず無理な振る舞いをすること,An old person acting recklessly,0,0
-246,いろはかるた（意味）,-,す,気取った振る舞いが身を滅ぼすことがある,Showing off can ruin you,0,0
-247,いろはかるた（意味）,-,き,夢というものはとりとめなく不思議なものだということ,Dreams are fleeting and strange,0,0
-248,いろはかるた（意味）,-,へ,下手な人ほど話が長くなること,The unskilled talk the longest,0,0
-249,いろはかるた（意味）,-,ろ,理屈よりも実際の証拠が大切だということ,Proof is better than argument,0,0
-250,いろはかるた（意味）,-,く,苦労したわりに何の得もないこと,All effort and no reward,0,0
-251,いろはかるた（意味）,-,に,憎まれるような人ほど世渡りがうまいこと,The disliked often survive well,0,0
-252,いろはかるた（意味）,-,ち,小さなことでも積み重なれば大きな成果になる,Many small things add up,0,0
-253,いろはかるた（意味）,-,こ,律義な人は家庭を大切にし子どもが多くなるという考え,Honest people tend to have many children,0,0
-254,いろはかるた（意味）,-,ぬ,どんな行いにも必ず報いがあるということ,Even bad acts have consequences,0,0
-255,いろはかるた（意味）,-,は,見た目より実利を重んじること,Practicality over appearance,0,0
-256,いろはかるた（意味）,-,る,才能のある人はどんな環境でも力を発揮する,True talent shines anywhere,0,0
-257,いろはかるた（意味）,-,な,不運なときにさらに不幸が重なること,Misfortune never comes alone,0,0
-258,いろはかるた（意味）,-,あ,わずかな知識で全て分かったつもりになること,Judging the whole from a tiny part,0,0
-259,いろはかるた（意味）,-,か,何をされても平然としていること,Completely unfazed,0,0
-260,いろはかるた（意味）,-,わ,どんな人にもふさわしい相手がいるということ,Every pot has its lid,0,0
-261,いろはかるた（意味）,-,を,年を取ったら若い者の意見に従うのがよい,Let the younger generation lead,0,0
-262,いろはかるた（意味）,-,ね,十分注意した上でさらに注意を重ねること,Double-check everything,0,0
-263,いろはかるた（意味）,-,た,人は助け合って生きていくものだということ,Life is about helping each other,0,0
-264,いろはかるた（意味）,-,れ,忠告は耳に痛いが自分のためになる,Good medicine tastes bitter,0,0
-265,いろはかるた（意味）,-,そ,長男は大事に育てられ世間知らずになりがちだということ,The eldest son is often naive,0,0
-266,いろはかるた（意味）,-,つ,似ているようで実際は大きな違いがある,Like night and day,0,0
-267,百人一首,-,あ,あきのたの かりほのいおの とまをあらみ わがころもでは つゆにぬれつつ,"In the autumn field, in the temporary hut's rough rush-mats, my sleeves are getting wet with dew.",0,0
-268,百人一首,-,あ,あきかぜに たなびくくもの たえまより もれいづるつきの かげのさやけさ,"Through the rifts in the clouds trailing in the autumn wind, how clear the moonlight leaks out.",0,0
-269,百人一首,-,あ,あしびきの やまどりのをの しだりをの ながながしよを ひとりかもねむ,"Must I sleep alone through the long, long night, like the long, trailing tail of the mountain pheasant?",0,0
-270,百人一首,-,あ,あまのはら ふりさけみれば かすがなる みかさのやまに いでしつきかも,"When I look out over the plain of heaven, is that the same moon that rose over Mount Mikasa in Kasuga?",0,0
-271,百人一首,-,あ,あわれとも いうべきひとは おもほえで みのいたずらに なりぬべきかな,"Since there is no one who might feel pity for me, I suppose I shall just pass away in vain.",0,0
-272,百人一首,-,い,いまはただ おもひたえなむ とばかりを ひとづてならで いうよしもがな,Now I just want to give up my love; if only I could tell you this directly and not through others.,0,0
-273,百人一首,-,い,いまこむと いいしばかりに ながつきの ありあけのつきを まちいでつるかな,"Just because you said 'I'll come soon', I have waited until the morning moon of the long month appeared.",0,0
-274,百人一首,-,い,いろはにほへど ちりぬるを わがよたれぞ つねならむ,"Though flowers are fragrant, they will fall; in our world, who can remain forever?",0,0
-275,百人一首,-,い,いのちながくは かたみにあはず ひとりして ものおもふよぞ ながかりける,"If I live long, we might not meet again; the night I spend alone in thought is so very long.",0,0
-276,百人一首,-,い,いにしへの ならのみやこの やへざくら けふここのへに にほひぬるかな,The eight-layered cherry blossoms of the ancient capital of Nara are fragrantly blooming today in the imperial palace.,0,0
-277,百人一首,-,う,うかりける ひとをはつせの やまおろしよ はげしかれとは いのらぬものを,"O mountain wind of Hatsuse, I did not pray for you to be so harsh, though she is cold to me.",0,0
-278,百人一首,-,う,うらみわび ほさぬそでだに あるものを こひにくちなむ なこそをしけれ,"I resent her and am weary; my sleeves never dry, and I fear my reputation will rot away in this love.",0,0
-279,百人一首,-,え,えにしあらば あはむとぞおもふ いざさらば わがなとひとは わすれざらなむ,"If there is fate, I believe we shall meet; now farewell, and may you not forget my name.",0,0
-280,百人一首,-,お,おおえやま いくののみちの とおければ まだふみもみず あまのはしだて,The road to Ikuno over Mount Oe is so far that I have seen neither a letter nor Amanohashidate.,0,0
-281,百人一首,-,お,おくやまに もみぢふみわけ なくしかの こゑきくときぞ あきはかなしき,"When I hear the voice of the stag crying as he steps through the maple leaves deep in the mountains, autumn is truly sad.",0,0
-282,百人一首,-,か,かささぎの わたせるはしに おくしもの しろきをみれば よぞふけにける,"When I see the white frost on the bridge the magpies are said to have spread, I know the night has deepened.",0,0
-283,百人一首,-,か,かぜをいたみ いはうつなみの おのれのみ くだけてものを おもふころかな,"Like the waves breaking against the rocks in the fierce wind, I alone am broken as I think of my love.",0,0
-284,百人一首,-,き,きみがため はるののにいでて わかなつむ わがころもでに ゆきはふりつつ,"For your sake, I went out to the spring fields to pick young greens, while snow fell on my sleeves.",0,0
-285,百人一首,-,き,きみがため をしからざりし いのちさへ ながくもがなと おもひけるかな,"For your sake, I did not value my life, but now I wish it would be long.",0,0
-286,百人一首,-,く,くさもきも いろかはれども わたつみの なみのはなにぞ あきなかりける,"Though the colors of plants and trees change, there is no autumn in the flowers of the sea waves.",0,0
-287,百人一首,-,く,くれなゐに みづくくるとは ききしかど あきぞこのはに まじりけるかな,"I heard that the water is dyed crimson, but it seems autumn has mixed into the leaves.",0,0
-288,百人一首,-,こ,こころあてに をらばやをらむ はつしもの おきまどはせる しらぎくのはな,"If I were to pick them at random, I might pick the white chrysanthemums that the first frost has confused.",0,0
-289,百人一首,-,こ,このたびは ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,"At this time, I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.",0,0
-290,百人一首,-,さ,さびしさに やどをたちいでて ながむれば いづこもおなじ あきのゆふぐれ,"In my loneliness, I leave my house and look out; everywhere it is the same autumn evening.",0,0
-291,百人一首,-,し,しのぶれど いろにいでにけり わがこひは ものやおもふと ひとのとふまで,"Though I try to hide it, my love shows in my face, until people ask if I am lost in thought.",0,0
-292,百人一首,-,す,すみのえの きしによるなみ よるさへや ゆめのかよひぢ ひとめよくらむ,"Like the waves approaching the shore of Suminoe, even at night do you avoid people's eyes on the dream path?",0,0
-293,百人一首,-,せ,せをはやみ いはにせかるる たきがはの われてもすゑに あはむとぞおもふ,"Like the river current split by a rock in the rapids, though divided, I know we shall meet in the end.",0,0
-294,百人一首,-,そ,そらしらぬ ゆきふみわけて いでつるは ひとつのえだに つるをたづねて,"I went out treading through the snow I didn't know, seeking a vine on a single branch.",0,0
-295,百人一首,-,た,たごのうらに うちいでてみれば しろたへの ふじのたかねに ゆきはふりつつ,"When I go out to the shore of Tago and look, snow is falling on the white peak of Mount Fuji.",0,0
-296,百人一首,-,ち,ちはやぶる かみよもきかず たつたがは からくれなゐに みづくくるとは,"Never heard of even in the age of the mighty gods, that the Tatsuta River is dyed in deep crimson.",0,0
-297,百人一首,-,つ,つくばねの みねよりおつる みなのがは こひぞつもりて ふちとなりぬる,"Like the Minano River falling from the peak of Tsukubane, my love has accumulated and become a deep pool.",0,0
-298,百人一首,-,て,てふことも いまはむかしに なりぬれば たがためにかは なにかうらみむ,"Since even that has become a thing of the past, for whose sake should I hold any resentment?",0,0
-299,百人一首,-,と,ともしびを かきたつるまも なつかしき いづれのよひに みえぬまにまに,"Even while trimming the lamp, I miss you; on which evening did I not see you?",0,0
-300,百人一首,-,な,ながからむ こころもしらず くろかみの みだれてけさは ものをこそおもへ,"Uncertain of how long his heart will stay,my black hair lies in disarray this morning and so, I am lost in troubled thoughts.",0,0
-301,百人一首,-,に,にしきなる ふくろにいれて いはざかり いづれのやまを こえぬとぞおもふ,I put it in a brocade bag; I wonder which mountain it crossed in its peak of silence.,0,0
-302,百人一首,-,ぬ,ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.,0,0
-303,百人一首,-,ね,ねがはくは はなのしたにて はるしなむ そのきさらぎの もちづきのころ,"My wish is to die in spring under the flowers, around the time of the full moon in the second month.",0,0
-304,百人一首,-,の,のちのよを おもへばかろし ほととぎす あかつきかけて なきつるものを,"Thinking of the afterlife makes it seem light, while the cuckoo cries toward the dawn.",0,0
-305,百人一首,-,は,はるすぎて なつきにけらし しろたへの ころもほすてふ あまのかぐやま,Spring has passed and summer seems to have come; white robes are said to be dried on the heavenly Mount Kagu.,0,0
-306,百人一首,-,ひ,ひさかたの ひかりのどけき はるのひに しづこころなく はなのちるらむ,"On this spring day when the light is so calm, why do the cherry blossoms scatter with such unquiet hearts?",0,0
-307,百人一首,-,ふ,ふくからに あきのくさきの しをるれば むべやまかぜを あらしといふらむ,"Since the autumn plants and trees wither as soon as it blows, it is no wonder the mountain wind is called a storm.",0,0
-308,百人一首,-,へ,へにける いくよをかさね たまづさの ふみをひらけば こひぞつもりぬる,"As I open the letter after many passing nights, my love has truly accumulated.",0,0
-309,百人一首,-,ほ,ほととぎす なきつるかたを ながむれば ただありあけの つきぞのこれる,"When I look toward where the cuckoo cried, only the morning moon remains.",0,0
-310,百人一首,-,ま,まつとしき たかしのはまの あまごろも ぬれにぞぬれし いろはかはらず,"Waiting on the beach of Takashi, the fisher's robe got soaked and soaked, but its color remained unchanged.",0,0
-311,百人一首,-,み,みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ,"Like the Izumi River flowing through the plain of Mika, when did I see you that I should love you so?",0,0
-312,百人一首,-,む,むらさめの つゆもまだひぬ まきのはに きりたちのぼる あきのゆふぐれ,"Before the dew of the passing shower has dried on the fir leaves, the mist rises on an autumn evening.",0,0
-313,百人一首,-,め,めぐりあひて みしやそれとも わかぬまに くもがくれにし よはのつきかな,"Meeting by chance, before I could even tell if it was you, you were hidden by clouds like the midnight moon.",0,0
-314,百人一首,-,も,ももしきや ふるきのきばの しのぶにも なほあまりある むかしなりけり,"In the palace, even the ferns on the old eaves make me yearn for the past more than I can bear.",0,0
-315,百人一首,-,や,やすらはで ねなましものを さよふけて かたぶくまでの つきをみしかな,I should have gone to sleep without waiting; I watched the moon until it began to sink late at night.,0,0
-316,百人一首,-,ゆ,ゆらのとを わたるふなびと かぢをたえ ゆくへもしらぬ こひのみちかな,"Like a mariner crossing the Yura Strait with a lost oar, I know not where the path of my love leads.",0,0
-317,百人一首,-,よ,よをこめて とりのそらねは はかるとも よにあふさかの せきはゆるさじ,"Though you try to deceive with a bird's false cry in the dead of night, the gate of Osaka shall not let you pass.",0,0
-318,百人一首,-,ら,らいしやうの いのちのはてを しらぬまに けふをかぎりと おもひけるかな,"Not knowing the end of my life in the next world, I thought today would be the limit.",0,0
-319,百人一首,-,り,りくかぜの さむきにたへて みちのくの しのぶもぢずり たれゆゑにけむ,"Enduring the cold land wind, for whose sake was the tangled print of Michinoku's Shinobu?",0,0
-320,百人一首,-,る,るりのつぼ いづれのひとも すむらむと こころをかけし いろはみえず,"In the lapis lazuli jar where everyone might live, I cannot see the colors I set my heart on.",0,0
-321,百人一首,-,れ,れいよりも こころをつくせ さくらばな ちりぬるのちも にほひをこそ,"Exert your heart more than usual, cherry blossoms; even after you fall, leave your fragrance.",0,0
-322,百人一首,-,ろ,ろばたにて こまをつなぎて みるほどに はなぞちりける さくらかな,"While tethering my horse by the roadside, the cherry blossoms were scattering.",0,0
-323,百人一首,-,わ,わたのはら やそしまかけて こぎいでぬと ひとにはつげよ あまのつりぶね,"Tell the people that I have rowed out over the wide sea toward the many islands, O fisher's boat.",0,0
-324,百人一首,-,を,をぐらやま みねのもみぢば こころあらば いまひとたびの みゆきまたなむ,"O maple leaves on the peak of Mount Ogura, if you have a heart, wait for one more imperial visit.",0,0
-325,百人一首,-,ん,んにゃくにしゅう つねのことばを うたにして こころをつたふ みちぞたふとき,"Turning ordinary words into songs to convey the heart, the path is truly noble.",0,0
+id,category,level,kana,phrase,phrase_en
+1,テスト用,5,あ,アメンボ赤いな　あいうえお,"A red water strider — A, I, U, E, O."
+2,テスト用,100,い,犬も歩けば　棒に当たる,"If you go out, you may run into trouble."
+3,大ピンチずかん,77,え,エスカレーターが　ぎゃくだった,The escalator was going the opposite way.
+4,大ピンチずかん,20,あ,アイスが　とけてきた,The ice cream started melting.
+5,大ピンチずかん,4,へ,へんな　ひやけを　した,Made a strange face.
+6,大ピンチずかん,30,た,たんじょうびケーキが　たおれて　イチゴが　ころがった,The birthday cake fell over and the strawberries rolled away.
+7,大ピンチずかん,23,ご,ごはんつぶを　ふんだ,Stepped on a grain of rice.
+8,大ピンチずかん,21,お,おふろの　ごみが　すくえない,Can't scoop the debris out of the bathtub.
+9,大ピンチずかん,18,ふ,ふたが　ない,There is no lid.
+10,大ピンチずかん,6,て,テープの　はしが　みつからない,Can't find the end of the tape.
+11,大ピンチずかん,28,え,えだまめが　とんだ,The edamame flew away.
+12,大ピンチずかん,24,か,カップめんの　おゆが　たりない,Not enough hot water for the cup noodles.
+13,大ピンチずかん,68,う,うんてんちゅうの　くるまの　なかに　おおきな　クモが　いる,There is a big spider in the car while driving.
+14,大ピンチずかん,35,ゆ,ゆでたまごが　ボロボロ,The boiled egg is falling apart.
+15,大ピンチずかん,5,す,ストローが　とれない,Can't take out the straw.
+16,大ピンチずかん,27,う,「う」の　もじが　はんたいだった,The letter 'u' was backwards.
+17,大ピンチずかん,19,け,おちたけしゴムがみつからない,Can't find the dropped eraser.
+18,大ピンチずかん,17,し,しょうゆをいれすぎた,Poured too much soy sauce.
+19,大ピンチずかん,34,しゃ,シャワーがみつからない,Can't find the shower.
+20,大ピンチずかん,3,こ,こおりがしたにくっついた,The ice stuck to my tongue.
+21,大ピンチずかん,26,た,たんじょうびケーキがたおれそう,The birthday cake is about to fall.
+22,大ピンチずかん,22,じ,じゅうでんができていなかった,It wasn't charged.
+23,大ピンチずかん,14,し,シャボンえきをすった,Accidentally inhaled the bubble solution.
+24,大ピンチずかん,33,け,ケチャップがとんだ,Ketchup splattered.
+25,大ピンチずかん,31,ぽ,ポケットからすながたくさんでてきた,A lot of sand came out of the pocket.
+26,大ピンチずかん,25,せ,せんたくきのうしろにくつしたがおちた,A sock fell behind the washing machine.
+27,大ピンチずかん,90,ふ,フンをふんだ,Stepped on poop.
+28,大ピンチずかん,55,い,いおうとしていたことをわすれた,Forgot what I was about to say.
+29,大ピンチずかん,46,に,にくがきれない,Can't cut the meat.
+30,大ピンチずかん,39,た,たんじょうびケーキのろうそくがきえない,The birthday cake candles won't go out.
+31,大ピンチずかん,52,む,むかしのおにぎりがでてきた,An old rice ball appeared.
+32,大ピンチずかん,54,れ,れいとうこがあかない,The freezer won't open.
+33,大ピンチずかん,48,ふ,ふくのピラピラがきになる,The loose thread on my clothes is bothering me.
+34,大ピンチずかん,43,し,しゅくだいノートと　じゆうちょうをまちがえた,Confused the homework notebook with the sketchbook.
+35,大ピンチずかん,38,ふ,ふたがしまらない,The lid won't close.
+36,大ピンチずかん,32,め,めんつゆがすごくあまった,A lot of noodle dipping sauce was left over.
+37,大ピンチずかん,53,な,ながしのみずがスプーンではねた,The water in the sink splashed off the spoon.
+38,大ピンチずかん,49,べ,べんざをあけたまますわった,Sat down with the toilet seat up.
+39,大ピンチずかん,37,あ,アメリカンドッグがまわる,The corn dog is spinning.
+40,大ピンチずかん,76,ね,ねむれない,Can't sleep.
+41,大ピンチずかん,47,し,シャンプーがめにはいった,Got shampoo in my eyes.
+42,大ピンチずかん,51,ば,バッグのなかですいとうがもれた,The water bottle leaked inside the bag.
+43,大ピンチずかん,56,な,なまえがおもいだせない,Can't remember the name.
+44,大ピンチずかん,64,き,きんじょのおばさんがずっとなまえをまちがえている,The neighborhood lady has been getting my name wrong for a long time.
+45,大ピンチずかん,50,お,おゆがない,There is no hot water.
+46,大ピンチずかん,45,ど,ドアをあけられてさむい,Someone opened the door and it's cold.
+47,大ピンチずかん,40,せ,せんせいのメガネがとんだ,The teacher's glasses flew off.
+48,大ピンチずかん,36,ほ,ほねをとっていたら　ぐちゃぐちゃになった,It became a mess while I was trying to remove the bones.
+49,大ピンチずかん,29,ぎ,ぎゅうにゅうがこぼれた,The milk spilled.
+50,大ピンチずかん,96,か,かさがうらがえった,The umbrella turned inside out.
+51,大ピンチずかん,97,じ,じてんしゃがドミノだおし,The bicycles fell over like dominoes.
+52,大ピンチずかん,98,お,おもったよりみじかくなった,It became shorter than I thought.
+53,大ピンチずかん,99,ね,ネコがついてくる,A cat is following me.
+54,大ピンチずかん,100,ど,どしゃぶりなのにかさがない,It's pouring rain but I don't have an umbrella.
+55,大ピンチずかん,58,れ,れいとうこがしまらない,The freezer won't close.
+56,大ピンチずかん,59,さ,さようならのおじぎで　ランドセルのなかみがぜんぶでた,Everything fell out of my backpack when I bowed to say goodbye.
+57,大ピンチずかん,84,ま,まいご,I'm lost.
+58,大ピンチずかん,82,か,かいものがながい,Shopping is taking a long time.
+59,大ピンチずかん,81,じ,じてんしゃにハチがとまっている,A bee is sitting on the bicycle.
+60,大ピンチずかん,60,せ,せんせいに　おかあさんといってしまった,I accidentally called my teacher 'Mom'.
+61,大ピンチずかん,61,ぎ,ギターのなかにおかしがおちた,A snack fell inside the guitar.
+62,大ピンチずかん,62,ず,ズボンのゴムがきれた,The elastic in my pants snapped.
+63,大ピンチずかん,63,さ,さなぎからかえったカブトムシが　よなかにだっそうして　とびまわっている,The beetle that emerged from its pupa escaped at night and is flying around.
+64,大ピンチずかん,57,け,けしゴムにさした　えんぴつのしんが　けしたときにつく,The pencil lead stuck in the eraser leaves marks when I erase.
+65,大ピンチずかん,89,お,おきられない,Can't wake up.
+66,大ピンチずかん,91,で,でんちゅうに　じてんしゃで　つっこんだ,Crashed my bicycle into a utility pole.
+67,大ピンチずかん,93,と,トイレがつまった,The toilet is clogged.
+68,大ピンチずかん,94,お,おかあさんがイライラしている,Mom is getting irritated.
+69,大ピンチずかん,95,お,プレゼントをわすれた,Forgot the present.
+70,大ピンチずかん,86,し,しんしつのだれかいる,Someone is in the bedroom.
+71,大ピンチずかん,87,く,クモのすにかかった,Got caught in a spider web.
+72,大ピンチずかん,88,と,トイレにおおきなガがとまっている,A large moth is sitting in the toilet.
+73,大ピンチずかん,0,し,しゃっくりがとまらない,Can't stop hiccuping.
+74,大ピンチずかん,16,わ,わりばしがうまくわれない,Can't split the chopsticks properly.
+75,大ピンチずかん,11,ご,ゴミばこがやまもり,The trash can is overflowing.
+76,大ピンチずかん,70,お,おなかがすいてうごけない,So hungry I can't move.
+77,大ピンチずかん,67,ま,まちがえてシャワーがでた,The shower came on by mistake.
+78,大ピンチずかん,13,け,パンがくろこげ,The bread is burnt to a crisp.
+79,大ピンチずかん,10,け,けずりかすいれがはいってなかった,The pencil shavings container wasn't in.
+80,大ピンチずかん,71,ふ,ふとんのなかでおならがでた,Farted under the covers.
+81,大ピンチずかん,69,じ,じぶんのいえでトイレがつまった,The toilet at my own house is clogged.
+82,大ピンチずかん,8,あ,あたまにつけたわゴムがとれない,Can't remove the rubber band I put on my head.
+83,大ピンチずかん,12,や,ビニールぶくろがめくれない,Can't open the plastic bag.
+84,大ピンチずかん,15,し,しょくばんを　がんばってスライスしているうちに　ぺしゃんこになっていた,The bread got squashed while I was trying hard to slice it.
+85,大ピンチずかん,7,ぺ,ペンがしみてつくえについた,The pen leaked onto the desk.
+86,大ピンチずかん,80,や,やっぱりさむかった,It was cold after all.
+87,大ピンチずかん,74,と,トイレのかみがない,There is no toilet paper.
+88,大ピンチずかん,73,わ,ワサビいりだった,It had wasabi in it.
+89,大ピンチずかん,72,お,おべんとうをわすれた,Forgot my lunch box.
+90,大ピンチずかん,66,あ,あしがつちだらけ,Feet are covered in mud.
+91,大ピンチずかん,65,は,ハエがじぶんにばかりとまる,Flies only land on me.
+92,大ピンチずかん,83,い,イヌがすごくなめてくる,The dog is licking me a lot.
+93,大ピンチずかん,75,し,しらないひとのてをにぎっていた,Was holding a stranger's hand.
+94,大ピンチずかん,85,し,シロツメクサの　かんむりをよくみると　アブラムシだらけだった,"When I looked closely at the clover crown, it was full of aphids."
+95,大ピンチずかん,79,ば,バッグにアリがあつまってきた,Ants gathered on the bag.
+96,大ピンチずかん,78,し,しんしつの　てんじょうのもくめが　ひとのかおにみえてきた,The wood grain on the bedroom ceiling started to look like a person's face.
+97,大ピンチずかん,41,や,やすみじかんに　おいた　すいとうが　そのまま,The water bottle I left during recess is still there.
+98,大ピンチずかん,42,ご,ごはんが　たりない,Not enough food.
+99,大ピンチずかん,43,は,はなしを　きいてなかった,Wasn't listening.
+100,大ピンチずかん,2,の,のんだガムに　まだあじが　たくさんのこっていた,Swallowed the gum; it still had a lot of flavor left.
+101,大ピンチずかん,0,む,むかしの　おにぎりが　でてきた,An old rice ball appeared.
+102,国旗王,上級,し,人口密度が高い,High population density.
+103,国旗王,上級,ひ,一人当たりGDPが高い,High GDP per capita.
+104,国旗王,上級,し,首都 最東,Easternmost capital.
+105,国旗王,上級,し,首都が最北,Northernmost capital.
+106,国旗王,上級,は,排他的経済水域,Exclusive Economic Zone.
+107,国旗王,上級,く,軍事費が最小,Smallest military expenditure.
+108,国旗王,上級,へ,平均寿命が短い,Short average life expectancy.
+109,国旗王,初級,し,人口が多い,Large population.
+110,国旗王,初級,め,面積が最小,Smallest area.
+111,国旗王,初級,は,排他的経済水域が最小,Smallest Exclusive Economic Zone.
+112,国旗王,上級,さ,最高地点が高い,Highest point is high.
+113,国旗王,初級,こ,国内総生産GDPが低い,Low GDP.
+114,国旗王,初級,し,人口が少ない,Small population.
+115,国旗王,初級,せ,正式国名が長い,Long official country name.
+116,国旗王,上級,く,軍事費が大きい,Large military expenditure.
+117,国旗王,上級,さ,最高地点が低い,Highest point is low.
+118,国旗王,初級,こ,国内総生産GDPが高い,High GDP.
+119,国旗王,初級,せ,正式国名が短い,Short official country name.
+120,国旗王,初級,め,面積が大きい,Large area.
+121,国旗王,上級,へ,平均寿命が長い,Long average life expectancy.
+122,国旗王,初級,ひ,一人当たりGDPが低い,Low GDP per capita.
+123,国旗王,初級,し,人口密度が低い,Low population density.
+124,国旗王,初級,せ,正式国名 五十音順 アに近い,Official name closest to 'A' in Japanese syllabary.
+125,国旗王,初級,し,首都が最南,Southernmost capital.
+126,おばけかるた,-,ふ,ふでこぞうが　ひとふでがき,Fudekozo draws with a single stroke.
+127,おばけかるた,-,ね,ねこまたも　ねがおはかわいい,Even Nekomata looks cute when sleeping.
+128,おばけかるた,-,ち,ちょうちんぶらり　こっちへ　くるぞ,Chochin-burari is coming this way!
+129,おばけかるた,-,た,たまごがわれて　てんぐがうまれた,An egg cracked and a Tengu was born.
+130,おばけかるた,-,け,けむくじゃらな　うでだ　まけるな！,"It's a hairy arm, don't lose!"
+131,おばけかるた,-,く,くずかごからくろいてが！！！　きゃっ！！！,A black hand from the wastebasket!!! Kya!!!
+132,おばけかるた,-,あ,あめふりこぞうが　びちゃびちゃあるく,Amefuri-kozo walks with a squish-squish.
+133,おばけかるた,-,ひ,ひとつめのくには　ひとつめだらけだってさ,They say the one-eyed country is full of one-eyes.
+134,おばけかるた,-,ぬ,ぬらりとわらう　ぬっぺっぽう,Nureppon smiles eerily.
+135,おばけかるた,-,つ,つきよにでていくつく　もがみ,Tsuku-mogami goes out on a moonlit night.
+136,おばけかるた,-,そ,そろってあるく　ぞうりのおばけ,Zori ghosts walk in pairs.
+137,おばけかるた,-,こ,こんばんは～　どろどろどろどろ～,Good evening~ Doro-doro-doro-doro~
+138,おばけかるた,-,き,きゅうびのきつねは　ばけるめいじん,The nine-tailed fox is a master of disguise.
+139,おばけかるた,-,い,いったんもめんは　そらとべていいなあ,"Ittan-momen, it's nice to fly in the sky."
+140,おばけかるた,-,は,はたらけはたらけ　おばけもはたらけ,"Work, work, ghosts also work."
+141,おばけかるた,-,に,にっこりわらう　にかいのおんな,The woman on the second floor smiles.
+142,おばけかるた,-,て,てんぐのはながおれては　かわいそう,It would be pitiful if Tengu's nose broke.
+143,おばけかるた,-,せ,せんすだって　すてればばける,Even a fan will transform if you throw it away.
+144,おばけかるた,-,さ,さかさくびは　ぺろぺろなめる,Sakasa-kubi licks with a flick-flick.
+145,おばけかるた,-,か,かあさんかっぱ　とこどものかっぱ,Mother Kappa and baby Kappa.
+146,おばけかるた,-,う,うみぼうずのがっこう　せいとをぼしゅう,Umibozu's school is recruiting students.
+147,おばけかるた,-,の,のんきなのぶすま　のんびりとんだ,Carefree Nobusuma flew leisurely.
+148,おばけかるた,-,な,なきなきかえった　ちいさなゆうれい,A small ghost returned crying.
+149,おばけかるた,-,と,とらがねてたら　かみなりどしーん！！,"If a tiger sleeps, lightning strikes with a boom!!"
+150,おばけかるた,-,す,すりばちこぞうは　なにすってるの？,What is Suribachi-kozo grinding?
+151,おばけかるた,-,し,しろくてみえない　ゆきのひのゆうれい,A white and invisible ghost on a snowy day.
+152,おばけかるた,-,お,おにもおじいさんになる,Even an ogre grows old.
+153,おばけかるた,-,え,えだをもやしたら　えんえんらがでたぞ,"When I burned a branch, Enenra came out!"
+154,おばけかるた,-,る,るすばんしてるは　ぶるぶるひとり,"Staying home alone, trembling."
+155,おばけかるた,-,り,りゅうがいねむり　そらからおちる,"A dragon sleeping, falling from the sky."
+156,おばけかるた,-,む,むじなもばけたが　ちょっとむりだった,"Mujina tried to transform, but it was a bit impossible."
+157,おばけかるた,-,み,みこしにゅうどう　みかけよりよわい,"Mikoshi-Nyudo, weaker than he looks."
+158,おばけかるた,-,れ,れいぎただしい　ゆうれいもいる,There are polite ghosts too.
+159,おばけかるた,-,ら,らしょうもんの　おにはらんぼうだ,The demon of Rashomon is wild.
+160,おばけかるた,-,め,めだまをとられた　ひとつめこぞう,A one-eyed monster whose eye was taken.
+161,おばけかるた,-,ま,まくらがえしは　まいばんうるさい,Makura-gaeshi is noisy every night.
+162,おばけかるた,-,ろ,ろくろくねなかった　ろくろっくび,Rokurokubi who didn't sleep at all.
+163,おばけかるた,-,よ,よみちをこわがる　よわむしにゅうどう,A timid Nyudo who is scared of night roads.
+164,おばけかるた,-,も,もりんじのかまは　たぬきがばけた,Morinji's kettle was a transformed raccoon dog.
+165,おばけかるた,-,ほ,ほうきのおばけは　ほめてやろう,Let's praise the broom ghost.
+166,おばけかるた,-,を,「あしをけして　てをまえに」ゆうれいのおけいこ,"Delete legs, hands forward - a ghost's practice."
+167,おばけかるた,-,わ,わ、にゅうどうだ　わぁーっこわい！,"Oh, it's a Nyudo! Ahh, scary!"
+168,おばけかるた,-,ゆ,ゆきおんな　おゆにはいってとけちゃった,Yuki-onna went into hot water and melted.
+169,おばけかるた,-,や,やなぎのしたで　ゆうれいけんか,Ghosts fighting under a willow tree.
+170,おばけかるた,-,へ,へびよりこわい　ろくろっくび,"Rokurokubi, scarier than a snake."
+171,いろはかるた,-,ま,嘘から出たまこと,A lie can sometimes turn into the truth
+172,いろはかるた,-,こ,弘法にも筆の誤り,Even experts make mistakes
+173,いろはかるた,-,あ,得手に帆を揚げる,To take advantage of a good opportunity
+174,いろはかるた,-,あ,味なもの縁は異なもの,Romance works in mysterious ways
+175,いろはかるた,-,ぞ,芋の煮えたも御存じない,Completely clueless
+176,いろはかるた,-,て,文はやりたし書く手は持たぬ,Wanting to write a letter but lacking the skill
+177,いろはかるた,-,す,亭主の好きな赤烏帽子,One must go along with the head of the household
+178,いろはかるた,-,し,知らぬが仏,Ignorance is bliss
+179,いろはかるた,-,は,背に腹はかえられぬ,Needs must when driven
+180,いろはかるた,-,げ,芸は身を助ける,A skill will always help you
+181,いろはかるた,-,の,喉元過ぎれば熱さを忘れる,"Once the pain is gone, the lesson is forgotten"
+182,いろはかるた,-,あ,頭隠して尻隠さず,Trying to hide something but failing
+183,いろはかるた,-,み,身から出た錆,You reap what you sow
+184,いろはかるた,-,も,門前の小僧習わぬ経を読む,You learn things naturally by exposure
+185,いろはかるた,-,お,鬼に金棒,Adding strength to the strong
+186,いろはかるた,-,ま,負けるが勝ち,Sometimes losing leads to winning
+187,いろはかるた,-,さ,三遍回って煙草にしょ,Take time and be careful
+188,いろはかるた,-,め,目の上のたん瘤,A thorn in one’s side
+189,いろはかるた,-,ひ,貧乏暇なし,The poor have no leisure
+190,いろはかるた,-,く,臭い物に蓋をする,To cover up an inconvenient truth
+191,いろはかるた,-,や,安物買いの銭失い,Buying cheap ends up costing more
+192,いろはかるた,-,き,聞いて極楽見て地獄,Hearing and seeing are very different
+193,いろはかるた,-,ゆ,油断大敵,Carelessness is dangerous
+194,いろはかるた,-,い,犬も歩けば棒に当たる,Every action brings some result
+195,いろはかるた,-,ら,楽あれば苦あり,Life has ups and downs
+196,いろはかるた,-,む,無理が通れば道理が引っ込む,"When force prevails, reason disappears"
+197,いろはかるた,-,と,年寄りの冷や水,An old person acting recklessly
+198,いろはかるた,-,す,粋は身を食う,Showing off can ruin you
+199,いろはかるた,-,き,京の夢大阪の夢,Dreams are fleeting and strange
+200,いろはかるた,-,へ,下手の長談義,The unskilled talk the longest
+201,いろはかるた,-,ろ,論より証拠,Proof is better than argument
+202,いろはかるた,-,く,くたびれ儲け,All effort and no reward
+203,いろはかるた,-,に,憎まれっ子世にはばかる,The disliked often survive well
+204,いろはかるた,-,ち,塵も積もれば山となる,Many small things add up
+205,いろはかるた,-,こ,律義者の子だくさん,Honest people tend to have many children
+206,いろはかるた,-,ぬ,盗人の昼寝,Even bad acts have consequences
+207,いろはかるた,-,は,花より団子,Practicality over appearance
+208,いろはかるた,-,る,瑠璃も玻璃も照らせば光る,True talent shines anywhere
+209,いろはかるた,-,な,泣きっ面に蜂,Misfortune never comes alone
+210,いろはかるた,-,あ,葦の髄から天井のぞく,Judging the whole from a tiny part
+211,いろはかるた,-,か,蛙の面に水,Completely unfazed
+212,いろはかるた,-,わ,破れ鍋に綴じ蓋,Every pot has its lid
+213,いろはかるた,-,を,老いては子に従え,Let the younger generation lead
+214,いろはかるた,-,ね,念には念を入れよ,Double-check everything
+215,いろはかるた,-,た,旅は道連れ世は情け,Life is about helping each other
+216,いろはかるた,-,れ,良薬は口に苦し,Good medicine tastes bitter
+217,いろはかるた,-,そ,総領の甚六,The eldest son is often naive
+218,いろはかるた,-,つ,月とすっぽん,Like night and day
+219,いろはかるた（意味）,-,ま,でたらめに言ったことが、偶然にも事実になってしまうこと,A lie can sometimes turn into the truth
+220,いろはかるた（意味）,-,こ,どんな名人でも失敗することがあるというたとえ,Even experts make mistakes
+221,いろはかるた（意味）,-,あ,物事を行うのに絶好の機会を得ること,To take advantage of a good opportunity
+222,いろはかるた（意味）,-,あ,男女の仲は理屈では説明できないものだということ,Romance works in mysterious ways
+223,いろはかるた（意味）,-,ぞ,物事の様子がまったく分からない人をからかう言い方,Completely clueless
+224,いろはかるた（意味）,-,て,やりたい気持ちはあるが能力が伴わず困っていること,Wanting to write a letter but lacking the skill
+225,いろはかるた（意味）,-,す,家長の好みには家族も従うべきだという考え,One must go along with the head of the household
+226,いろはかるた（意味）,-,し,知らなければ悩まずにすむこともあるということ,Ignorance is bliss
+227,いろはかるた（意味）,-,は,大きな目的のためには多少の犠牲は仕方ないということ,Needs must when driven
+228,いろはかるた（意味）,-,げ,身につけた技や芸が困ったときに役立つこと,A skill will always help you
+229,いろはかるた（意味）,-,の,苦しい経験をしても時間がたつと忘れてしまうこと,"Once the pain is gone, the lesson is forgotten"
+230,いろはかるた（意味）,-,あ,一部しか隠していないのに全部隠したつもりでいること,Trying to hide something but failing
+231,いろはかるた（意味）,-,み,自分のした悪い行いの結果で自分が苦しむこと,You reap what you sow
+232,いろはかるた（意味）,-,も,日頃見聞きしているうちに自然と身につくことがある,You learn things naturally by exposure
+233,いろはかるた（意味）,-,お,強いものがさらに力を得て一層強くなること,Adding strength to the strong
+234,いろはかるた（意味）,-,ま,一歩引いた方が結果的に有利になることがある,Sometimes losing leads to winning
+235,いろはかるた（意味）,-,さ,急がず慎重に行動することが大切だということ,Take time and be careful
+236,いろはかるた（意味）,-,め,自分にとって邪魔で目障りな存在のたとえ,A thorn in one’s side
+237,いろはかるた（意味）,-,ひ,貧しい人ほど仕事に追われ時間の余裕がないこと,The poor have no leisure
+238,いろはかるた（意味）,-,く,都合の悪いことを一時的に隠そうとすること,To cover up an inconvenient truth
+239,いろはかるた（意味）,-,や,安い物を買うとかえって損をすること,Buying cheap ends up costing more
+240,いろはかるた（意味）,-,き,聞くのと実際に見るのとでは大きな違いがあること,Hearing and seeing are very different
+241,いろはかるた（意味）,-,ゆ,油断すると失敗や災難を招くということ,Carelessness is dangerous
+242,いろはかるた（意味）,-,い,行動すれば良くも悪くも何かが起こるということ,Every action brings some result
+243,いろはかるた（意味）,-,ら,人生には楽しいことと苦しいことの両方がある,Life has ups and downs
+244,いろはかるた（意味）,-,む,無茶がまかり通る世の中では道理が通らなくなる,"When force prevails, reason disappears"
+245,いろはかるた（意味）,-,と,年齢を考えず無理な振る舞いをすること,An old person acting recklessly
+246,いろはかるた（意味）,-,す,気取った振る舞いが身を滅ぼすことがある,Showing off can ruin you
+247,いろはかるた（意味）,-,き,夢というものはとりとめなく不思議なものだということ,Dreams are fleeting and strange
+248,いろはかるた（意味）,-,へ,下手な人ほど話が長くなること,The unskilled talk the longest
+249,いろはかるた（意味）,-,ろ,理屈よりも実際の証拠が大切だということ,Proof is better than argument
+250,いろはかるた（意味）,-,く,苦労したわりに何の得もないこと,All effort and no reward
+251,いろはかるた（意味）,-,に,憎まれるような人ほど世渡りがうまいこと,The disliked often survive well
+252,いろはかるた（意味）,-,ち,小さなことでも積み重なれば大きな成果になる,Many small things add up
+253,いろはかるた（意味）,-,こ,律義な人は家庭を大切にし子どもが多くなるという考え,Honest people tend to have many children
+254,いろはかるた（意味）,-,ぬ,どんな行いにも必ず報いがあるということ,Even bad acts have consequences
+255,いろはかるた（意味）,-,は,見た目より実利を重んじること,Practicality over appearance
+256,いろはかるた（意味）,-,る,才能のある人はどんな環境でも力を発揮する,True talent shines anywhere
+257,いろはかるた（意味）,-,な,不運なときにさらに不幸が重なること,Misfortune never comes alone
+258,いろはかるた（意味）,-,あ,わずかな知識で全て分かったつもりになること,Judging the whole from a tiny part
+259,いろはかるた（意味）,-,か,何をされても平然としていること,Completely unfazed
+260,いろはかるた（意味）,-,わ,どんな人にもふさわしい相手がいるということ,Every pot has its lid
+261,いろはかるた（意味）,-,を,年を取ったら若い者の意見に従うのがよい,Let the younger generation lead
+262,いろはかるた（意味）,-,ね,十分注意した上でさらに注意を重ねること,Double-check everything
+263,いろはかるた（意味）,-,た,人は助け合って生きていくものだということ,Life is about helping each other
+264,いろはかるた（意味）,-,れ,忠告は耳に痛いが自分のためになる,Good medicine tastes bitter
+265,いろはかるた（意味）,-,そ,長男は大事に育てられ世間知らずになりがちだということ,The eldest son is often naive
+266,いろはかるた（意味）,-,つ,似ているようで実際は大きな違いがある,Like night and day
+267,百人一首,-,あ,あきのたの かりほのいおの とまをあらみ わがころもでは つゆにぬれつつ,"In the autumn field, in the temporary hut's rough rush-mats, my sleeves are getting wet with dew."
+268,百人一首,-,あ,あきかぜに たなびくくもの たえまより もれいづるつきの かげのさやけさ,"Through the rifts in the clouds trailing in the autumn wind, how clear the moonlight leaks out."
+269,百人一首,-,あ,あしびきの やまどりのをの しだりをの ながながしよを ひとりかもねむ,"Must I sleep alone through the long, long night, like the long, trailing tail of the mountain pheasant?"
+270,百人一首,-,あ,あまのはら ふりさけみれば かすがなる みかさのやまに いでしつきかも,"When I look out over the plain of heaven, is that the same moon that rose over Mount Mikasa in Kasuga?"
+271,百人一首,-,あ,あわれとも いうべきひとは おもほえで みのいたずらに なりぬべきかな,"Since there is no one who might feel pity for me, I suppose I shall just pass away in vain."
+272,百人一首,-,い,いまはただ おもひたえなむ とばかりを ひとづてならで いうよしもがな,Now I just want to give up my love; if only I could tell you this directly and not through others.
+273,百人一首,-,い,いまこむと いいしばかりに ながつきの ありあけのつきを まちいでつるかな,"Just because you said 'I'll come soon', I have waited until the morning moon of the long month appeared."
+274,百人一首,-,い,いろはにほへど ちりぬるを わがよたれぞ つねならむ,"Though flowers are fragrant, they will fall; in our world, who can remain forever?"
+275,百人一首,-,い,いのちながくは かたみにあはず ひとりして ものおもふよぞ ながかりける,"If I live long, we might not meet again; the night I spend alone in thought is so very long."
+276,百人一首,-,い,いにしへの ならのみやこの やへざくら けふここのへに にほひぬるかな,The eight-layered cherry blossoms of the ancient capital of Nara are fragrantly blooming today in the imperial palace.
+277,百人一首,-,う,うかりける ひとをはつせの やまおろしよ はげしかれとは いのらぬものを,"O mountain wind of Hatsuse, I did not pray for you to be so harsh, though she is cold to me."
+278,百人一首,-,う,うらみわび ほさぬそでだに あるものを こひにくちなむ なこそをしけれ,"I resent her and am weary; my sleeves never dry, and I fear my reputation will rot away in this love."
+279,百人一首,-,え,えにしあらば あはむとぞおもふ いざさらば わがなとひとは わすれざらなむ,"If there is fate, I believe we shall meet; now farewell, and may you not forget my name."
+280,百人一首,-,お,おおえやま いくののみちの とおければ まだふみもみず あまのはしだて,The road to Ikuno over Mount Oe is so far that I have seen neither a letter nor Amanohashidate.
+281,百人一首,-,お,おくやまに もみぢふみわけ なくしかの こゑきくときぞ あきはかなしき,"When I hear the voice of the stag crying as he steps through the maple leaves deep in the mountains, autumn is truly sad."
+282,百人一首,-,か,かささぎの わたせるはしに おくしもの しろきをみれば よぞふけにける,"When I see the white frost on the bridge the magpies are said to have spread, I know the night has deepened."
+283,百人一首,-,か,かぜをいたみ いはうつなみの おのれのみ くだけてものを おもふころかな,"Like the waves breaking against the rocks in the fierce wind, I alone am broken as I think of my love."
+284,百人一首,-,き,きみがため はるののにいでて わかなつむ わがころもでに ゆきはふりつつ,"For your sake, I went out to the spring fields to pick young greens, while snow fell on my sleeves."
+285,百人一首,-,き,きみがため をしからざりし いのちさへ ながくもがなと おもひけるかな,"For your sake, I did not value my life, but now I wish it would be long."
+286,百人一首,-,く,くさもきも いろかはれども わたつみの なみのはなにぞ あきなかりける,"Though the colors of plants and trees change, there is no autumn in the flowers of the sea waves."
+287,百人一首,-,く,くれなゐに みづくくるとは ききしかど あきぞこのはに まじりけるかな,"I heard that the water is dyed crimson, but it seems autumn has mixed into the leaves."
+288,百人一首,-,こ,こころあてに をらばやをらむ はつしもの おきまどはせる しらぎくのはな,"If I were to pick them at random, I might pick the white chrysanthemums that the first frost has confused."
+289,百人一首,-,こ,このたびは ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,"At this time, I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke."
+290,百人一首,-,さ,さびしさに やどをたちいでて ながむれば いづこもおなじ あきのゆふぐれ,"In my loneliness, I leave my house and look out; everywhere it is the same autumn evening."
+291,百人一首,-,し,しのぶれど いろにいでにけり わがこひは ものやおもふと ひとのとふまで,"Though I try to hide it, my love shows in my face, until people ask if I am lost in thought."
+292,百人一首,-,す,すみのえの きしによるなみ よるさへや ゆめのかよひぢ ひとめよくらむ,"Like the waves approaching the shore of Suminoe, even at night do you avoid people's eyes on the dream path?"
+293,百人一首,-,せ,せをはやみ いはにせかるる たきがはの われてもすゑに あはむとぞおもふ,"Like the river current split by a rock in the rapids, though divided, I know we shall meet in the end."
+294,百人一首,-,そ,そらしらぬ ゆきふみわけて いでつるは ひとつのえだに つるをたづねて,"I went out treading through the snow I didn't know, seeking a vine on a single branch."
+295,百人一首,-,た,たごのうらに うちいでてみれば しろたへの ふじのたかねに ゆきはふりつつ,"When I go out to the shore of Tago and look, snow is falling on the white peak of Mount Fuji."
+296,百人一首,-,ち,ちはやぶる かみよもきかず たつたがは からくれなゐに みづくくるとは,"Never heard of even in the age of the mighty gods, that the Tatsuta River is dyed in deep crimson."
+297,百人一首,-,つ,つくばねの みねよりおつる みなのがは こひぞつもりて ふちとなりぬる,"Like the Minano River falling from the peak of Tsukubane, my love has accumulated and become a deep pool."
+298,百人一首,-,て,てふことも いまはむかしに なりぬれば たがためにかは なにかうらみむ,"Since even that has become a thing of the past, for whose sake should I hold any resentment?"
+299,百人一首,-,と,ともしびを かきたつるまも なつかしき いづれのよひに みえぬまにまに,"Even while trimming the lamp, I miss you; on which evening did I not see you?"
+300,百人一首,-,な,ながからむ こころもしらず くろかみの みだれてけさは ものをこそおもへ,"Uncertain of how long his heart will stay,my black hair lies in disarray this morning and so, I am lost in troubled thoughts."
+301,百人一首,-,に,にしきなる ふくろにいれて いはざかり いづれのやまを こえぬとぞおもふ,I put it in a brocade bag; I wonder which mountain it crossed in its peak of silence.
+302,百人一首,-,ぬ,ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.
+303,百人一首,-,ね,ねがはくは はなのしたにて はるしなむ そのきさらぎの もちづきのころ,"My wish is to die in spring under the flowers, around the time of the full moon in the second month."
+304,百人一首,-,の,のちのよを おもへばかろし ほととぎす あかつきかけて なきつるものを,"Thinking of the afterlife makes it seem light, while the cuckoo cries toward the dawn."
+305,百人一首,-,は,はるすぎて なつきにけらし しろたへの ころもほすてふ あまのかぐやま,Spring has passed and summer seems to have come; white robes are said to be dried on the heavenly Mount Kagu.
+306,百人一首,-,ひ,ひさかたの ひかりのどけき はるのひに しづこころなく はなのちるらむ,"On this spring day when the light is so calm, why do the cherry blossoms scatter with such unquiet hearts?"
+307,百人一首,-,ふ,ふくからに あきのくさきの しをるれば むべやまかぜを あらしといふらむ,"Since the autumn plants and trees wither as soon as it blows, it is no wonder the mountain wind is called a storm."
+308,百人一首,-,へ,へにける いくよをかさね たまづさの ふみをひらけば こひぞつもりぬる,"As I open the letter after many passing nights, my love has truly accumulated."
+309,百人一首,-,ほ,ほととぎす なきつるかたを ながむれば ただありあけの つきぞのこれる,"When I look toward where the cuckoo cried, only the morning moon remains."
+310,百人一首,-,ま,まつとしき たかしのはまの あまごろも ぬれにぞぬれし いろはかはらず,"Waiting on the beach of Takashi, the fisher's robe got soaked and soaked, but its color remained unchanged."
+311,百人一首,-,み,みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ,"Like the Izumi River flowing through the plain of Mika, when did I see you that I should love you so?"
+312,百人一首,-,む,むらさめの つゆもまだひぬ まきのはに きりたちのぼる あきのゆふぐれ,"Before the dew of the passing shower has dried on the fir leaves, the mist rises on an autumn evening."
+313,百人一首,-,め,めぐりあひて みしやそれとも わかぬまに くもがくれにし よはのつきかな,"Meeting by chance, before I could even tell if it was you, you were hidden by clouds like the midnight moon."
+314,百人一首,-,も,ももしきや ふるきのきばの しのぶにも なほあまりある むかしなりけり,"In the palace, even the ferns on the old eaves make me yearn for the past more than I can bear."
+315,百人一首,-,や,やすらはで ねなましものを さよふけて かたぶくまでの つきをみしかな,I should have gone to sleep without waiting; I watched the moon until it began to sink late at night.
+316,百人一首,-,ゆ,ゆらのとを わたるふなびと かぢをたえ ゆくへもしらぬ こひのみちかな,"Like a mariner crossing the Yura Strait with a lost oar, I know not where the path of my love leads."
+317,百人一首,-,よ,よをこめて とりのそらねは はかるとも よにあふさかの せきはゆるさじ,"Though you try to deceive with a bird's false cry in the dead of night, the gate of Osaka shall not let you pass."
+318,百人一首,-,ら,らいしやうの いのちのはてを しらぬまに けふをかぎりと おもひけるかな,"Not knowing the end of my life in the next world, I thought today would be the limit."
+319,百人一首,-,り,りくかぜの さむきにたへて みちのくの しのぶもぢずり たれゆゑにけむ,"Enduring the cold land wind, for whose sake was the tangled print of Michinoku's Shinobu?"
+320,百人一首,-,る,るりのつぼ いづれのひとも すむらむと こころをかけし いろはみえず,"In the lapis lazuli jar where everyone might live, I cannot see the colors I set my heart on."
+321,百人一首,-,れ,れいよりも こころをつくせ さくらばな ちりぬるのちも にほひをこそ,"Exert your heart more than usual, cherry blossoms; even after you fall, leave your fragrance."
+322,百人一首,-,ろ,ろばたにて こまをつなぎて みるほどに はなぞちりける さくらかな,"While tethering my horse by the roadside, the cherry blossoms were scattering."
+323,百人一首,-,わ,わたのはら やそしまかけて こぎいでぬと ひとにはつげよ あまのつりぶね,"Tell the people that I have rowed out over the wide sea toward the many islands, O fisher's boat."
+324,百人一首,-,を,をぐらやま みねのもみぢば こころあらば いまひとたびの みゆきまたなむ,"O maple leaves on the peak of Mount Ogura, if you have a heart, wait for one more imperial visit."
+325,百人一首,-,ん,んにゃくにしゅう つねのことばを うたにして こころをつたふ みちぞたふとき,"Turning ordinary words into songs to convey the heart, the path is truly noble."
