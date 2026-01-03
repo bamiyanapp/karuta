@@ -184,19 +184,21 @@ function App() {
       
       if (phraseData) {
         if (!displayedPhrase || displayedPhrase.id !== phraseData.id) {
-          // 1枚目、または2枚目以降でIDが異なる場合
-          // 2枚目以降でIDが異なる場合（めくりアニメーション）
-          if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
-          
-        flipTimeoutRef.current = setTimeout(() => {
-          setIsFlipping(true);
-          flipTimeoutRef.current = setTimeout(() => {
-            setDisplayedPhrase(phraseData);
-            setIsFlipping(false);
+          // 以前のアニメーションが残っていたらクリア
+          if (flipTimeoutRef.current) {
+            clearTimeout(flipTimeoutRef.current);
             flipTimeoutRef.current = null;
-          }, 600);
-        }, 3000);
-      }
+          }
+          
+          flipTimeoutRef.current = setTimeout(() => {
+            setIsFlipping(true);
+            flipTimeoutRef.current = setTimeout(() => {
+              setDisplayedPhrase(phraseData);
+              setIsFlipping(false);
+              flipTimeoutRef.current = null;
+            }, 600);
+          }, 3000);
+        }
       }
       
       await playAudio(audioData);
