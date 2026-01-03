@@ -207,7 +207,7 @@ exports.getPhrase = async (event) => {
 
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en",
+      ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, readCount, averageTime",
       ExpressionAttributeNames: {
         "#lvl": "level",
       },
@@ -315,6 +315,8 @@ exports.getPhrase = async (event) => {
       level: selectedItem.level,
       kana: selectedItem.kana,
       audioData: audioData,
+      readCount: selectedItem.readCount || 0,
+      averageTime: selectedItem.averageTime || 0,
     };
 
     return {
@@ -340,7 +342,7 @@ exports.getPhrasesList = async (event) => {
     const category = event.queryStringParameters ? event.queryStringParameters.category : null;
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "id, category",
+      ProjectionExpression: "id, category, readCount, averageTime",
     };
     const scanResult = await docClient.send(new ScanCommand(scanParams));
     let items = scanResult.Items || [];

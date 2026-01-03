@@ -40,6 +40,9 @@ function App() {
   const [lang, setLang] = useState(() => {
     return localStorage.getItem("lang") || "ja";
   });
+  const [sortOrder, setSortOrder] = useState(() => {
+    return localStorage.getItem("sortOrder") || "random";
+  });
   const [historyByCategory, setHistoryByCategory] = useState({});
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -226,7 +229,7 @@ function App() {
     
     try {
       const readIds = currentHistory.map(p => p.id);
-      const unreadPhrases = allPhrasesForCategory.filter(p => !readIds.includes(p.id));
+      let unreadPhrases = allPhrasesForCategory.filter(p => !readIds.includes(p.id));
 
       if (unreadPhrases.length === 0) {
         setIsAllRead(true);
@@ -234,8 +237,17 @@ function App() {
         return;
       }
 
-      const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
-      const targetPhrase = unreadPhrases[randomIndex];
+      let targetPhrase;
+      if (sortOrder === "easy") {
+        unreadPhrases.sort((a, b) => (a.averageTime || 0) - (b.averageTime || 0));
+        targetPhrase = unreadPhrases[0];
+      } else if (sortOrder === "hard") {
+        unreadPhrases.sort((a, b) => (b.averageTime || 0) - (a.averageTime || 0));
+        targetPhrase = unreadPhrases[0];
+      } else {
+        const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
+        targetPhrase = unreadPhrases[randomIndex];
+      }
 
       const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
       const response = await fetch(apiUrl);
@@ -370,6 +382,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("lang", lang);
   }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem("sortOrder", sortOrder);
+  }, [sortOrder]);
 
   const resetGame = () => {
     setSelectedCategory(null);
@@ -534,6 +550,12 @@ function App() {
                   {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
                 </div>
               </div>
+              {detailPhrase.readCount > 0 && (
+                <div className="mb-4 text-muted">
+                  <p>読み上げ回数: {detailPhrase.readCount}回</p>
+                  <p>平均時間: {detailPhrase.averageTime.toFixed(2)}秒</p>
+                </div>
+              )}
               <div className="mb-5">
                 <button 
                   onClick={repeatPhrase} 
@@ -642,6 +664,14 @@ function App() {
             <div className="btn-group btn-group-sm" role="group">
               <button onClick={() => setLang("ja")} className={`btn ${lang === "ja" ? 'btn-dark' : 'btn-outline-dark'}`}>日本語</button>
               <button onClick={() => setLang("en")} className={`btn ${lang === "en" ? 'btn-dark' : 'btn-outline-dark'}`}>English</button>
+            </div>
+          </div>
+          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
+            <span className="fw-bold text-dark small">読み上げ順:</span>
+            <div className="btn-group btn-group-sm" role="group">
+              <button onClick={() => setSortOrder("random")} className={`btn ${sortOrder === "random" ? 'btn-dark' : 'btn-outline-dark'}`}>ランダム</button>
+              <button onClick={() => setSortOrder("easy")} className={`btn ${sortOrder === "easy" ? 'btn-dark' : 'btn-outline-dark'}`}>簡単</button>
+              <button onClick={() => setSortOrder("hard")} className={`btn ${sortOrder === "hard" ? 'btn-dark' : 'btn-outline-dark'}`}>難しい</button>
             </div>
           </div>
           <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
