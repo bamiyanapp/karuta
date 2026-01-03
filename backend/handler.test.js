@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
-import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio } from './handler';
+import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime } from './handler';
 import { Readable } from 'stream';
+import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -288,7 +289,7 @@ describe('getPhrase', () => {
     });
 
     it('should select a random phrase when no id is provided', async () => {
-        const items = [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }];
+        const items = [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', readCount: 5, averageTime: 12.3 }];
         ddbMock.on(ScanCommand).resolves({
             Items: items,
         });
@@ -305,6 +306,8 @@ describe('getPhrase', () => {
         expect(response.statusCode).toBe(200);
         const body = JSON.parse(response.body);
         expect(body.id).toBe('p1');
+        expect(body.readCount).toBe(5);
+        expect(body.averageTime).toBe(12.3);
     });
 
     it('should handle speechRate with %', async () => {
@@ -326,5 +329,44 @@ describe('getPhrase', () => {
         expect(pollyCalls.length).toBe(1);
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="110%">');
+    });
+});
+
+describe('recordTime', () => {
+    beforeEach(() => {
+        ddbMock.reset();
+        process.env.TABLE_NAME = 'TestTable';
+    });
+
+    it('should record time and update statistics', async () => {
+        ddbMock.on(GetCommand).resolves({
+            Item: { id: 'p1', readCount: 1, averageTime: 10 }
+        });
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const event = {
+            body: JSON.stringify({ id: 'p1', time: 20 })
+        };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(200);
+
+        const updateCalls = ddbMock.commandCalls(UpdateCommand);
+        expect(updateCalls.length).toBe(1);
+        const updateParams = updateCalls[0].args[0].input;
+        expect(updateParams.ExpressionAttributeValues[':rc']).toBe(2);
+        expect(updateParams.ExpressionAttributeValues[':at']).toBe(15);
+    });
+
+    it('should return 404 if phrase not found', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        const event = { body: JSON.stringify({ id: 'p1', time: 10 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 for invalid input', async () => {
+        const event = { body: JSON.stringify({ id: 'p1' }) }; // missing time
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
     });
 });

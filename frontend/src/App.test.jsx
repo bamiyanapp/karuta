@@ -84,9 +84,10 @@ describe('App', () => {
   });
 
   it('starts game when category is selected', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ categories: ['Cat1'] }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
     });
 
     await act(async () => {
@@ -99,29 +100,6 @@ describe('App', () => {
     });
 
     const categoryButton = screen.getByRole('button', { name: 'Cat1' });
-
-    fetch.mockImplementation(async (url) => {
-      if (url.includes('get-phrases-list')) {
-        return {
-          ok: true,
-          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }),
-        };
-      }
-      if (url.includes('get-phrase')) {
-        return {
-          ok: true,
-          json: async () => ({ id: 'p1', phrase: 'Phrase1', category: 'Cat1', kana: 'P', audioData: 'data:audio/mp3;base64,...' }),
-        };
-      }
-      if (url.includes('get-congratulation-audio')) {
-        return {
-          ok: true,
-          json: async () => ({ audioData: 'data:audio/mp3;base64,...' }),
-        };
-      }
-      return { ok: false };
-    });
-
     fireEvent.click(categoryButton);
 
     await waitFor(() => screen.getByText(/をお手元に持っていますか？/));
@@ -132,4 +110,35 @@ describe('App', () => {
       expect(screen.getByText('次の札を読み上げる')).toBeInTheDocument();
     });
   });
+
+  it('updates settings (lang, sort order, speech rate)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+    
+    // Select Category
+    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText('はい'));
+
+    // Check setting buttons
+    expect(screen.getByText('English')).toBeInTheDocument();
+    expect(screen.getByText('簡単')).toBeInTheDocument();
+    expect(screen.getByText('はやい')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('English'));
+    expect(localStorage.getItem('lang')).toBe('en');
+
+    fireEvent.click(screen.getByText('簡単'));
+    expect(localStorage.getItem('sortOrder')).toBe('easy');
+
+    fireEvent.click(screen.getByText('はやい'));
+    expect(localStorage.getItem('speechRate')).toBe('100%');
+  });
+
 });
