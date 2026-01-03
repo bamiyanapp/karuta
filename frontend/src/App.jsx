@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 
 const API_BASE_URL = "https://zr6f3qp6vg.execute-api.ap-northeast-1.amazonaws.com/dev";
@@ -48,6 +48,8 @@ function App() {
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+
+  const flipTimeoutRef = useRef(null);
 
   const currentHistory = useMemo(() => {
     return selectedCategory ? (historyByCategory[selectedCategory] || []) : [];
@@ -176,22 +178,31 @@ function App() {
       }
   
       await playIntroSound();
+      
+      if (phraseData && displayedPhrase?.id !== phraseData.id) {
+        flipTimeoutRef.current = setTimeout(() => {
+          setIsFlipping(true);
+          flipTimeoutRef.current = setTimeout(() => {
+            setDisplayedPhrase(phraseData);
+            setIsFlipping(false);
+          }, 600);
+        }, 3000);
+      }
+      
       await playAudio(audioData);
-
-      setTimeout(() => {
-        setIsFlipping(true);
-        setTimeout(() => {
-          setDisplayedPhrase(currentPhrase);
-          setIsFlipping(false);
-        }, 600);
-      }, 3000);
       
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
     };
   
     playNextInQueue();
-  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
+
+    return () => {
+      if (flipTimeoutRef.current) {
+        clearTimeout(flipTimeoutRef.current);
+      }
+    }
+  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory, displayedPhrase]);
 
   const playKaruta = async () => {
     if (!selectedCategory || allPhrasesForCategory.length === 0) return;
