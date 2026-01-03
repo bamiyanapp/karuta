@@ -27,3 +27,6 @@ Thumbs.db
 # Environment variables
 .env
 .env.*
+
+# Backup files
+backend/karuta-phrases-backup.json
