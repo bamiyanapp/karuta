@@ -25,6 +25,8 @@ function App() {
 
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]); 
   const [currentPhrase, setCurrentPhrase] = useState(null);
+  const [displayedPhrase, setDisplayedPhrase] = useState(null);
+  const [isFlipping, setIsFlipping] = useState(false);
   const [audioQueue, setAudioQueue] = useState([]);
   const [isReading, setIsReading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -162,6 +164,9 @@ function App() {
   
       if (phraseData) {
         setCurrentPhrase(phraseData);
+        if (!displayedPhrase) {
+          setDisplayedPhrase(phraseData);
+        }
         if (!historyByCategory[selectedCategory]?.find(p => p.id === phraseData.id)) {
           setHistoryByCategory(prev => ({
             ...prev,
@@ -172,13 +177,21 @@ function App() {
   
       await playIntroSound();
       await playAudio(audioData);
+
+      setTimeout(() => {
+        setIsFlipping(true);
+        setTimeout(() => {
+          setDisplayedPhrase(currentPhrase);
+          setIsFlipping(false);
+        }, 600);
+      }, 5000);
       
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
     };
   
     playNextInQueue();
-  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory, displayedPhrase, currentPhrase]);
 
   const playKaruta = async () => {
     if (!selectedCategory || allPhrasesForCategory.length === 0) return;
@@ -336,6 +349,7 @@ function App() {
     setSelectedCategory(null);
     setCurrentPhrase(null);
     setDetailPhraseId(null);
+    setDisplayedPhrase(null);
     setIsAllRead(false);
     setView("game");
   };
@@ -346,6 +360,7 @@ function App() {
       [selectedCategory]: []
     }));
     setCurrentPhrase(null);
+    setDisplayedPhrase(null);
     setIsAllRead(false);
   };
 
@@ -528,6 +543,17 @@ function App() {
   }
 
   // かるたプレイ画面
+  const renderPhrase = (phrase) => {
+    if (!phrase) return null;
+    return (
+        <div className="yomifuda">
+            <div className="yomifuda-kana"><span>{phrase.kana || (phrase.phrase && phrase.phrase[0])}</span></div>
+            <div className="yomifuda-phrase">{phrase.phrase}</div>
+            {phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
+        </div>
+    );
+  }
+
   return (
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
@@ -543,12 +569,15 @@ function App() {
           </div>
         ) : (
           <>
-            {currentPhrase && (
-              <div className="d-flex justify-content-center mb-4">
-                <div className="yomifuda shadow-lg" onClick={repeatPhrase} role="button" aria-label="もう一度読み上げる">
-                  <div className="yomifuda-kana"><span>{currentPhrase.kana || (currentPhrase.phrase && currentPhrase.phrase[0])}</span></div>
-                  <div className="yomifuda-phrase">{currentPhrase.phrase}</div>
-                  {currentPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {currentPhrase.level}</div>}
+            {(displayedPhrase || currentPhrase) && (
+              <div className={`yomifuda-container mb-4 ${isFlipping ? 'flipped' : ''}`} onClick={repeatPhrase} role="button" aria-label="もう一度読み上げる">
+                <div className="yomifuda-inner">
+                    <div className="yomifuda-front">
+                        {renderPhrase(displayedPhrase || currentPhrase)}
+                    </div>
+                    <div className="yomifuda-back">
+                        {renderPhrase(currentPhrase)}
+                    </div>
                 </div>
               </div>
             )}
