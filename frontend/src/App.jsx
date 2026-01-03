@@ -26,7 +26,7 @@ function App() {
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]); 
   const [currentPhrase, setCurrentPhrase] = useState(null);
   const [displayedPhrase, setDisplayedPhrase] = useState(null);
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [fadeState, setFadeState] = useState("visible"); // "visible", "fading", "hidden"
   const [audioQueue, setAudioQueue] = useState([]);
   const [isReading, setIsReading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -166,7 +166,6 @@ function App() {
       }
   
       setIsReading(true);
-      startTimeRef.current = Date.now();
       const { phraseData, audioData } = audioQueue[0];
   
       if (phraseData) {
@@ -183,22 +182,20 @@ function App() {
       await playIntroSound();
       
       if (phraseData) {
-        if (!displayedPhrase || displayedPhrase.id !== phraseData.id) {
-          // 以前のアニメーションが残っていたらクリア
-          if (flipTimeoutRef.current) {
-            clearTimeout(flipTimeoutRef.current);
-            flipTimeoutRef.current = null;
-          }
+        if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
+
+        flipTimeoutRef.current = setTimeout(() => {
+          // フェードアウト開始
+          setFadeState("fading");
           
           flipTimeoutRef.current = setTimeout(() => {
-            setIsFlipping(true);
-            flipTimeoutRef.current = setTimeout(() => {
-              setDisplayedPhrase(phraseData);
-              setIsFlipping(false);
-              flipTimeoutRef.current = null;
-            }, 600);
-          }, 3000);
-        }
+            // 札を切り替えてフェードイン
+            setDisplayedPhrase(phraseData);
+            setFadeState("visible");
+            startTimeRef.current = Date.now(); // 札が表示されたタイミングから計測開始
+            flipTimeoutRef.current = null;
+          }, 500); // App.css の transition 時間と合わせる
+        }, 3000);
       }
       
       await playAudio(audioData);
@@ -210,9 +207,7 @@ function App() {
     playNextInQueue();
 
     return () => {
-      if (flipTimeoutRef.current) {
-        clearTimeout(flipTimeoutRef.current);
-      }
+      if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
   }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory, displayedPhrase]);
 
@@ -623,16 +618,9 @@ function App() {
           </div>
         ) : (
           <>
-            {(displayedPhrase || currentPhrase) && (
-              <div className={`yomifuda-container mb-4 ${isFlipping ? 'flipped' : ''}`} onClick={repeatPhrase} role="button" aria-label="もう一度読み上げる">
-                <div className="yomifuda-inner">
-                    <div className="yomifuda-front">
-                        {renderPhrase(displayedPhrase || currentPhrase)}
-                    </div>
-                    <div className="yomifuda-back">
-                        {renderPhrase(currentPhrase)}
-                    </div>
-                </div>
+            {displayedPhrase && (
+              <div className={`yomifuda-container mb-4 phrase-fade-${fadeState}`} onClick={repeatPhrase} role="button" aria-label="もう一度読み上げる">
+                {renderPhrase(displayedPhrase)}
               </div>
             )}
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
