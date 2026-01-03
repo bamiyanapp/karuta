@@ -182,10 +182,15 @@ function App() {
       await playIntroSound();
       
       if (phraseData) {
-        if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
+        // 以前のアニメーションが残っていたらクリア
+        if (flipTimeoutRef.current) {
+          clearTimeout(flipTimeoutRef.current);
+          flipTimeoutRef.current = null;
+        }
 
+        // 3秒待機してからフェードアニメーションを開始
         flipTimeoutRef.current = setTimeout(() => {
-          // フェードアウト開始
+          // フェードアウト開始（既に何か表示されている場合のみ意味があるが、統一のため）
           setFadeState("fading");
           
           flipTimeoutRef.current = setTimeout(() => {
@@ -194,8 +199,8 @@ function App() {
             setFadeState("visible");
             startTimeRef.current = Date.now(); // 札が表示されたタイミングから計測開始
             flipTimeoutRef.current = null;
-          }, 500); // App.css の transition 時間と合わせる
-        }, 3000);
+          }, 500); // フェードアウトの時間
+        }, 3000); // 待機時間
       }
       
       await playAudio(audioData);
