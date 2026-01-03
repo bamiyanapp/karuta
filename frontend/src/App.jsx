@@ -184,14 +184,14 @@ function App() {
           setDisplayedPhrase(currentPhrase);
           setIsFlipping(false);
         }, 600);
-      }, 5000);
+      }, 3000);
       
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
     };
   
     playNextInQueue();
-  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory, displayedPhrase, currentPhrase]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
 
   const playKaruta = async () => {
     if (!selectedCategory || allPhrasesForCategory.length === 0) return;
@@ -592,11 +592,9 @@ function App() {
         )}
       </main>
 
-      <section className="history mx-auto" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
-        {currentHistory.length === 0 ? (
-          <p className="text-muted text-center py-3">まだ読み上げた札はありません。</p>
-        ) : (
+      {currentHistory.length > 0 && (
+        <section className="history mx-auto" style={{ maxWidth: "600px" }}>
+          <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
           <div className="list-group shadow-sm rounded">
             {currentHistory.map((p, index) => (
               <button key={`${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
@@ -608,8 +606,8 @@ function App() {
               </button>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <footer className="text-center mt-5 pt-4 border-top">
         <section className="settings-container mb-4 p-3 mx-auto shadow-sm rounded-4 bg-light border" style={{ maxWidth: "500px" }}>
