@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aw
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
 import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime } from './handler';
 import { Readable } from 'stream';
-import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -80,10 +80,9 @@ describe('getPhrasesList', () => {
     });
   
     it('should return phrases for a specific category', async () => {
-      ddbMock.on(ScanCommand).resolves({
+      ddbMock.on(QueryCommand).resolves({
         Items: [
           { id: '1', category: 'Category1' },
-          { id: '2', category: 'Category2' },
           { id: '3', category: 'Category1' },
         ],
       });
@@ -340,12 +339,12 @@ describe('recordTime', () => {
 
     it('should record time and update statistics', async () => {
         ddbMock.on(GetCommand).resolves({
-            Item: { id: 'p1', readCount: 1, averageTime: 10 }
+            Item: { id: 'p1', category: 'c1', readCount: 1, averageTime: 10 }
         });
         ddbMock.on(UpdateCommand).resolves({});
 
         const event = {
-            body: JSON.stringify({ id: 'p1', time: 20 })
+            body: JSON.stringify({ id: 'p1', category: 'c1', time: 20 })
         };
         const response = await recordTime(event);
         expect(response.statusCode).toBe(200);
@@ -359,13 +358,13 @@ describe('recordTime', () => {
 
     it('should return 404 if phrase not found', async () => {
         ddbMock.on(GetCommand).resolves({ Item: undefined });
-        const event = { body: JSON.stringify({ id: 'p1', time: 10 }) };
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 10 }) };
         const response = await recordTime(event);
         expect(response.statusCode).toBe(404);
     });
 
     it('should return 400 for invalid input', async () => {
-        const event = { body: JSON.stringify({ id: 'p1' }) }; // missing time
+        const event = { body: JSON.stringify({ id: 'p1' }) }; // missing category and time
         const response = await recordTime(event);
         expect(response.statusCode).toBe(400);
     });
