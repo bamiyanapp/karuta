@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/bamiyanapp/karuta/compare/v1.5.0...v1.6.0) (2026-01-04)
+
+
+### Features
+
+* implement sort functionality for all-phrases list ([30ff588](https://github.com/bamiyanapp/karuta/commit/30ff588b97b17da6e703f178879bcd083f0919da))
+
 # [1.5.0](https://github.com/bamiyanapp/karuta/compare/v1.4.2...v1.5.0) (2026-01-04)
 
 
