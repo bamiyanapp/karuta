@@ -141,4 +141,77 @@ describe('App', () => {
     expect(localStorage.getItem('speechRate')).toBe('100%');
   });
 
+  it('displays next phrase when "Next" button is clicked', { timeout: 10000 }, async () => {
+    vi.useFakeTimers();
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }) };
+      if (url.includes('get-phrase')) {
+        const id = new URL(url).searchParams.get('id');
+        return {
+          ok: true,
+          json: async () => ({
+            id: id,
+            phrase: `テストフレーズ ${id}`,
+            kana: `てすとふれーず ${id}`,
+            audioData: 'data:audio/mp3;base64,dummy'
+          })
+        };
+      }
+      return { ok: false };
+    });
+
+    // Audioモック: 再生完了イベントを発火させる
+    window.Audio = vi.fn().mockImplementation(() => {
+        const audio = {
+            play: vi.fn().mockImplementation(() => {
+                setTimeout(() => {
+                    if (audio.onended) audio.onended();
+                }, 100);
+                return Promise.resolve();
+            }),
+            pause: vi.fn(),
+            onended: null,
+        };
+        return audio;
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    await act(async () => {
+        fireEvent.click(categoryButton);
+    });
+    
+    await act(async () => {
+        fireEvent.click(screen.getByText('はい'));
+    });
+
+    const nextButton = await screen.findByText('次の札');
+    await act(async () => {
+        fireEvent.click(nextButton);
+    });
+    
+    await vi.runAllTimersAsync();
+    await waitFor(() => {
+        expect(screen.getByText('テストフレーズ p1')).toBeInTheDocument();
+    });
+
+    // 2枚目
+    await act(async () => {
+        fireEvent.click(nextButton);
+    });
+    
+    await vi.runAllTimersAsync();
+
+    await waitFor(() => {
+        expect(screen.getByText('テストフレーズ p2')).toBeInTheDocument();
+    });
+
+    vi.useRealTimers();
+  });
+
 });
