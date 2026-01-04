@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/bamiyanapp/karuta/compare/v1.7.3...v1.7.4) (2026-01-04)
+
+
+### Bug Fixes
+
+* card not displaying on read ([169d5c5](https://github.com/bamiyanapp/karuta/commit/169d5c50f12d9a9a41a1f67ac30113a13a50280f))
+
 ## [1.7.3](https://github.com/bamiyanapp/karuta/compare/v1.7.2...v1.7.3) (2026-01-04)
 
 
