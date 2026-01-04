@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/bamiyanapp/karuta/compare/v1.1.1...v1.2.0) (2026-01-04)
+
+
+### Features
+
+* implement difficulty estimation logic and display ([10164e0](https://github.com/bamiyanapp/karuta/commit/10164e0f52fd26bab43a0ea727f33a4e32aaf531))
+
 ## [1.1.1](https://github.com/bamiyanapp/karuta/compare/v1.1.0...v1.1.1) (2026-01-04)
 
 

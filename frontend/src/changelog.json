@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.0",
+    "date": "2026-01-04",
+    "body": "### Features\n\n* implement difficulty estimation logic and display ([10164e0](https://github.com/bamiyanapp/karuta/commit/10164e0f52fd26bab43a0ea727f33a4e32aaf531))"
+  },
+  {
     "version": "1.1.1",
     "date": "2026-01-04",
     "body": "### Bug Fixes\n\n* render changelog as markdown using react-markdown ([13a7f74](https://github.com/bamiyanapp/karuta/commit/13a7f74e6b6f1135e1a19aa8f51eb72ccd1b27bf))"
