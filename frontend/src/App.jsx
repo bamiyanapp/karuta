@@ -58,6 +58,7 @@ function App() {
   const [commentText, setCommentText] = useState("");
   const [postingComment, setPostingComment] = useState(false);
 
+  const flipTimeoutRef = useRef(null);
   const startTimeRef = useRef(null);
 
   const currentHistory = useMemo(() => {
@@ -235,8 +236,6 @@ function App() {
   }, [playAudio]);
   
   useEffect(() => {
-    let isCancelled = false;
-
     const playNextInQueue = async () => {
       if (isReading || audioQueue.length === 0) {
         return;
@@ -261,40 +260,34 @@ function App() {
       }
   
       await playIntroSound();
-      if (isCancelled) return;
       
       // 読み上げ開始タイミングで計測開始
       startTimeRef.current = Date.now();
 
-      const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      if (phraseData) {
+        // 以前のアニメーションが残っていたらクリア
+        if (flipTimeoutRef.current) {
+          clearTimeout(flipTimeoutRef.current);
+          flipTimeoutRef.current = null;
+        }
 
-      const animationTask = async () => {
-        if (!phraseData) return;
-        
         // 3秒待機してからフェードアニメーションを開始
-        await delay(3000);
-        if (isCancelled) return;
-        
-        setFadeState("fading");
-        
-        await delay(500);
-        if (isCancelled) return;
-        
-        // 札を切り替えてフェードイン
-        setLastResult(null);
-        setDisplayedPhrase(phraseData);
-        setFadeState("visible");
-      };
+        flipTimeoutRef.current = setTimeout(() => {
+          // フェードアウト開始
+          setFadeState("fading");
+          
+          flipTimeoutRef.current = setTimeout(() => {
+            // 札を切り替えてフェードイン
+            setLastResult(null);
+            setDisplayedPhrase(phraseData);
+            setFadeState("visible");
+            flipTimeoutRef.current = null;
+          }, 500); // フェードアウトの時間
+        }, 3000); // 待機時間
+      }
       
-      // 音声再生とアニメーションを並行実行し、両方の完了を待つ
-      // 音声再生エラーでもアニメーション（札表示）は続行させる
-      await Promise.all([
-        playAudio(audioData).catch(e => console.error("Audio playback failed:", e)),
-        animationTask().catch(e => console.error("Animation failed:", e))
-      ]);
+      await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
       
-      if (isCancelled) return;
-
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
     };
@@ -302,7 +295,7 @@ function App() {
     playNextInQueue();
 
     return () => {
-      isCancelled = true;
+      if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
   }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
 
