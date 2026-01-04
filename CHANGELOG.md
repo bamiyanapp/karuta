@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/bamiyanapp/karuta/compare/v1.3.0...v1.4.0) (2026-01-04)
+
+
+### Features
+
+* add all-phrases view page and update backend to return necessary data ([5d83132](https://github.com/bamiyanapp/karuta/commit/5d831323741332e788c0d2c0f4ee5f5933648355))
+
 # [1.3.0](https://github.com/bamiyanapp/karuta/compare/v1.2.0...v1.3.0) (2026-01-04)
 
 
