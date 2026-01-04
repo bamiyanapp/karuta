@@ -11,6 +11,8 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
   commitlint:
@@ -102,6 +104,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: release
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -122,14 +127,13 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
       - name: 🚀 Deploy to GitHub Pages
         id: deployment
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./frontend/dist
-          commit_message: ${{ github.event.head_commit.message }}
+        uses: actions/deploy-pages@v4
       - name: Show GitHub Pages URL
         run: |
           echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
