@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.4.2",
+    "version": "1.5.0",
     "date": "2026-01-04",
+    "body": "### Bug Fixes\n\n* clear selectedCategory when navigating back from all-phrases view ([488b6c5](https://github.com/bamiyanapp/karuta/commit/488b6c5d7f9ec504601ba63fe9a71ea9f77438c0))\n\n\n### Features\n\n* add readCount to all-phrases list ([ba48feb](https://github.com/bamiyanapp/karuta/commit/ba48feb12ea181fa2a6baf5f12bc400bd6e24536))"
+  },
+  {
+    "version": "1.4.2",
+    "date": "2026/01/04 01:10",
     "body": "### Bug Fixes\n\n* remove duplicate changelog entry and format dates ([294edca](https://github.com/bamiyanapp/karuta/commit/294edcae66ab075906e9c07423bb0704d8b4720a))"
   },
   {

@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/bamiyanapp/karuta/compare/v1.4.2...v1.5.0) (2026-01-04)
+
+
+### Bug Fixes
+
+* clear selectedCategory when navigating back from all-phrases view ([488b6c5](https://github.com/bamiyanapp/karuta/commit/488b6c5d7f9ec504601ba63fe9a71ea9f77438c0))
+
+
+### Features
+
+* add readCount to all-phrases list ([ba48feb](https://github.com/bamiyanapp/karuta/commit/ba48feb12ea181fa2a6baf5f12bc400bd6e24536))
+
 ## [1.4.2](https://github.com/bamiyanapp/karuta/compare/v1.4.1...v1.4.2) (2026-01-04)
 
 
