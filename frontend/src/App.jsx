@@ -264,10 +264,10 @@ function App() {
 
       let targetPhrase;
       if (sortOrder === "easy") {
-        unreadPhrases.sort((a, b) => (a.averageTime || 0) - (b.averageTime || 0));
+        unreadPhrases.sort((a, b) => (a.averageDifficulty || 0) - (b.averageDifficulty || 0));
         targetPhrase = unreadPhrases[0];
       } else if (sortOrder === "hard") {
-        unreadPhrases.sort((a, b) => (b.averageTime || 0) - (a.averageTime || 0));
+        unreadPhrases.sort((a, b) => (b.averageDifficulty || 0) - (a.averageDifficulty || 0));
         targetPhrase = unreadPhrases[0];
       } else {
         const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
