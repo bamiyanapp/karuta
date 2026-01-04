@@ -31,6 +31,7 @@ function App() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [currentPhrase, setCurrentPhrase] = useState(null);
   const [displayedPhrase, setDisplayedPhrase] = useState(null);
+  const [lastResult, setLastResult] = useState(null); // 結果表示用
   const [fadeState, setFadeState] = useState("hidden"); // 初期状態をhiddenに変更
   const [audioQueue, setAudioQueue] = useState([]);
   const [isReading, setIsReading] = useState(false);
@@ -277,6 +278,7 @@ function App() {
           
           flipTimeoutRef.current = setTimeout(() => {
             // 札を切り替えてフェードイン
+            setLastResult(null);
             setDisplayedPhrase(phraseData);
             setFadeState("visible");
             flipTimeoutRef.current = null;
@@ -316,6 +318,9 @@ function App() {
       }
 
       if (targetPhrase.id && targetPhrase.category && isFinite(elapsedTime) && !isNaN(elapsedTime)) {
+        // 結果を表示用に保存
+        setLastResult({ time: elapsedTime, difficulty });
+        
         fetch(`${API_BASE_URL}/record-time`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -494,6 +499,7 @@ function App() {
     setCurrentPhrase(null);
     setDetailPhraseId(null);
     setDisplayedPhrase(null);
+    setLastResult(null);
     setIsAllRead(false);
     setFadeState("hidden"); // リセット時も非表示
   };
@@ -505,6 +511,7 @@ function App() {
     }));
     setCurrentPhrase(null);
     setDisplayedPhrase(null);
+    setLastResult(null);
     setIsAllRead(false);
     setFadeState("hidden"); // リスタート時も非表示
   };
@@ -825,7 +832,18 @@ function App() {
           </div>
         ) : (
           <>     
-            {displayedPhrase ? (
+            {lastResult ? (
+              <div className={`yomifuda-container mb-4 phrase-fade-${fadeState}`}>
+                 <div className="yomifuda shadow-lg">
+                    <div className="d-flex flex-column justify-content-center align-items-center h-100">
+                      <div className="text-muted mb-2">所要時間</div>
+                      <div className="display-4 fw-bold text-dark mb-4">{lastResult.time.toFixed(2)}<span className="fs-4">秒</span></div>
+                      <div className="text-muted mb-2">難易度</div>
+                      <div className="h3 fw-bold text-danger">{lastResult.difficulty.toFixed(2)}</div>
+                    </div>
+                 </div>
+              </div>
+            ) : displayedPhrase ? (
               <div className={`yomifuda-container mb-4 phrase-fade-${fadeState}`} onClick={repeatPhrase} role="button" aria-label="もう一度">
                 {renderPhrase(displayedPhrase)}
               </div>
