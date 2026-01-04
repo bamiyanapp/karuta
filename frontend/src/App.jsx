@@ -514,10 +514,13 @@ function App() {
           </div>
         </main>
 
-        <div className="text-center">
+        <div className="text-center d-flex flex-column gap-2">
           <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted">
             指摘された内容を確認する →
           </button>
+          <a href="https://github.com/bamiyanapp/karuta/releases" target="_blank" rel="noopener noreferrer" className="btn btn-link text-decoration-none text-muted small">
+            更新履歴を見る (GitHub)
+          </a>
         </div>
 
         {showConfirmModal && (

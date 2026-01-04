@@ -1,0 +1,7 @@
+{
+  "name": "karuta-root",
+  "private": true,
+  "devDependencies": {
+    "semantic-release": "^24.2.0"
+  }
+}
