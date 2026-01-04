@@ -562,6 +562,7 @@ function App() {
                     <th scope="col" className="ps-4">カテゴリ</th>
                     <th scope="col">読み札</th>
                     <th scope="col">Lv</th>
+                    <th scope="col">回数</th>
                     <th scope="col">難易度</th>
                     <th scope="col" className="text-end pe-4">詳細</th>
                   </tr>
@@ -572,6 +573,7 @@ function App() {
                       <td className="ps-4 text-muted small">{p.category}</td>
                       <td className="fw-bold">{p.phrase}</td>
                       <td>{p.level !== "-" ? p.level : ""}</td>
+                      <td>{p.readCount || 0}</td>
                       <td>{(p.averageDifficulty || 0).toFixed(2)}</td>
                       <td className="text-end pe-4 text-primary">→</td>
                     </tr>
