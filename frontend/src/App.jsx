@@ -89,7 +89,7 @@ function App() {
                 aValue = aNum;
                 bValue = bNum;
             }
-        } else if (sortConfig.key === 'readCount' || sortConfig.key === 'averageDifficulty') {
+        } else if (sortConfig.key === 'readCount' || sortConfig.key === 'averageDifficulty' || sortConfig.key === 'averageTime') {
             aValue = aValue || 0;
             bValue = bValue || 0;
         } else if (typeof aValue === 'string') {
@@ -604,7 +604,7 @@ function App() {
           </div>
         </header>
 
-        <main className="mx-auto" style={{ maxWidth: "1000px" }}>
+        <main className="mx-auto" style={{ maxWidth: "1200px" }}>
           {allPhrases.length === 0 ? (
             <p className="text-muted text-center py-5">読み込み中...</p>
           ) : (
@@ -624,6 +624,9 @@ function App() {
                     <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('readCount')}>
                       回数{renderSortArrow('readCount')}
                     </th>
+                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageTime')}>
+                      平均時間{renderSortArrow('averageTime')}
+                    </th>
                     <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageDifficulty')}>
                       難易度{renderSortArrow('averageDifficulty')}
                     </th>
@@ -637,6 +640,7 @@ function App() {
                       <td className="fw-bold">{p.phrase}</td>
                       <td>{p.level !== "-" ? p.level : ""}</td>
                       <td>{p.readCount || 0}</td>
+                      <td>{(p.averageTime || 0).toFixed(2)}s</td>
                       <td>{(p.averageDifficulty || 0).toFixed(2)}</td>
                       <td className="text-end pe-4 text-primary">→</td>
                     </tr>
