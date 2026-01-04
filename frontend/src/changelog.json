@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.9.2",
+    "version": "1.9.3",
     "date": "2026-01-04",
+    "body": "### Bug Fixes\n\n* preserve averageDifficulty during seed ([8037593](https://github.com/bamiyanapp/karuta/commit/80375939c355a8ffded749fcc364b99844a03385))\n\n\n### Reverts\n\n* restore setTimeout based implementation to fix playback issues ([aa65809](https://github.com/bamiyanapp/karuta/commit/aa658099f5ae105a2f36b40fbea3a0a1da3edea6))"
+  },
+  {
+    "version": "1.9.2",
+    "date": "2026/01/04 09:07",
     "body": "### Bug Fixes\n\n* continue animation even if audio playback fails ([95b6fb6](https://github.com/bamiyanapp/karuta/commit/95b6fb671099f2062e6f0ec86c88329bd928a182))"
   },
   {

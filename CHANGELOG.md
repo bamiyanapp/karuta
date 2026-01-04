@@ -1,3 +1,15 @@
+## [1.9.3](https://github.com/bamiyanapp/karuta/compare/v1.9.2...v1.9.3) (2026-01-04)
+
+
+### Bug Fixes
+
+* preserve averageDifficulty during seed ([8037593](https://github.com/bamiyanapp/karuta/commit/80375939c355a8ffded749fcc364b99844a03385))
+
+
+### Reverts
+
+* restore setTimeout based implementation to fix playback issues ([aa65809](https://github.com/bamiyanapp/karuta/commit/aa658099f5ae105a2f36b40fbea3a0a1da3edea6))
+
 ## [1.9.2](https://github.com/bamiyanapp/karuta/compare/v1.9.1...v1.9.2) (2026-01-04)
 
 
