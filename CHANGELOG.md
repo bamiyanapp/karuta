@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/bamiyanapp/karuta/compare/v1.4.0...v1.4.1) (2026-01-04)
+
+
+### Bug Fixes
+
+* prioritize detail view rendering over other views ([1948f48](https://github.com/bamiyanapp/karuta/commit/1948f480ed95f527d2cb2117bb89284ccba5854d))
+
 # [1.4.0](https://github.com/bamiyanapp/karuta/compare/v1.3.0...v1.4.0) (2026-01-04)
 
 

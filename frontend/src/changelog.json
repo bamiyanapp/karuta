@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.4.1",
+    "date": "2026-01-04",
+    "body": "### Bug Fixes\n\n* prioritize detail view rendering over other views ([1948f48](https://github.com/bamiyanapp/karuta/commit/1948f480ed95f527d2cb2117bb89284ccba5854d))"
+  },
+  {
     "version": "1.4.0",
     "date": "2026-01-04",
     "body": "### Features\n\n* add all-phrases view page and update backend to return necessary data ([5d83132](https://github.com/bamiyanapp/karuta/commit/5d831323741332e788c0d2c0f4ee5f5933648355))"
