@@ -847,7 +847,7 @@ function App() {
             </div>
           )}
           
-          <div className="text-muted mb-2">難易度</div>
+          <div className="text-muted mb-2">難易度レベル</div>
           <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
         </div>
       </div>
