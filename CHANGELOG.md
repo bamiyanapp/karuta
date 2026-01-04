@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/bamiyanapp/karuta/compare/v1.4.1...v1.4.2) (2026-01-04)
+
+
+### Bug Fixes
+
+* remove duplicate changelog entry and format dates ([294edca](https://github.com/bamiyanapp/karuta/commit/294edcae66ab075906e9c07423bb0704d8b4720a))
+
 ## [1.4.1](https://github.com/bamiyanapp/karuta/compare/v1.4.0...v1.4.1) (2026-01-04)
 
 
