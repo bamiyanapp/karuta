@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/bamiyanapp/karuta/compare/v1.11.0...v1.12.0) (2026-01-04)
+
+
+### Features
+
+* display elapsed time in history ([966231c](https://github.com/bamiyanapp/karuta/commit/966231c24d3f11a502fc1c3d0ecde14f0b41c31f))
+
 # [1.11.0](https://github.com/bamiyanapp/karuta/compare/v1.10.0...v1.11.0) (2026-01-04)
 
 

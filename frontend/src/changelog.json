@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.11.0",
+    "version": "1.12.0",
     "date": "2026-01-04",
+    "body": "### Features\n\n* display elapsed time in history ([966231c](https://github.com/bamiyanapp/karuta/commit/966231c24d3f11a502fc1c3d0ecde14f0b41c31f))"
+  },
+  {
+    "version": "1.11.0",
+    "date": "2026/01/04 11:46",
     "body": "### Features\n\n* フェードで札と結果を切り替える ([21b0f12](https://github.com/bamiyanapp/karuta/commit/21b0f12e3c6b27003e1d14696234b46362ada1a8))"
   },
   {
