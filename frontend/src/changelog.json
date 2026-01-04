@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.9.4",
+    "date": "2026-01-04",
+    "body": "### Bug Fixes\n\n* card not displaying on read ([169d5c5](https://github.com/bamiyanapp/karuta/commit/169d5c50f12d9a9a41a1f67ac30113a13a50280f))\n* ensure next card is displayed correctly ([58c1f9f](https://github.com/bamiyanapp/karuta/commit/58c1f9f29486284bae32af9920a4f7e38e67678b))"
+  },
+  {
     "version": "1.9.3",
     "date": "2026-01-04",
     "body": "### Bug Fixes\n\n* preserve averageDifficulty during seed ([8037593](https://github.com/bamiyanapp/karuta/commit/80375939c355a8ffded749fcc364b99844a03385))\n\n\n### Reverts\n\n* restore setTimeout based implementation to fix playback issues ([aa65809](https://github.com/bamiyanapp/karuta/commit/aa658099f5ae105a2f36b40fbea3a0a1da3edea6))"
