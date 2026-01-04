@@ -30,9 +30,12 @@ function App() {
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [currentPhrase, setCurrentPhrase] = useState(null);
-  const [displayedPhrase, setDisplayedPhrase] = useState(null);
-  const [lastResult, setLastResult] = useState(null); // 結果表示用
-  const [fadeState, setFadeState] = useState("hidden"); // 初期状態をhiddenに変更
+  
+  const [displayContent, setDisplayContent] = useState({ type: "initial" });
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const nextContentRef = useRef(null);
+  const animationResolveRef = useRef(null);
+
   const [audioQueue, setAudioQueue] = useState([]);
   const [isReading, setIsReading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -217,6 +220,22 @@ function App() {
     }
   }, [view]);
 
+  useEffect(() => {
+    if (isFadingOut) {
+      const timer = setTimeout(() => {
+        setDisplayContent(nextContentRef.current);
+        setIsFadingOut(false);
+      }, 500); // CSSのtransition時間と合わせる
+      return () => clearTimeout(timer);
+    } else {
+      // isFadingOut が false になったとき = フェードイン完了
+      if (animationResolveRef.current) {
+        animationResolveRef.current();
+        animationResolveRef.current = null;
+      }
+    }
+  }, [isFadingOut]);
+
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioData);
@@ -267,40 +286,29 @@ function App() {
       let animationPromise = Promise.resolve();
 
       if (phraseData) {
-        // 以前のアニメーションが残っていたらクリア
         if (flipTimeoutRef.current) {
           clearTimeout(flipTimeoutRef.current);
           flipTimeoutRef.current = null;
         }
 
-        let resolveAnimation;
-        animationPromise = new Promise(resolve => { resolveAnimation = resolve; });
+        animationPromise = new Promise(resolve => {
+          animationResolveRef.current = resolve;
+        });
 
         // 3秒待機してからフェードアニメーションを開始
         flipTimeoutRef.current = setTimeout(() => {
-          // フェードアウト開始
-          setFadeState("fading");
-          
-          flipTimeoutRef.current = setTimeout(() => {
-            // 札を切り替えてフェードイン
-            setLastResult(null);
-            setDisplayedPhrase(phraseData);
-            setFadeState("visible");
-            flipTimeoutRef.current = null;
-            if (resolveAnimation) {
-                resolveAnimation();
-            }
-          }, 500); // フェードアウトの時間
+          nextContentRef.current = { type: "phrase", content: phraseData };
+          setIsFadingOut(true);
         }, 3000); // 待機時間
       }
       
       await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
       
-      // 音声再生が終わっても、アニメーション（札表示）が完了するまで待つ
       await animationPromise;
-      // After repeating a phrase, there is no phrase data, so we need to clear the display.
+
       if (!phraseData) {
-        setDisplayedPhrase(null);
+        nextContentRef.current = { type: 'initial' };
+        setIsFadingOut(true);
       }
       
       setAudioQueue(prev => prev.slice(1));
@@ -315,14 +323,11 @@ function App() {
   }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
 
   const playKaruta = async () => {
-    const targetPhrase = currentPhrase || displayedPhrase;
+    const targetPhrase = currentPhrase;
     
     if (startTimeRef.current && targetPhrase) {
       const elapsedTime = (Date.now() - startTimeRef.current) / 1000;
       
-      // 難易度計算: 経過時間 / その時の残り枚数
-      // 残り枚数 = 全枚数 - (読み上げ済み枚数 - 1)
-      // currentHistoryにはtargetPhraseが含まれているため、-1する
       const totalCount = allPhrasesForCategory.length || 1;
       const historyCount = currentHistory.length || 1;
       const remainingCount = Math.max(1, totalCount - (historyCount - 1));
@@ -333,18 +338,20 @@ function App() {
       }
 
       if (targetPhrase.id && targetPhrase.category && isFinite(elapsedTime) && !isNaN(elapsedTime)) {
-        // 平均タイムより速いか判定（平均が0より大きく、かつ今回のタイムが平均より小さい場合）
         const isFast = targetPhrase.averageTime > 0 && elapsedTime < targetPhrase.averageTime;
 
-        // 結果を表示用に保存
-        setLastResult({ time: elapsedTime, difficulty, isFast });
+        nextContentRef.current = {
+          type: "result",
+          content: { time: elapsedTime, difficulty, isFast },
+        };
+        setIsFadingOut(true);
         
         fetch(`${API_BASE_URL}/record-time`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: targetPhrase.id,
-            category: targetPhrase.category, // categoryも送信
+            category: targetPhrase.category,
             time: elapsedTime,
             difficulty: difficulty,
           }),
@@ -516,10 +523,9 @@ function App() {
     setSelectedCategory(null);
     setCurrentPhrase(null);
     setDetailPhraseId(null);
-    setDisplayedPhrase(null);
-    setLastResult(null);
+    setDisplayContent({ type: "initial" });
     setIsAllRead(false);
-    setFadeState("hidden"); // リセット時も非表示
+    setIsFadingOut(false);
   };
 
   const restartCategory = () => {
@@ -528,10 +534,9 @@ function App() {
       [selectedCategory]: []
     }));
     setCurrentPhrase(null);
-    setDisplayedPhrase(null);
-    setLastResult(null);
+    setDisplayContent({ type: "initial" });
     setIsAllRead(false);
-    setFadeState("hidden"); // リスタート時も非表示
+    setIsFadingOut(false);
   };
 
   const handleCategoryClick = (cat) => {
@@ -553,7 +558,7 @@ function App() {
 
   const openDetail = (id, category) => {
     setDetailPhraseId(id);
-    if (category) setSelectedCategory(category); // 必要に応じてセット（一覧から遷移時など）
+    if (category) setSelectedCategory(category);
     window.scrollTo(0, 0);
   };
 
@@ -561,7 +566,6 @@ function App() {
     setDetailPhraseId(null);
   };
 
-  // 詳細表示画面（説明ページ）
   if (detailPhraseId) {
     return (
       <div className="container py-4 mx-auto">
@@ -627,7 +631,6 @@ function App() {
     );
   }
 
-  // 全札一覧画面
   if (view === "all-phrases") {
     return (
       <div className="container py-4 mx-auto">
@@ -689,7 +692,6 @@ function App() {
     );
   }
 
-  // 指摘一覧画面
   if (view === "comments") {
     return (
       <div className="container py-4 mx-auto">
@@ -729,7 +731,6 @@ function App() {
     );
   }
 
-  // 更新履歴画面
   if (view === "changelog") {
     return (
       <div className="container py-4 mx-auto">
@@ -763,7 +764,6 @@ function App() {
     );
   }
 
-  // カテゴリ選択画面
   if (!selectedCategory) {
     return (
       <div className="container py-5 mx-auto">
@@ -822,17 +822,47 @@ function App() {
     );
   }
 
-
-  // かるたプレイ画面
   const renderPhrase = (phrase) => {
     if (!phrase) return null;
     return (
-        <div className="yomifuda">
+        <div className="yomifuda" onClick={repeatPhrase} role="button" aria-label="もう一度">
             <div className="yomifuda-kana"><span>{phrase.kana || (phrase.phrase && phrase.phrase[0])}</span></div>
             <div className="yomifuda-phrase">{phrase.phrase}</div>
             {phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
         </div>
     );
+  }
+
+  const renderResult = (result) => {
+    if (!result) return null;
+    return (
+      <div className="yomifuda shadow-lg">
+        <div className="d-flex flex-column justify-content-center align-items-center h-100">
+          <div className="text-muted mb-2">所要時間</div>
+          <div className="display-4 fw-bold text-dark mb-2">{result.time.toFixed(2)}<span className="fs-4">秒</span></div>
+          
+          {result.isFast && (
+            <div className="badge bg-warning text-dark fs-6 mb-4 px-3 py-2 rounded-pill shadow-sm">
+              🎉 平均より速い！
+            </div>
+          )}
+          
+          <div className="text-muted mb-2">難易度</div>
+          <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const renderInitial = () => {
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center text-muted h-100">
+        <img src={karutaImage} alt="準備完了" className="mb-3" style={{ width: "120px", opacity: 0.8 }} />
+        <div className="fw-bold">準備完了</div>
+        <small className="mt-2">「次の札を読み上げる」ボタンを押して開始してください<br/>
+        読み上げのオプションは下部から設定してください</small>
+      </div>
+    )
   }
 
   return (
@@ -850,38 +880,12 @@ function App() {
           </div>
         ) : (
           <>     
-            {lastResult ? (
-              <div className={`yomifuda-container mb-4 phrase-fade-${fadeState}`}>
-                 <div className="yomifuda shadow-lg">
-                    <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                      <div className="text-muted mb-2">所要時間</div>
-                      <div className="display-4 fw-bold text-dark mb-2">{lastResult.time.toFixed(2)}<span className="fs-4">秒</span></div>
-                      
-                      {lastResult.isFast && (
-                        <div className="badge bg-warning text-dark fs-6 mb-4 px-3 py-2 rounded-pill shadow-sm">
-                          🎉 平均より速い！
-                        </div>
-                      )}
-                      
-                      <div className="text-muted mb-2">難易度</div>
-                      <div className="h3 fw-bold text-danger">{lastResult.difficulty.toFixed(2)}</div>
-                    </div>
-                 </div>
-              </div>
-            ) : displayedPhrase ? (
-              <div className={`yomifuda-container mb-4 phrase-fade-${fadeState}`} onClick={repeatPhrase} role="button" aria-label="もう一度">
-                {renderPhrase(displayedPhrase)}
-              </div>
-            ) : (
-              selectedCategory && (
-                <div className="yomifuda-container mb-4 d-flex flex-column justify-content-center align-items-center text-muted">
-                  <img src={karutaImage} alt="準備完了" className="mb-3" style={{ width: "120px", opacity: 0.8 }} />
-                  <div className="fw-bold">準備完了</div>
-                  <small className="mt-2">「次の札を読み上げる」ボタンを押して開始してください<br/>
-                  読み上げのオプションは下部から設定してください</small>
-                </div>
-              )
-            )}
+            <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
+              {displayContent.type === 'phrase' && renderPhrase(displayContent.content)}
+              {displayContent.type === 'result' && renderResult(displayContent.content)}
+              {displayContent.type === 'initial' && renderInitial()}
+            </div>
+            
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
               <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
                 {loading && <span className="spinner-border spinner-border-sm me-2"></span>}

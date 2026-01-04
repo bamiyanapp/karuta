@@ -20,18 +20,14 @@
 }
 
 /* フェードアニメーション用 */
-.phrase-fade-visible {
+.fade-in {
   opacity: 1;
   transition: opacity 0.5s ease-in;
 }
 
-.phrase-fade-fading {
+.fade-out {
   opacity: 0;
-  transition: opacity 0.5s ease-out;
-}
-
-.phrase-fade-hidden {
-  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
 }
 
 /* かるた固有のデザイン（Bootstrapで表現しにくい部分） */
