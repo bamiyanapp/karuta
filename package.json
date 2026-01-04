@@ -7,5 +7,5 @@
     "@semantic-release/git": "^10.0.1",
     "semantic-release": "^24.2.0"
   },
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

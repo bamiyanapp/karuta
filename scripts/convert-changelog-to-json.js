@@ -13,8 +13,8 @@ try {
 
   const content = fs.readFileSync(changelogPath, 'utf8');
   
-  // バージョンヘッダーのマッチング (例: ## [1.1.0](...) (2025-01-04))
-  const versionRegex = /^## \[([0-9.]+)\]\(.*\) \(([0-9-]+)\)/gm;
+  // バージョンヘッダーのマッチング (例: ## [1.1.0](...) (2025-01-04) または # 1.1.0 (2025-01-04))
+  const versionRegex = /^#+ \[?([0-9.]+)\]?(?:\(.*\))? \(([0-9-]+)\)/gm;
   
   const entries = [];
   let match;
