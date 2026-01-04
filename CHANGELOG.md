@@ -1,3 +1,18 @@
+# [1.10.0](https://github.com/bamiyanapp/karuta/compare/v1.9.3...v1.10.0) (2026-01-04)
+
+
+### Bug Fixes
+
+* card not displaying on read ([169d5c5](https://github.com/bamiyanapp/karuta/commit/169d5c50f12d9a9a41a1f67ac30113a13a50280f))
+* ensure next card is displayed correctly ([58c1f9f](https://github.com/bamiyanapp/karuta/commit/58c1f9f29486284bae32af9920a4f7e38e67678b))
+* trigger semantic-release ([f019679](https://github.com/bamiyanapp/karuta/commit/f01967921f8d020f15118769a18b22bb5cbab389))
+
+
+### Features
+
+* Merge main with bug fixes into v1.8.0 ([ef26ce7](https://github.com/bamiyanapp/karuta/commit/ef26ce7e8d7fa792b8a67a6c91a11c46921fe648))
+* Merge main with bug fixes into v1.9.3 ([1b72b99](https://github.com/bamiyanapp/karuta/commit/1b72b990452637504401a52b7acce8f0482ae383))
+
 # [1.9.4](https://github.com/bamiyanapp/karuta/compare/v1.9.3...v1.9.4) (2026-01-04)
 
 
