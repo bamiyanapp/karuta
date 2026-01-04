@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.9.1",
+    "version": "1.9.2",
     "date": "2026-01-04",
+    "body": "### Bug Fixes\n\n* continue animation even if audio playback fails ([95b6fb6](https://github.com/bamiyanapp/karuta/commit/95b6fb671099f2062e6f0ec86c88329bd928a182))"
+  },
+  {
+    "version": "1.9.1",
+    "date": "2026/01/04 09:03",
     "body": "### Bug Fixes\n\n* ensure phrase transition even if audio is short ([c04ede8](https://github.com/bamiyanapp/karuta/commit/c04ede8d801fa4e6b38c6d3253d7ca9468df5544))"
   },
   {

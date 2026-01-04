@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/bamiyanapp/karuta/compare/v1.9.1...v1.9.2) (2026-01-04)
+
+
+### Bug Fixes
+
+* continue animation even if audio playback fails ([95b6fb6](https://github.com/bamiyanapp/karuta/commit/95b6fb671099f2062e6f0ec86c88329bd928a182))
+
 ## [1.9.1](https://github.com/bamiyanapp/karuta/compare/v1.9.0...v1.9.1) (2026-01-04)
 
 
