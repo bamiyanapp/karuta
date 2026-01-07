@@ -74,10 +74,14 @@ prompt = f"""
 """
 
 # ==============================
-# Git: create branch
+# Git: config & create branch
 # ==============================
+run(["git", "config", "user.name", "github-actions[bot]"])
+run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"])
+
 branch = f"agent/issue-{issue_number}"
-run(["git", "checkout", "-b", branch])
+# Create branch or reset if exists
+subprocess.run(["git", "checkout", "-B", branch], check=True)
 
 # ==============================
 # Gemini

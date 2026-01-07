@@ -8,6 +8,10 @@ jobs:
   agent:
     if: contains(github.event.issue.labels.*.name, 'agent')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
 
     steps:
       - uses: actions/checkout@v4
