@@ -14,13 +14,25 @@ jobs:
     steps:
       - uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prs = context.payload.workflow_run.pull_requests
-            if (!prs.length) return
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prs[0].number,
-              merge_method: "squash"
-            })
+            const prs = context.payload.workflow_run.pull_requests;
+            console.log('PRs found in workflow_run:', JSON.stringify(prs, null, 2));
+            if (!prs.length) {
+              console.log('No PRs associated with this workflow_run.');
+              return;
+            }
+            const prNumber = prs[0].number;
+            console.log(`Attempting to merge PR #${prNumber}`);
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: "squash"
+              });
+              console.log(`Successfully merged PR #${prNumber}`);
+            } catch (error) {
+              console.error(`Failed to merge PR #${prNumber}:`, error.message);
+              throw error;
+            }
