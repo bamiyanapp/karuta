@@ -4,6 +4,7 @@ run-name: CD ${{ github.event.head_commit.message }}
 on:
   push:
     branches:
+      - main
       - release
 
 permissions:
