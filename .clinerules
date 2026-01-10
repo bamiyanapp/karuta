@@ -81,27 +81,27 @@
 ## subject
 - Conventional Commits 形式を厳守する
 - 内容は日本語で記述する
-  例: feat(auth): refresh token automatically
+  例: feat(auth): 認証機能の追加
 
 ## body
 - 以下の構造を必ず含め、省略してはならない
 - 該当しない場合は "N/A" と記載する
 - 言語は日本語で記述する
 
-Design:
-- Chosen:
-- Rejected:
-- Reason:
+設計:
+- 選定内容:
+- 却下内容:
+- 理由:
 
-Impact:
-- Affected modules:
-- Behavior change:
+影響:
+- 影響モジュール:
+- 振る舞いの変更:
 
-Test:
-- Added:
-- Not added:
+テスト:
+- 追加済み:
+- 未追加:
 
-レビューで得られた知見は必ず Design または Impact に反映せよ。
+レビューで得られた知見は必ず 設計 または 影響 に反映せよ。
 
 ================================
 【7. 完了条件（ゲート）】
