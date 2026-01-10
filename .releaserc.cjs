@@ -1,5 +1,5 @@
 module.exports = {
-  branches: ["main"],
+  branches: ["release"],
   repositoryUrl: "https://github.com/bamiyanapp/karuta",
   plugins: [
     "@semantic-release/commit-analyzer",
@@ -16,8 +16,14 @@ module.exports = {
     [
       "@semantic-release/git",
       {
-        assets: ["CHANGELOG.md", "frontend/src/changelog.json", "package.json", "package-lock.json"],
-        message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        assets: [
+          "CHANGELOG.md",
+          "frontend/src/changelog.json",
+          "package.json",
+          "package-lock.json"
+        ],
+        message:
+          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ]
   ]
