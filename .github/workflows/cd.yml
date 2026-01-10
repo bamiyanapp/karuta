@@ -4,7 +4,6 @@ run-name: CD ${{ github.event.head_commit.message }}
 on:
   push:
     branches:
-      - main
       - release
 
 permissions:
@@ -50,10 +49,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
       - name: Pull latest changes
-        run: git pull origin main
+        run: git pull origin ${{ github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -84,10 +82,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
       - name: Pull latest changes
-        run: git pull origin main
+        run: git pull origin ${{ github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
