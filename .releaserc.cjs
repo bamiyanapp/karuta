@@ -1,5 +1,5 @@
 module.exports = {
-  branches: ["main", "release"],
+  branches: ["release"],
   repositoryUrl: "https://github.com/bamiyanapp/karuta.git",
   plugins: [
     "@semantic-release/commit-analyzer",
