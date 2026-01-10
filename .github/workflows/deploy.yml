@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - release
   pull_request:
 
 permissions:
@@ -80,7 +81,7 @@ jobs:
 
   release:
     needs: [frontend-test, backend-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'release')
     name: Release
     runs-on: ubuntu-latest
     steps:
@@ -106,7 +107,7 @@ jobs:
         run: npx semantic-release
 
   build-and-deploy-frontend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'release')
     needs: release
     runs-on: ubuntu-latest
     environment:
@@ -144,7 +145,7 @@ jobs:
           echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
 
   deploy-backend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'release')
     needs: release
     runs-on: ubuntu-latest
     steps:
