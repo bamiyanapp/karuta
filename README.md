@@ -135,6 +135,17 @@ Amazon Polly で生成した音声データのキャッシュ。
 
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
 
+## 運用
+
+### バックアップと復旧
+
+本システムでは、データの保護と可用性向上のため、以下のバックアップ体制をとっています。
+
+- **DynamoDB Point-in-Time Recovery (PITR)**:
+  - すべてのテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`）において PITR を有効化しています。
+  - 過去 35 日間の任意の時点にデータを復旧することが可能です。
+  - 意図しないデータ削除や更新ミスが発生した際の保険として機能します。
+
 ## かるた情報の追加・更新
 
 かるたの情報（フレーズや難易度など）は、以下の手順で追加・更新できます。
