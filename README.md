@@ -1,6 +1,9 @@
 # karuta
 かるた読み上げアプリ
 
+## 目的
+かるたの読み上げをアプリで行うことで、全員がかるたに参加すること。
+
 ## Features
 
 - **フレーズ読み上げ**:
@@ -18,6 +21,8 @@
 
 ## Architecture
 
+### System Architecture
+
 ```mermaid
 graph TD
     subgraph "Frontend (GitHub Pages)"
@@ -31,6 +36,36 @@ graph TD
     end
 
     I --> J;
+```
+
+### Screen Transitions
+
+```mermaid
+graph TD
+    A[カテゴリ選択画面] -->|カテゴリ選択| B[確認モーダル]
+    B -->|はい| C[ゲーム画面]
+    B -->|いいえ| A
+    
+    A -->|全札一覧| D[全札一覧画面]
+    A -->|指摘一覧| E[指摘一覧画面]
+    A -->|更新履歴| F[更新履歴画面]
+    
+    C -->|次の札| C
+    C -->|履歴クリック| G[詳細画面]
+    C -->|読了| H[完了画面]
+    C -->|リセット| A
+    
+    D -->|戻る| A
+    D -->|詳細表示| G
+    
+    E -->|戻る| A
+    
+    F -->|戻る| A
+    
+    G -->|戻る| C
+    G -->|戻る| D
+    
+    H -->|再挑戦| C
 ```
 
 ### Backend API (AWS Lambda)
@@ -86,3 +121,19 @@ Amazon Polly で生成した音声データのキャッシュ。
 ## CI/CD Pipeline Specification
 
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
+
+## かるた情報の追加・更新
+
+かるたの情報（フレーズや難易度など）は、以下の手順で追加・更新できます。
+
+1. `backend/phrases.csv` を編集します。
+   - `category`: かるたのカテゴリ名
+   - `id`: 一意のID
+   - `phrase`: 読み上げテキスト
+   - `kana`: 読み（かな）
+   - `phrase_en`: 英語テキスト（任意）
+   - `level`: 難易度（数値または `-`）
+2. 変更を `main` ブランチにコミット＆プッシュします。
+3. GitHub Actions の CD ワークフローが自動的に実行され、DynamoDB のデータが更新されます。
+   - 既存のアイテムの統計情報（読み上げ回数や平均時間）は維持されます。
+   - CSV から削除されたアイテムは、データベースからも削除されます。
