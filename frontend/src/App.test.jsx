@@ -141,4 +141,37 @@ describe('App', () => {
     expect(localStorage.getItem('speechRate')).toBe('100%');
   });
 
+  it('updates document title when viewing all-phrases', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+    
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({ categories: [] }),
+        };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [] }),
+        };
+      }
+      return { ok: false };
+    });
+
+    const allPhrasesLink = screen.getByText(/全札一覧を見る/i);
+    fireEvent.click(allPhrasesLink);
+
+    await waitFor(() => {
+      expect(document.title).toBe('全札一覧');
+    });
+  });
+
 });
