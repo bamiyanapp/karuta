@@ -87,7 +87,7 @@ subprocess.run(["git", "checkout", "-B", branch], check=True)
 # Gemini
 # ==============================
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-pro")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 response = model.generate_content(prompt)
 patch = response.text.strip()
