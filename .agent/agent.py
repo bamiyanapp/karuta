@@ -111,12 +111,27 @@ commit_message, patch = output.split("---DIFF_START---", 1)
 commit_message = commit_message.strip()
 patch = patch.strip()
 
+# Remove markdown code block markers if present
+if patch.startswith("```"):
+    # Remove first line (e.g. ```diff)
+    lines = patch.splitlines()
+    if lines[0].startswith("```"):
+        lines = lines[1:]
+    # Remove last line if it's ```
+    if lines and lines[-1].strip() == "```":
+        lines = lines[:-1]
+    patch = "\n".join(lines).strip()
+
 if not patch.startswith("diff"):
-    # Try to find the start of diff if there's any garbage
+    # Try to find the start of diff if there's any garbage (like leading text or markers)
     idx = patch.find("diff")
     if idx == -1:
-        raise RuntimeError("Model output does not contain a valid unified diff")
+        raise RuntimeError(f"Model output does not contain a valid unified diff. Output: {output[:200]}...")
     patch = patch[idx:]
+
+# Ensure patch does not end with markdown marker
+if patch.endswith("```"):
+    patch = patch[:-3].strip()
 
 # ==============================
 # Git: config & create branch

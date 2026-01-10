@@ -28,7 +28,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install deps
-        run: pip install google-genai pygithub
+        run: |
+          pip uninstall -y google-generativeai
+          pip install google-genai pygithub
 
       - name: Run agent
         env:
