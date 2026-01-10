@@ -1,5 +1,5 @@
 name: CD
-run-name: CD ${{ github.event.head_commit.message }}
+run-name: CD ${{ github.event.workflow_run.head_commit.message }}
 
 on:
   workflow_run:
@@ -25,6 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - name: Setup Node.js
@@ -53,9 +54,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
-      - name: Pull latest changes
-        run: git pull origin ${{ github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -86,9 +86,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
-      - name: Pull latest changes
-        run: git pull origin ${{ github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
