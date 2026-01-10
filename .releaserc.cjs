@@ -1,17 +1,30 @@
 module.exports = {
   branches: ["main", "release"],
+  repositoryUrl: "https://github.com/bamiyanapp/karuta.git",
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    "@semantic-release/npm",
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
     [
       "@semantic-release/exec",
       {
         prepareCmd: "node scripts/convert-changelog-to-json.js"
       }
     ],
-    "@semantic-release/github",
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "failComment": false,
+        "releasedLabels": false
+      }
+    ],
     [
       "@semantic-release/git",
       {
