@@ -2,10 +2,6 @@ name: CD
 run-name: CD ${{ github.event.head_commit.message }}
 
 on:
-  push:
-    branches:
-      - main
-      - release
   workflow_run:
     workflows: ["CI"]
     types:
@@ -23,8 +19,8 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'release')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
