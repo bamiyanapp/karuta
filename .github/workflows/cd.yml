@@ -20,14 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.workflow_run.conclusion == 'success' &&
-      (github.event.workflow_run.head_branch == 'main' || 
-       github.event.workflow_run.head_branch == 'release' || 
-       github.event.workflow_run.event == 'pull_request')
+      github.event.workflow_run.head_branch == 'release'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.pull_requests[0] && github.event.workflow_run.pull_requests[0].base.ref || 'main') || github.event.workflow_run.head_branch }}
+          ref: release # Always checkout the release branch for semantic release
           token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - name: Setup Node.js
@@ -56,7 +54,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.pull_requests[0] && github.event.workflow_run.pull_requests[0].base.ref || 'main') || github.event.workflow_run.head_branch }}
+          ref: release # Checkout the release branch for deployment
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -88,7 +86,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.pull_requests[0] && github.event.workflow_run.pull_requests[0].base.ref || 'main') || github.event.workflow_run.head_branch }}
+          ref: release # Checkout the release branch for deployment
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
