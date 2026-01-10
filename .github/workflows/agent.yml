@@ -6,7 +6,9 @@ on:
 
 jobs:
   agent:
-    if: contains(github.event.issue.labels.*.name, 'agent')
+    if: |
+      contains(github.event.issue.labels.*.name, 'agent') ||
+      contains(github.event.issue.title, '[agent]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
