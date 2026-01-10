@@ -4,6 +4,18 @@
 ## 目的
 かるたの読み上げをアプリで行うことで、全員がかるたに参加すること。
 
+## Tech Stack
+
+| カテゴリ | 技術 |
+| :--- | :--- |
+| **Frontend** | React (v19), Vite, React Markdown, ESLint |
+| **Backend** | AWS Lambda, Node.js, Serverless Framework, Amazon SDK v3 |
+| **Database** | DynamoDB |
+| **Speech Synthesis** | Amazon Polly |
+| **Infrastructure** | GitHub Pages (Frontend Hosting), AWS (Backend) |
+| **CI/CD** | GitHub Actions, Semantic Release, Commitlint |
+| **Testing** | Vitest, React Testing Library, jsdom |
+
 ## Features
 
 - **フレーズ読み上げ**:
