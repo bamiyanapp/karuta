@@ -29,6 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
           token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - name: Setup Node.js
@@ -57,9 +58,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
           fetch-depth: 0
       - name: Pull latest changes
-        run: git pull origin ${{ github.ref_name }}
+        run: git pull origin ${{ github.event.workflow_run.head_branch || github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -90,9 +92,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
           fetch-depth: 0
       - name: Pull latest changes
-        run: git pull origin ${{ github.ref_name }}
+        run: git pull origin ${{ github.event.workflow_run.head_branch || github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
