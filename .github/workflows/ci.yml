@@ -97,7 +97,12 @@ jobs:
                 merge_method: "squash"
               });
               console.log(`Successfully merged PR #${prNumber}`);
+            } catch (error) {
+              console.error(`Failed to merge PR #${prNumber}:`, error.message);
+              throw error;
+            }
 
+            try {
               console.log(`Attempting to delete branch: ${branchName}`);
               await github.rest.git.deleteRef({
                 owner: context.repo.owner,
@@ -106,6 +111,9 @@ jobs:
               });
               console.log(`Successfully deleted branch: ${branchName}`);
             } catch (error) {
-              console.error(`Failed to merge/delete PR #${prNumber}:`, error.message);
-              throw error;
+              if (error.status === 422 || error.message.includes('Reference does not exist')) {
+                console.log(`Branch ${branchName} already deleted or not found.`);
+              } else {
+                console.error(`Failed to delete branch ${branchName}:`, error.message);
+              }
             }
