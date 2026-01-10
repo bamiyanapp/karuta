@@ -33,4 +33,56 @@ graph TD
     I --> J;
 ```
 
+### Backend API (AWS Lambda)
+
+| 関数名 | パス | メソッド | 説明 |
+| :--- | :--- | :--- | :--- |
+| getCategories | `/get-categories` | GET | 登録されているカテゴリの一覧を取得する。 |
+| getPhrasesList | `/get-phrases-list` | GET | 指定したカテゴリ（または全カテゴリ）のフレーズ一覧を取得する。 |
+| getPhrase | `/get-phrase` | GET | 指定したIDまたはランダムなフレーズを取得し、Pollyで音声を生成（またはキャッシュから取得）して返す。 |
+| getCongratulationAudio | `/get-congratulation-audio` | GET | 全フレーズ終了時のお祝いメッセージ音声を生成して返す。 |
+| recordTime | `/record-time` | POST | 読み上げに対する回答時間と難易度を記録し、統計情報を更新する。 |
+| postComment | `/post-comment` | POST | フレーズに対して新しいコメントを投稿する。 |
+| getComments | `/get-comments` | GET | 全てのコメントを取得し、新着順にソートして返す。 |
+
+### Database (DynamoDB)
+
+#### 1. karuta-phrases
+読み上げ用フレーズを格納するテーブル。
+
+| 属性名 | 型 | キー | 説明 |
+| :--- | :--- | :--- | :--- |
+| category | String | Partition Key | カテゴリ名 |
+| id | String | Sort Key | フレーズの一意識別子 |
+| phrase | String | - | 読み上げテキスト（日本語） |
+| phrase_en | String | - | 読み上げテキスト（英語） |
+| kana | String | - | フレーズの読み（かな） |
+| level | String/Number | - | 難易度レベル |
+| readCount | Number | - | 読み上げられた回数 |
+| averageTime | Number | - | 平均回答時間（秒） |
+| averageDifficulty | Number | - | ユーザーが選択した平均難易度 |
+
+#### 2. karuta-comments
+各フレーズに対するユーザーコメントを格納するテーブル。
+
+| 属性名 | 型 | キー | 説明 |
+| :--- | :--- | :--- | :--- |
+| id | String | Partition Key | コメントID (UUID) |
+| phraseId | String | - | 対象フレーズのID |
+| category | String | - | 対象フレーズのカテゴリ |
+| phrase | String | - | 対象フレーズのテキスト |
+| comment | String | - | コメント内容 |
+| createdAt | String | - | 作成日時 (ISO8601) |
+
+#### 3. karuta-polly-cache
+Amazon Polly で生成した音声データのキャッシュ。
+
+| 属性名 | 型 | キー | 説明 |
+| :--- | :--- | :--- | :--- |
+| id | String | Partition Key | キャッシュID (ハッシュ値) |
+| audioData | String | - | Base64形式の音声データ |
+| createdAt | String | - | 作成日時 (ISO8601) |
+
+## CI/CD Pipeline Specification
+
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
