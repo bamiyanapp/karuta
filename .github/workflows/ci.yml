@@ -79,7 +79,7 @@ jobs:
 
   sync-release:
     needs: [frontend-test, backend-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+    if: github.event_name == 'pull_request' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
