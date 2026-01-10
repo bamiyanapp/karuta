@@ -170,7 +170,7 @@ describe('App', () => {
     fireEvent.click(allPhrasesLink);
 
     await waitFor(() => {
-      expect(document.title).toBe('全札一覧');
+      expect(document.title).toBe('全札一覧 | かるた読み上げアプリ');
     });
   });
 

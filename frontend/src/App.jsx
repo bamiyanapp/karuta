@@ -504,11 +504,11 @@ function App() {
 
   useEffect(() => {
     if (view === "comments") {
-      document.title = "指摘一覧 | カルタ読み上げアプリ";
+      document.title = "指摘一覧 | かるた読み上げアプリ";
     } else if (view === "changelog") {
-      document.title = "更新履歴 | カルタ読み上げアプリ";
+      document.title = "更新履歴 | かるた読み上げアプリ";
     } else if (view === "all-phrases") {
-      document.title = "全札一覧";
+      document.title = "全札一覧 | かるた読み上げアプリ";
     } else if (detailPhraseId && detailPhrase) {
       document.title = `${detailPhrase.phrase} | ${selectedCategory}`;
     } else if (selectedCategory) {
