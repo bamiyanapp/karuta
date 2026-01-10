@@ -32,6 +32,17 @@ jobs:
                 merge_method: "squash"
               });
               console.log(`Successfully merged PR #${prNumber}`);
+
+              // Delete the branch after successful merge
+              const pr = prs[0];
+              const branchName = pr.head.ref;
+              console.log(`Attempting to delete branch: ${branchName}`);
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branchName}`
+              });
+              console.log(`Successfully deleted branch: ${branchName}`);
             } catch (error) {
               console.error(`Failed to merge PR #${prNumber}:`, error.message);
               throw error;
