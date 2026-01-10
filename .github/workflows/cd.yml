@@ -10,6 +10,9 @@ on:
     workflows: ["CI"]
     types:
       - completed
+    branches:
+      - main
+      - release
 
 permissions:
   contents: write
