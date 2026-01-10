@@ -68,10 +68,54 @@ prompt = f"""
 ================================
 【Output Format (STRICT)】
 ================================
-- Output ONLY unified diff
-- Do NOT include explanations, markdown, or comments
-- Do NOT repeat rules or task
+Your output must follow this exact structure:
+1. Commit message (following .clinerules)
+2. A line containing exactly "---DIFF_START---"
+3. The unified diff
+
+Example:
+feat(auth): refresh token automatically
+
+Design:
+- Chosen: ...
+- Rejected: ...
+- Reason: ...
+
+Impact:
+- Affected modules: ...
+- Behavior change: ...
+
+Test:
+- Added: ...
+- Not added: ...
+
+---DIFF_START---
+diff --git a/src/file.js b/src/file.js
+...
 """
+
+# ==============================
+# Gemini
+# ==============================
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+response = model.generate_content(prompt)
+output = response.text.strip()
+
+if "---DIFF_START---" not in output:
+    raise RuntimeError("Model output does not contain ---DIFF_START---")
+
+commit_message, patch = output.split("---DIFF_START---", 1)
+commit_message = commit_message.strip()
+patch = patch.strip()
+
+if not patch.startswith("diff"):
+    # Try to find the start of diff if there's any garbage
+    idx = patch.find("diff")
+    if idx == -1:
+        raise RuntimeError("Model output does not contain a valid unified diff")
+    patch = patch[idx:]
 
 # ==============================
 # Git: config & create branch
@@ -82,18 +126,6 @@ run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.co
 branch = f"agent/issue-{issue_number}"
 # Create branch or reset if exists
 subprocess.run(["git", "checkout", "-B", branch], check=True)
-
-# ==============================
-# Gemini
-# ==============================
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-response = model.generate_content(prompt)
-patch = response.text.strip()
-
-if not patch.startswith("diff"):
-    raise RuntimeError("Model output is not a unified diff")
 
 # ==============================
 # Apply patch
@@ -111,7 +143,7 @@ run([
     "git",
     "commit",
     "-m",
-    f"feat: agent fix issue #{issue_number}"
+    commit_message
 ])
 run(["git", "push", "-u", "origin", branch])
 
