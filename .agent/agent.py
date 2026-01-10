@@ -1,6 +1,6 @@
 import os
 import subprocess
-import google.generativeai as genai
+from google import genai
 from github import Github
 from pathlib import Path
 
@@ -97,10 +97,11 @@ diff --git a/src/file.js b/src/file.js
 # ==============================
 # Gemini
 # ==============================
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-response = model.generate_content(prompt)
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+response = client.models.generate_content(
+    model="gemini-1.5-flash",
+    contents=prompt
+)
 output = response.text.strip()
 
 if "---DIFF_START---" not in output:
