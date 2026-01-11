@@ -32,16 +32,6 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      # ← ここで release ブランチの既存タグを削除
-      - name: Delete existing tags on release branch
-        run: |
-          git fetch --tags
-          # release ブランチ上のタグのみ削除
-          for tag in $(git tag --merged release); do
-            echo "Deleting tag on release: $tag"
-            git tag -d $tag || true
-            git push origin :refs/tags/$tag || true
-          done
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
