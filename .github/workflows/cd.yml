@@ -76,6 +76,24 @@ jobs:
           fi
           git fetch --tags origin
           git tag --contains HEAD
+
+      # ⚠ タグ整合チェックステップを追加
+      - name: Check Release vs Main tag alignment
+        run: |
+          echo "===== TAG ALIGNMENT CHECK ====="
+          git fetch origin main --depth=1
+          RELEASE_LATEST=$(git describe --tags --abbrev=0 HEAD)
+          MAIN_LATEST=$(git describe --tags --abbrev=0 origin/main)
+          echo "Latest Release tag: $RELEASE_LATEST"
+          echo "Latest Main tag:    $MAIN_LATEST"
+    
+          if [ "$RELEASE_LATEST" != "$MAIN_LATEST" ]; then
+            echo "⚠ WARNING: Release and Main tags are out of sync!"
+            echo "Please make sure Main has the latest tags before creating PR."
+          else
+            echo "Release and Main tags are in sync ✅"
+          fi
+
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
