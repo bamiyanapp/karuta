@@ -135,5 +135,6 @@ jobs:
           git fetch --tags origin
           # ローカル release にチェックアウト
           git checkout release
+          git merge origin/main
           # release を main と完全一致させる
           git push origin release --force --tags
