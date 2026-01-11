@@ -46,7 +46,7 @@ jobs:
           git merge --ff-only release
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
 
   build-and-deploy-frontend:
     needs: release
