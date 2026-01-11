@@ -35,6 +35,12 @@ jobs:
   
       - name: Fetch tags
         run: git fetch --tags --prune
+      - name: Skip if release branch has no new commits
+        run: |
+          if git tag --contains HEAD | grep -q "v"; then
+            echo "Release branch already contains latest tag(s). Skipping release."
+            exit 0
+          fi
       - name: Checkout release branch
         run: git checkout release
       - name: Merge main into release
@@ -48,6 +54,8 @@ jobs:
           fi
       - name: Dry-run Semantic-release
         id: dryrun
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           NEXT_TAG=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
