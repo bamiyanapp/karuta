@@ -88,18 +88,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Sync main to release branch
         run: |
-          git fetch origin main:main 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git rev-parse --verify release >/dev/null 2>&1; then
-            git checkout -b release origin/release
-          else
+          git fetch origin
+          # release があってもなくても、main を元に作り直す
+          if git show-ref --verify --quiet refs/remotes/origin/release; then
             git checkout release
+          else
+            git checkout -b release
           fi
-          git pull origin release --rebase
-          git merge main --ff-only
-          git push origin release
-
+          # release を main と完全一致させる
+          git reset --hard origin/main
+          git push origin release --force-with-lease  
   merge:
     needs: [frontend-test, backend-test]
     if: github.event_name == 'pull_request' && success()
