@@ -51,7 +51,8 @@ jobs:
         run: git checkout release
       - name: Merge main into release
         run: |
-          git merge --no-ff origin/main -m "Chore: Merge main into release"
+          # Fast-forward マージ
+          git merge --ff-only origin/main || echo "Already up to date"
       - name: Skip if no new commits
         run: |
           if git tag --contains HEAD | grep -q "v"; then
