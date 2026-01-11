@@ -77,6 +77,29 @@ jobs:
         working-directory: backend
         run: npx vitest run --coverage
 
+  sync-release:
+    needs: [commitlint, frontend-test, backend-test]
+    if: github.event_name == 'pull_request' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sync main to release branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin
+          # release があってもなくても、main を元に作り直す
+          if git show-ref --verify --quiet refs/remotes/origin/release; then
+            git checkout release
+          else
+            git checkout -b release
+          fi
+          # release を main と完全一致させる
+          git reset --hard origin/main
+          git push origin release --force
   merge:
     needs: [frontend-test, backend-test]
     if: github.event_name == 'pull_request' && success()
@@ -117,34 +140,3 @@ jobs:
                 console.error(`Failed to delete branch ${branchName}:`, error.message);
               }
             }
-
-  sync-release:
-    needs: [merge]
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Setup Node.js
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-          node-version: "lts/*" 
-          cache: "npm"
-      - name: Sync main to release
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin
-          git checkout -B release origin/main
-          git push origin release --force
-      - name: Install dependencies
-        run: npm ci
-      - name: Semantic Release
-        run: npx semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-          DEBUG: semantic-release:*
