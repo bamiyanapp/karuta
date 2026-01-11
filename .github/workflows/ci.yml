@@ -146,9 +146,6 @@ jobs:
     name: Semantic Release
     needs: [sync-release]
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main')
     permissions:
       contents: write
       issues: write
