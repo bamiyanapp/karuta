@@ -32,6 +32,31 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+  
+      - name: Fetch tags
+        run: git fetch --tags --prune
+      - name: Checkout release branch
+        run: git checkout release
+      - name: Merge main into release
+        run: |
+          git merge --no-ff origin/main -m "Chore: Merge main into release"
+      - name: Skip if no new commits
+        run: |
+          if git tag --contains HEAD | grep -q "v"; then
+            echo "Release branch already contains latest tag(s). Skipping release."
+            exit 0
+          fi
+      - name: Dry-run Semantic-release
+        id: dryrun
+        run: |
+          NEXT_TAG=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
+          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+      - name: Check tag existence
+        run: |
+          if git rev-parse "refs/tags/$NEXT_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEXT_TAG already exists. Skipping release."
+            exit 0
+          fi
 
       # デバッグ: Release ブランチの情報を出力
       - name: Debug Release branch
