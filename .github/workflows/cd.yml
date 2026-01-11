@@ -4,7 +4,7 @@ run-name: CD ${{ github.event.head_commit.message }}
 on:
   push:
     branches:
-      - release
+      - main
 permissions:
   contents: write
   issues: write
@@ -12,34 +12,8 @@ permissions:
   pages: write
   id-token: write
 
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: release
-          fetch-depth: 0
-          token: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "lts/*"
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-          DEBUG: semantic-release:*
-        run: npx semantic-release
-        
+jobs:        
   build-and-deploy-frontend:
-    needs: release
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -74,7 +48,6 @@ jobs:
           echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
 
   deploy-backend:
-    needs: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
