@@ -35,12 +35,48 @@ jobs:
   
       - name: Fetch tags
         run: |
-          git fetch --tags --prune
+          git fetch origin --tags --prune
           git fetch origin
           git log origin/main --oneline -5
           git log origin/release --oneline -5
           git rev-parse release
           git rev-parse origin/release
+
+    # Release が Main の最新と同じか確認
+      - name: Sync check
+        id: sync
+        run: |
+          git fetch origin main
+          MAIN_HEAD=$(git rev-parse origin/main)
+          RELEASE_HEAD=$(git rev-parse release)
+          echo "MAIN_HEAD=$MAIN_HEAD" >> $GITHUB_ENV
+          echo "RELEASE_HEAD=$RELEASE_HEAD" >> $GITHUB_ENV
+          if [ "$MAIN_HEAD" = "$RELEASE_HEAD" ]; then
+            echo "Release is up-to-date with main"
+            echo "up_to_date=true" >> $GITHUB_ENV
+          else
+            echo "Release needs to merge main"
+            echo "up_to_date=false" >> $GITHUB_ENV
+          fi
+      # 必要ならマージ
+      - name: Merge main into release if needed
+        if: env.up_to_date == 'false'
+        run: |
+          git merge --no-ff origin/main -m "Chore: Merge main into release"
+          git push origin release
+      # Release 上の HEAD に既にタグがあるか確認
+      - name: Check for existing tags
+        id: tag_check
+        run: |
+          TAGS=$(git tag --contains HEAD | grep "^v" || true)
+          if [ -n "$TAGS" ]; then
+            echo "HEAD already has tags: $TAGS"
+            echo "tag_exists=true" >> $GITHUB_ENV
+          else
+            echo "No tags on HEAD"
+            echo "tag_exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Skip if release branch has no new commits
         run: |
           if git tag --contains HEAD | grep -q "v"; then
