@@ -136,5 +136,5 @@ jobs:
           # ローカル release があっても無くてもmain を元に作成
           git checkout -B release origin/main
           # release を main と完全一致させる
-          git push origin release --force
+          git push origin release
           
