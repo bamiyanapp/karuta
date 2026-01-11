@@ -91,7 +91,12 @@ jobs:
           git fetch origin main:main 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout release || git checkout -b release
+          if ! git rev-parse --verify release >/dev/null 2>&1; then
+            git checkout -b release origin/release
+          else
+            git checkout release
+          fi
+          git pull origin release --rebase
           git merge main --ff-only
           git push origin release
 
