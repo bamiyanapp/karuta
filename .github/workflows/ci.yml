@@ -135,7 +135,7 @@ jobs:
           git fetch --tags origin
           # ローカル release にチェックアウト
           git checkout release
-          git merge --no-ff origin/main
+          git merge --no-ff origin/main -m "Chore: Merge main into release [ci skip]"
           git tag --contains HEAD
           # release を main と完全一致させる
           git push origin release --tags
