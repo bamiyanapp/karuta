@@ -60,7 +60,10 @@ try {
       const M = String(date.getMinutes()).padStart(2, '0');
       return `${y}/${m}/${d} ${H}:${M}`;
     } catch (error) {
-      return null;
+      // Fallback to changelog date, assuming midnight if no time is available
+      const fallbackDate = new Date(version);
+      if (isNaN(fallbackDate.getTime())) return null;
+      return `${fallbackDate.getFullYear()}/${String(fallbackDate.getMonth() + 1).padStart(2, '0')}/${String(fallbackDate.getDate()).padStart(2, '0')} 00:00`;
     }
   }
 
@@ -77,7 +80,10 @@ try {
 
     entries.push({
       version: current.version,
-      date: gitDate || current.date,
+      date: gitDate || 
+            (current.date.match(/^\d{4}-\d{2}-\d{2}$/) 
+              ? `${current.date.replace(/-/g, '/')}` + ' 00:00'
+              : current.date.replace(/-/g, '/')),
       body: body
     });
   }
