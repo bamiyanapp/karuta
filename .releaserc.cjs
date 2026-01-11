@@ -14,16 +14,17 @@ module.exports = {
           // 大文字対応
           { type: "Feat", release: "minor" },
           { type: "Fix", release: "patch" },
+          { type: "Refactor", release: "patch" },
 
           // スラッシュ系（今ある履歴対応）
           { type: "Feat/fix", release: "patch" },
           { type: "Fix/tech", release: "patch" },
-          { type: "Refactor", release: "patch" },
 
           // 明示的にリリースしない
           { type: "Docs", release: false },
           { type: "Chore", release: false }
-        ]
+        ],
+        defaultReleaseType: "patch"
       }
     ],
     "@semantic-release/release-notes-generator",
