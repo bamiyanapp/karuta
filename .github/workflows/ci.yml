@@ -141,8 +141,8 @@ jobs:
           git fetch --tags origin
           # ローカル release にチェックアウト
           git checkout release
-          # Fast-forward マージ
-          git merge --ff-only origin/main || echo "Already up to date"
+          # Release を Main と完全一致させる
+          git reset --hard origin/main
           git tag --contains HEAD
           # release を main と完全一致させる
-          git push origin release --tags
+          git push origin release --force --tags
