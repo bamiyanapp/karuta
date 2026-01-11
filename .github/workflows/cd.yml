@@ -32,14 +32,24 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Tag output
-        run: git tag --contains HEAD
+      - name: Check for tag conflicts
+        id: check-tags
+        run: |
+          # semantic-release が付ける予定の次バージョンを確認
+          NEXT_TAG=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
+          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+          # 既存タグと重複していないか確認
+          if git rev-parse "refs/tags/$NEXT_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEXT_TAG already exists. Exiting."
+            exit 0
+          fi
+          git fetch --tags origin
+          git tag --contains HEAD
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           DEBUG: semantic-release:*
         run: |
-          git fetch --tags origin
           npx semantic-release
       - name: Create PR from release to main
         uses: peter-evans/create-pull-request@v5
