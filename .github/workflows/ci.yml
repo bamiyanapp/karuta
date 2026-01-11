@@ -133,8 +133,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --tags origin
-          # ローカル release があっても無くてもmain を元に作成
-          git checkout -B release origin/main
+          # ローカル release にチェックアウト
+          git checkout release
           # release を main と完全一致させる
           git push origin release --force --tags
-          
