@@ -32,6 +32,35 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+
+      # デバッグ: Release ブランチの情報を出力
+      - name: Debug Release branch
+        run: |
+          echo "===== RELEASE BRANCH ====="
+          echo "Branch: $(git branch --show-current)"
+          echo "Commit: $(git rev-parse HEAD)"
+          echo "Tags containing HEAD:"
+          git tag --contains HEAD
+          echo "All tags:"
+          git fetch --tags origin
+          git tag -l
+    
+      # デバッグ: Main ブランチの情報も確認
+      - name: Debug Main branch
+        run: |
+          echo "===== MAIN BRANCH ====="
+          git fetch origin main --depth=1
+          git checkout origin/main
+          echo "Branch: $(git branch --show-current)"
+          echo "Commit: $(git rev-parse HEAD)"
+          echo "Tags containing HEAD:"
+          git tag --contains HEAD
+          echo "All tags:"
+          git fetch --tags origin
+          git tag -l
+          # Release ブランチに戻す
+          git checkout release
+      
       - name: Check for tag conflicts
         id: check-tags
         env:
@@ -50,7 +79,7 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-          DEBUG: semantic-release:*
+          # DEBUG: semantic-release:*
         run: |
           npx semantic-release
       - name: Create PR from release to main
