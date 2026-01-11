@@ -2,9 +2,9 @@ name: CD
 run-name: CD ${{ github.event.head_commit.message }}
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 permissions:
   contents: write
   issues: write
