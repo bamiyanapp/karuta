@@ -18,15 +18,13 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: |
-      github.event.workflow_run.head_branch == 'release'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: release # Always checkout the release branch for semantic release
-          token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: release
           fetch-depth: 0
+          token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -34,15 +32,12 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: npx semantic-release
-
+        
   build-and-deploy-frontend:
     needs: release
     runs-on: ubuntu-latest
