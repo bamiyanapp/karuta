@@ -37,12 +37,12 @@ jobs:
         run: |
           git fetch --tags
           # release ブランチ上のタグのみ削除
-          for tag in $(git tag --merged HEAD); do
-            echo "Deleting tag $tag"
+          for tag in $(git tag --merged release); do
+            echo "Deleting tag on release: $tag"
             git tag -d $tag || true
             git push origin :refs/tags/$tag || true
           done
-      - name: Release
+      - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           DEBUG: semantic-release:*
