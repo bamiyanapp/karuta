@@ -99,7 +99,7 @@ jobs:
           fi
           # release を main と完全一致させる
           git reset --hard origin/main
-          git push origin release --force-with-lease  
+          git push origin release --force
   merge:
     needs: [frontend-test, backend-test]
     if: github.event_name == 'pull_request' && success()
