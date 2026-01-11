@@ -47,16 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           DEBUG: semantic-release:*
         run: npx semantic-release
-      - name: Push release changes back to main
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
-          git merge --ff-only release
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
       - name: Create PR from release to main
         uses: peter-evans/create-pull-request@v5
         with:
