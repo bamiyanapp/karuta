@@ -78,8 +78,8 @@ jobs:
         run: npx vitest run --coverage
 
   sync-release:
-    needs: [frontend-test, backend-test]
-    if: github.event_name == 'pull_request' && success()
+    needs: [commitlint, frontend-test, backend-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
