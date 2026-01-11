@@ -46,7 +46,16 @@ jobs:
           git merge --ff-only release
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create PR from release to main
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          head: release
+          title: "Sync release branch into main"
+          body: "Automated PR to sync release changes into main."
+          draft: false
 
   build-and-deploy-frontend:
     needs: release
