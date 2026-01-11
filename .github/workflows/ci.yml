@@ -120,7 +120,7 @@ jobs:
 
   sync-release:
     needs: [merge]
-    if: github.event_name == 'pull_request' && success()
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -132,13 +132,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin
-          git pull origin main
-          # release があってもなくても、main を元に作り直す
-          if git show-ref --verify --quiet refs/remotes/origin/release; then
-            git checkout release
-          else
-            git checkout -b release
-          fi
+          # ローカル release があっても無くてもmain を元に作成
+          git checkout -B release origin/main
           # release を main と完全一致させる
-          git reset --hard origin/main
           git push origin release --force
+          
