@@ -134,7 +134,7 @@ jobs:
               });
               console.log(`Successfully deleted branch: ${branchName}`);
             } catch (error) {
-              if (error.status === 422 || error.message.includes('Reference does not exist')) {
+              if (error.status === 422 || error.message.includes("Reference does not exist")) {
                 console.log(`Branch ${branchName} already deleted or not found.`);
               } else {
                 console.error(`Failed to delete branch ${branchName}:`, error.message);
