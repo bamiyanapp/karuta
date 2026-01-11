@@ -24,6 +24,12 @@ jobs:
         with:
           node-version: "lts/*"
           cache: "npm"
+      - name: Branch check
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/release" ]; then
+            echo "Skipping push to release to avoid loop"
+            exit 0
+          fi
       - name: Install dependencies
         run: npm ci
       - name: Validate current commit (last commit)
