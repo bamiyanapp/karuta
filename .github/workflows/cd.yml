@@ -38,7 +38,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           DEBUG: semantic-release:*
-        run: npx semantic-release
+        run: |
+          git fetch --tags origin
+          npx semantic-release
       - name: Create PR from release to main
         uses: peter-evans/create-pull-request@v5
         with:
