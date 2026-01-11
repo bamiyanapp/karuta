@@ -138,4 +138,4 @@ jobs:
           git merge --no-ff origin/main
           git tag --contains HEAD
           # release を main と完全一致させる
-          git push origin release --force --tags
+          git push origin release --tags
