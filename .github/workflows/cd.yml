@@ -34,7 +34,13 @@ jobs:
         run: npm ci
   
       - name: Fetch tags
-        run: git fetch --tags --prune
+        run: |
+          git fetch --tags --prune
+          git fetch origin
+          git log origin/main --oneline -5
+          git log origin/release --oneline -5
+          git rev-parse release
+          git rev-parse origin/release
       - name: Skip if release branch has no new commits
         run: |
           if git tag --contains HEAD | grep -q "v"; then
