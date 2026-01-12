@@ -119,7 +119,7 @@ jobs:
           git tag --contains HEAD
           echo "All tags:"
           git fetch --tags origin
-          git tag -l
+          git tag -l | grep v1.1
     
       # デバッグ: Main ブランチの情報も確認
       - name: Debug Main branch
@@ -133,7 +133,7 @@ jobs:
           git tag --contains HEAD
           echo "All tags:"
           git fetch --tags origin
-          git tag -l
+          git tag -l | grep v1.1
           # Release ブランチに戻す
           git checkout release
       
