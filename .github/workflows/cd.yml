@@ -168,8 +168,9 @@ jobs:
           title: "Sync release branch into main"
           body: "Automated PR to sync release changes into main."
           draft: false
-          commit-message: "chore: sync release branch into main"
-
+          commit-message: "chore: sync release branch into main [skip ci]"
+          merge-method: squash
+          auto-merge: true
   build-and-deploy-frontend:
     needs: release
     runs-on: ubuntu-latest
