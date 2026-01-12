@@ -1,5 +1,5 @@
 module.exports = {
-  branches: ["release"],
+  branches: ["main"],
   repositoryUrl: "https://github.com/bamiyanapp/karuta.git",
   plugins: [
     [
