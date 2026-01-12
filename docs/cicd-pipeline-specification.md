@@ -43,7 +43,17 @@ graph TD
   2. リリースの準備ができたら、`main` ブランチを `release` ブランチにマージします。
   3. `release` ブランチでの CI 成功後、自動的にリリースおよびデプロイが行われます。
 
- 
+## 環境変数
+CI/CDパイプラインで使用される環境変数を以下に示します。
+
+| 変数名 | 説明 | 例 |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` | AWSアカウントへのアクセスキーID | `AKI*****************` |
+| `AWS_SECRET_ACCESS_KEY` | AWSアカウントへのシークレットアクセスキー | `****************************************` |
+| `GITHUB_TOKEN` | GitHub APIへのアクセスに使用されるトークン | `ghp_**********************************` |
+| `NPM_TOKEN` | npmパッケージの公開などに使用されるトークン | `nprm_*********************************` |
+
+
 # Release → Main 自動同期 PR（CI スキップ運用）について
 
 このリポジトリでは、`release` ブランチと `main` ブランチの差分を  
@@ -72,17 +82,7 @@ graph TD
 
 ---
 
-## 必須設定（GitHub リポジトリ側）
-
-### 1. Auto-merge を有効化
-
-**Settings → General → Pull Requests**
-
-- ✅ Allow auto-merge
-
----
-
-### 2. Branch rules（Ruleset）の設定
+## GitHub Branch Protection Rules (`main` ブランチ)
 
 **Settings → Rules → Rulesets**
 
@@ -90,7 +90,7 @@ graph TD
 
 ---
 
-## Require a pull request before merging
+### 1. Pull Request マージの必須化
 
 ✅ **ON**
 
@@ -98,7 +98,7 @@ graph TD
 
 ---
 
-## Review 関連（すべて OFF）
+### 2. レビュー関連（すべて OFF）
 
 | 項目 | 設定 |
 |---|---|
@@ -109,32 +109,32 @@ graph TD
 | Require approval of the most recent reviewable push | OFF |
 | Require conversation resolution before merging | OFF |
 
-### 理由
+#### 理由
 
 - Bot PR に人間レビューを要求すると **自動マージ不能**
 - 同期目的のためレビュー自体が不要
 
 ---
 
-## Status checks（CI）
+### 3. ステータスチェック（CI）
 
 ❌ **Require status checks to pass** → OFF
 
-### 理由
+#### 理由
 
 - 同期 PR は CI を目的としない
 - CI が存在しない / skip されるケースを許容するため
 
 ---
 
-## Allowed merge methods
+### 4. マージ方法の許可
 
 ✅ **Allow squash merging（推奨）**
 
 ❌ Allow merge commits  
 ❌ Allow rebase merging  
 
-### 理由
+#### 理由
 
 - `main` に不要な履歴を残さない
 - 「同期」という意図が 1 コミットで明確になる
@@ -142,33 +142,15 @@ graph TD
 
 ---
 
-## Bypass list（重要）
+### 5. バイパスリスト（重要）
 
-### 推奨設定
+#### 推奨設定
 
 以下のいずれかを **Bypass list** に追加してください。
 
 - `github-actions[bot]`
 - または 使用している GitHub App / Bot
 
-### 理由
+#### 理由
 
 - ブランチ制限を Bot が回避できないと PR 作成・マージに失敗する
-
----
-
-## ワークフロー側の注意点
-
-### PR 作成アクション例
-
-```yaml
-- name: Create PR from release to main
-  uses: peter-evans/create-pull-request@v5
-  with:
-    token: ${{ secrets.GITHUB_TOKEN }}
-    base: main
-    head: release
-    title: "Sync release branch into main"
-    body: "Automated PR to sync release changes into main."
-    commit-message: "chore: sync release branch into main [skip ci]"
-
