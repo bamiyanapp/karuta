@@ -51,7 +51,7 @@ CI/CDパイプラインで使用される環境変数を以下に示します。
 | `AWS_ACCESS_KEY_ID` | AWSアカウントへのアクセスキーID | `AKI*****************` |
 | `AWS_SECRET_ACCESS_KEY` | AWSアカウントへのシークレットアクセスキー | `****************************************` |
 | `GITHUB_TOKEN` | GitHub APIへのアクセスに使用されるトークン | `ghp_**********************************` |
-| `NPM_TOKEN` | npmパッケージの公開などに使用されるトークン | `nprm_*********************************` |
+| `GEMINI_API_KEY` | 自動コーディングに用いるGeminiのトークン | `*********************************` |
 
 
 # Release → Main 自動同期 PR（CI スキップ運用）について
@@ -82,6 +82,13 @@ CI/CDパイプラインで使用される環境変数を以下に示します。
 
 ---
 
+## 1. Auto-merge を有効化
+
+**Settings → General → Pull Requests**
+
+- ✅ Allow auto-merge
+
+---
 ## GitHub Branch Protection Rules (`main` ブランチ)
 
 **Settings → Rules → Rulesets**
