@@ -42,7 +42,7 @@ id,category,level,kana,phrase,phrase_en
 41,大ピンチずかん,47,し,シャンプーがめにはいった,Got shampoo in my eyes.
 42,大ピンチずかん,51,ば,バッグのなかですいとうがもれた,The water bottle leaked inside the bag.
 43,大ピンチずかん,56,な,なまえがおもいだせない,Can't remember the name.
-44,大ピンチずかん,64,き,きんじょのおばさんがずっとなまえをまちがえている,The neighborhood lady has been getting my name wrong for a long time.
+44,大ピンチずかん,64,き,きんじょのおばさんが　ずっとなまえをまちがえている,The neighborhood lady has been getting my name wrong for a long time.
 45,大ピンチずかん,50,お,おゆがない,There is no hot water.
 46,大ピンチずかん,45,ど,ドアをあけられてさむい,Someone opened the door and it's cold.
 47,大ピンチずかん,40,せ,せんせいのメガネがとんだ,The teacher's glasses flew off.
@@ -64,11 +64,11 @@ id,category,level,kana,phrase,phrase_en
 63,大ピンチずかん,63,さ,さなぎからかえったカブトムシが　よなかにだっそうして　とびまわっている,The beetle that emerged from its pupa escaped at night and is flying around.
 64,大ピンチずかん,57,け,けしゴムにさした　えんぴつのしんが　けしたときにつく,The pencil lead stuck in the eraser leaves marks when I erase.
 65,大ピンチずかん,89,お,おきられない,Can't wake up.
-66,大ピンチずかん,91,で,でんちゅうに　じてんしゃで　つっこんだ,Crashed my bicycle into a utility pole.
+66,大ピンチずかん,91,で,かばしらに　じてんしゃで　つっこんだ,Crashed my bicycle into a mosquito swarm.
 67,大ピンチずかん,93,と,トイレがつまった,The toilet is clogged.
 68,大ピンチずかん,94,お,おかあさんがイライラしている,Mom is getting irritated.
 69,大ピンチずかん,95,お,プレゼントをわすれた,Forgot the present.
-70,大ピンチずかん,86,し,しんしつのだれかいる,Someone is in the bedroom.
+70,大ピンチずかん,86,し,しんしつに　だれかいる,Someone is in the bedroom.
 71,大ピンチずかん,87,く,クモのすにかかった,Got caught in a spider web.
 72,大ピンチずかん,88,と,トイレにおおきなガがとまっている,A large moth is sitting in the toilet.
 73,大ピンチずかん,0,し,しゃっくりがとまらない,Can't stop hiccuping.
@@ -97,9 +97,9 @@ id,category,level,kana,phrase,phrase_en
 96,大ピンチずかん,78,し,しんしつの　てんじょうのもくめが　ひとのかおにみえてきた,The wood grain on the bedroom ceiling started to look like a person's face.
 97,大ピンチずかん,41,や,やすみじかんに　おいた　すいとうが　そのまま,The water bottle I left during recess is still there.
 98,大ピンチずかん,42,ご,ごはんが　たりない,Not enough food.
-99,大ピンチずかん,43,は,はなしを　きいてなかった,Wasn't listening.
+99,大ピンチずかん,44,は,はなしを　きいてなかった,Wasn't listening.
 100,大ピンチずかん,2,の,のんだガムに　まだあじが　たくさんのこっていた,Swallowed the gum; it still had a lot of flavor left.
-101,大ピンチずかん,0,む,むかしの　おにぎりが　でてきた,An old rice ball appeared.
+101,大ピンチずかん,52,む,むかしの　おにぎりが　でてきた,An old rice ball appeared.
 102,国旗王,上級,し,人口密度が高い,High population density.
 103,国旗王,上級,ひ,一人当たりGDPが高い,High GDP per capita.
 104,国旗王,上級,し,首都 最東,Easternmost capital.
@@ -324,3 +324,5 @@ id,category,level,kana,phrase,phrase_en
 323,百人一首,-,わ,わたのはら やそしまかけて こぎいでぬと ひとにはつげよ あまのつりぶね,"Tell the people that I have rowed out over the wide sea toward the many islands, O fisher's boat."
 324,百人一首,-,を,をぐらやま みねのもみぢば こころあらば いまひとたびの みゆきまたなむ,"O maple leaves on the peak of Mount Ogura, if you have a heart, wait for one more imperial visit."
 325,百人一首,-,ん,んにゃくにしゅう つねのことばを うたにして こころをつたふ みちぞたふとき,"Turning ordinary words into songs to convey the heart, the path is truly noble."
+326,大ピンチずかん,92,た,たからものいれが　あかない,"I can't open treasure box."
+327,大ピンチずかん,1,が,がむを　のんだ,"I swallowed gum."
