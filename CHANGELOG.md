@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/bamiyanapp/karuta/compare/v1.13.0...v1.13.1) (2026-02-15)
+
+
+### Bug Fixes
+
+* 読み札の誤りを修正 ([#129](https://github.com/bamiyanapp/karuta/issues/129)) ([ce53f25](https://github.com/bamiyanapp/karuta/commit/ce53f2577ac836a88a4966aa2d3c6e010dceb273))
+
 # [1.13.0](https://github.com/bamiyanapp/karuta/compare/v1.12.1...v1.13.0) (2026-01-12)
 
 
