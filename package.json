@@ -1,9 +1,13 @@
 {
   "name": "karuta-root",
   "private": true,
+  "id": "fix1",
   "repository": {
     "type": "git",
     "url": "https://github.com/bamiyanapp/karuta.git"
+  },
+  "scripts": {
+    "lint": "commitlint --from HEAD~1 --to HEAD --verbose"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.0",
