@@ -7,7 +7,7 @@
     "url": "https://github.com/bamiyanapp/karuta.git"
   },
   "scripts": {
-    "lint": "commitlint --from HEAD~1 --to HEAD --verbose"
+    "lint": "commitlint --from HEAD^ --to HEAD --verbose --ignore-merge-commits"    
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.0",
