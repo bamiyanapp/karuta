@@ -12,6 +12,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release:
     name: Release
@@ -160,6 +164,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           # DEBUG: semantic-release:*
         run: |
+          # タグを完全同期（重要）
+          git fetch --tags --force      
+          # 念のためリモートタグ確認
+          git ls-remote --tags origin | grep v1.13.1 || true
           npx semantic-release
       - name: Create PR from release to main
         uses: peter-evans/create-pull-request@v5
