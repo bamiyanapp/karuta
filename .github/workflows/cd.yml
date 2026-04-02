@@ -165,7 +165,7 @@ jobs:
           # DEBUG: semantic-release:*
         run: |
           git fetch --tags --force
-          NEXT_VERSION=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
+          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           echo "Next version: $NEXT_VERSION"
           # ★ リモートタグチェック（これが重要）
           if git ls-remote --tags origin | grep -q "refs/tags/v$NEXT_VERSION$"; then
