@@ -86,23 +86,41 @@ describe('getPhrasesList', () => {
           { id: '3', category: 'Category1' },
         ],
       });
-  
+
       const event = {
         queryStringParameters: {
           category: 'Category1',
         },
       };
-  
+
       const response = await getPhrasesList(event);
       const body = JSON.parse(response.body);
-  
+
       expect(response.statusCode).toBe(200);
       expect(body.phrases).toEqual([
         { id: '1', category: 'Category1' },
         { id: '3', category: 'Category1' },
       ]);
     });
-  
+
+    it('should request the answer field for the efuda print view (category query)', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+      await getPhrasesList({ queryStringParameters: { category: 'Category1' } });
+
+      const call = ddbMock.commandCalls(QueryCommand)[0];
+      expect(call.args[0].input.ProjectionExpression).toContain('answer');
+    });
+
+    it('should request the answer field for the efuda print view (scan all)', async () => {
+      ddbMock.on(ScanCommand).resolves({ Items: [] });
+
+      await getPhrasesList({});
+
+      const call = ddbMock.commandCalls(ScanCommand)[0];
+      expect(call.args[0].input.ProjectionExpression).toContain('answer');
+    });
+
     it('should handle errors', async () => {
       ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
       const response = await getPhrasesList({});

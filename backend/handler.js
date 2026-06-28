@@ -378,7 +378,7 @@ exports.getPhrasesList = async (event) => {
         ExpressionAttributeValues: {
           ":cat": category,
         },
-        ProjectionExpression: "id, category, phrase, #lvl, kana, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -388,7 +388,7 @@ exports.getPhrasesList = async (event) => {
     } else {
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },

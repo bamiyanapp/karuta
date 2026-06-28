@@ -111,6 +111,49 @@ describe('App', () => {
     });
   });
 
+  it('shows efuda print view with answer fallback to phrase and paginates by 10', async () => {
+    const phrases = Array.from({ length: 11 }, (_, i) => ({
+      id: `p${i}`,
+      category: 'Cat1',
+      kana: 'あ',
+      phrase: `読み札テキスト${i}`,
+      answer: i === 0 ? '-' : `回答${i}`,
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    window.print = vi.fn();
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Cat1の絵札印刷')).toBeInTheDocument();
+      // answerが"-"のカードは読み札(phrase)をそのまま使う
+      expect(screen.getByText('読み札テキスト0')).toBeInTheDocument();
+      // answerがあるカードはanswerを使う
+      expect(screen.getByText('回答1')).toBeInTheDocument();
+    });
+
+    // 11枚 → 10面/ページなので2ページ生成される
+    expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+
+    fireEvent.click(screen.getByText('印刷する'));
+    expect(window.print).toHaveBeenCalled();
+  });
+
   it('updates settings (lang, sort order, speech rate)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };

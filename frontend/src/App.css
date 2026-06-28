@@ -133,3 +133,101 @@ button:hover:not(:disabled) {
 button:active:not(:disabled) {
   transform: translateY(2px);
 }
+
+/* 絵札印刷（エーワン マルチカード マイクロミシン・厚口 A4・10面 51261系 準拠） */
+.efuda-print-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.efuda-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  background: white;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.efuda-grid {
+  position: absolute;
+  top: 11mm;
+  left: 14mm;
+  width: 182mm;
+  height: 275mm;
+  display: grid;
+  grid-template-columns: 91mm 91mm;
+  grid-template-rows: repeat(5, 55mm);
+}
+
+.efuda-card {
+  width: 91mm;
+  height: 55mm;
+  box-sizing: border-box;
+  border: 0.2mm dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 4mm;
+  overflow: hidden;
+}
+
+.efuda-card-kana {
+  position: absolute;
+  top: 3mm;
+  left: 3mm;
+  width: 10mm;
+  height: 10mm;
+  border-radius: 50%;
+  border: 0.4mm solid #e44d26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 6mm;
+  color: #e44d26;
+  background: white;
+}
+
+.efuda-card-text {
+  font-weight: bold;
+  font-size: 6mm;
+  text-align: center;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .efuda-print-container {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .efuda-print-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    gap: 0;
+  }
+
+  .efuda-page {
+    box-shadow: none;
+    page-break-after: always;
+  }
+
+  .efuda-page:last-child {
+    page-break-after: auto;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

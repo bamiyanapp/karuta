@@ -68,6 +68,16 @@ function App() {
     return selectedCategory ? (historyByCategory[selectedCategory] || []) : [];
   }, [selectedCategory, historyByCategory]);
 
+  const EFUDA_PER_PAGE = 10;
+  const efudaPages = useMemo(() => {
+    const pages = [];
+    for (let i = 0; i < allPhrasesForCategory.length; i += EFUDA_PER_PAGE) {
+      pages.push(allPhrasesForCategory.slice(i, i + EFUDA_PER_PAGE));
+    }
+    if (pages.length === 0) pages.push([]);
+    return pages;
+  }, [allPhrasesForCategory]);
+
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -480,7 +490,7 @@ function App() {
       params.delete("id");
     }
 
-    if (view === "comments" || view === "changelog" || view === "all-phrases") {
+    if (view === "comments" || view === "changelog" || view === "all-phrases" || view === "print-efuda") {
       params.set("view", view);
     } else {
       params.delete("view");
@@ -509,6 +519,8 @@ function App() {
       document.title = "更新履歴 | かるた読み上げアプリ";
     } else if (view === "all-phrases") {
       document.title = "全札一覧 | かるた読み上げアプリ";
+    } else if (view === "print-efuda") {
+      document.title = `${selectedCategory || ""}の絵札印刷 | かるた読み上げアプリ`;
     } else if (detailPhraseId && detailPhrase) {
       document.title = `${detailPhrase.phrase} | ${selectedCategory}`;
     } else if (selectedCategory) {
@@ -642,6 +654,62 @@ function App() {
             </div>
           )}
         </main>
+      </div>
+    );
+  }
+
+  if (view === "print-efuda") {
+    const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
+
+    return (
+      <div className="container efuda-print-container py-4 mx-auto">
+        <header className="text-center mb-4 border-bottom pb-3 no-print">
+          <div className="d-flex justify-content-between align-items-center">
+            <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+            <h1 className="h4 m-0 fw-bold notranslate">{selectedCategory}の絵札印刷</h1>
+            <div style={{ width: "60px" }}></div>
+          </div>
+        </header>
+
+        {!selectedCategory ? (
+          <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>
+        ) : allPhrasesForCategory.length === 0 ? (
+          <p className="text-muted text-center py-5 no-print">読み込み中...</p>
+        ) : (
+          <>
+            <div className="no-print text-center mb-4">
+              <p className="text-muted small mb-3">
+                用紙: エーワン マルチカード（マイクロミシン・厚口）A4・10面用<br />
+                印刷ダイアログで「用紙サイズ: A4」「余白: なし」「拡大縮小: 実際のサイズ(100%)」「ヘッダーとフッター: オフ」に設定してください。
+              </p>
+              <button onClick={() => window.print()} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-karuta">
+                印刷する
+              </button>
+            </div>
+
+            <div className="efuda-print-area">
+              {efudaPages.map((pageItems, pageIndex) => (
+                <div className="efuda-page" key={pageIndex}>
+                  <div className="efuda-grid">
+                    {Array.from({ length: EFUDA_PER_PAGE }).map((_, slotIndex) => {
+                      const p = pageItems[slotIndex];
+                      return (
+                        <div className="efuda-card" key={slotIndex}>
+                          {p && (
+                            <>
+                              <div className="efuda-card-kana">{p.kana}</div>
+                              <div className="efuda-card-text">{getEfudaText(p)}</div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -966,7 +1034,10 @@ function App() {
           </div>
         </section>
       <p className="text-muted small mb-4">リロードすると履歴はリセットされます。</p>
-      <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
+      <div className="d-flex flex-wrap gap-2 justify-content-center">
+        <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
+        <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
+      </div>
     </footer>
     </div>
   );
