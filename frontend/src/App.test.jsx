@@ -196,7 +196,7 @@ describe('App', () => {
     expect(window.print).toHaveBeenCalled();
   });
 
-  it('groups printed efuda pages by category and labels each page when multiple categories are selected', async () => {
+  it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
       // Both categories reuse id "p1" to also verify same-id phrases from
@@ -228,10 +228,61 @@ describe('App', () => {
     fireEvent.click(screen.getByText('絵札を印刷する'));
 
     await waitFor(() => {
-      // 各カテゴリが別ページになる（1枚ずつでも合算されず2ページ）
-      expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+      // カテゴリ境界で改ページせず、1枚ずつでも詰めて1ページにまとまる
+      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
       expect(screen.getByText('Cat1テキスト')).toBeInTheDocument();
       expect(screen.getByText('Cat2テキスト')).toBeInTheDocument();
+    });
+  });
+
+  it('fills a page across the category boundary instead of leaving trailing blanks', async () => {
+    const cat1Phrases = Array.from({ length: 7 }, (_, i) => ({
+      id: `a${i}`,
+      category: 'Cat1',
+      kana: 'あ',
+      phrase: `Cat1テキスト${i}`,
+      answer: '-',
+    }));
+    const cat2Phrases = Array.from({ length: 5 }, (_, i) => ({
+      id: `b${i}`,
+      category: 'Cat2',
+      kana: 'い',
+      phrase: `Cat2テキスト${i}`,
+      answer: '-',
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: cat1Phrases }) };
+      if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: cat2Phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      // Cat1(7枚)+Cat2(5枚)=12枚 → 10面/ページなので2ページ生成される
+      const pages = document.querySelectorAll('.efuda-page');
+      expect(pages.length).toBe(2);
+      // 1ページ目はカテゴリ境界で途切れず10面すべて埋まる(空白カードなし)
+      expect(pages[0].querySelectorAll('.efuda-card-text').length).toBe(10);
+      // 2ページ目はCat2の残り2枚のみ
+      expect(pages[1].querySelectorAll('.efuda-card-text').length).toBe(2);
     });
   });
 

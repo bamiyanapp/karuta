@@ -207,6 +207,14 @@ button:active:not(:disabled) {
   word-break: break-word;
 }
 
+.efuda-card-category {
+  position: absolute;
+  top: 3mm;
+  right: 3mm;
+  margin: 0;
+  font-size: 9px;
+}
+
 @media print {
   .no-print {
     display: none !important;
