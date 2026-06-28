@@ -53,6 +53,7 @@ async function seed() {
         kana: record.kana ? record.kana.trim() : "-",
         phrase: record.phrase ? record.phrase.trim() : "",
         phrase_en: record.phrase_en ? record.phrase_en.trim() : "",
+        answer: record.answer ? record.answer.trim() : "-",
         readCount: existingItem ? existingItem.readCount : 0,
         averageTime: existingItem ? existingItem.averageTime : 0,
         averageDifficulty: existingItem ? (existingItem.averageDifficulty || 0) : 0
