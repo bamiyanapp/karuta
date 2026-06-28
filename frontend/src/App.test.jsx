@@ -99,8 +99,9 @@ describe('App', () => {
       expect(elements.length).toBeGreaterThan(0);
     });
 
-    const categoryButton = screen.getByRole('button', { name: 'Cat1' });
+    const categoryButton = screen.getByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
 
     await waitFor(() => screen.getByText(/をお手元に持っていますか？/));
     fireEvent.click(screen.getByText('はい'));
@@ -108,6 +109,35 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Cat1' })).toBeInTheDocument();
       expect(screen.getByText('次の札')).toBeInTheDocument();
+    });
+  });
+
+  it('merges phrases from multiple categories when several are selected', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Cat1・Cat2' })).toBeInTheDocument();
     });
   });
 
@@ -132,8 +162,9 @@ describe('App', () => {
       render(<App />);
     });
 
-    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
     fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('絵札を印刷する'));
@@ -154,6 +185,45 @@ describe('App', () => {
     expect(window.print).toHaveBeenCalled();
   });
 
+  it('groups printed efuda pages by category and labels each page when multiple categories are selected', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      // Both categories reuse id "p1" to also verify same-id phrases from
+      // different categories are kept distinct rather than deduped together.
+      if (url.includes('category=Cat1')) {
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: 'Cat1テキスト', answer: '-' }] }) };
+      }
+      if (url.includes('category=Cat2')) {
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat2', kana: 'い', phrase: 'Cat2テキスト', answer: '-' }] }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      // 各カテゴリが別ページになる（1枚ずつでも合算されず2ページ）
+      expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+      expect(screen.getByText('Cat1テキスト')).toBeInTheDocument();
+      expect(screen.getByText('Cat2テキスト')).toBeInTheDocument();
+    });
+  });
+
   it('updates settings (lang, sort order, speech rate)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
@@ -165,8 +235,9 @@ describe('App', () => {
     });
     
     // Select Category
-    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
     fireEvent.click(screen.getByText('はい'));
 
     // Check setting buttons

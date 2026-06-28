@@ -118,6 +118,11 @@
   color: white;
 }
 
+.btn-karuta.selected {
+  background-color: #2d5a27;
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.4);
+}
+
 .modal-overlay {
   background-color: rgba(0, 0, 0, 0.5);
 }
