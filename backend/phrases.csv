@@ -433,31 +433,46 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1138,Linuxコマンドかるた,-,W,コマンドの実行ファイルの場所を調べる,Find the location of a command's executable.,which,engineer
 1139,Linuxコマンドかるた,-,W,現在ログインしているユーザー名を表示する,Display the current logged-in user name.,whoami,engineer
 1140,Linuxコマンドかるた,-,H,コンピュータのホスト名を表示する,Display the computer's host name.,hostname,engineer
-1201,Gitかるた,-,I,新しいリポジトリを作成する,Create a new repository.,git init,engineer
-1202,Gitかるた,-,C,既存のリポジトリを複製する,Clone an existing repository.,git clone,engineer
-1203,Gitかるた,-,A,変更をステージングする,Stage changes.,git add,engineer
-1204,Gitかるた,-,C,変更をコミットする,Commit changes.,git commit,engineer
-1205,Gitかるた,-,P,ローカルの変更をリモートに送る,Push local changes to a remote.,git push,engineer
-1206,Gitかるた,-,P,リモートの変更を取得して取り込む,Fetch and merge changes from a remote.,git pull,engineer
-1207,Gitかるた,-,F,リモートの変更情報だけを取得する,Fetch changes from a remote without merging.,git fetch,engineer
-1208,Gitかるた,-,S,作業ディレクトリの状態を確認する,Check the status of the working directory.,git status,engineer
-1209,Gitかるた,-,D,変更の差分を確認する,Show changes between commits or the working directory.,git diff,engineer
-1210,Gitかるた,-,L,コミットの履歴を表示する,Show commit history.,git log,engineer
-1211,Gitかるた,-,B,ブランチを作成・一覧表示する,Create or list branches.,git branch,engineer
-1212,Gitかるた,-,C,ブランチやファイルの状態を切り替える,Switch branches or restore files.,git checkout,engineer
-1213,Gitかるた,-,S,ブランチを切り替える,Switch branches.,git switch,engineer
-1214,Gitかるた,-,M,別のブランチの変更を取り込む,Merge changes from another branch.,git merge,engineer
-1215,Gitかるた,-,R,コミットの履歴を別のベースに付け替える,Reapply commits on top of another base.,git rebase,engineer
-1216,Gitかるた,-,S,作業内容を一時退避する,Temporarily shelve changes.,git stash,engineer
-1217,Gitかるた,-,R,コミットやステージングの状態を戻す,Undo commits or staged changes.,git reset,engineer
-1218,Gitかるた,-,R,過去のコミットを打ち消す新しいコミットを作る,Create a new commit that undoes a past commit.,git revert,engineer
-1219,Gitかるた,-,T,コミットに目印となるタグを付ける,Mark a commit with a tag.,git tag,engineer
-1220,Gitかるた,-,R,リモートリポジトリの情報を管理する,Manage remote repository information.,git remote,engineer
-1221,Gitかるた,-,C,Gitの設定を変更する,Change Git configuration.,git config,engineer
-1222,Gitかるた,-,C,特定のコミットだけを取り込む,Apply a specific commit onto the current branch.,git cherry-pick,engineer
-1223,Gitかるた,-,B,各行を最後に変更した人を調べる,Find out who last modified each line.,git blame,engineer
-1224,Gitかるた,-,S,コミットの詳細な内容を表示する,Show the details of a commit.,git show,engineer
-1225,Gitかるた,-,R,ファイルを削除してその変更を記録する,Delete a file and stage the removal.,git rm,engineer
+1201,Git大ピンチ,-,I,「まずpushして」と言われたけどGitを始めてもいなかった,"You were told to push before initializing Git.",git init,engineer
+1202,Git大ピンチ,-,C,URLだけ渡されて「触っといて」と言われた,"You only received a repository URL.",git clone,engineer
+1203,Git大ピンチ,-,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer
+1204,Git大ピンチ,-,D,レビューで「何を変更したの？」と聞かれ固まった,"Someone asked what changed.",git diff,engineer
+1205,Git大ピンチ,-,L,昨日から壊れてるらしい。いつ壊した？,"The bug appeared yesterday. Which commit caused it?",git log,engineer
+1206,Git大ピンチ,-,B,mainで直接開発していたことに気付いた,"You accidentally developed on main.",git switch -c,engineer
+1207,Git大ピンチ,-,M,レビューOK！でも取り込み方が分からない,"The PR was approved. Now what?",git merge,engineer
+1208,Git大ピンチ,-,R,コミット履歴が「fix」「fix2」「fix3」だらけ,"Your commit history is messy.",git rebase -i,engineer
+1209,Git大ピンチ,-,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,"You must switch tasks immediately.",git stash,engineer
+1210,Git大ピンチ,-,P,自分だけ動く。みんなには見えない,"Only your machine has the changes.",git push,engineer
+1211,Git大ピンチ,-,P,朝イチpullしなかったら地獄のコンフリクト,"You skipped pull before starting work.",git pull,engineer
+1212,Git大ピンチ,-,F,最新は見たい。でもまだ混ぜたくない,"You only want the latest remote state.",git fetch,engineer
+1213,Git大ピンチ,-,R,昨日の作業全部なかったことにしたい,"You want to discard yesterday's work.",git reset --hard,engineer
+1214,Git大ピンチ,-,R,本番に出したコミットだけ安全に取り消したい,"Undo only one released commit.",git revert,engineer
+1215,Git大ピンチ,-,C,あのバグ修正だけ今のブランチにも欲しい,"You only need one commit.",git cherry-pick,engineer
+1216,Git大ピンチ,-,B,「誰がこのバグ入れた？」会議室が静まり返る,"Who introduced this bug?",git blame,engineer
+1217,Git大ピンチ,-,S,このコミット、本当に何を変更した？,"What exactly changed in this commit?",git show,engineer
+1218,Git大ピンチ,-,R,リモートが増えすぎてpush先が分からない,"Too many remotes. Which one am I using?",git remote -v,engineer
+1219,Git大ピンチ,-,C,知らない名前でコミットされていた,"Your commit author is wrong.",git config --global,engineer
+1220,Git大ピンチ,-,T,v2.0ってどのコミット？誰も分からない,"Nobody knows where version 2.0 is.",git tag,engineer
+1221,Git大ピンチ,-,R,間違えてファイルを削除してしまった,"You deleted the wrong file.",git restore,engineer
+1222,Git大ピンチ,-,C,ブランチを切り替えたらファイルが消えた,"Files disappeared after switching branches.",git checkout,engineer
+1223,Git大ピンチ,-,A,ファイルを追加したのにコミットに入っていなかった,"The new file wasn't included.",git add,engineer
+1224,Git大ピンチ,-,C,コミットした瞬間、誤字を見つけた,"You spotted a typo right after committing.",git commit --amend,engineer
+1225,Git大ピンチ,-,S,コンフリクトを直したつもりなのにまだ終わらない,"You resolved conflicts, but Git disagrees.",git status → git add → git commit,engineer
+1226,Git大ピンチ,-,S,コンフリクトを直したのに「まだ終わってない」と言われた,"Git still thinks the merge isn't finished.",git status → git add → git commit,engineer
+1227,Git大ピンチ,-,R,間違えてmainへpushしてしまった,"You accidentally pushed directly to main.",git revert,engineer
+1228,Git大ピンチ,-,S,ブランチを切り替えたいのに変更が邪魔して進めない,"Uncommitted changes block switching branches.",git stash → git switch,engineer
+1229,Git大ピンチ,-,F,最新を取り込んだら大量コンフリクトになった,"Pull caused a huge merge conflict.",git fetch → git merge,engineer
+1230,Git大ピンチ,-,L,「昨日動いてた版に戻して」と言われた,"Go back to yesterday's version.",git log → git checkout <commit>,engineer
+1231,Git大ピンチ,-,S,どのブランチにいるのか分からなくなった,"You forgot which branch you're on.",git status,engineer
+1232,Git大ピンチ,-,D,レビューで「差分が見えません」と言われた,"The reviewer can't tell what changed.",git diff,engineer
+1233,Git大ピンチ,-,C,レビュー後に1文字だけ直したい,"You only need to fix one typo after review.",git commit --amend,engineer
+1234,Git大ピンチ,-,T,リリース版がどのコミットか誰も覚えていない,"Nobody knows which commit was released.",git tag,engineer
+1235,Git大ピンチ,-,B,「このコード誰が書いた？」全員目をそらした,"Nobody admits writing the code.",git blame,engineer
+1236,Git大ピンチ,-,R,間違えて別ブランチで1時間作業してしまった,"You worked on the wrong branch for an hour.",git stash → git switch → git stash pop,engineer
+1237,Git大ピンチ,-,C,「その修正だけ持ってきて」と言われた,"Only bring over that one fix.",git cherry-pick,engineer
+1238,Git大ピンチ,-,S,マージした瞬間にビルドが壊れた,"The build broke immediately after merging.",git show,engineer
+1239,Git大ピンチ,-,R,リモートが多すぎてpush先を間違えそう,"Too many remotes to remember.",git remote -v,engineer
+1240,Git大ピンチ,-,G,新しいPCなのにコミットできない,"Git isn't configured on the new PC.",git config --global,engineer
 1301,SQLかるた,-,S,取得する列を指定する,Specify which columns to retrieve.,SELECT,engineer
 1302,SQLかるた,-,F,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM,engineer
 1303,SQLかるた,-,W,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE,engineer
