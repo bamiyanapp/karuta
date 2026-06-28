@@ -83,15 +83,12 @@ function App() {
   const EFUDA_PER_PAGE = 10;
   const efudaPages = useMemo(() => {
     const pages = [];
-    selectedCategories.forEach(cat => {
-      const phrasesForCat = allPhrasesForCategory.filter(p => p.category === cat);
-      for (let i = 0; i < phrasesForCat.length; i += EFUDA_PER_PAGE) {
-        pages.push({ category: cat, items: phrasesForCat.slice(i, i + EFUDA_PER_PAGE) });
-      }
-    });
-    if (pages.length === 0) pages.push({ category: null, items: [] });
+    for (let i = 0; i < allPhrasesForCategory.length; i += EFUDA_PER_PAGE) {
+      pages.push({ items: allPhrasesForCategory.slice(i, i + EFUDA_PER_PAGE) });
+    }
+    if (pages.length === 0) pages.push({ items: [] });
     return pages;
-  }, [allPhrasesForCategory, selectedCategories]);
+  }, [allPhrasesForCategory]);
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -731,9 +728,6 @@ function App() {
             <div className="efuda-print-area">
               {efudaPages.map((page, pageIndex) => (
                 <div className="efuda-page" key={pageIndex}>
-                  {selectedCategories.length > 1 && (
-                    <p className="no-print text-muted small mb-2">{page.category}</p>
-                  )}
                   <div className="efuda-grid">
                     {Array.from({ length: EFUDA_PER_PAGE }).map((_, slotIndex) => {
                       const p = page.items[slotIndex];
@@ -741,6 +735,9 @@ function App() {
                         <div className="efuda-card" key={slotIndex}>
                           {p && (
                             <>
+                              {selectedCategories.length > 1 && (
+                                <p className="no-print text-muted small efuda-card-category">{p.category}</p>
+                              )}
                               <div className="efuda-card-kana">{p.kana}</div>
                               <div className="efuda-card-text">{getEfudaText(p)}</div>
                             </>
