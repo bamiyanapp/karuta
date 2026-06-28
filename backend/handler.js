@@ -236,12 +236,12 @@ exports.getPhrase = async (event) => {
       // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, readCount, averageTime, averageDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
       };
-      
+
       const scanResult = await docClient.send(new ScanCommand(scanParams));
       let items = scanResult.Items || [];
 
@@ -342,6 +342,7 @@ exports.getPhrase = async (event) => {
       phrase_en: selectedItem.phrase_en,
       level: selectedItem.level,
       kana: selectedItem.kana,
+      answer: selectedItem.answer,
       audioData: audioData,
       readCount: selectedItem.readCount || 0,
       averageTime: selectedItem.averageTime || 0,
