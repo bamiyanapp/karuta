@@ -172,7 +172,8 @@ button:active:not(:disabled) {
   width: 91mm;
   height: 55mm;
   box-sizing: border-box;
-  border: 1mm solid #e44d26;
+  border: 5mm solid #e44d26;
+  border-radius: 4mm;
   display: flex;
   align-items: center;
   justify-content: center;
