@@ -106,6 +106,14 @@ function App() {
         } else if (sortConfig.key === 'readCount' || sortConfig.key === 'averageDifficulty' || sortConfig.key === 'averageTime') {
             aValue = aValue || 0;
             bValue = bValue || 0;
+        } else if (sortConfig.key === 'answer') {
+            const aMissing = !aValue || aValue === '-';
+            const bMissing = !bValue || bValue === '-';
+            if (aMissing && !bMissing) return 1;
+            if (!aMissing && bMissing) return -1;
+            if (aMissing && bMissing) return 0;
+            aValue = aValue.toLowerCase();
+            bValue = bValue.toLowerCase();
         } else if (typeof aValue === 'string') {
             aValue = aValue.toLowerCase();
             bValue = bValue.toLowerCase();
@@ -365,7 +373,7 @@ function App() {
 
         nextContentRef.current = {
           type: "result",
-          content: { time: elapsedTime, difficulty, isFast },
+          content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer },
         };
         setIsFadingOut(true);
         
@@ -739,6 +747,9 @@ function App() {
                     <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('phrase')}>
                       読み札{renderSortArrow('phrase')}
                     </th>
+                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('answer')}>
+                      答え{renderSortArrow('answer')}
+                    </th>
                     <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('level')}>
                       Lv{renderSortArrow('level')}
                     </th>
@@ -759,6 +770,7 @@ function App() {
                     <tr key={p.id} style={{ cursor: "pointer" }} onClick={() => openDetail(p.id, p.category)}>
                       <td className="ps-4 text-muted small">{p.category}</td>
                       <td className="fw-bold">{p.phrase}</td>
+                      <td>{p.answer && p.answer !== "-" ? p.answer : ""}</td>
                       <td>{p.level !== "-" ? p.level : ""}</td>
                       <td>{p.readCount || 0}</td>
                       <td>{(p.averageTime || 0).toFixed(2)}s</td>
@@ -932,6 +944,13 @@ function App() {
           
           <div className="text-muted mb-2">難易度レベル</div>
           <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
+
+          {result.answer && result.answer !== "-" && (
+            <>
+              <div className="text-muted mt-4 mb-2">答え</div>
+              <div className="h4 fw-bold text-dark">{result.answer}</div>
+            </>
+          )}
         </div>
       </div>
     );

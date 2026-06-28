@@ -327,6 +327,24 @@ describe('getPhrase', () => {
         expect(body.averageTime).toBe(12.3);
     });
 
+    it('should include the answer field in the response when present', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', answer: '回答A' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+        expect(body.answer).toBe('回答A');
+    });
+
     it('should handle speechRate with %', async () => {
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
