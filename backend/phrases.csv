@@ -443,7 +443,7 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1208,Git大ピンチ,-,R,コミット履歴が「fix」「fix2」「fix3」だらけ,"Your commit history is messy.",git rebase -i,engineer
 1209,Git大ピンチ,-,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,"You must switch tasks immediately.",git stash,engineer
 1210,Git大ピンチ,-,P,自分だけ動く。みんなには見えない,"Only your machine has the changes.",git push,engineer
-1211,Git大ピンチ,-,P,朝イチpullしなかったら地獄のコンフリクト,"You skipped pull before starting work.",git pull,engineer
+1211,Git大ピンチ,-,P,取り込みしないまま続けたら地獄のコンフリクト,"You skipped pull before starting work.",git pull,engineer
 1212,Git大ピンチ,-,F,最新は見たい。でもまだ混ぜたくない,"You only want the latest remote state.",git fetch,engineer
 1213,Git大ピンチ,-,R,昨日の作業全部なかったことにしたい,"You want to discard yesterday's work.",git reset --hard,engineer
 1214,Git大ピンチ,-,R,本番に出したコミットだけ安全に取り消したい,"Undo only one released commit.",git revert,engineer
@@ -626,17 +626,17 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1801,Webアプリ大ピンチ,10,き,更新したのに昨日の画面のままだった,The page still showed yesterday's version after deployment.,キャッシュ,engineer
 1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション,engineer
 1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション,engineer
-1804,Webアプリ大ピンチ,15,く,Cookieを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer
+1804,Webアプリ大ピンチ,15,く,これを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer
 1805,Webアプリ大ピンチ,20,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード,engineer
 1806,Webアプリ大ピンチ,25,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト,engineer
 1807,Webアプリ大ピンチ,25,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード,engineer
 1808,Webアプリ大ピンチ,20,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet,engineer
-1809,Webアプリ大ピンチ,25,J,JSPを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer
+1809,Webアプリ大ピンチ,25,J,コードを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer
 1810,Webアプリ大ピンチ,30,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式,engineer
 1811,Webアプリ大ピンチ,30,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL,engineer
 1812,Webアプリ大ピンチ,35,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC,engineer
 1813,Webアプリ大ピンチ,35,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC,engineer
-1814,Webアプリ大ピンチ,20,S,SQLを書き換えたら全部落ちた,Changing one SQL query broke everything.,SQL,engineer
+1814,Webアプリ大ピンチ,20,S,コードを書き換えたらデータが入っていない,Changing one SQL query broke everything.,SQL,engineer
 1815,Webアプリ大ピンチ,45,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス,engineer
 1816,Webアプリ大ピンチ,40,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール,engineer
 1817,Webアプリ大ピンチ,20,M,データベースが起動していなかった,The database server wasn't running.,MySQL,engineer
