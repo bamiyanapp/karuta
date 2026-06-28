@@ -417,15 +417,25 @@ exports.getCategories = async (event) => {
   try {
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "category",
+      ProjectionExpression: "category, #grp",
+      ExpressionAttributeNames: {
+        "#grp": "group",
+      },
     };
     const scanResult = await docClient.send(new ScanCommand(scanParams));
     const items = scanResult.Items || [];
-    
-    let categories = [...new Set(items.map(item => item.category || "大ピンチずかん"))];
-    categories = categories.filter(cat => !!cat);
+
+    const categoryMap = new Map();
+    items.forEach(item => {
+      const name = item.category || "大ピンチずかん";
+      if (!categoryMap.has(name)) {
+        categoryMap.set(name, item.group === "engineer" ? "engineer" : "kids");
+      }
+    });
+
+    let categories = [...categoryMap.entries()].map(([name, group]) => ({ name, group }));
     if (categories.length === 0) {
-      categories = ["大ピンチずかん"];
+      categories = [{ name: "大ピンチずかん", group: "kids" }];
     }
 
     return {
