@@ -102,6 +102,7 @@ graph TD
 | :--- | :--- | :--- | :--- |
 | category | String | Partition Key | カテゴリ名 |
 | id | String | Sort Key | フレーズの一意識別子 |
+| group | String | - | 対象区分（`kids`: こども向け / `engineer`: エンジニア向け） |
 | phrase | String | - | 読み上げテキスト（日本語） |
 | phrase_en | String | - | 読み上げテキスト（英語） |
 | kana | String | - | フレーズの読み（かな） |
@@ -157,6 +158,7 @@ Amazon Polly で生成した音声データのキャッシュ。
    - `kana`: 読み（かな）
    - `phrase_en`: 英語テキスト（任意）
    - `level`: 難易度（数値または `-`）
+   - `group`: 対象区分（`kids`: こども向け / `engineer`: エンジニア向け）
 2. 変更を `main` ブランチにコミット＆プッシュします。
 3. GitHub Actions の CD ワークフローが自動的に実行され、DynamoDB のデータが更新されます。
    - 既存のアイテムの統計情報（読み上げ回数や平均時間）は維持されます。

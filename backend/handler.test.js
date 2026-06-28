@@ -20,12 +20,12 @@ describe('getCategories', () => {
     process.env.TABLE_NAME = 'TestTable';
   });
 
-  it('should return categories', async () => {
+  it('should return categories with their group', async () => {
     ddbMock.on(ScanCommand).resolves({
       Items: [
-        { category: 'Category1' },
-        { category: 'Category2' },
-        { category: 'Category1' },
+        { category: 'Category1', group: 'kids' },
+        { category: 'Category2', group: 'engineer' },
+        { category: 'Category1', group: 'kids' },
       ],
     });
 
@@ -33,7 +33,28 @@ describe('getCategories', () => {
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body.categories).toEqual(['Category1', 'Category2']);
+    expect(body.categories).toEqual([
+      { name: 'Category1', group: 'kids' },
+      { name: 'Category2', group: 'engineer' },
+    ]);
+  });
+
+  it('should default group to kids when missing or unrecognized', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { category: 'Category1' },
+        { category: 'Category2', group: 'unknown' },
+      ],
+    });
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.categories).toEqual([
+      { name: 'Category1', group: 'kids' },
+      { name: 'Category2', group: 'kids' },
+    ]);
   });
 
   it('should return default category if no items', async () => {
@@ -45,7 +66,7 @@ describe('getCategories', () => {
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body.categories).toEqual(['大ピンチずかん']);
+    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids' }]);
   });
 
   it('should handle errors', async () => {

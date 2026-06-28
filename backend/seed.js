@@ -45,10 +45,13 @@ async function seed() {
       }
 
       const existingItem = existingItemsMap.get(`${category}-${id}`);
+      const groupRaw = record.group ? record.group.trim() : "";
+      const group = groupRaw === "engineer" ? "engineer" : "kids";
 
       newItemsMap.set(`${category}-${id}`, {
         id,
         category,
+        group,
         level,
         kana: record.kana ? record.kana.trim() : "-",
         phrase: record.phrase ? record.phrase.trim() : "",

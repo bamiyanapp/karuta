@@ -38,10 +38,10 @@ describe('App', () => {
     window.history.pushState({}, '', '/');
   });
 
-  it('renders category selection screen initially', async () => {
+  it('renders division selection screen initially', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ categories: ['いろはかるた', 'テスト用'] }),
+      json: async () => ({ categories: [] }),
     });
 
     await act(async () => {
@@ -49,9 +49,139 @@ describe('App', () => {
     });
 
     expect(screen.getByText('かるた読み上げアプリ')).toBeInTheDocument();
+    expect(screen.getByText('こども向け')).toBeInTheDocument();
+    expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
+  });
+
+  it('shows the matching category list after choosing a division', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        categories: [
+          { name: 'いろはかるた', group: 'kids' },
+          { name: 'テスト用', group: 'kids' },
+        ],
+      }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+
     await waitFor(() => {
       expect(screen.getByText('いろはかるた')).toBeInTheDocument();
       expect(screen.getByText('テスト用')).toBeInTheDocument();
+    });
+  });
+
+  it('only shows categories belonging to the selected division', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        categories: [
+          { name: 'KidsCat', group: 'kids' },
+          { name: 'EngCat', group: 'engineer' },
+        ],
+      }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /KidsCat/ })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('button', { name: /EngCat/ })).not.toBeInTheDocument();
+  });
+
+  it('shows an empty-state message instead of a dead decide button when a division has no categories', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        categories: [{ name: 'EngCat', group: 'engineer' }],
+      }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+
+    await waitFor(() => {
+      expect(screen.getByText('このかるたはまだありません。')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/決定/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the secondary navigation links reachable from the category selection screen', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+    await screen.findByRole('button', { name: /Cat1/ });
+
+    expect(screen.getByText(/全札一覧を見る/)).toBeInTheDocument();
+    expect(screen.getByText(/指摘された内容を確認する/)).toBeInTheDocument();
+    expect(screen.getByText(/更新履歴を見る/)).toBeInTheDocument();
+  });
+
+  it('only allows a single category to be selected for the kids division', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        categories: [
+          { name: 'Cat1', group: 'kids' },
+          { name: 'Cat2', group: 'kids' },
+        ],
+      }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+
+    const cat1Button = await screen.findByRole('button', { name: /Cat1/ });
+    const cat2Button = await screen.findByRole('button', { name: /Cat2/ });
+
+    fireEvent.click(cat1Button);
+    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(cat2Button);
+    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('returns to the division selection screen via the back button', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText('こども向け'));
+    await screen.findByRole('button', { name: /Cat1/ });
+
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    await waitFor(() => {
+      expect(screen.getByText('どなた向けに遊びますか？')).toBeInTheDocument();
     });
   });
 
@@ -91,7 +221,7 @@ describe('App', () => {
 
   it('starts game when category is selected', async () => {
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       return { ok: false };
     });
@@ -99,6 +229,8 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
+
+    fireEvent.click(await screen.findByText('こども向け'));
 
     await waitFor(() => {
       const elements = screen.queryAllByText('Cat1');
@@ -120,7 +252,7 @@ describe('App', () => {
 
   it('merges phrases from multiple categories when several are selected', async () => {
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
       if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2' }] }) };
       return { ok: false };
@@ -129,6 +261,8 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
@@ -157,7 +291,7 @@ describe('App', () => {
     }));
 
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
       return { ok: false };
     });
@@ -167,6 +301,8 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
+
+    fireEvent.click(await screen.findByText('こども向け'));
 
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
@@ -198,7 +334,7 @@ describe('App', () => {
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
       // Both categories reuse id "p1" to also verify same-id phrases from
       // different categories are kept distinct rather than deduped together.
       if (url.includes('category=Cat1')) {
@@ -213,6 +349,8 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
@@ -252,7 +390,7 @@ describe('App', () => {
     }));
 
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1', 'Cat2'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
       if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: cat1Phrases }) };
       if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: cat2Phrases }) };
       return { ok: false };
@@ -261,6 +399,8 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
@@ -290,7 +430,7 @@ describe('App', () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
-        return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       }
       if (url.includes('get-phrases-list')) {
         return {
@@ -321,6 +461,8 @@ describe('App', () => {
       render(<App />);
     });
 
+    fireEvent.click(await screen.findByText('こども向け'));
+
     const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
     fireEvent.click(categoryButton);
     fireEvent.click(screen.getByText(/決定/));
@@ -347,14 +489,16 @@ describe('App', () => {
 
   it('updates settings (lang, sort order, speech rate)', async () => {
     fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: ['Cat1'] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       return { ok: false };
     });
 
     await act(async () => {
       render(<App />);
     });
-    
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
     // Select Category
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);

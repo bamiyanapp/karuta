@@ -11,11 +11,15 @@ const serializeCategoriesParam = (categories) => categories.map(encodeURICompone
 
 function App() {
   const [categories, setCategories] = useState([]);
+  const [division, setDivision] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("division") || null;
+  });
   const [selectedCategories, setSelectedCategories] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return parseCategoriesParam(params.get("category"));
   });
-  
+
   const [detailPhraseId, setDetailPhraseId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("id");
@@ -75,6 +79,11 @@ function App() {
   const categoryLabel = useMemo(() => {
     return selectedCategories.join("・");
   }, [selectedCategories]);
+
+  const categoriesForDivision = useMemo(() => {
+    if (division !== "kids" && division !== "engineer") return [];
+    return categories.filter(cat => cat.group === division);
+  }, [categories, division]);
 
   const currentHistory = useMemo(() => {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
@@ -161,7 +170,8 @@ function App() {
           setCategories(availableCategories);
 
           if (selectedCategories.length > 0 && availableCategories.length > 0 && view === "game") {
-            const stillValid = selectedCategories.filter(cat => availableCategories.includes(cat));
+            const availableNames = availableCategories.map(cat => cat.name);
+            const stillValid = selectedCategories.filter(cat => availableNames.includes(cat));
             if (stillValid.length !== selectedCategories.length) {
               setSelectedCategories(stillValid);
             }
@@ -514,6 +524,12 @@ function App() {
       params.delete("category");
     }
 
+    if (division) {
+      params.set("division", division);
+    } else {
+      params.delete("division");
+    }
+
     if (detailPhraseId) {
       params.set("id", detailPhraseId);
     } else {
@@ -529,13 +545,14 @@ function App() {
     const newSearch = params.toString();
     const url = newSearch ? `?${newSearch}` : window.location.pathname;
     window.history.pushState({}, "", url);
-  }, [selectedCategories, detailPhraseId, view]);
+  }, [selectedCategories, division, detailPhraseId, view]);
 
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const category = params.get("category");
       setSelectedCategories(parseCategoriesParam(category));
+      setDivision(params.get("division") || null);
       setDetailPhraseId(params.get("id"));
       setView(params.get("view") || "game");
     };
@@ -598,7 +615,21 @@ function App() {
     setIsFadingOut(false);
   };
 
+  const selectDivision = (div) => {
+    setDivision(div);
+    setDraftCategories([]);
+  };
+
+  const goBackToDivisionSelect = () => {
+    setDivision(null);
+    setDraftCategories([]);
+  };
+
   const toggleDraftCategory = (cat) => {
+    if (division === "kids") {
+      setDraftCategories(prev => (prev.includes(cat) ? [] : [cat]));
+      return;
+    }
     setDraftCategories(prev =>
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
@@ -892,6 +923,47 @@ function App() {
     );
   }
 
+  if (selectedCategories.length === 0 && !division) {
+    return (
+      <div className="container py-5 mx-auto">
+        <header className="text-center mb-5">
+          <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
+          <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
+        </header>
+
+        <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
+          <h2 className="h4 text-center mb-4 text-dark">どなた向けに遊びますか？</h2>
+          <div className="d-flex flex-wrap gap-3 justify-content-center">
+            <button
+              onClick={() => selectDivision("kids")}
+              className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
+            >
+              こども向け
+            </button>
+            <button
+              onClick={() => selectDivision("engineer")}
+              className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
+            >
+              エンジニア向け
+            </button>
+          </div>
+        </main>
+
+        <div className="text-center d-flex flex-column gap-2">
+          <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
+            全札一覧を見る →
+          </button>
+          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
+            指摘された内容を確認する
+          </button>
+          <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
+            更新履歴を見る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (selectedCategories.length === 0) {
     return (
       <div className="container py-5 mx-auto">
@@ -901,24 +973,31 @@ function App() {
       </header>
 
       <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 text-center mb-4 text-dark">かるたの種類を選んでね（複数選択可）</h2>
+        <div className="d-flex justify-content-start mb-3">
+          <button onClick={goBackToDivisionSelect} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+        </div>
+        <h2 className="h4 text-center mb-4 text-dark">
+          かるたの種類を選んでね{division === "engineer" ? "（複数選択可）" : ""}
+        </h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
             {categories.length === 0 ? (
               <div className="text-success fw-bold p-3">読み込み中...</div>
+            ) : categoriesForDivision.length === 0 ? (
+              <div className="text-muted p-3">このかるたはまだありません。</div>
             ) : (
-              categories.map(cat => (
+              categoriesForDivision.map(cat => (
                 <button
-                  key={cat}
-                  onClick={() => toggleDraftCategory(cat)}
-                  className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${draftCategories.includes(cat) ? 'selected' : ''}`}
-                  aria-pressed={draftCategories.includes(cat)}
+                  key={cat.name}
+                  onClick={() => toggleDraftCategory(cat.name)}
+                  className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${draftCategories.includes(cat.name) ? 'selected' : ''}`}
+                  aria-pressed={draftCategories.includes(cat.name)}
                 >
-                  {draftCategories.includes(cat) ? '✓ ' : ''}{cat}
+                  {draftCategories.includes(cat.name) ? '✓ ' : ''}{cat.name}
                 </button>
               ))
             )}
           </div>
-          {categories.length > 0 && (
+          {categoriesForDivision.length > 0 && (
             <div className="text-center mt-4">
               <button
                 onClick={handleDecideClick}
