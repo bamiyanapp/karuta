@@ -134,7 +134,7 @@ button:active:not(:disabled) {
   transform: translateY(2px);
 }
 
-/* 絵札印刷（エーワン マルチカード マイクロミシン・厚口 A4・10面 51261系 準拠） */
+/* 絵札印刷（エーワン マルチカード ZT51677_A 実測準拠：上下7mm・左右12mm余白、列間4mm・行間2mm） */
 .efuda-print-area {
   display: flex;
   flex-direction: column;
@@ -152,20 +152,22 @@ button:active:not(:disabled) {
 
 .efuda-grid {
   position: absolute;
-  top: 11mm;
-  left: 14mm;
-  width: 182mm;
-  height: 275mm;
+  top: 7mm;
+  left: 12mm;
+  width: 186mm;
+  height: 283mm;
   display: grid;
   grid-template-columns: 91mm 91mm;
   grid-template-rows: repeat(5, 55mm);
+  column-gap: 4mm;
+  row-gap: 2mm;
 }
 
 .efuda-card {
   width: 91mm;
   height: 55mm;
   box-sizing: border-box;
-  border: 0.2mm dashed #ccc;
+  border: 1mm solid #e44d26;
   display: flex;
   align-items: center;
   justify-content: center;
