@@ -573,3 +573,115 @@ id,category,level,kana,phrase,phrase_en,answer
 1620,コードレビューかるた,-,に,入力値の検証が行われていない,Input values are not validated.,バリデーション漏れ
 1621,コードレビューかるた,-,へ,並行処理の実行順序によって結果が変わる不具合,A bug where the result depends on the timing of concurrent execution.,レースコンディション
 1622,コードレビューかるた,-,し,将来使うかもしれない機能を先に作り込んでいる,Building functionality preemptively for hypothetical future use.,過剰な抽象化
+1701,セキュリティ大ピンチ,10,は,アカウント全部　同じパスワードだった,I used the same password for every account.,パスワードリスト攻撃
+1702,セキュリティ大ピンチ,15,ふ,いそいで振り込め　メールを信じた,I trusted an urgent payment email.,フィッシング
+1703,セキュリティ大ピンチ,12,ま,USBを拾って　そのまま挿した,I plugged in a USB drive I found.,マルウェア
+1704,セキュリティ大ピンチ,40,し,APIキーを　GitHubで公開した,I exposed an API key on GitHub.,シークレット管理
+1705,セキュリティ大ピンチ,15,ふ,おなじログイン画面だと　思い込んだ,I assumed the login page was genuine.,フィッシングサイト
+1706,セキュリティ大ピンチ,20,て,開発用パスワードを　本番でも使った,I used a development password in production.,デフォルトパスワード
+1707,セキュリティ大ピンチ,25,し,きょうもパッチを　後回しにした,I postponed installing security patches again.,脆弱性
+1708,セキュリティ大ピンチ,25,ら,暗号化されても　バックアップがない,Everything was encrypted and I had no backup.,ランサムウェア
+1709,セキュリティ大ピンチ,40,え,検索欄から　データベースが壊れた,The database broke through the search box.,SQLインジェクション
+1710,セキュリティ大ピンチ,40,く,コメントを書いたら　勝手に画面が動いた,A comment caused unexpected script execution.,XSS
+1711,セキュリティ大ピンチ,45,し,サイトを見ただけで　退会していた,I was logged out or unsubscribed just by visiting a page.,CSRF
+1712,セキュリティ大ピンチ,35,に,知らない人まで　管理画面に入れた,Unauthorized users reached the admin screen.,認可不備
+1713,セキュリティ大ピンチ,20,あ,すでに退職した人が　まだログインしていた,A former employee could still log in.,アカウント管理
+1714,セキュリティ大ピンチ,30,さ,全員を管理者に　してしまった,I gave everyone administrator privileges.,最小権限の原則
+1715,セキュリティ大ピンチ,15,て,そのままHTTPで　ログインした,I logged in over HTTP.,TLS
+1716,セキュリティ大ピンチ,20,か,だれが操作したか　分からない,Nobody knew who performed the operation.,監査ログ
+1717,セキュリティ大ピンチ,35,せ,社内だから安全と　思い込んでいた,I assumed the internal network was safe.,ゼロトラスト
+1718,セキュリティ大ピンチ,40,あ,つうしんの異常に　誰も気付かなかった,Nobody noticed the suspicious traffic.,IDS
+1719,セキュリティ大ピンチ,45,あ,敵は見つけたのに　止められなかった,We detected the attack but couldn't stop it.,IPS
+1720,セキュリティ大ピンチ,40,え,取りつかれても　誰も気付かなかった,The endpoint was compromised without anyone noticing.,EDR
+1721,セキュリティ大ピンチ,20,せ,長いこと更新を　していなかった,The server hadn't been updated for a long time.,セキュリティパッチ
+1722,セキュリティ大ピンチ,15,た,認証が　パスワードだけだった,Only a password protected the account.,多要素認証
+1723,セキュリティ大ピンチ,35,せ,ぬすまれたCookieで　ログインされた,Someone logged in using my stolen cookie.,セッションハイジャック
+1724,セキュリティ大ピンチ,20,あ,ねだんより　個人情報を守れ,Personal data was stored without protection.,暗号化
+1725,セキュリティ大ピンチ,15,て,残っていた初期設定で　入られた,Someone logged in with default credentials.,デフォルト認証情報
+1726,セキュリティ大ピンチ,20,と,アクセスが急に　100万件来た,A million requests suddenly flooded the server.,DoS攻撃
+1727,セキュリティ大ピンチ,35,こ,秘密鍵を　メールで送ってしまった,I emailed a private key.,公開鍵暗号方式
+1728,セキュリティ大ピンチ,35,せ,古い設定をコピーしたら　穴だらけだった,I copied an insecure server configuration.,セキュア設定
+1729,セキュリティ大ピンチ,30,し,へいきだろうで　本番公開した,I released it to production assuming it was safe.,脆弱性診断
+1730,セキュリティ大ピンチ,15,さ,ほんとうに開いてよかった？　その添付ファイル,Should I really have opened that attachment?,サンドボックス
+1731,セキュリティ大ピンチ,70,え,まさか社内サーバが　外から操作された,The internal server was manipulated from outside.,SSRF
+1732,セキュリティ大ピンチ,80,え,見せるはずのない　サーバのファイルが見えた,Internal server files became visible.,XXE
+1733,セキュリティ大ピンチ,70,お,無害な入力のはずが　コマンドが動いた,A harmless input executed a command.,OSコマンドインジェクション
+1734,セキュリティ大ピンチ,85,し,メンバーなのに　管理者になっていた,A normal user became an administrator.,JWT
+1735,セキュリティ大ピンチ,65,お,もれたトークンで　勝手に操作された,A leaked token was used for unauthorized access.,OAuth
+1736,セキュリティ大ピンチ,55,に,やっぱり開発環境だからと　認証を外した,I disabled authentication because it was only a development environment.,認証
+1737,セキュリティ大ピンチ,60,に,ユーザー画面だけで　権限チェックしていた,Authorization was checked only on the client side.,認可
+1801,Webアプリ大ピンチ,10,き,更新したのに昨日の画面のままだった,The page still showed yesterday's version after deployment.,キャッシュ
+1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション
+1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション
+1804,Webアプリ大ピンチ,15,く,Cookieを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie
+1805,Webアプリ大ピンチ,20,え,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード
+1806,Webアプリ大ピンチ,25,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト
+1807,Webアプリ大ピンチ,25,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード
+1808,Webアプリ大ピンチ,20,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet
+1809,Webアプリ大ピンチ,25,し,JSPを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP
+1810,Webアプリ大ピンチ,30,え,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式
+1811,Webアプリ大ピンチ,30,じ,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL
+1812,Webアプリ大ピンチ,35,ま,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC
+1813,Webアプリ大ピンチ,35,じ,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC
+1814,Webアプリ大ピンチ,20,え,SQLを書き換えたら全部落ちた,Changing one SQL query broke everything.,SQL
+1815,Webアプリ大ピンチ,45,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス
+1816,Webアプリ大ピンチ,40,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール
+1817,Webアプリ大ピンチ,20,ま,データベースが起動していなかった,The database server wasn't running.,MySQL
+1818,Webアプリ大ピンチ,30,ぺ,再起動したら直った,Restarting the server fixed it.,Payara
+1819,Webアプリ大ピンチ,25,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR
+1820,Webアプリ大ピンチ,35,く,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle
+1821,Webアプリ大ピンチ,35,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係
+1822,Webアプリ大ピンチ,20,ひ,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド
+1823,Webアプリ大ピンチ,20,し,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript
+1824,Webアプリ大ピンチ,25,と,要素が見つからないと言われた,The browser says the element can't be found.,DOM
+1825,Webアプリ大ピンチ,15,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS
+1826,Webアプリ大ピンチ,30,じ,APIの返却結果が読めない,I can't parse the API response.,JSON
+1827,Webアプリ大ピンチ,30,あ,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX
+1828,Webアプリ大ピンチ,35,ば,入力したのに保存できない,The form won't save my input.,バリデーション
+1829,Webアプリ大ピンチ,35,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理
+1830,Webアプリ大ピンチ,20,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ
+1831,Webアプリ大ピンチ,35,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース
+1832,Webアプリ大ピンチ,20,で,デバッグしたら動いてしまう,The bug disappears during debugging.,デバッグ
+1833,Webアプリ大ピンチ,30,も,文字が全部「???」になった,All the text turned into question marks.,文字コード
+1834,Webアプリ大ピンチ,25,ゆ,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8
+1835,Webアプリ大ピンチ,20,ぎ,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git
+1836,Webアプリ大ピンチ,40,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト
+1837,Webアプリ大ピンチ,40,あ,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS
+1838,Webアプリ大ピンチ,45,え,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題
+1839,Webアプリ大ピンチ,40,お,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック
+1840,Webアプリ大ピンチ,35,た,ログイン状態なのに403になった,I'm logged in but received a 403.,認可
+1901,Windowsショートカット,10,C,コピーしたつもりが　できていなかった,I thought I copied it but it wasn't copied.,Ctrl+C
+1902,Windowsショートカット,10,V,貼り付けたいのに　右クリックできない,I want to paste but can't use the mouse.,Ctrl+V
+1903,Windowsショートカット,10,X,別の場所へ　移動したい,I want to move it somewhere else.,Ctrl+X
+1904,Windowsショートカット,10,Z,間違えて消してしまった,I accidentally deleted it.,Ctrl+Z
+1905,Windowsショートカット,15,Y,戻しすぎて　やっぱり元に戻したい,I undid too much.,Ctrl+Y
+1906,Windowsショートカット,10,A,全部まとめて選びたい,I want to select everything.,Ctrl+A
+1907,Windowsショートカット,15,F,探したい文字が　見つからない,I can't find the text I'm looking for.,Ctrl+F
+1908,Windowsショートカット,10,S,保存する前に　落ちそうだ,The application might crash before I save.,Ctrl+S
+1909,Windowsショートカット,15,P,印刷したい,I want to print this.,Ctrl+P
+1910,Windowsショートカット,20,T,新しいタブを　開きたい,I want to open a new tab.,Ctrl+T
+1911,Windowsショートカット,25,T,閉じたタブを　戻したい,I want to reopen the tab I just closed.,Ctrl+Shift+T
+1912,Windowsショートカット,15,R,更新したい,I want to refresh the page.,Ctrl+R
+1913,Windowsショートカット,20,T,隣のタブへ　移動したい,I want to move to the next tab.,Ctrl+Tab
+1914,Windowsショートカット,20,T,開きすぎて　目的の画面が見つからない,I have too many windows open.,Alt+Tab
+1915,Windowsショートカット,15,D,デスクトップを　一瞬だけ見たい,I need to see the desktop quickly.,Windows+D
+1916,Windowsショートカット,20,E,エクスプローラーを　開きたい,I need File Explorer.,Windows+E
+1917,Windowsショートカット,20,L,席を離れるので　すぐロックしたい,I'm leaving my desk and want to lock my PC.,Windows+L
+1918,Windowsショートカット,20,I,設定画面を　開きたい,I need to open Settings.,Windows+I
+1919,Windowsショートカット,20,S,アプリやファイルを　すぐ探したい,I need to search for an app or file.,Windows+S
+1920,Windowsショートカット,15,F,ファイル名を　変更したい,I want to rename a file.,F2
+1921,Windowsショートカット,10,F,画面を　更新したい,I want to refresh the screen.,F5
+1922,Windowsショートカット,10,F,ヘルプを　開きたい,I need help.,F1
+1923,Windowsショートカット,25,F,終了ボタンが　押せない,I need to close the current application.,Alt+F4
+1924,Windowsショートカット,30,E,固まったアプリを　調べたい,I need Task Manager.,Ctrl+Shift+Esc
+1925,Windowsショートカット,20,D,ログイン画面に　戻りたい,I need the Windows security screen.,Ctrl+Alt+Delete
+1926,Windowsショートカット,25,+,文字が小さすぎて　見えない,The text is too small to read.,Windows++
+1927,Windowsショートカット,25,-,画面が大きすぎて　見づらい,Everything is zoomed in too much.,Windows+-
+1928,Windowsショートカット,30,P,画面を　そのまま保存したい,I want to save a screenshot.,Windows+PrintScreen
+1929,Windowsショートカット,20,S,画面の一部だけ　切り取りたい,I only need part of the screen.,Windows+Shift+S
+1930,Windowsショートカット,25,.,絵文字を　入力したい,I want to insert an emoji.,Windows+.
+1931,Windowsショートカット,30,V,さっきコピーしたものを　もう一度使いたい,I need something I copied earlier.,Windows+V
+1932,Windowsショートカット,35,S,日本語入力に　切り替わらない,I can't switch the input language.,Alt+Shift
+1933,Windowsショートカット,35,`,かな入力に　なってしまった,I accidentally switched input modes.,Alt+`
+1934,Windowsショートカット,30,D,同じ操作を　何度も繰り返している,I'm repeating the same action over and over.,Ctrl+D
+1935,Windowsショートカット,35,F,右クリックメニューを　開きたい,I need the context menu without a mouse.,Shift+F10
