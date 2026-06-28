@@ -370,207 +370,207 @@ id,category,level,kana,phrase,phrase_en,answer
 443,しょうがっこうかるた,-,わ,わすれもの しないようにね かくにんだ,Check so you don’t forget things.,-
 444,しょうがっこうかるた,-,を,しゅくだいを きちんとやろう わすれずに,Do your homework properly without forgetting.,-
 445,しょうがっこうかるた,-,ん,さんかんび パパやママは みてるかな,"On open school day, I wonder if mom and dad are watching.",-
-1001,HTTPステータスコードかるた,-,よ,要求は成功しました,The request succeeded.,200 OK
-1002,HTTPステータスコードかるた,-,あ,新しいリソースが作成されました,A new resource has been created.,201 Created
-1003,HTTPステータスコードかるた,-,し,処理は成功したが返す内容がない,The request succeeded but there is no content to return.,204 No Content
-1004,HTTPステータスコードかるた,-,り,リソースが恒久的に移動した,The resource has permanently moved.,301 Moved Permanently
-1005,HTTPステータスコードかるた,-,り,リソースが一時的に移動した,The resource has temporarily moved.,302 Found
-1006,HTTPステータスコードかるた,-,き,キャッシュされた内容が更新されていない,The cached content has not changed.,304 Not Modified
-1007,HTTPステータスコードかるた,-,り,リクエストの形式が正しくない,The request is malformed.,400 Bad Request
-1008,HTTPステータスコードかるた,-,に,認証が必要です,Authentication is required.,401 Unauthorized
-1009,HTTPステータスコードかるた,-,に,認証は済んでいるが権限がありません,"Authenticated, but not authorized to access this resource.",403 Forbidden
-1010,HTTPステータスコードかるた,-,り,リソースが見つかりません,The requested resource was not found.,404 Not Found
-1011,HTTPステータスコードかるた,-,き,許可されていないHTTPメソッドが使われた,The HTTP method used is not allowed.,405 Method Not Allowed
-1012,HTTPステータスコードかるた,-,り,リクエストが時間内に完了しなかった,The request timed out.,408 Request Timeout
-1013,HTTPステータスコードかるた,-,り,リソースの状態が競合している,The request conflicts with the current state of the resource.,409 Conflict
-1014,HTTPステータスコードかるた,-,り,リソースは存在したが今は削除された,The resource existed but has since been deleted.,410 Gone
-1015,HTTPステータスコードかるた,-,そ,送信データが大きすぎる,The request payload is too large.,413 Payload Too Large
-1016,HTTPステータスコードかるた,-,た,対応していない形式のデータが送られた,The media type of the request is not supported.,415 Unsupported Media Type
-1017,HTTPステータスコードかるた,-,こ,構文は正しいが内容を処理できない,The request is well-formed but cannot be processed.,422 Unprocessable Entity
-1018,HTTPステータスコードかるた,-,た,短時間にリクエストを送りすぎた,Too many requests were sent in a short time.,429 Too Many Requests
-1019,HTTPステータスコードかるた,-,さ,サーバー内部で予期しないエラーが発生した,An unexpected error occurred on the server.,500 Internal Server Error
-1020,HTTPステータスコードかるた,-,さ,サーバーがその機能に対応していない,The server does not support the requested functionality.,501 Not Implemented
-1021,HTTPステータスコードかるた,-,じ,上流サーバーから不正な応答を受け取った,Received an invalid response from an upstream server.,502 Bad Gateway
-1022,HTTPステータスコードかるた,-,さ,サーバーが一時的に利用できない,The server is temporarily unavailable.,503 Service Unavailable
-1023,HTTPステータスコードかるた,-,じ,上流サーバーからの応答が時間内に来なかった,Did not receive a timely response from an upstream server.,504 Gateway Timeout
-1101,Linuxコマンドかるた,-,で,ディレクトリ一覧を表示する,Display a list of directory contents.,ls
-1102,Linuxコマンドかるた,-,げ,現在のディレクトリを表示する,Display the current directory.,pwd
-1103,Linuxコマンドかるた,-,で,ディレクトリを移動する,Change the current directory.,cd
-1104,Linuxコマンドかるた,-,あ,新しいディレクトリを作成する,Create a new directory.,mkdir
-1105,Linuxコマンドかるた,-,か,空のディレクトリを削除する,Remove an empty directory.,rmdir
-1106,Linuxコマンドかるた,-,ふ,ファイルを削除する,Delete a file.,rm
-1107,Linuxコマンドかるた,-,ふ,ファイルをコピーする,Copy a file.,cp
-1108,Linuxコマンドかるた,-,ふ,ファイルを移動する、または名前を変更する,Move or rename a file.,mv
-1109,Linuxコマンドかるた,-,か,空のファイルを作成する、タイムスタンプを更新する,Create an empty file or update its timestamp.,touch
-1110,Linuxコマンドかるた,-,ふ,ファイルの内容を表示する,Display the contents of a file.,cat
-1111,Linuxコマンドかるた,-,ふ,ファイルを検索する,Search for files.,find
-1112,Linuxコマンドかるた,-,ふ,ファイルの中から文字列を検索する,Search for a string within files.,grep
-1113,Linuxコマンドかるた,-,ふ,ファイルの権限を変更する,Change file permissions.,chmod
-1114,Linuxコマンドかるた,-,ふ,ファイルの所有者を変更する,Change file ownership.,chown
-1115,Linuxコマンドかるた,-,じ,実行中のプロセスを表示する,Display running processes.,ps
-1116,Linuxコマンドかるた,-,ぷ,プロセスを終了させる,Terminate a process.,kill
-1117,Linuxコマンドかるた,-,し,システムのリソース使用状況をリアルタイムで表示する,Display real-time system resource usage.,top
-1118,Linuxコマンドかるた,-,で,ディスクの空き容量を表示する,Display free disk space.,df
-1119,Linuxコマンドかるた,-,ふ,ファイルやディレクトリのサイズを表示する,Display the size of files or directories.,du
-1120,Linuxコマンドかるた,-,ふ,複数のファイルをひとつにまとめて圧縮・展開する,Archive or extract multiple files.,tar
-1121,Linuxコマンドかるた,-,べ,別のサーバーにリモートでログインする,Log in to a remote server.,ssh
-1122,Linuxコマンドかるた,-,さ,サーバー間でファイルを安全にコピーする,Securely copy files between servers.,scp
-1123,Linuxコマンドかるた,-,ゆ,URLを指定してデータを送受信する,Transfer data to or from a URL.,curl
-1124,Linuxコマンドかるた,-,ゆ,URLからファイルをダウンロードする,Download a file from a URL.,wget
-1125,Linuxコマンドかるた,-,こ,コマンドの使い方を調べる,Look up how to use a command.,man
-1126,Linuxコマンドかるた,-,こ,これまでに実行したコマンドの履歴を表示する,Display the history of executed commands.,history
-1127,Linuxコマンドかるた,-,も,文字列を画面に出力する,Print a string to the screen.,echo
-1128,Linuxコマンドかるた,-,ふ,ファイルの内容をスクロールしながら表示する,View a file's contents one screen at a time.,less
-1129,Linuxコマンドかるた,-,ふ,ファイルの先頭部分を表示する,Display the beginning of a file.,head
-1130,Linuxコマンドかるた,-,ふ,ファイルの末尾部分を表示する,Display the end of a file.,tail
-1131,Linuxコマンドかるた,-,ぎ,行を並び替える,Sort lines of text.,sort
-1132,Linuxコマンドかるた,-,じ,重複する行を取り除く,Remove duplicate adjacent lines.,uniq
-1133,Linuxコマンドかるた,-,ぎ,行数や単語数、文字数を数える,"Count lines, words, and characters.",wc
-1134,Linuxコマンドかるた,-,ふ,ファイルのリンクを作成する,Create a link to a file.,ln
-1135,Linuxコマンドかるた,-,こ,コマンドに別名をつける,Define a shortcut name for a command.,alias
-1136,Linuxコマンドかるた,-,か,環境変数を設定する,Set an environment variable.,export
-1137,Linuxコマンドかるた,-,か,管理者権限でコマンドを実行する,Run a command with administrator privileges.,sudo
-1138,Linuxコマンドかるた,-,こ,コマンドの実行ファイルの場所を調べる,Find the location of a command's executable.,which
-1139,Linuxコマンドかるた,-,げ,現在ログインしているユーザー名を表示する,Display the current logged-in user name.,whoami
-1140,Linuxコマンドかるた,-,こ,コンピュータのホスト名を表示する,Display the computer's host name.,hostname
-1201,Gitかるた,-,あ,新しいリポジトリを作成する,Create a new repository.,git init
-1202,Gitかるた,-,き,既存のリポジトリを複製する,Clone an existing repository.,git clone
-1203,Gitかるた,-,へ,変更をステージングする,Stage changes.,git add
-1204,Gitかるた,-,へ,変更をコミットする,Commit changes.,git commit
-1205,Gitかるた,-,ろ,ローカルの変更をリモートに送る,Push local changes to a remote.,git push
-1206,Gitかるた,-,り,リモートの変更を取得して取り込む,Fetch and merge changes from a remote.,git pull
-1207,Gitかるた,-,り,リモートの変更情報だけを取得する,Fetch changes from a remote without merging.,git fetch
-1208,Gitかるた,-,さ,作業ディレクトリの状態を確認する,Check the status of the working directory.,git status
-1209,Gitかるた,-,へ,変更の差分を確認する,Show changes between commits or the working directory.,git diff
-1210,Gitかるた,-,こ,コミットの履歴を表示する,Show commit history.,git log
-1211,Gitかるた,-,ぶ,ブランチを作成・一覧表示する,Create or list branches.,git branch
-1212,Gitかるた,-,ぶ,ブランチやファイルの状態を切り替える,Switch branches or restore files.,git checkout
-1213,Gitかるた,-,ぶ,ブランチを切り替える,Switch branches.,git switch
-1214,Gitかるた,-,べ,別のブランチの変更を取り込む,Merge changes from another branch.,git merge
-1215,Gitかるた,-,こ,コミットの履歴を別のベースに付け替える,Reapply commits on top of another base.,git rebase
-1216,Gitかるた,-,さ,作業内容を一時退避する,Temporarily shelve changes.,git stash
-1217,Gitかるた,-,こ,コミットやステージングの状態を戻す,Undo commits or staged changes.,git reset
-1218,Gitかるた,-,か,過去のコミットを打ち消す新しいコミットを作る,Create a new commit that undoes a past commit.,git revert
-1219,Gitかるた,-,こ,コミットに目印となるタグを付ける,Mark a commit with a tag.,git tag
-1220,Gitかるた,-,り,リモートリポジトリの情報を管理する,Manage remote repository information.,git remote
-1221,Gitかるた,-,ぎ,Gitの設定を変更する,Change Git configuration.,git config
-1222,Gitかるた,-,と,特定のコミットだけを取り込む,Apply a specific commit onto the current branch.,git cherry-pick
-1223,Gitかるた,-,か,各行を最後に変更した人を調べる,Find out who last modified each line.,git blame
-1224,Gitかるた,-,こ,コミットの詳細な内容を表示する,Show the details of a commit.,git show
-1225,Gitかるた,-,ふ,ファイルを削除してその変更を記録する,Delete a file and stage the removal.,git rm
-1301,SQLかるた,-,し,取得する列を指定する,Specify which columns to retrieve.,SELECT
-1302,SQLかるた,-,で,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM
-1303,SQLかるた,-,じ,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE
-1304,SQLかるた,-,し,指定した列の値でグループ化する,Group rows by the values of specified columns.,GROUP BY
-1305,SQLかるた,-,ぐ,グループ化した後の結果に条件をつける,Filter results after grouping.,HAVING
-1306,SQLかるた,-,け,結果を並び替える,Sort the results.,ORDER BY
-1307,SQLかるた,-,し,取得する件数を制限する,Limit the number of rows returned.,LIMIT
-1308,SQLかるた,-,い,一致する行だけを複数テーブルから結合する,"Join tables, returning only matching rows.",INNER JOIN
-1309,SQLかるた,-,ひ,左側のテーブルを基準に結合する,"Join tables, keeping all rows from the left table.",LEFT JOIN
-1310,SQLかるた,-,み,右側のテーブルを基準に結合する,"Join tables, keeping all rows from the right table.",RIGHT JOIN
-1311,SQLかるた,-,り,両方のテーブルの行をすべて結合する,"Join tables, keeping all rows from both tables.",FULL OUTER JOIN
-1312,SQLかるた,-,ふ,複数の検索結果を縦に結合する,Combine the results of multiple queries.,UNION
-1313,SQLかるた,-,じ,重複を除外する,Exclude duplicate rows.,DISTINCT
-1314,SQLかるた,-,あ,新しい行を追加する,Insert a new row.,INSERT INTO
-1315,SQLかるた,-,き,既存の行を更新する,Update existing rows.,UPDATE
-1316,SQLかるた,-,ぎ,行を削除する,Delete rows.,DELETE
-1317,SQLかるた,-,あ,新しいテーブルを作成する,Create a new table.,CREATE TABLE
-1318,SQLかるた,-,て,テーブルの構造を変更する,Modify a table's structure.,ALTER TABLE
-1319,SQLかるた,-,て,テーブルを削除する,Delete a table.,DROP TABLE
-1320,SQLかるた,-,ぎ,行を一意に識別する列を指定する,Designate a column that uniquely identifies each row.,PRIMARY KEY
-1321,SQLかるた,-,ほ,他のテーブルの行を参照する制約,A constraint that references a row in another table.,FOREIGN KEY
-1322,SQLかるた,-,あ,値が存在しないことを表す,Represents the absence of a value.,NULL
-1323,SQLかるた,-,し,指定した範囲内のデータを取得する,Retrieve data within a specified range.,BETWEEN
-1324,SQLかるた,-,も,文字列のパターンに一致するか調べる,Check whether a string matches a pattern.,LIKE
-1325,SQLかるた,-,ふ,複数の値のいずれかに一致するか調べる,Check whether a value matches any in a list.,IN
-1326,SQLかるた,-,ぎ,行数を数える,Count the number of rows.,COUNT
-1327,SQLかるた,-,あ,値の合計を求める,Calculate the sum of values.,SUM
-1328,SQLかるた,-,あ,値の平均を求める,Calculate the average of values.,AVG
-1329,SQLかるた,-,れ,列やテーブルに別名をつける,Give a column or table an alias.,AS
-1330,SQLかるた,-,じ,条件によって異なる値を返す,Return different values depending on a condition.,CASE WHEN
-1331,SQLかるた,-,へ,変更をデータベースに確定する,Commit changes to the database.,COMMIT
-1332,SQLかるた,-,へ,変更を取り消して元に戻す,Undo changes and revert to the previous state.,ROLLBACK
-1401,AWSかるた,-,さ,サーバレスでコードを実行する,Run code without managing servers.,Lambda
-1402,AWSかるた,-,お,オブジェクトストレージ,Object storage.,S3
-1403,AWSかるた,-,の,NoSQLデータベース,A NoSQL database.,DynamoDB
-1404,AWSかるた,-,か,仮想サーバーを提供する,Provides virtual servers.,EC2
-1405,AWSかるた,-,ま,マネージドなリレーショナルデータベース,A managed relational database.,RDS
-1406,AWSかるた,-,か,仮想的なネットワーク環境を作る,Create an isolated virtual network.,VPC
-1407,AWSかるた,-,ゆ,ユーザーや権限を管理する,Manage users and permissions.,IAM
-1408,AWSかるた,-,こ,コンテンツ配信網(CDN)サービス,A content delivery network (CDN) service.,CloudFront
-1409,AWSかるた,-,で,DNSサービス,A DNS service.,Route 53
-1410,AWSかるた,-,え,APIの作成・公開・管理を行う,"Create, publish, and manage APIs.",API Gateway
-1411,AWSかるた,-,め,メッセージを溜めておくキューサービス,A queue service for storing messages.,SQS
-1412,AWSかるた,-,め,メッセージを配信する通知サービス,A notification service for delivering messages.,SNS
-1413,AWSかるた,-,り,リソースの監視やログ収集を行う,Monitor resources and collect logs.,CloudWatch
-1414,AWSかるた,-,い,インフラをコードで構築・管理する,Provision and manage infrastructure as code.,CloudFormation
-1415,AWSかるた,-,こ,コンテナを管理・実行するサービス,A service for managing and running containers.,ECS
-1416,AWSかるた,-,ま,マネージドなKubernetesサービス,A managed Kubernetes service.,EKS
-1417,AWSかるた,-,さ,サーバー管理が不要なコンテナ実行環境,A serverless container runtime that needs no server management.,Fargate
-1418,AWSかるた,-,あ,アプリケーションのデプロイを簡単にする,Simplifies application deployment.,Elastic Beanstalk
-1419,AWSかるた,-,ふ,負荷に応じてサーバー台数を自動調整する,Automatically adjusts server count based on load.,Auto Scaling
-1420,AWSかるた,-,つ,通信を複数サーバーに振り分ける,Distributes traffic across multiple servers.,Elastic Load Balancing
-1421,AWSかるた,-,で,データを抽出・変換・ロードするETLサービス,"An ETL service for extracting, transforming, and loading data.",Glue
-1422,AWSかるた,-,え,S3のデータをSQLで分析する,Analyze data in S3 using SQL.,Athena
-1423,AWSかるた,-,た,大量のストリーミングデータを処理する,Process large volumes of streaming data.,Kinesis
-1424,AWSかるた,-,ふ,複数のサービスをワークフローでつなぐ,Coordinate multiple services into a workflow.,Step Functions
-1425,AWSかるた,-,ゆ,ユーザーの認証や認可を管理する,Manage user authentication and authorization.,Cognito
-1426,AWSかるた,-,ぱ,パスワードなどの機密情報を管理する,Manage secrets such as passwords.,Secrets Manager
-1427,AWSかるた,-,び,ビルドからデプロイまでを自動化する,Automate the process from build to deployment.,CodePipeline
-1428,AWSかるた,-,い,EC2にアタッチするブロックストレージ,Block storage attached to EC2 instances.,EBS
-1429,AWSかるた,-,た,高い性能を持つマネージドリレーショナルDB,A high-performance managed relational database.,Aurora
-1430,AWSかるた,-,だ,大規模なデータウェアハウス,A large-scale data warehouse.,Redshift
-1501,Javaかるた,-,ぬ,Null参照時に発生する例外,An exception thrown when dereferencing a null reference.,NullPointerException
-1502,Javaかるた,-,に,入出力で発生する例外,An exception thrown for input/output failures.,IOException
-1503,Javaかるた,-,き,キーと値を保持するコレクション,A collection that holds key-value pairs.,HashMap
-1504,Javaかるた,-,は,配列の範囲外にアクセスした時の例外,An exception thrown when accessing an array out of bounds.,ArrayIndexOutOfBoundsException
-1505,Javaかるた,-,し,指定したクラスが見つからない時の例外,An exception thrown when a specified class cannot be found.,ClassNotFoundException
-1506,Javaかるた,-,も,文字列を数値に変換できない時の例外,An exception thrown when a string cannot be converted to a number.,NumberFormatException
-1507,Javaかるた,-,ふ,不正な引数が渡された時の例外,An exception thrown when an invalid argument is passed.,IllegalArgumentException
-1508,Javaかるた,-,お,オブジェクトの状態が不正な時の例外,An exception thrown when an object is in an invalid state.,IllegalStateException
-1509,Javaかるた,-,ぜ,0で割るなど算術エラー時の例外,An exception thrown for arithmetic errors such as division by zero.,ArithmeticException
-1510,Javaかるた,-,る,ループ中にコレクションを変更した時の例外,An exception thrown when a collection is modified during iteration.,ConcurrentModificationException
-1511,Javaかるた,-,め,メモリ不足で発生するエラー,An error thrown when the JVM runs out of memory.,OutOfMemoryError
-1512,Javaかるた,-,さ,再帰呼び出しが深すぎて発生するエラー,An error thrown when recursive calls go too deep.,StackOverflowError
-1513,Javaかるた,-,か,可変長の配列のようなコレクション,A resizable array-like collection.,ArrayList
-1514,Javaかるた,-,よ,要素を連結して保持するリスト,A list that holds elements as a linked sequence.,LinkedList
-1515,Javaかるた,-,じ,重複を許さないコレクション,A collection that does not allow duplicate elements.,HashSet
-1516,Javaかるた,-,き,キーで自動的に並び替えられるマップ,A map that is automatically sorted by its keys.,TreeMap
-1517,Javaかるた,-,も,文字列を効率的に組み立てるクラス,A class for efficiently building strings.,StringBuilder
-1518,Javaかるた,-,あ,値が存在しないかもしれないことを表すクラス,A class representing a value that may or may not be present.,Optional
-1519,Javaかるた,-,こ,コレクションを関数的に処理するAPI,An API for processing collections in a functional style.,Stream
-1520,Javaかるた,-,め,メソッドの仕様だけを定義する型,A type that defines only method signatures.,Interface
-1521,Javaかるた,-,い,一部だけ実装したクラス,A class that is only partially implemented.,Abstract Class
-1522,Javaかるた,-,か,型を汎用的に扱う仕組み,A mechanism for handling types generically.,Generics
-1523,Javaかるた,-,れ,例外処理を記述する構文,Syntax for handling exceptions.,try-catch-finally
-1524,Javaかるた,-,ふ,複数スレッドからの同時アクセスを制御する,Controls concurrent access from multiple threads.,synchronized
-1525,Javaかるた,-,へ,並行して処理を実行する単位,A unit of execution that runs concurrently.,Thread
-1526,Javaかるた,-,お,親クラスのメソッドを子クラスで上書きする,Overrides a parent class's method in a subclass.,Override
-1527,Javaかるた,-,お,オブジェクトの等価性を判定する仕組み,A mechanism for determining object equality.,equals/hashCode
-1528,Javaかるた,-,あ,値や継承を変更不可にするキーワード,A keyword that makes a value or inheritance unchangeable.,final
-1529,Javaかるた,-,い,インスタンスに依存しないメンバーを定義するキーワード,A keyword for defining members that don't depend on an instance.,static
-1601,コードレビューかるた,-,お,同じコードが複数箇所に存在する,The same code exists in multiple places.,DRY原則
-1602,コードレビューかるた,-,へ,変数名から役割が分からない,It's unclear what a variable does from its name.,可読性
-1603,コードレビューかるた,-,ひ,1つのメソッドが長すぎる,A single method is too long.,単一責任の原則
-1604,コードレビューかるた,-,い,意味のわからない数値が直接書かれている,An unexplained number is hard-coded directly in the code.,マジックナンバー
-1605,コードレビューかるた,-,じ,条件分岐が何重にも入れ子になっている,Conditional branches are nested many levels deep.,ネストが深い
-1606,コードレビューかるた,-,へ,変数名やクラス名のつけ方が統一されていない,Variable and class naming is inconsistent.,命名規則違反
-1607,コードレビューかるた,-,じ,重要な処理にテストが書かれていない,Critical logic has no tests.,テストカバレッジ不足
-1608,コードレビューかるた,-,せ,設定値がコード中に直接埋め込まれている,Configuration values are embedded directly in the code.,ハードコーディング
-1609,コードレビューかるた,-,き,catchした例外を何もせず無視している,A caught exception is silently ignored.,例外の握りつぶし
-1610,コードレビューかるた,-,ど,どこからでも書き換えられる変数を多用している,Overuse of variables that can be modified from anywhere.,グローバル変数の濫用
-1611,コードレビューかるた,-,ふ,複雑な処理の意図が説明されていない,The intent behind complex logic is not explained.,コメント不足
-1612,コードレビューかるた,-,お,同じロジックが何箇所にもコピーされている,The same logic is copy-pasted in many places.,重複コード
-1613,コードレビューかるた,-,じ,条件を満たしたらすぐに関数を抜けず深く入れ子にしている,"Doesn't exit early when a condition is met, leading to deep nesting.",早期return
-1614,コードレビューかるた,-,な,名前から想像できない値の変更を行う関数,A function that changes values in ways its name doesn't suggest.,副作用のある関数
-1615,コードレビューかるた,-,く,クラス同士が内部実装に強く依存している,Classes depend heavily on each other's internal implementation.,密結合
-1616,コードレビューかるた,-,よ,呼び出されない不要なコードが残っている,Unused code that is never called remains in the codebase.,デッドコード
-1617,コードレビューかるた,-,ゆ,ユーザー入力をそのままSQLに組み込んでいる,User input is embedded directly into SQL without sanitization.,SQLインジェクション脆弱性
-1618,コードレビューかるた,-,つ,使われていないモジュールが読み込まれている,Unused modules are imported.,不要なimport
-1619,コードレビューかるた,-,え,エラー発生時に原因を追えるログがない,There are no logs to trace the cause when an error occurs.,ログ出力不足
-1620,コードレビューかるた,-,に,入力値の検証が行われていない,Input values are not validated.,バリデーション漏れ
-1621,コードレビューかるた,-,へ,並行処理の実行順序によって結果が変わる不具合,A bug where the result depends on the timing of concurrent execution.,レースコンディション
-1622,コードレビューかるた,-,し,将来使うかもしれない機能を先に作り込んでいる,Building functionality preemptively for hypothetical future use.,過剰な抽象化
+1001,HTTPステータスコードかるた,-,2,要求は成功しました,The request succeeded.,200 OK
+1002,HTTPステータスコードかるた,-,2,新しいリソースが作成されました,A new resource has been created.,201 Created
+1003,HTTPステータスコードかるた,-,2,処理は成功したが返す内容がない,The request succeeded but there is no content to return.,204 No Content
+1004,HTTPステータスコードかるた,-,3,リソースが恒久的に移動した,The resource has permanently moved.,301 Moved Permanently
+1005,HTTPステータスコードかるた,-,3,リソースが一時的に移動した,The resource has temporarily moved.,302 Found
+1006,HTTPステータスコードかるた,-,3,キャッシュされた内容が更新されていない,The cached content has not changed.,304 Not Modified
+1007,HTTPステータスコードかるた,-,4,リクエストの形式が正しくない,The request is malformed.,400 Bad Request
+1008,HTTPステータスコードかるた,-,4,認証が必要です,Authentication is required.,401 Unauthorized
+1009,HTTPステータスコードかるた,-,4,認証は済んでいるが権限がありません,"Authenticated, but not authorized to access this resource.",403 Forbidden
+1010,HTTPステータスコードかるた,-,4,リソースが見つかりません,The requested resource was not found.,404 Not Found
+1011,HTTPステータスコードかるた,-,4,許可されていないHTTPメソッドが使われた,The HTTP method used is not allowed.,405 Method Not Allowed
+1012,HTTPステータスコードかるた,-,4,リクエストが時間内に完了しなかった,The request timed out.,408 Request Timeout
+1013,HTTPステータスコードかるた,-,4,リソースの状態が競合している,The request conflicts with the current state of the resource.,409 Conflict
+1014,HTTPステータスコードかるた,-,4,リソースは存在したが今は削除された,The resource existed but has since been deleted.,410 Gone
+1015,HTTPステータスコードかるた,-,4,送信データが大きすぎる,The request payload is too large.,413 Payload Too Large
+1016,HTTPステータスコードかるた,-,4,対応していない形式のデータが送られた,The media type of the request is not supported.,415 Unsupported Media Type
+1017,HTTPステータスコードかるた,-,4,構文は正しいが内容を処理できない,The request is well-formed but cannot be processed.,422 Unprocessable Entity
+1018,HTTPステータスコードかるた,-,4,短時間にリクエストを送りすぎた,Too many requests were sent in a short time.,429 Too Many Requests
+1019,HTTPステータスコードかるた,-,5,サーバー内部で予期しないエラーが発生した,An unexpected error occurred on the server.,500 Internal Server Error
+1020,HTTPステータスコードかるた,-,5,サーバーがその機能に対応していない,The server does not support the requested functionality.,501 Not Implemented
+1021,HTTPステータスコードかるた,-,5,上流サーバーから不正な応答を受け取った,Received an invalid response from an upstream server.,502 Bad Gateway
+1022,HTTPステータスコードかるた,-,5,サーバーが一時的に利用できない,The server is temporarily unavailable.,503 Service Unavailable
+1023,HTTPステータスコードかるた,-,5,上流サーバーからの応答が時間内に来なかった,Did not receive a timely response from an upstream server.,504 Gateway Timeout
+1101,Linuxコマンドかるた,-,L,ディレクトリ一覧を表示する,Display a list of directory contents.,ls
+1102,Linuxコマンドかるた,-,P,現在のディレクトリを表示する,Display the current directory.,pwd
+1103,Linuxコマンドかるた,-,C,ディレクトリを移動する,Change the current directory.,cd
+1104,Linuxコマンドかるた,-,M,新しいディレクトリを作成する,Create a new directory.,mkdir
+1105,Linuxコマンドかるた,-,R,空のディレクトリを削除する,Remove an empty directory.,rmdir
+1106,Linuxコマンドかるた,-,R,ファイルを削除する,Delete a file.,rm
+1107,Linuxコマンドかるた,-,C,ファイルをコピーする,Copy a file.,cp
+1108,Linuxコマンドかるた,-,M,ファイルを移動する、または名前を変更する,Move or rename a file.,mv
+1109,Linuxコマンドかるた,-,T,空のファイルを作成する、タイムスタンプを更新する,Create an empty file or update its timestamp.,touch
+1110,Linuxコマンドかるた,-,C,ファイルの内容を表示する,Display the contents of a file.,cat
+1111,Linuxコマンドかるた,-,F,ファイルを検索する,Search for files.,find
+1112,Linuxコマンドかるた,-,G,ファイルの中から文字列を検索する,Search for a string within files.,grep
+1113,Linuxコマンドかるた,-,C,ファイルの権限を変更する,Change file permissions.,chmod
+1114,Linuxコマンドかるた,-,C,ファイルの所有者を変更する,Change file ownership.,chown
+1115,Linuxコマンドかるた,-,P,実行中のプロセスを表示する,Display running processes.,ps
+1116,Linuxコマンドかるた,-,K,プロセスを終了させる,Terminate a process.,kill
+1117,Linuxコマンドかるた,-,T,システムのリソース使用状況をリアルタイムで表示する,Display real-time system resource usage.,top
+1118,Linuxコマンドかるた,-,D,ディスクの空き容量を表示する,Display free disk space.,df
+1119,Linuxコマンドかるた,-,D,ファイルやディレクトリのサイズを表示する,Display the size of files or directories.,du
+1120,Linuxコマンドかるた,-,T,複数のファイルをひとつにまとめて圧縮・展開する,Archive or extract multiple files.,tar
+1121,Linuxコマンドかるた,-,S,別のサーバーにリモートでログインする,Log in to a remote server.,ssh
+1122,Linuxコマンドかるた,-,S,サーバー間でファイルを安全にコピーする,Securely copy files between servers.,scp
+1123,Linuxコマンドかるた,-,C,URLを指定してデータを送受信する,Transfer data to or from a URL.,curl
+1124,Linuxコマンドかるた,-,W,URLからファイルをダウンロードする,Download a file from a URL.,wget
+1125,Linuxコマンドかるた,-,M,コマンドの使い方を調べる,Look up how to use a command.,man
+1126,Linuxコマンドかるた,-,H,これまでに実行したコマンドの履歴を表示する,Display the history of executed commands.,history
+1127,Linuxコマンドかるた,-,E,文字列を画面に出力する,Print a string to the screen.,echo
+1128,Linuxコマンドかるた,-,L,ファイルの内容をスクロールしながら表示する,View a file's contents one screen at a time.,less
+1129,Linuxコマンドかるた,-,H,ファイルの先頭部分を表示する,Display the beginning of a file.,head
+1130,Linuxコマンドかるた,-,T,ファイルの末尾部分を表示する,Display the end of a file.,tail
+1131,Linuxコマンドかるた,-,S,行を並び替える,Sort lines of text.,sort
+1132,Linuxコマンドかるた,-,U,重複する行を取り除く,Remove duplicate adjacent lines.,uniq
+1133,Linuxコマンドかるた,-,W,行数や単語数、文字数を数える,"Count lines, words, and characters.",wc
+1134,Linuxコマンドかるた,-,L,ファイルのリンクを作成する,Create a link to a file.,ln
+1135,Linuxコマンドかるた,-,A,コマンドに別名をつける,Define a shortcut name for a command.,alias
+1136,Linuxコマンドかるた,-,E,環境変数を設定する,Set an environment variable.,export
+1137,Linuxコマンドかるた,-,S,管理者権限でコマンドを実行する,Run a command with administrator privileges.,sudo
+1138,Linuxコマンドかるた,-,W,コマンドの実行ファイルの場所を調べる,Find the location of a command's executable.,which
+1139,Linuxコマンドかるた,-,W,現在ログインしているユーザー名を表示する,Display the current logged-in user name.,whoami
+1140,Linuxコマンドかるた,-,H,コンピュータのホスト名を表示する,Display the computer's host name.,hostname
+1201,Gitかるた,-,I,新しいリポジトリを作成する,Create a new repository.,git init
+1202,Gitかるた,-,C,既存のリポジトリを複製する,Clone an existing repository.,git clone
+1203,Gitかるた,-,A,変更をステージングする,Stage changes.,git add
+1204,Gitかるた,-,C,変更をコミットする,Commit changes.,git commit
+1205,Gitかるた,-,P,ローカルの変更をリモートに送る,Push local changes to a remote.,git push
+1206,Gitかるた,-,P,リモートの変更を取得して取り込む,Fetch and merge changes from a remote.,git pull
+1207,Gitかるた,-,F,リモートの変更情報だけを取得する,Fetch changes from a remote without merging.,git fetch
+1208,Gitかるた,-,S,作業ディレクトリの状態を確認する,Check the status of the working directory.,git status
+1209,Gitかるた,-,D,変更の差分を確認する,Show changes between commits or the working directory.,git diff
+1210,Gitかるた,-,L,コミットの履歴を表示する,Show commit history.,git log
+1211,Gitかるた,-,B,ブランチを作成・一覧表示する,Create or list branches.,git branch
+1212,Gitかるた,-,C,ブランチやファイルの状態を切り替える,Switch branches or restore files.,git checkout
+1213,Gitかるた,-,S,ブランチを切り替える,Switch branches.,git switch
+1214,Gitかるた,-,M,別のブランチの変更を取り込む,Merge changes from another branch.,git merge
+1215,Gitかるた,-,R,コミットの履歴を別のベースに付け替える,Reapply commits on top of another base.,git rebase
+1216,Gitかるた,-,S,作業内容を一時退避する,Temporarily shelve changes.,git stash
+1217,Gitかるた,-,R,コミットやステージングの状態を戻す,Undo commits or staged changes.,git reset
+1218,Gitかるた,-,R,過去のコミットを打ち消す新しいコミットを作る,Create a new commit that undoes a past commit.,git revert
+1219,Gitかるた,-,T,コミットに目印となるタグを付ける,Mark a commit with a tag.,git tag
+1220,Gitかるた,-,R,リモートリポジトリの情報を管理する,Manage remote repository information.,git remote
+1221,Gitかるた,-,C,Gitの設定を変更する,Change Git configuration.,git config
+1222,Gitかるた,-,C,特定のコミットだけを取り込む,Apply a specific commit onto the current branch.,git cherry-pick
+1223,Gitかるた,-,B,各行を最後に変更した人を調べる,Find out who last modified each line.,git blame
+1224,Gitかるた,-,S,コミットの詳細な内容を表示する,Show the details of a commit.,git show
+1225,Gitかるた,-,R,ファイルを削除してその変更を記録する,Delete a file and stage the removal.,git rm
+1301,SQLかるた,-,S,取得する列を指定する,Specify which columns to retrieve.,SELECT
+1302,SQLかるた,-,F,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM
+1303,SQLかるた,-,W,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE
+1304,SQLかるた,-,G,指定した列の値でグループ化する,Group rows by the values of specified columns.,GROUP BY
+1305,SQLかるた,-,H,グループ化した後の結果に条件をつける,Filter results after grouping.,HAVING
+1306,SQLかるた,-,O,結果を並び替える,Sort the results.,ORDER BY
+1307,SQLかるた,-,L,取得する件数を制限する,Limit the number of rows returned.,LIMIT
+1308,SQLかるた,-,I,一致する行だけを複数テーブルから結合する,"Join tables, returning only matching rows.",INNER JOIN
+1309,SQLかるた,-,L,左側のテーブルを基準に結合する,"Join tables, keeping all rows from the left table.",LEFT JOIN
+1310,SQLかるた,-,R,右側のテーブルを基準に結合する,"Join tables, keeping all rows from the right table.",RIGHT JOIN
+1311,SQLかるた,-,F,両方のテーブルの行をすべて結合する,"Join tables, keeping all rows from both tables.",FULL OUTER JOIN
+1312,SQLかるた,-,U,複数の検索結果を縦に結合する,Combine the results of multiple queries.,UNION
+1313,SQLかるた,-,D,重複を除外する,Exclude duplicate rows.,DISTINCT
+1314,SQLかるた,-,I,新しい行を追加する,Insert a new row.,INSERT INTO
+1315,SQLかるた,-,U,既存の行を更新する,Update existing rows.,UPDATE
+1316,SQLかるた,-,D,行を削除する,Delete rows.,DELETE
+1317,SQLかるた,-,C,新しいテーブルを作成する,Create a new table.,CREATE TABLE
+1318,SQLかるた,-,A,テーブルの構造を変更する,Modify a table's structure.,ALTER TABLE
+1319,SQLかるた,-,D,テーブルを削除する,Delete a table.,DROP TABLE
+1320,SQLかるた,-,P,行を一意に識別する列を指定する,Designate a column that uniquely identifies each row.,PRIMARY KEY
+1321,SQLかるた,-,F,他のテーブルの行を参照する制約,A constraint that references a row in another table.,FOREIGN KEY
+1322,SQLかるた,-,N,値が存在しないことを表す,Represents the absence of a value.,NULL
+1323,SQLかるた,-,B,指定した範囲内のデータを取得する,Retrieve data within a specified range.,BETWEEN
+1324,SQLかるた,-,L,文字列のパターンに一致するか調べる,Check whether a string matches a pattern.,LIKE
+1325,SQLかるた,-,I,複数の値のいずれかに一致するか調べる,Check whether a value matches any in a list.,IN
+1326,SQLかるた,-,C,行数を数える,Count the number of rows.,COUNT
+1327,SQLかるた,-,S,値の合計を求める,Calculate the sum of values.,SUM
+1328,SQLかるた,-,A,値の平均を求める,Calculate the average of values.,AVG
+1329,SQLかるた,-,A,列やテーブルに別名をつける,Give a column or table an alias.,AS
+1330,SQLかるた,-,C,条件によって異なる値を返す,Return different values depending on a condition.,CASE WHEN
+1331,SQLかるた,-,C,変更をデータベースに確定する,Commit changes to the database.,COMMIT
+1332,SQLかるた,-,R,変更を取り消して元に戻す,Undo changes and revert to the previous state.,ROLLBACK
+1401,AWSかるた,-,L,サーバレスでコードを実行する,Run code without managing servers.,Lambda
+1402,AWSかるた,-,S,オブジェクトストレージ,Object storage.,S3
+1403,AWSかるた,-,D,NoSQLデータベース,A NoSQL database.,DynamoDB
+1404,AWSかるた,-,E,仮想サーバーを提供する,Provides virtual servers.,EC2
+1405,AWSかるた,-,R,マネージドなリレーショナルデータベース,A managed relational database.,RDS
+1406,AWSかるた,-,V,仮想的なネットワーク環境を作る,Create an isolated virtual network.,VPC
+1407,AWSかるた,-,I,ユーザーや権限を管理する,Manage users and permissions.,IAM
+1408,AWSかるた,-,C,コンテンツ配信網(CDN)サービス,A content delivery network (CDN) service.,CloudFront
+1409,AWSかるた,-,R,DNSサービス,A DNS service.,Route 53
+1410,AWSかるた,-,A,APIの作成・公開・管理を行う,"Create, publish, and manage APIs.",API Gateway
+1411,AWSかるた,-,S,メッセージを溜めておくキューサービス,A queue service for storing messages.,SQS
+1412,AWSかるた,-,S,メッセージを配信する通知サービス,A notification service for delivering messages.,SNS
+1413,AWSかるた,-,C,リソースの監視やログ収集を行う,Monitor resources and collect logs.,CloudWatch
+1414,AWSかるた,-,C,インフラをコードで構築・管理する,Provision and manage infrastructure as code.,CloudFormation
+1415,AWSかるた,-,E,コンテナを管理・実行するサービス,A service for managing and running containers.,ECS
+1416,AWSかるた,-,E,マネージドなKubernetesサービス,A managed Kubernetes service.,EKS
+1417,AWSかるた,-,F,サーバー管理が不要なコンテナ実行環境,A serverless container runtime that needs no server management.,Fargate
+1418,AWSかるた,-,E,アプリケーションのデプロイを簡単にする,Simplifies application deployment.,Elastic Beanstalk
+1419,AWSかるた,-,A,負荷に応じてサーバー台数を自動調整する,Automatically adjusts server count based on load.,Auto Scaling
+1420,AWSかるた,-,E,通信を複数サーバーに振り分ける,Distributes traffic across multiple servers.,Elastic Load Balancing
+1421,AWSかるた,-,G,データを抽出・変換・ロードするETLサービス,"An ETL service for extracting, transforming, and loading data.",Glue
+1422,AWSかるた,-,A,S3のデータをSQLで分析する,Analyze data in S3 using SQL.,Athena
+1423,AWSかるた,-,K,大量のストリーミングデータを処理する,Process large volumes of streaming data.,Kinesis
+1424,AWSかるた,-,S,複数のサービスをワークフローでつなぐ,Coordinate multiple services into a workflow.,Step Functions
+1425,AWSかるた,-,C,ユーザーの認証や認可を管理する,Manage user authentication and authorization.,Cognito
+1426,AWSかるた,-,S,パスワードなどの機密情報を管理する,Manage secrets such as passwords.,Secrets Manager
+1427,AWSかるた,-,C,ビルドからデプロイまでを自動化する,Automate the process from build to deployment.,CodePipeline
+1428,AWSかるた,-,E,EC2にアタッチするブロックストレージ,Block storage attached to EC2 instances.,EBS
+1429,AWSかるた,-,A,高い性能を持つマネージドリレーショナルDB,A high-performance managed relational database.,Aurora
+1430,AWSかるた,-,R,大規模なデータウェアハウス,A large-scale data warehouse.,Redshift
+1501,Javaかるた,-,N,Null参照時に発生する例外,An exception thrown when dereferencing a null reference.,NullPointerException
+1502,Javaかるた,-,I,入出力で発生する例外,An exception thrown for input/output failures.,IOException
+1503,Javaかるた,-,H,キーと値を保持するコレクション,A collection that holds key-value pairs.,HashMap
+1504,Javaかるた,-,A,配列の範囲外にアクセスした時の例外,An exception thrown when accessing an array out of bounds.,ArrayIndexOutOfBoundsException
+1505,Javaかるた,-,C,指定したクラスが見つからない時の例外,An exception thrown when a specified class cannot be found.,ClassNotFoundException
+1506,Javaかるた,-,N,文字列を数値に変換できない時の例外,An exception thrown when a string cannot be converted to a number.,NumberFormatException
+1507,Javaかるた,-,I,不正な引数が渡された時の例外,An exception thrown when an invalid argument is passed.,IllegalArgumentException
+1508,Javaかるた,-,I,オブジェクトの状態が不正な時の例外,An exception thrown when an object is in an invalid state.,IllegalStateException
+1509,Javaかるた,-,A,0で割るなど算術エラー時の例外,An exception thrown for arithmetic errors such as division by zero.,ArithmeticException
+1510,Javaかるた,-,C,ループ中にコレクションを変更した時の例外,An exception thrown when a collection is modified during iteration.,ConcurrentModificationException
+1511,Javaかるた,-,O,メモリ不足で発生するエラー,An error thrown when the JVM runs out of memory.,OutOfMemoryError
+1512,Javaかるた,-,S,再帰呼び出しが深すぎて発生するエラー,An error thrown when recursive calls go too deep.,StackOverflowError
+1513,Javaかるた,-,A,可変長の配列のようなコレクション,A resizable array-like collection.,ArrayList
+1514,Javaかるた,-,L,要素を連結して保持するリスト,A list that holds elements as a linked sequence.,LinkedList
+1515,Javaかるた,-,H,重複を許さないコレクション,A collection that does not allow duplicate elements.,HashSet
+1516,Javaかるた,-,T,キーで自動的に並び替えられるマップ,A map that is automatically sorted by its keys.,TreeMap
+1517,Javaかるた,-,S,文字列を効率的に組み立てるクラス,A class for efficiently building strings.,StringBuilder
+1518,Javaかるた,-,O,値が存在しないかもしれないことを表すクラス,A class representing a value that may or may not be present.,Optional
+1519,Javaかるた,-,S,コレクションを関数的に処理するAPI,An API for processing collections in a functional style.,Stream
+1520,Javaかるた,-,I,メソッドの仕様だけを定義する型,A type that defines only method signatures.,Interface
+1521,Javaかるた,-,A,一部だけ実装したクラス,A class that is only partially implemented.,Abstract Class
+1522,Javaかるた,-,G,型を汎用的に扱う仕組み,A mechanism for handling types generically.,Generics
+1523,Javaかるた,-,T,例外処理を記述する構文,Syntax for handling exceptions.,try-catch-finally
+1524,Javaかるた,-,S,複数スレッドからの同時アクセスを制御する,Controls concurrent access from multiple threads.,synchronized
+1525,Javaかるた,-,T,並行して処理を実行する単位,A unit of execution that runs concurrently.,Thread
+1526,Javaかるた,-,O,親クラスのメソッドを子クラスで上書きする,Overrides a parent class's method in a subclass.,Override
+1527,Javaかるた,-,E,オブジェクトの等価性を判定する仕組み,A mechanism for determining object equality.,equals/hashCode
+1528,Javaかるた,-,F,値や継承を変更不可にするキーワード,A keyword that makes a value or inheritance unchangeable.,final
+1529,Javaかるた,-,S,インスタンスに依存しないメンバーを定義するキーワード,A keyword for defining members that don't depend on an instance.,static
+1601,コードレビューかるた,-,D,同じコードが複数箇所に存在する,The same code exists in multiple places.,DRY原則
+1602,コードレビューかるた,-,か,変数名から役割が分からない,It's unclear what a variable does from its name.,可読性
+1603,コードレビューかるた,-,た,1つのメソッドが長すぎる,A single method is too long.,単一責任の原則
+1604,コードレビューかるた,-,ま,意味のわからない数値が直接書かれている,An unexplained number is hard-coded directly in the code.,マジックナンバー
+1605,コードレビューかるた,-,ね,条件分岐が何重にも入れ子になっている,Conditional branches are nested many levels deep.,ネストが深い
+1606,コードレビューかるた,-,め,変数名やクラス名のつけ方が統一されていない,Variable and class naming is inconsistent.,命名規則違反
+1607,コードレビューかるた,-,て,重要な処理にテストが書かれていない,Critical logic has no tests.,テストカバレッジ不足
+1608,コードレビューかるた,-,は,設定値がコード中に直接埋め込まれている,Configuration values are embedded directly in the code.,ハードコーディング
+1609,コードレビューかるた,-,れ,catchした例外を何もせず無視している,A caught exception is silently ignored.,例外の握りつぶし
+1610,コードレビューかるた,-,ぐ,どこからでも書き換えられる変数を多用している,Overuse of variables that can be modified from anywhere.,グローバル変数の濫用
+1611,コードレビューかるた,-,こ,複雑な処理の意図が説明されていない,The intent behind complex logic is not explained.,コメント不足
+1612,コードレビューかるた,-,じ,同じロジックが何箇所にもコピーされている,The same logic is copy-pasted in many places.,重複コード
+1613,コードレビューかるた,-,そ,条件を満たしたらすぐに関数を抜けず深く入れ子にしている,"Doesn't exit early when a condition is met, leading to deep nesting.",早期return
+1614,コードレビューかるた,-,ふ,名前から想像できない値の変更を行う関数,A function that changes values in ways its name doesn't suggest.,副作用のある関数
+1615,コードレビューかるた,-,み,クラス同士が内部実装に強く依存している,Classes depend heavily on each other's internal implementation.,密結合
+1616,コードレビューかるた,-,で,呼び出されない不要なコードが残っている,Unused code that is never called remains in the codebase.,デッドコード
+1617,コードレビューかるた,-,S,ユーザー入力をそのままSQLに組み込んでいる,User input is embedded directly into SQL without sanitization.,SQLインジェクション脆弱性
+1618,コードレビューかるた,-,ふ,使われていないモジュールが読み込まれている,Unused modules are imported.,不要なimport
+1619,コードレビューかるた,-,ろ,エラー発生時に原因を追えるログがない,There are no logs to trace the cause when an error occurs.,ログ出力不足
+1620,コードレビューかるた,-,ば,入力値の検証が行われていない,Input values are not validated.,バリデーション漏れ
+1621,コードレビューかるた,-,れ,並行処理の実行順序によって結果が変わる不具合,A bug where the result depends on the timing of concurrent execution.,レースコンディション
+1622,コードレビューかるた,-,か,将来使うかもしれない機能を先に作り込んでいる,Building functionality preemptively for hypothetical future use.,過剰な抽象化
 1701,セキュリティ大ピンチ,10,は,アカウント全部　同じパスワードだった,I used the same password for every account.,パスワードリスト攻撃
 1702,セキュリティ大ピンチ,15,ふ,いそいで振り込め　メールを信じた,I trusted an urgent payment email.,フィッシング
 1703,セキュリティ大ピンチ,12,ま,USBを拾って　そのまま挿した,I plugged in a USB drive I found.,マルウェア
@@ -612,42 +612,42 @@ id,category,level,kana,phrase,phrase_en,answer
 1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション
 1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション
 1804,Webアプリ大ピンチ,15,く,Cookieを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie
-1805,Webアプリ大ピンチ,20,え,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード
+1805,Webアプリ大ピンチ,20,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード
 1806,Webアプリ大ピンチ,25,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト
 1807,Webアプリ大ピンチ,25,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード
 1808,Webアプリ大ピンチ,20,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet
-1809,Webアプリ大ピンチ,25,し,JSPを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP
-1810,Webアプリ大ピンチ,30,え,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式
-1811,Webアプリ大ピンチ,30,じ,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL
-1812,Webアプリ大ピンチ,35,ま,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC
-1813,Webアプリ大ピンチ,35,じ,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC
-1814,Webアプリ大ピンチ,20,え,SQLを書き換えたら全部落ちた,Changing one SQL query broke everything.,SQL
+1809,Webアプリ大ピンチ,25,J,JSPを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP
+1810,Webアプリ大ピンチ,30,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式
+1811,Webアプリ大ピンチ,30,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL
+1812,Webアプリ大ピンチ,35,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC
+1813,Webアプリ大ピンチ,35,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC
+1814,Webアプリ大ピンチ,20,S,SQLを書き換えたら全部落ちた,Changing one SQL query broke everything.,SQL
 1815,Webアプリ大ピンチ,45,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス
 1816,Webアプリ大ピンチ,40,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール
-1817,Webアプリ大ピンチ,20,ま,データベースが起動していなかった,The database server wasn't running.,MySQL
-1818,Webアプリ大ピンチ,30,ぺ,再起動したら直った,Restarting the server fixed it.,Payara
+1817,Webアプリ大ピンチ,20,M,データベースが起動していなかった,The database server wasn't running.,MySQL
+1818,Webアプリ大ピンチ,30,P,再起動したら直った,Restarting the server fixed it.,Payara
 1819,Webアプリ大ピンチ,25,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR
-1820,Webアプリ大ピンチ,35,く,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle
+1820,Webアプリ大ピンチ,35,G,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle
 1821,Webアプリ大ピンチ,35,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係
-1822,Webアプリ大ピンチ,20,ひ,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド
-1823,Webアプリ大ピンチ,20,し,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript
-1824,Webアプリ大ピンチ,25,と,要素が見つからないと言われた,The browser says the element can't be found.,DOM
+1822,Webアプリ大ピンチ,20,び,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド
+1823,Webアプリ大ピンチ,20,J,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript
+1824,Webアプリ大ピンチ,25,D,要素が見つからないと言われた,The browser says the element can't be found.,DOM
 1825,Webアプリ大ピンチ,15,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS
-1826,Webアプリ大ピンチ,30,じ,APIの返却結果が読めない,I can't parse the API response.,JSON
-1827,Webアプリ大ピンチ,30,あ,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX
+1826,Webアプリ大ピンチ,30,J,APIの返却結果が読めない,I can't parse the API response.,JSON
+1827,Webアプリ大ピンチ,30,A,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX
 1828,Webアプリ大ピンチ,35,ば,入力したのに保存できない,The form won't save my input.,バリデーション
 1829,Webアプリ大ピンチ,35,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理
 1830,Webアプリ大ピンチ,20,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ
 1831,Webアプリ大ピンチ,35,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース
 1832,Webアプリ大ピンチ,20,で,デバッグしたら動いてしまう,The bug disappears during debugging.,デバッグ
 1833,Webアプリ大ピンチ,30,も,文字が全部「???」になった,All the text turned into question marks.,文字コード
-1834,Webアプリ大ピンチ,25,ゆ,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8
-1835,Webアプリ大ピンチ,20,ぎ,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git
+1834,Webアプリ大ピンチ,25,U,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8
+1835,Webアプリ大ピンチ,20,G,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git
 1836,Webアプリ大ピンチ,40,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト
-1837,Webアプリ大ピンチ,40,あ,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS
-1838,Webアプリ大ピンチ,45,え,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題
-1839,Webアプリ大ピンチ,40,お,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック
-1840,Webアプリ大ピンチ,35,た,ログイン状態なのに403になった,I'm logged in but received a 403.,認可
+1837,Webアプリ大ピンチ,40,C,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS
+1838,Webアプリ大ピンチ,45,N,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題
+1839,Webアプリ大ピンチ,40,ら,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック
+1840,Webアプリ大ピンチ,35,に,ログイン状態なのに403になった,I'm logged in but received a 403.,認可
 1901,Windowsショートカット,10,C,コピーしたつもりが　できていなかった,I thought I copied it but it wasn't copied.,Ctrl+C
 1902,Windowsショートカット,10,V,貼り付けたいのに　右クリックできない,I want to paste but can't use the mouse.,Ctrl+V
 1903,Windowsショートカット,10,X,別の場所へ　移動したい,I want to move it somewhere else.,Ctrl+X
