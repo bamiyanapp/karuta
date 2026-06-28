@@ -6,17 +6,21 @@ import changelogData from "./changelog.json";
 
 const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
+const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
+const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
+
 function App() {
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(() => {
+  const [selectedCategories, setSelectedCategories] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("category");
+    return parseCategoriesParam(params.get("category"));
   });
   
   const [detailPhraseId, setDetailPhraseId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("id");
   });
+  const [detailPhraseCategory, setDetailPhraseCategory] = useState(null);
   const [detailPhrase, setDetailPhrase] = useState(null);
 
   // 指摘一覧表示用の状態
@@ -55,7 +59,7 @@ function App() {
   const [historyByCategory, setHistoryByCategory] = useState({});
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingCategory, setPendingCategory] = useState(null);
+  const [draftCategories, setDraftCategories] = useState([]);
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -64,19 +68,30 @@ function App() {
   const flipTimeoutRef = useRef(null);
   const startTimeRef = useRef(null);
 
+  const categoryKey = useMemo(() => {
+    return JSON.stringify(selectedCategories.slice().sort());
+  }, [selectedCategories]);
+
+  const categoryLabel = useMemo(() => {
+    return selectedCategories.join("・");
+  }, [selectedCategories]);
+
   const currentHistory = useMemo(() => {
-    return selectedCategory ? (historyByCategory[selectedCategory] || []) : [];
-  }, [selectedCategory, historyByCategory]);
+    return categoryKey ? (historyByCategory[categoryKey] || []) : [];
+  }, [categoryKey, historyByCategory]);
 
   const EFUDA_PER_PAGE = 10;
   const efudaPages = useMemo(() => {
     const pages = [];
-    for (let i = 0; i < allPhrasesForCategory.length; i += EFUDA_PER_PAGE) {
-      pages.push(allPhrasesForCategory.slice(i, i + EFUDA_PER_PAGE));
-    }
-    if (pages.length === 0) pages.push([]);
+    selectedCategories.forEach(cat => {
+      const phrasesForCat = allPhrasesForCategory.filter(p => p.category === cat);
+      for (let i = 0; i < phrasesForCat.length; i += EFUDA_PER_PAGE) {
+        pages.push({ category: cat, items: phrasesForCat.slice(i, i + EFUDA_PER_PAGE) });
+      }
+    });
+    if (pages.length === 0) pages.push({ category: null, items: [] });
     return pages;
-  }, [allPhrasesForCategory]);
+  }, [allPhrasesForCategory, selectedCategories]);
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -148,9 +163,10 @@ function App() {
           const availableCategories = data.categories || [];
           setCategories(availableCategories);
 
-          if (selectedCategory && availableCategories.length > 0 && view === "game") {
-            if (!availableCategories.includes(selectedCategory)) {
-              setSelectedCategory(null);
+          if (selectedCategories.length > 0 && availableCategories.length > 0 && view === "game") {
+            const stillValid = selectedCategories.filter(cat => availableCategories.includes(cat));
+            if (stillValid.length !== selectedCategories.length) {
+              setSelectedCategories(stillValid);
             }
           }
         }
@@ -159,35 +175,44 @@ function App() {
     }
     };
     fetchCategories();
-  }, [selectedCategory, view]);
+  }, [selectedCategories, view]);
 
-  // カテゴリが選択されたら、そのカテゴリの全札IDリストを取得する
+  // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
   useEffect(() => {
-    if (!selectedCategory) {
+    if (selectedCategories.length === 0) {
       setAllPhrasesForCategory([]);
       return;
     }
 
     const fetchPhrasesList = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(selectedCategory)}`);
-        const data = await response.json();
-        if (response.ok) {
-          setAllPhrasesForCategory(data.phrases || []);
-        }
+        const results = await Promise.all(
+          selectedCategories.map(async (cat) => {
+            const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(cat)}`);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch phrases for category: ${cat}`);
+            }
+            const data = await response.json();
+            return data.phrases || [];
+          })
+        );
+        setAllPhrasesForCategory(results.flat());
       } catch (error) {
         console.error("Error fetching phrases list:", error);
+        alert("かるたデータの取得に失敗したカテゴリがあります。もう一度選び直してください。");
+        setAllPhrasesForCategory([]);
       }
     };
     fetchPhrasesList();
-  }, [selectedCategory]);
+  }, [selectedCategories]);
 
   // 詳細データの取得
   useEffect(() => {
     if (detailPhraseId) {
       const fetchDetail = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
+          const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
+          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
           const data = await response.json();
           if (response.ok) {
             setDetailPhrase(data);
@@ -200,7 +225,7 @@ function App() {
     } else {
       setDetailPhrase(null);
     }
-  }, [detailPhraseId, repeatCount, speechRate, lang]);
+  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang]);
 
   // 指摘一覧の取得
   useEffect(() => {
@@ -285,13 +310,13 @@ function App() {
         setCurrentPhrase(phraseData);
         
         setHistoryByCategory(prev => {
-          const currentList = prev[selectedCategory] || [];
-          if (currentList.find(p => p.id === phraseData.id)) {
+          const currentList = prev[categoryKey] || [];
+          if (currentList.find(p => p.id === phraseData.id && p.category === phraseData.category)) {
             return prev;
           }
           return {
             ...prev,
-            [selectedCategory]: [phraseData, ...currentList]
+            [categoryKey]: [phraseData, ...currentList]
           };
         });
       }
@@ -338,7 +363,7 @@ function App() {
     return () => {
       if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
-  }, [audioQueue, isReading, playAudio, playIntroSound, selectedCategory, historyByCategory]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, historyByCategory]);
 
   const playKaruta = async () => {
     const targetPhrase = currentPhrase;
@@ -348,19 +373,19 @@ function App() {
       
       setHistoryByCategory(prev => {
         const newHistory = { ...prev };
-        if (newHistory[selectedCategory] && newHistory[selectedCategory].length > 0) {
-          const updatedCategoryHistory = [...newHistory[selectedCategory]];
+        if (newHistory[categoryKey] && newHistory[categoryKey].length > 0) {
+          const updatedCategoryHistory = [...newHistory[categoryKey]];
           const lastReadPhrase = updatedCategoryHistory[0];
-          if (lastReadPhrase.id === targetPhrase.id) {
+          if (lastReadPhrase.id === targetPhrase.id && lastReadPhrase.category === targetPhrase.category) {
             updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2) };
-            newHistory[selectedCategory] = updatedCategoryHistory;
+            newHistory[categoryKey] = updatedCategoryHistory;
           }
         }
         return newHistory;
       });
       
-      const totalCount = allPhrasesForCategory.length || 1;
-      const historyCount = currentHistory.length || 1;
+      const totalCount = allPhrasesForCategory.filter(p => p.category === targetPhrase.category).length || 1;
+      const historyCount = currentHistory.filter(p => p.category === targetPhrase.category).length || 1;
       const remainingCount = Math.max(1, totalCount - (historyCount - 1));
       let difficulty = elapsedTime / remainingCount;
 
@@ -391,13 +416,13 @@ function App() {
       startTimeRef.current = null;
     }
 
-    if (!selectedCategory || allPhrasesForCategory.length === 0) return;
+    if (selectedCategories.length === 0 || allPhrasesForCategory.length === 0) return;
     
     setLoading(true);
     
     try {
-      const readIds = currentHistory.map(p => p.id);
-      let unreadPhrases = allPhrasesForCategory.filter(p => !readIds.includes(p.id));
+      const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
+      let unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(`${p.category}:${p.id}`));
 
       if (unreadPhrases.length === 0) {
         setIsAllRead(true);
@@ -417,7 +442,7 @@ function App() {
         targetPhrase = unreadPhrases[randomIndex];
       }
 
-      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
+      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
       const response = await fetch(apiUrl);
       const data = await response.json();
       
@@ -465,7 +490,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phraseId: detailPhrase.id,
-          category: selectedCategory,
+          category: detailPhrase.category,
           phrase: detailPhrase.phrase,
           comment: commentText,
         }),
@@ -486,12 +511,12 @@ function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (selectedCategory) {
-      params.set("category", selectedCategory);
+    if (selectedCategories.length > 0) {
+      params.set("category", serializeCategoriesParam(selectedCategories));
     } else {
       params.delete("category");
     }
-    
+
     if (detailPhraseId) {
       params.set("id", detailPhraseId);
     } else {
@@ -507,12 +532,13 @@ function App() {
     const newSearch = params.toString();
     const url = newSearch ? `?${newSearch}` : window.location.pathname;
     window.history.pushState({}, "", url);
-  }, [selectedCategory, detailPhraseId, view]);
+  }, [selectedCategories, detailPhraseId, view]);
 
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
-      setSelectedCategory(params.get("category"));
+      const category = params.get("category");
+      setSelectedCategories(parseCategoriesParam(category));
       setDetailPhraseId(params.get("id"));
       setView(params.get("view") || "game");
     };
@@ -528,15 +554,15 @@ function App() {
     } else if (view === "all-phrases") {
       document.title = "全札一覧 | かるた読み上げアプリ";
     } else if (view === "print-efuda") {
-      document.title = `${selectedCategory || ""}の絵札印刷 | かるた読み上げアプリ`;
+      document.title = `${categoryLabel}の絵札印刷 | かるた読み上げアプリ`;
     } else if (detailPhraseId && detailPhrase) {
-      document.title = `${detailPhrase.phrase} | ${selectedCategory}`;
-    } else if (selectedCategory) {
-      document.title = selectedCategory;
+      document.title = `${detailPhrase.phrase} | ${detailPhrase.category}`;
+    } else if (categoryLabel) {
+      document.title = categoryLabel;
     } else {
       document.title = "かるた読み上げアプリ";
     }
-  }, [selectedCategory, detailPhraseId, detailPhrase, view]);
+  }, [categoryLabel, detailPhraseId, detailPhrase, view]);
 
   useEffect(() => {
     localStorage.setItem("repeatCount", repeatCount.toString());
@@ -555,7 +581,8 @@ function App() {
   }, [sortOrder]);
 
   const resetGame = () => {
-    setSelectedCategory(null);
+    setSelectedCategories([]);
+    setDraftCategories([]);
     setCurrentPhrase(null);
     setDetailPhraseId(null);
     setDisplayContent({ type: "initial" });
@@ -566,7 +593,7 @@ function App() {
   const restartCategory = () => {
     setHistoryByCategory(prev => ({
       ...prev,
-      [selectedCategory]: []
+      [categoryKey]: []
     }));
     setCurrentPhrase(null);
     setDisplayContent({ type: "initial" });
@@ -574,31 +601,37 @@ function App() {
     setIsFadingOut(false);
   };
 
-  const handleCategoryClick = (cat) => {
-    setPendingCategory(cat);
+  const toggleDraftCategory = (cat) => {
+    setDraftCategories(prev =>
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const handleDecideClick = () => {
+    if (draftCategories.length === 0) return;
     setShowConfirmModal(true);
   };
 
   const confirmCategory = () => {
-    setSelectedCategory(pendingCategory);
+    setSelectedCategories(draftCategories);
+    setDraftCategories([]);
     setShowConfirmModal(false);
-    setPendingCategory(null);
     setView("game");
   };
 
   const cancelCategory = () => {
     setShowConfirmModal(false);
-    setPendingCategory(null);
   };
 
   const openDetail = (id, category) => {
     setDetailPhraseId(id);
-    if (category) setSelectedCategory(category);
+    setDetailPhraseCategory(category || null);
     window.scrollTo(0, 0);
   };
 
   const closeDetail = () => {
     setDetailPhraseId(null);
+    setDetailPhraseCategory(null);
   };
 
   if (detailPhraseId) {
@@ -607,7 +640,7 @@ function App() {
         <header className="text-center mb-4 border-bottom pb-3">
           <div className="d-flex justify-content-between align-items-center">
             <button onClick={closeDetail} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold notranslate">{detailPhrase ? detailPhrase.category : selectedCategory} の詳細</h1>
+            <h1 className="h4 m-0 fw-bold notranslate">{detailPhrase ? detailPhrase.category : (detailPhraseCategory || categoryLabel)} の詳細</h1>
             <div style={{ width: "60px" }}></div>
           </div>
         </header>
@@ -674,12 +707,12 @@ function App() {
         <header className="text-center mb-4 border-bottom pb-3 no-print">
           <div className="d-flex justify-content-between align-items-center">
             <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold notranslate">{selectedCategory}の絵札印刷</h1>
+            <h1 className="h4 m-0 fw-bold notranslate">{categoryLabel}の絵札印刷</h1>
             <div style={{ width: "60px" }}></div>
           </div>
         </header>
 
-        {!selectedCategory ? (
+        {selectedCategories.length === 0 ? (
           <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>
         ) : allPhrasesForCategory.length === 0 ? (
           <p className="text-muted text-center py-5 no-print">読み込み中...</p>
@@ -696,11 +729,14 @@ function App() {
             </div>
 
             <div className="efuda-print-area">
-              {efudaPages.map((pageItems, pageIndex) => (
+              {efudaPages.map((page, pageIndex) => (
                 <div className="efuda-page" key={pageIndex}>
+                  {selectedCategories.length > 1 && (
+                    <p className="no-print text-muted small mb-2">{page.category}</p>
+                  )}
                   <div className="efuda-grid">
                     {Array.from({ length: EFUDA_PER_PAGE }).map((_, slotIndex) => {
-                      const p = pageItems[slotIndex];
+                      const p = page.items[slotIndex];
                       return (
                         <div className="efuda-card" key={slotIndex}>
                           {p && (
@@ -727,7 +763,7 @@ function App() {
       <div className="container py-4 mx-auto">
         <header className="text-center mb-5 border-bottom pb-3">
           <div className="d-flex justify-content-between align-items-center">
-            <button onClick={() => { setView("game"); setSelectedCategory(null); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+            <button onClick={() => { setView("game"); setSelectedCategories([]); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
             <h1 className="h2 fw-bold m-0 text-dark">全札一覧</h1>
             <div style={{ width: "60px" }}></div>
           </div>
@@ -859,31 +895,43 @@ function App() {
     );
   }
 
-  if (!selectedCategory) {
+  if (selectedCategories.length === 0) {
     return (
       <div className="container py-5 mx-auto">
       <header className="text-center mb-5">
         <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
         <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
       </header>
-        
+
       <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 text-center mb-4 text-dark">かるたの種類を選んでね</h2>
+        <h2 className="h4 text-center mb-4 text-dark">かるたの種類を選んでね（複数選択可）</h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
             {categories.length === 0 ? (
               <div className="text-success fw-bold p-3">読み込み中...</div>
             ) : (
               categories.map(cat => (
-                <button 
-                  key={cat} 
-                  onClick={() => handleCategoryClick(cat)} 
-                  className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta" 
+                <button
+                  key={cat}
+                  onClick={() => toggleDraftCategory(cat)}
+                  className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${draftCategories.includes(cat) ? 'selected' : ''}`}
+                  aria-pressed={draftCategories.includes(cat)}
                 >
-                  {cat}
+                  {draftCategories.includes(cat) ? '✓ ' : ''}{cat}
                 </button>
               ))
             )}
           </div>
+          {categories.length > 0 && (
+            <div className="text-center mt-4">
+              <button
+                onClick={handleDecideClick}
+                disabled={draftCategories.length === 0}
+                className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
+              >
+                決定（{draftCategories.length}件選択中）
+              </button>
+            </div>
+          )}
         </main>
 
         <div className="text-center d-flex flex-column gap-2">
@@ -903,7 +951,9 @@ function App() {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content rounded-4 border-0 shadow">
                 <div className="modal-body p-5 text-center">
-                  <h3 className="h5 mb-4 fw-bold">「{pendingCategory}」をお手元に持っていますか？</h3>
+                  <h3 className="h5 mb-4 fw-bold">
+                    {draftCategories.map(cat => `「${cat}」`).join("")}をお手元に持っていますか？
+                  </h3>
                   <div className="d-flex gap-2 justify-content-center">
                     <button onClick={confirmCategory} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">はい</button>
                     <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">いいえ</button>
@@ -970,7 +1020,7 @@ function App() {
   return (
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
-        <h1 className="h2 fw-bold text-dark notranslate">{selectedCategory}</h1>
+        <h1 className="h2 fw-bold text-dark notranslate">{categoryLabel}</h1>
       </header>
       
       <main className="text-center">
@@ -1004,7 +1054,7 @@ function App() {
           <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
           <div className="list-group shadow-sm rounded">
             {currentHistory.map((p, index) => (
-              <button key={`${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+              <button key={`${p.category}-${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id, p.category)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
                   {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
                   <span className="text-dark">{p.phrase}</span>
