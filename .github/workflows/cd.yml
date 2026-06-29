@@ -36,143 +36,28 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-  
-      - name: Fetch tags
+
+      # release を main の最新コミットまで追従させる（main の方が進んでいる場合のみマージ）
+      - name: Sync release with main
         run: |
           git fetch origin --tags --prune
-          git fetch origin
-          git log origin/main --oneline -5
-          git log origin/release --oneline -5
-          git rev-parse release
-          git rev-parse origin/release
-
-    # Release が Main の最新と同じか確認
-      - name: Sync check
-        id: sync
-        run: |
           git fetch origin main
           MAIN_HEAD=$(git rev-parse origin/main)
           RELEASE_HEAD=$(git rev-parse release)
-          echo "MAIN_HEAD=$MAIN_HEAD" >> $GITHUB_ENV
-          echo "RELEASE_HEAD=$RELEASE_HEAD" >> $GITHUB_ENV
-          if [ "$MAIN_HEAD" = "$RELEASE_HEAD" ]; then
-            echo "Release is up-to-date with main"
-            echo "up_to_date=true" >> $GITHUB_ENV
-          else
-            echo "Release needs to merge main"
-            echo "up_to_date=false" >> $GITHUB_ENV
-          fi
-      # 必要ならマージ
-      - name: Merge main into release if needed
-        if: env.up_to_date == 'false'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git merge --no-ff origin/main -m "Chore: Merge main into release"
-          git push origin release
-      # Release 上の HEAD に既にタグがあるか確認
-      - name: Check for existing tags
-        id: tag_check
-        run: |
-          TAGS=$(git tag --contains HEAD | grep "^v" || true)
-          if [ -n "$TAGS" ]; then
-            echo "HEAD already has tags: $TAGS"
-            echo "tag_exists=true" >> $GITHUB_ENV
-          else
-            echo "No tags on HEAD"
-            echo "tag_exists=false" >> $GITHUB_ENV
+          if [ "$MAIN_HEAD" != "$RELEASE_HEAD" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git merge --no-ff origin/main -m "Chore: Merge main into release"
+            git push origin release
           fi
 
-      - name: Skip if release branch has no new commits
-        run: |
-          if git tag --contains HEAD | grep -q "v"; then
-            echo "Release branch already contains latest tag(s). Skipping release."
-            exit 0
-          fi
-      - name: Checkout release branch
-        run: git checkout release
-      - name: Merge main into release
-        run: |
-          # Fast-forward マージ
-          git merge --ff-only origin/main || echo "Already up to date"
-      - name: Skip if no new commits
-        run: |
-          if git tag --contains HEAD | grep -q "v"; then
-            echo "Release branch already contains latest tag(s). Skipping release."
-            exit 0
-          fi
-      - name: Dry-run Semantic-release
-        id: dryrun
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          NEXT_TAG=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
-          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
-      - name: Check tag existence
-        run: |
-          if git rev-parse "refs/tags/$NEXT_TAG" >/dev/null 2>&1; then
-            echo "Tag $NEXT_TAG already exists. Skipping release."
-            exit 0
-          fi
-
-      # デバッグ: Release ブランチの情報を出力
-      - name: Debug Release branch
-        run: |
-          echo "===== RELEASE BRANCH ====="
-          echo "Branch: $(git branch --show-current)"
-          echo "Commit: $(git rev-parse HEAD)"
-          echo "Tags containing HEAD:"
-          git tag --contains HEAD
-          echo "All tags:"
-          git fetch --tags origin
-          git tag -l | grep v1.1
-    
-      # デバッグ: Main ブランチの情報も確認
-      - name: Debug Main branch
-        run: |
-          echo "===== MAIN BRANCH ====="
-          git fetch origin main --depth=1
-          git checkout origin/main
-          echo "Branch: $(git branch --show-current)"
-          echo "Commit: $(git rev-parse HEAD)"
-          echo "Tags containing HEAD:"
-          git tag --contains HEAD
-          echo "All tags:"
-          git fetch --tags origin
-          git tag -l | grep v1.1
-          # Release ブランチに戻す
-          git checkout release
-      
-      - name: Check for tag conflicts
-        id: check-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          # semantic-release が付ける予定の次バージョンを確認
-          NEXT_TAG=$(npx semantic-release --dry-run | grep "The next release version is" | awk '{print $6}')
-          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
-          # 既存タグと重複していないか確認
-          if git rev-parse "refs/tags/$NEXT_TAG" >/dev/null 2>&1; then
-            echo "Tag $NEXT_TAG already exists. Exiting."
-            exit 0
-          fi
-          git fetch --tags origin
-          git tag --contains HEAD
-
+      # release への追従直後に実行することで、他のマージとの競合（semantic-release が
+      # 「ローカルの release が remote より古い」と判定してリリースを黒くスキップする
+      # 問題）が起きる時間差を最小化する
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-          # DEBUG: semantic-release:*
-        run: |
-          git fetch --tags --force
-          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          echo "Next version: $NEXT_VERSION"
-          # ★ リモートタグチェック（これが重要）
-          if git ls-remote --tags origin | grep -q "refs/tags/v$NEXT_VERSION$"; then
-            echo "Tag v$NEXT_VERSION already exists on remote. Skipping release."
-            exit 0
-          fi      
-          npx semantic-release
+        run: npx semantic-release
       - name: Create PR from release to main
         id: sync-pr
         uses: peter-evans/create-pull-request@v5
