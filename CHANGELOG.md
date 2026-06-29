@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/bamiyanapp/karuta/compare/v1.14.0...v1.15.0) (2026-06-29)
+
+
+### Features
+
+* **frontend:** PWAの更新検知とプロンプトUIの追加 ([#162](https://github.com/bamiyanapp/karuta/issues/162)) ([dd45840](https://github.com/bamiyanapp/karuta/commit/dd458402cb8051d104ac7f389ae69e2545e11dbc))
+
 # [1.14.0](https://github.com/bamiyanapp/karuta/compare/v1.13.0...v1.14.0) (2026-06-29)
 
 
