@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.15.0",
+    "version": "1.15.1",
     "date": "2026/06/29 00:00",
+    "body": "### Bug Fixes\n\n* settings更新 ([#164](https://github.com/bamiyanapp/karuta/issues/164)) ([f2932a2](https://github.com/bamiyanapp/karuta/commit/f2932a23ae34e0062e5add82f3d4e253327ca60a))"
+  },
+  {
+    "version": "1.15.0",
+    "date": "2026/06/29 14:12",
     "body": "### Features\n\n* **frontend:** PWAの更新検知とプロンプトUIの追加 ([#162](https://github.com/bamiyanapp/karuta/issues/162)) ([dd45840](https://github.com/bamiyanapp/karuta/commit/dd458402cb8051d104ac7f389ae69e2545e11dbc))"
   },
   {
