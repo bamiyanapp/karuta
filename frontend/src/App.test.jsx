@@ -487,6 +487,62 @@ describe('App', () => {
     randomSpy.mockRestore();
   }, 15000);
 
+  it('shows the answer on the detail/report screen opened from history', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-phrase')) {
+        const id = new URL(url).searchParams.get('id');
+        const phraseById = {
+          p1: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A' },
+          p2: { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B' },
+        };
+        return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
+    const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    fireEvent.click(await screen.findByText('詳細・報告 →'));
+
+    await waitFor(() => {
+      expect(screen.getByText('答え')).toBeInTheDocument();
+      expect(screen.getByText('回答A')).toBeInTheDocument();
+    });
+
+    randomSpy.mockRestore();
+  }, 15000);
+
   it('updates settings (lang, sort order, speech rate)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
