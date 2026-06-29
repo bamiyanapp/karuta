@@ -693,6 +693,13 @@ function App() {
                 <p>平均時間: {(detailPhrase.averageTime || 0).toFixed(2)}秒</p>
                 <p>難易度レベル: {(detailPhrase.averageDifficulty || 0).toFixed(2)}</p>
               </div>
+
+              {detailPhrase.answer && detailPhrase.answer !== "-" && (
+                <div className="mb-4">
+                  <div className="text-muted mb-2">答え</div>
+                  <div className="h4 fw-bold text-dark">{detailPhrase.answer}</div>
+                </div>
+              )}
               <div className="mb-5">
                 <button 
                   onClick={repeatPhrase} 
