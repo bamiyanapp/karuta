@@ -72,7 +72,24 @@
       "Read(*)",
       "Edit(*)",
       "Write(*)",
-      "Skill(*)"
+      "Skill(*)",
+
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git --no-pager status *)",
+      "Bash(git diff *)",
+      "Bash(git --no-pager diff *)",
+      "Bash(git log *)",
+      "Bash(git --no-pager log *)",
+      "Bash(git show *)",
+      "Bash(git --no-pager show *)",
+      "Bash(git branch)",
+      "Bash(git branch *)",
+      "Bash(git --no-pager branch *)",
+      "Bash(npm run lint)",
+      "Bash(npm run test)",
+      "Bash(npm run build)",
+      "Bash(curl -s \"https://api.github.com/repos/bamiyanapp/karuta/*)"
     ]
   }
 }
