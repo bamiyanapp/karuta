@@ -270,9 +270,14 @@ exports.getPhrase = async (event) => {
     targetId = selectedItem.id;
 
     let audioData = null;
-    
+
+    const level = selectedItem.level;
+    const speechPhrase = lang === "en"
+      ? (selectedItem.phrase_en || selectedItem.phrase)
+      : selectedItem.phrase;
+
     const cacheId = crypto.createHash("sha256").update(
-      `${targetId}-${repeatCount}-${speechRate}-${lang}`
+      `${targetId}-${repeatCount}-${speechRate}-${lang}-${JSON.stringify([level, speechPhrase])}`
     ).digest("hex");
 
     if (pollyCacheTableName) {
@@ -287,14 +292,11 @@ exports.getPhrase = async (event) => {
     }
 
     if (!audioData) {
-      const level = selectedItem.level;
-      let speechPhrase = selectedItem.phrase;
       let voiceId = "Mizuki";
       let engine = "standard";
       let levelPrefix = "レベル";
 
       if (lang === "en") {
-        speechPhrase = selectedItem.phrase_en || selectedItem.phrase;
         voiceId = "Ruth";
         engine = "neural";
         levelPrefix = "Level";
