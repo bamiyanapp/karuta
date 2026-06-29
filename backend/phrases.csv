@@ -370,29 +370,29 @@ id,category,level,kana,phrase,phrase_en,answer,group
 443,しょうがっこうかるた,-,わ,わすれもの しないようにね かくにんだ,Check so you don’t forget things.,-,kids
 444,しょうがっこうかるた,-,を,しゅくだいを きちんとやろう わすれずに,Do your homework properly without forgetting.,-,kids
 445,しょうがっこうかるた,-,ん,さんかんび パパやママは みてるかな,"On open school day, I wonder if mom and dad are watching.",-,kids
-1001,HTTPステータスコード,-,2,要求は成功しました,The request succeeded.,200 OK,engineer
-1002,HTTPステータスコード,-,2,新しいリソースが作成されました,A new resource has been created.,201 Created,engineer
-1003,HTTPステータスコード,-,2,処理は成功したが返す内容がない,The request succeeded but there is no content to return.,204 No Content,engineer
-1004,HTTPステータスコード,-,3,リソースが恒久的に移動した,The resource has permanently moved.,301 Moved Permanently,engineer
-1005,HTTPステータスコード,-,3,リソースが一時的に移動した,The resource has temporarily moved.,302 Found,engineer
-1006,HTTPステータスコード,-,3,キャッシュされた内容が更新されていない,The cached content has not changed.,304 Not Modified,engineer
-1007,HTTPステータスコード,-,4,リクエストの形式が正しくない,The request is malformed.,400 Bad Request,engineer
-1008,HTTPステータスコード,-,4,認証が必要です,Authentication is required.,401 Unauthorized,engineer
-1009,HTTPステータスコード,-,4,認証は済んでいるが権限がありません,"Authenticated, but not authorized to access this resource.",403 Forbidden,engineer
-1010,HTTPステータスコード,-,4,リソースが見つかりません,The requested resource was not found.,404 Not Found,engineer
-1011,HTTPステータスコード,-,4,許可されていないHTTPメソッドが使われた,The HTTP method used is not allowed.,405 Method Not Allowed,engineer
-1012,HTTPステータスコード,-,4,リクエストが時間内に完了しなかった,The request timed out.,408 Request Timeout,engineer
-1013,HTTPステータスコード,-,4,リソースの状態が競合している,The request conflicts with the current state of the resource.,409 Conflict,engineer
-1014,HTTPステータスコード,-,4,リソースは存在したが今は削除された,The resource existed but has since been deleted.,410 Gone,engineer
-1015,HTTPステータスコード,-,4,送信データが大きすぎる,The request payload is too large.,413 Payload Too Large,engineer
-1016,HTTPステータスコード,-,4,対応していない形式のデータが送られた,The media type of the request is not supported.,415 Unsupported Media Type,engineer
-1017,HTTPステータスコード,-,4,構文は正しいが内容を処理できない,The request is well-formed but cannot be processed.,422 Unprocessable Entity,engineer
-1018,HTTPステータスコード,-,4,短時間にリクエストを送りすぎた,Too many requests were sent in a short time.,429 Too Many Requests,engineer
-1019,HTTPステータスコード,-,5,サーバー内部で予期しないエラーが発生した,An unexpected error occurred on the server.,500 Internal Server Error,engineer
-1020,HTTPステータスコード,-,5,サーバーがその機能に対応していない,The server does not support the requested functionality.,501 Not Implemented,engineer
-1021,HTTPステータスコード,-,5,上流サーバーから不正な応答を受け取った,Received an invalid response from an upstream server.,502 Bad Gateway,engineer
-1022,HTTPステータスコード,-,5,サーバーが一時的に利用できない,The server is temporarily unavailable.,503 Service Unavailable,engineer
-1023,HTTPステータスコード,-,5,上流サーバーからの応答が時間内に来なかった,Did not receive a timely response from an upstream server.,504 Gateway Timeout,engineer
+1001,HTTP大ピンチ,-,2,祈るように送ったリクエストがちゃんと成功で返ってきた,"I sent the request nervously, and it actually succeeded.",200 OK,engineer
+1002,HTTP大ピンチ,-,2,新規登録ボタンを押したらきちんと新しいデータが生まれた,"I clicked the register button, and a brand-new record was created.",201 Created,engineer
+1003,HTTP大ピンチ,-,2,削除ボタンを押したら成功なのに画面には何も表示されない,"I clicked delete, and it succeeded but nothing came back.",204 No Content,engineer
+1004,HTTP大ピンチ,-,3,昔のURLを開いたらもう新しい住所に引っ越していた,"I opened the old URL, and it had permanently moved house.",301 Moved Permanently,engineer
+1005,HTTP大ピンチ,-,3,ログイン後だけいつも知らないページに飛ばされる,"Only after logging in, I always get redirected elsewhere, but only for now.",302 Found,engineer
+1006,HTTP大ピンチ,-,3,更新したつもりがキャッシュのままだと言われた,"I tried to refresh it, but I was told nothing had changed since last time.",304 Not Modified,engineer
+1007,HTTP大ピンチ,-,4,送ったデータの形がそもそも変だったらしい,Apparently the data I sent was malformed from the start.,400 Bad Request,engineer
+1008,HTTP大ピンチ,-,4,ログインすらしていないのに画面を見ようとした,I tried to view the page without even logging in.,401 Unauthorized,engineer
+1009,HTTP大ピンチ,-,4,ログインはできたのにその先には入れてもらえない,"I was logged in, but still not allowed past this point.",403 Forbidden,engineer
+1010,HTTP大ピンチ,-,4,そのページはもうどこにも存在しないらしい,Apparently that page doesn't exist anywhere.,404 Not Found,engineer
+1011,HTTP大ピンチ,-,4,GETでアクセスしたらここはPOST専用だと言われた,"I accessed it with GET, but apparently only POST is allowed here.",405 Method Not Allowed,engineer
+1012,HTTP大ピンチ,-,4,返事を待ち続けたけど間に合わなかった,"I kept waiting for a reply, but it never came in time.",408 Request Timeout,engineer
+1013,HTTP大ピンチ,-,4,同時に更新したらお互いの内容がぶつかった,"Two updates happened at once, and they collided.",409 Conflict,engineer
+1014,HTTP大ピンチ,-,4,前はたしかにあったのにもう永遠に戻ってこないらしい,"It definitely used to be here, but now it's gone for good.",410 Gone,engineer
+1015,HTTP大ピンチ,-,4,大きすぎる画像を送ったら受け取ってもらえなかった,"I tried sending too large a file, and it got rejected.",413 Payload Too Large,engineer
+1016,HTTP大ピンチ,-,4,送ったファイルの形式がそもそも対応していないらしい,The file format I sent apparently isn't supported at all.,415 Unsupported Media Type,engineer
+1017,HTTP大ピンチ,-,4,形式は合っているのに内容がおかしいと突き返された,"The format was fine, but the content itself got rejected.",422 Unprocessable Entity,engineer
+1018,HTTP大ピンチ,-,4,焦って何度も送ったらしばらく待つよう言われた,I sent too many requests in a panic and got told to slow down.,429 Too Many Requests,engineer
+1019,HTTP大ピンチ,-,5,サーバーの中でなにか予想外のことが起きたらしい,Something unexpected happened deep inside the server.,500 Internal Server Error,engineer
+1020,HTTP大ピンチ,-,5,そんな機能はサーバーがそもそも知らないと言われた,The server said it has no idea what that feature even is.,501 Not Implemented,engineer
+1021,HTTP大ピンチ,-,5,問い合わせた先のサーバーからおかしな返事が来た,The upstream server sent back a broken reply.,502 Bad Gateway,engineer
+1022,HTTP大ピンチ,-,5,今だけサーバーが対応できないと断られた,The server said it just can't handle anything right now.,503 Service Unavailable,engineer
+1023,HTTP大ピンチ,-,5,問い合わせた先からの返事がいつまでも来なかった,The upstream server never replied in time.,504 Gateway Timeout,engineer
 1101,Linuxコマンドかるた,-,L,ディレクトリ一覧を表示する,Display a list of directory contents.,ls,engineer
 1102,Linuxコマンドかるた,-,P,現在のディレクトリを表示する,Display the current directory.,pwd,engineer
 1103,Linuxコマンドかるた,-,C,ディレクトリを移動する,Change the current directory.,cd,engineer
@@ -535,35 +535,35 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1428,AWSかるた,-,E,EC2にアタッチするブロックストレージ,Block storage attached to EC2 instances.,EBS,engineer
 1429,AWSかるた,-,A,高い性能を持つマネージドリレーショナルDB,A high-performance managed relational database.,Aurora,engineer
 1430,AWSかるた,-,R,大規模なデータウェアハウス,A large-scale data warehouse.,Redshift,engineer
-1501,Javaかるた,-,N,Null参照時に発生する例外,An exception thrown when dereferencing a null reference.,NullPointerException,engineer
-1502,Javaかるた,-,I,入出力で発生する例外,An exception thrown for input/output failures.,IOException,engineer
-1503,Javaかるた,-,H,キーと値を保持するコレクション,A collection that holds key-value pairs.,HashMap,engineer
-1504,Javaかるた,-,A,配列の範囲外にアクセスした時の例外,An exception thrown when accessing an array out of bounds.,ArrayIndexOutOfBoundsException,engineer
-1505,Javaかるた,-,C,指定したクラスが見つからない時の例外,An exception thrown when a specified class cannot be found.,ClassNotFoundException,engineer
-1506,Javaかるた,-,N,文字列を数値に変換できない時の例外,An exception thrown when a string cannot be converted to a number.,NumberFormatException,engineer
-1507,Javaかるた,-,I,不正な引数が渡された時の例外,An exception thrown when an invalid argument is passed.,IllegalArgumentException,engineer
-1508,Javaかるた,-,I,オブジェクトの状態が不正な時の例外,An exception thrown when an object is in an invalid state.,IllegalStateException,engineer
-1509,Javaかるた,-,A,0で割るなど算術エラー時の例外,An exception thrown for arithmetic errors such as division by zero.,ArithmeticException,engineer
-1510,Javaかるた,-,C,ループ中にコレクションを変更した時の例外,An exception thrown when a collection is modified during iteration.,ConcurrentModificationException,engineer
-1511,Javaかるた,-,O,メモリ不足で発生するエラー,An error thrown when the JVM runs out of memory.,OutOfMemoryError,engineer
-1512,Javaかるた,-,S,再帰呼び出しが深すぎて発生するエラー,An error thrown when recursive calls go too deep.,StackOverflowError,engineer
-1513,Javaかるた,-,A,可変長の配列のようなコレクション,A resizable array-like collection.,ArrayList,engineer
-1514,Javaかるた,-,L,要素を連結して保持するリスト,A list that holds elements as a linked sequence.,LinkedList,engineer
-1515,Javaかるた,-,H,重複を許さないコレクション,A collection that does not allow duplicate elements.,HashSet,engineer
-1516,Javaかるた,-,T,キーで自動的に並び替えられるマップ,A map that is automatically sorted by its keys.,TreeMap,engineer
-1517,Javaかるた,-,S,文字列を効率的に組み立てるクラス,A class for efficiently building strings.,StringBuilder,engineer
-1518,Javaかるた,-,O,値が存在しないかもしれないことを表すクラス,A class representing a value that may or may not be present.,Optional,engineer
-1519,Javaかるた,-,S,コレクションを関数的に処理するAPI,An API for processing collections in a functional style.,Stream,engineer
-1520,Javaかるた,-,I,メソッドの仕様だけを定義する型,A type that defines only method signatures.,Interface,engineer
-1521,Javaかるた,-,A,一部だけ実装したクラス,A class that is only partially implemented.,Abstract Class,engineer
-1522,Javaかるた,-,G,型を汎用的に扱う仕組み,A mechanism for handling types generically.,Generics,engineer
-1523,Javaかるた,-,T,例外処理を記述する構文,Syntax for handling exceptions.,try-catch-finally,engineer
-1524,Javaかるた,-,S,複数スレッドからの同時アクセスを制御する,Controls concurrent access from multiple threads.,synchronized,engineer
-1525,Javaかるた,-,T,並行して処理を実行する単位,A unit of execution that runs concurrently.,Thread,engineer
-1526,Javaかるた,-,O,親クラスのメソッドを子クラスで上書きする,Overrides a parent class's method in a subclass.,Override,engineer
-1527,Javaかるた,-,E,オブジェクトの等価性を判定する仕組み,A mechanism for determining object equality.,equals/hashCode,engineer
-1528,Javaかるた,-,F,値や継承を変更不可にするキーワード,A keyword that makes a value or inheritance unchangeable.,final,engineer
-1529,Javaかるた,-,S,インスタンスに依存しないメンバーを定義するキーワード,A keyword for defining members that don't depend on an instance.,static,engineer
+1501,Java大ピンチ,-,N,nullのはずの変数を当然のように呼び出してしまった,I called a method on something that turned out to be null.,NullPointerException,engineer
+1502,Java大ピンチ,-,I,ファイルを読み込もうとしたら途中で失敗した,Reading the file failed partway through.,IOException,engineer
+1503,Java大ピンチ,-,H,名前で検索したいのに配列だと毎回全部探してしまう,"I wanted to look things up by name, but the array made me scan everything.",HashMap,engineer
+1504,Java大ピンチ,-,A,配列の最後のつもりがその一個先を見ていた,"I thought I was at the last index, but I was already one past it.",ArrayIndexOutOfBoundsException,engineer
+1505,Java大ピンチ,-,C,そのクラスは実行時にはどこにも見つからなかった,"At runtime, that class was nowhere to be found.",ClassNotFoundException,engineer
+1506,Java大ピンチ,-,N,文字列を数値に変換しようとしたら数字になっていなかった,"I tried to convert a string to a number, but it wasn't numeric at all.",NumberFormatException,engineer
+1507,Java大ピンチ,-,I,渡された引数がそもそも受け取れない値だった,The argument I received was simply not acceptable.,IllegalArgumentException,engineer
+1508,Java大ピンチ,-,I,呼んではいけないタイミングでそのメソッドを呼んでしまった,I called that method at a moment it shouldn't have been called.,IllegalStateException,engineer
+1509,Java大ピンチ,-,A,0で割ってしまって計算がそこで止まった,"I divided by zero, and the calculation stopped right there.",ArithmeticException,engineer
+1510,Java大ピンチ,-,C,ループで回している最中にそのコレクションをいじってしまった,I modified the collection while still looping through it.,ConcurrentModificationException,engineer
+1511,Java大ピンチ,-,O,メモリを使い切ってJVMがついに音を上げた,"Memory ran out, and the JVM finally gave up.",OutOfMemoryError,engineer
+1512,Java大ピンチ,-,S,再帰呼び出しが終わる条件を見失って深くなりすぎた,The recursive calls lost their stopping point and went too deep.,StackOverflowError,engineer
+1513,Java大ピンチ,-,A,配列のつもりだったのに要素を増やしたり減らしたりしたくなった,"I started with a plain array, but then wanted to resize it freely.",ArrayList,engineer
+1514,Java大ピンチ,-,L,真ん中への挿入ばかりで配列のコピーに時間がかかっていた,Inserting in the middle kept forcing slow array copies.,LinkedList,engineer
+1515,Java大ピンチ,-,H,同じ値がリストの中に何個も紛れ込んでいた,The same value kept sneaking into the list multiple times.,HashSet,engineer
+1516,Java大ピンチ,-,T,キーの並び順がいつもバラバラで整列させたかった,"The key order was always scrambled, and I wanted it sorted.",TreeMap,engineer
+1517,Java大ピンチ,-,S,文字列を+で繋ぐたびに新しいオブジェクトが量産されていた,Every string concatenation quietly created a brand-new object.,StringBuilder,engineer
+1518,Java大ピンチ,-,O,戻り値がnullかもしれないのにそのまま呼び出してしまいそうだった,"The return value might be null, and I almost called it blindly.",Optional,engineer
+1519,Java大ピンチ,-,S,forループを何重にも書いていたらコードが読みにくくなった,Nested for-loops piled up until the code became unreadable.,Stream,engineer
+1520,Java大ピンチ,-,I,実装は持たずにメソッドの形だけ決めておきたかった,"I wanted to define only the method shapes, with no implementation.",Interface,engineer
+1521,Java大ピンチ,-,A,共通の処理だけ用意して残りは子クラスに任せたかった,I wanted to share some logic but leave the rest to subclasses.,Abstract Class,engineer
+1522,Java大ピンチ,-,G,同じクラスを型ごとにいくつも書きそうになった,I was about to duplicate the same class for every type.,Generics,engineer
+1523,Java大ピンチ,-,T,例外が起きても最後の後始末だけは必ずやりたかった,"Even if an exception occurs, the cleanup still has to run.",try-catch-finally,engineer
+1524,Java大ピンチ,-,S,複数のスレッドが同時に同じ値を書き換えにきた,Multiple threads tried to rewrite the same value at once.,synchronized,engineer
+1525,Java大ピンチ,-,T,重い処理のせいで画面が固まったように見えた,A heavy task made everything look frozen.,Thread,engineer
+1526,Java大ピンチ,-,O,親クラスと同じ動きしかせず子クラスらしい振る舞いに変えられなかった,"The subclass behaved just like its parent, and I needed to change that.",Override,engineer
+1527,Java大ピンチ,-,E,中身が同じはずのオブジェクトが別物として扱われてしまった,Two objects with identical content were treated as different.,equals/hashCode,engineer
+1528,Java大ピンチ,-,F,あとから値を変えられないように絶対に守りたかった,I wanted to make sure that value could never be changed again.,final,engineer
+1529,Java大ピンチ,-,S,インスタンスを作らなくてもその機能だけ使いたかった,I wanted to use that feature without ever creating an instance.,static,engineer
 1601,コードレビューかるた,-,D,同じコードが複数箇所に存在する,The same code exists in multiple places.,DRY原則,engineer
 1602,コードレビューかるた,-,か,変数名から役割が分からない,It's unclear what a variable does from its name.,可読性,engineer
 1603,コードレビューかるた,-,た,1つのメソッドが長すぎる,A single method is too long.,単一責任の原則,engineer
