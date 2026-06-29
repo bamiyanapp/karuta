@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/bamiyanapp/karuta/compare/v1.15.0...v1.15.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* settings更新 ([#164](https://github.com/bamiyanapp/karuta/issues/164)) ([f2932a2](https://github.com/bamiyanapp/karuta/commit/f2932a23ae34e0062e5add82f3d4e253327ca60a))
+
 # [1.15.0](https://github.com/bamiyanapp/karuta/compare/v1.14.0...v1.15.0) (2026-06-29)
 
 
