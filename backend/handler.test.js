@@ -386,6 +386,63 @@ describe('getPhrase', () => {
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="110%">');
     });
+
+    it('should use a different cache key when the phrase text changes for the same id', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = () => {
+            const s = new Readable();
+            s.push('audio data');
+            s.push(null);
+            return s;
+        };
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: '元の読み札', level: '1' }],
+        });
+        const event = { queryStringParameters: { id: 'p1' } };
+        await getPhrase(event);
+        const firstCacheId = ddbMock.commandCalls(PutCommand)[0].args[0].input.Item.id;
+
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: '変更後の読み札', level: '1' }],
+        });
+        await getPhrase(event);
+        const secondCacheId = ddbMock.commandCalls(PutCommand)[1].args[0].input.Item.id;
+
+        expect(secondCacheId).not.toBe(firstCacheId);
+    });
+
+    it('should keep the same cache key for a language when only the other language text changes', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = () => {
+            const s = new Readable();
+            s.push('audio data');
+            s.push(null);
+            return s;
+        };
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: '元の読み札', phrase_en: 'Original phrase', level: '1' }],
+        });
+        const jaEvent = { queryStringParameters: { id: 'p1', lang: 'ja' } };
+        await getPhrase(jaEvent);
+        const firstJaCacheId = ddbMock.commandCalls(PutCommand)[0].args[0].input.Item.id;
+
+        // phrase_en changes but the ja phrase stays the same; ja audio is unaffected.
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: '元の読み札', phrase_en: 'Changed phrase', level: '1' }],
+        });
+        await getPhrase(jaEvent);
+        const secondJaCacheId = ddbMock.commandCalls(PutCommand)[1].args[0].input.Item.id;
+
+        expect(secondJaCacheId).toBe(firstJaCacheId);
+    });
 });
 
 describe('recordTime', () => {
