@@ -139,6 +139,20 @@ button:active:not(:disabled) {
   transform: translateY(2px);
 }
 
+/* 全札一覧テーブル：スクロール可能・ヘッダ固定 */
+.all-phrases-table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 260px);
+}
+
+.all-phrases-table-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f8f9fa;
+}
+
 /* 絵札印刷（エーワン マルチカード ZT51677_A 実測準拠：上下7mm・左右12mm余白、列間4mm・行間2mm） */
 .efuda-print-area {
   display: flex;
