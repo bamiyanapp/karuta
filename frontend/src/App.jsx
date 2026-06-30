@@ -118,7 +118,7 @@ function App() {
             if (aValue === '-' && bValue !== '-') return 1;
             if (aValue !== '-' && bValue === '-') return -1;
             if (aValue === '-' && bValue === '-') return 0;
-            // 初級=整数上限-1、上級=整数上限 として数値化し一貫したソートを保証
+            // 初級=1000000、上級=1000001 として数値化し一貫したソートを保証
             const toLevelNum = (v) => {
               if (v === '初級') return 1_000_000;
               if (v === '上級') return 1_000_001;
