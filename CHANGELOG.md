@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/bamiyanapp/karuta/compare/v1.16.0...v1.17.0) (2026-06-30)
+
+
+### Features
+
+* **all-phrases:** 種別フィルタ追加とヘッダ固定表示 ([#168](https://github.com/bamiyanapp/karuta/issues/168)) ([bf3860d](https://github.com/bamiyanapp/karuta/commit/bf3860d2b5dcd4accd950e8ac734823250ff3aa3))
+
 # [1.16.0](https://github.com/bamiyanapp/karuta/compare/v1.15.1...v1.16.0) (2026-06-30)
 
 
