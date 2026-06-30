@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/bamiyanapp/karuta/compare/v1.15.1...v1.16.0) (2026-06-30)
+
+
+### Features
+
+* **test:** phrases.csvデータ整合性・かな整合・レベルユニーク性テストの追加とCSVデータ修正 ([#166](https://github.com/bamiyanapp/karuta/issues/166)) ([bd566f1](https://github.com/bamiyanapp/karuta/commit/bd566f1bc1a011041060ae7454b12fe477afaac2))
+
 ## [1.15.1](https://github.com/bamiyanapp/karuta/compare/v1.15.0...v1.15.1) (2026-06-29)
 
 
