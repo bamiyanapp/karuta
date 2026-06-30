@@ -118,12 +118,15 @@ function App() {
             if (aValue === '-' && bValue !== '-') return 1;
             if (aValue !== '-' && bValue === '-') return -1;
             if (aValue === '-' && bValue === '-') return 0;
-            const aNum = parseInt(aValue, 10);
-            const bNum = parseInt(bValue, 10);
-            if (!isNaN(aNum) && !isNaN(bNum)) {
-                aValue = aNum;
-                bValue = bNum;
-            }
+            // 初級=1000000、上級=1000001 として数値化し一貫したソートを保証
+            const toLevelNum = (v) => {
+              if (v === '初級') return 1_000_000;
+              if (v === '上級') return 1_000_001;
+              const n = parseInt(v, 10);
+              return isNaN(n) ? 1_000_002 : n;
+            };
+            aValue = toLevelNum(aValue);
+            bValue = toLevelNum(bValue);
         } else if (sortConfig.key === 'readCount' || sortConfig.key === 'averageDifficulty' || sortConfig.key === 'averageTime') {
             aValue = aValue || 0;
             bValue = bValue || 0;
