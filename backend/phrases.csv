@@ -15,7 +15,7 @@ id,category,level,kana,phrase,phrase_en,answer,group
 16,大ピンチずかん,27,う,「う」の　もじが　はんたいだった,The letter 'u' was backwards.,-,kids
 17,大ピンチずかん,19,け,おちたけしゴムがみつからない,Can't find the dropped eraser.,-,kids
 18,大ピンチずかん,17,し,しょうゆをいれすぎた,Poured too much soy sauce.,-,kids
-19,大ピンチずかん,34,しゃ,シャワーがみつからない,Can't find the shower.,-,kids
+19,大ピンチずかん,34,し,シャワーがみつからない,Can't find the shower.,-,kids
 20,大ピンチずかん,3,こ,こおりがしたにくっついた,The ice stuck to my tongue.,-,kids
 21,大ピンチずかん,26,た,たんじょうびケーキがたおれそう,The birthday cake is about to fall.,-,kids
 22,大ピンチずかん,22,じ,じゅうでんができていなかった,It wasn't charged.,-,kids
@@ -27,7 +27,6 @@ id,category,level,kana,phrase,phrase_en,answer,group
 28,大ピンチずかん,55,い,いおうとしていたことをわすれた,Forgot what I was about to say.,-,kids
 29,大ピンチずかん,46,に,にくがきれない,Can't cut the meat.,-,kids
 30,大ピンチずかん,39,た,たんじょうびケーキのろうそくがきえない,The birthday cake candles won't go out.,-,kids
-31,大ピンチずかん,52,む,むかしのおにぎりがでてきた,An old rice ball appeared.,-,kids
 32,大ピンチずかん,54,れ,れいとうこがあかない,The freezer won't open.,-,kids
 33,大ピンチずかん,48,ふ,ふくのピラピラがきになる,The loose thread on my clothes is bothering me.,-,kids
 34,大ピンチずかん,43,し,しゅくだいノートと　じゆうちょうをまちがえた,Confused the homework notebook with the sketchbook.,-,kids
@@ -368,31 +367,31 @@ id,category,level,kana,phrase,phrase_en,answer,group
 441,しょうがっこうかるた,-,れ,れいぎよく あいさつできる いいこだね,Polite greetings are great.,-,kids
 442,しょうがっこうかるた,-,ろ,ろうかでは はしらずあるこう あんぜんに,Walk in hallways safely.,-,kids
 443,しょうがっこうかるた,-,わ,わすれもの しないようにね かくにんだ,Check so you don’t forget things.,-,kids
-444,しょうがっこうかるた,-,を,しゅくだいを きちんとやろう わすれずに,Do your homework properly without forgetting.,-,kids
-445,しょうがっこうかるた,-,ん,さんかんび パパやママは みてるかな,"On open school day, I wonder if mom and dad are watching.",-,kids
-1001,HTTP大ピンチ,-,2,祈るように送ったリクエストがちゃんと成功で返ってきた,"I sent the request nervously, and it actually succeeded.",200 OK,engineer
-1002,HTTP大ピンチ,-,2,新規登録ボタンを押したらきちんと新しいデータが生まれた,"I clicked the register button, and a brand-new record was created.",201 Created,engineer
-1003,HTTP大ピンチ,-,2,削除ボタンを押したら成功なのに画面には何も表示されない,"I clicked delete, and it succeeded but nothing came back.",204 No Content,engineer
-1004,HTTP大ピンチ,-,3,昔のURLを開いたらもう新しい住所に引っ越していた,"I opened the old URL, and it had permanently moved house.",301 Moved Permanently,engineer
-1005,HTTP大ピンチ,-,3,ログイン後だけいつも知らないページに飛ばされる,"Only after logging in, I always get redirected elsewhere, but only for now.",302 Found,engineer
-1006,HTTP大ピンチ,-,3,更新したつもりがキャッシュのままだと言われた,"I tried to refresh it, but I was told nothing had changed since last time.",304 Not Modified,engineer
-1007,HTTP大ピンチ,-,4,送ったデータの形がそもそも変だったらしい,Apparently the data I sent was malformed from the start.,400 Bad Request,engineer
-1008,HTTP大ピンチ,-,4,ログインすらしていないのに画面を見ようとした,I tried to view the page without even logging in.,401 Unauthorized,engineer
-1009,HTTP大ピンチ,-,4,ログインはできたのにその先には入れてもらえない,"I was logged in, but still not allowed past this point.",403 Forbidden,engineer
-1010,HTTP大ピンチ,-,4,そのページはもうどこにも存在しないらしい,Apparently that page doesn't exist anywhere.,404 Not Found,engineer
-1011,HTTP大ピンチ,-,4,GETでアクセスしたらここはPOST専用だと言われた,"I accessed it with GET, but apparently only POST is allowed here.",405 Method Not Allowed,engineer
-1012,HTTP大ピンチ,-,4,返事を待ち続けたけど間に合わなかった,"I kept waiting for a reply, but it never came in time.",408 Request Timeout,engineer
-1013,HTTP大ピンチ,-,4,同時に更新したらお互いの内容がぶつかった,"Two updates happened at once, and they collided.",409 Conflict,engineer
-1014,HTTP大ピンチ,-,4,前はたしかにあったのにもう永遠に戻ってこないらしい,"It definitely used to be here, but now it's gone for good.",410 Gone,engineer
-1015,HTTP大ピンチ,-,4,大きすぎる画像を送ったら受け取ってもらえなかった,"I tried sending too large a file, and it got rejected.",413 Payload Too Large,engineer
-1016,HTTP大ピンチ,-,4,送ったファイルの形式がそもそも対応していないらしい,The file format I sent apparently isn't supported at all.,415 Unsupported Media Type,engineer
-1017,HTTP大ピンチ,-,4,形式は合っているのに内容がおかしいと突き返された,"The format was fine, but the content itself got rejected.",422 Unprocessable Entity,engineer
-1018,HTTP大ピンチ,-,4,焦って何度も送ったらしばらく待つよう言われた,I sent too many requests in a panic and got told to slow down.,429 Too Many Requests,engineer
-1019,HTTP大ピンチ,-,5,サーバーの中でなにか予想外のことが起きたらしい,Something unexpected happened deep inside the server.,500 Internal Server Error,engineer
-1020,HTTP大ピンチ,-,5,そんな機能はサーバーがそもそも知らないと言われた,The server said it has no idea what that feature even is.,501 Not Implemented,engineer
-1021,HTTP大ピンチ,-,5,問い合わせた先のサーバーからおかしな返事が来た,The upstream server sent back a broken reply.,502 Bad Gateway,engineer
-1022,HTTP大ピンチ,-,5,今だけサーバーが対応できないと断られた,The server said it just can't handle anything right now.,503 Service Unavailable,engineer
-1023,HTTP大ピンチ,-,5,問い合わせた先からの返事がいつまでも来なかった,The upstream server never replied in time.,504 Gateway Timeout,engineer
+444,しょうがっこうかるた,-,し,しゅくだいを きちんとやろう わすれずに,Do your homework properly without forgetting.,-,kids
+445,しょうがっこうかるた,-,さ,さんかんび パパやママは みてるかな,"On open school day, I wonder if mom and dad are watching.",-,kids
+1001,HTTP大ピンチ,10,2,祈るように送ったリクエストがちゃんと成功で返ってきた,"I sent the request nervously, and it actually succeeded.",200 OK,engineer
+1002,HTTP大ピンチ,15,2,新規登録ボタンを押したらきちんと新しいデータが生まれた,"I clicked the register button, and a brand-new record was created.",201 Created,engineer
+1003,HTTP大ピンチ,20,2,削除ボタンを押したら成功なのに画面には何も表示されない,"I clicked delete, and it succeeded but nothing came back.",204 No Content,engineer
+1004,HTTP大ピンチ,21,3,昔のURLを開いたらもう新しい住所に引っ越していた,"I opened the old URL, and it had permanently moved house.",301 Moved Permanently,engineer
+1005,HTTP大ピンチ,25,3,ログイン後だけいつも知らないページに飛ばされる,"Only after logging in, I always get redirected elsewhere, but only for now.",302 Found,engineer
+1006,HTTP大ピンチ,26,3,更新したつもりがキャッシュのままだと言われた,"I tried to refresh it, but I was told nothing had changed since last time.",304 Not Modified,engineer
+1007,HTTP大ピンチ,16,4,送ったデータの形がそもそも変だったらしい,Apparently the data I sent was malformed from the start.,400 Bad Request,engineer
+1008,HTTP大ピンチ,17,4,ログインすらしていないのに画面を見ようとした,I tried to view the page without even logging in.,401 Unauthorized,engineer
+1009,HTTP大ピンチ,22,4,ログインはできたのにその先には入れてもらえない,"I was logged in, but still not allowed past this point.",403 Forbidden,engineer
+1010,HTTP大ピンチ,11,4,そのページはもうどこにも存在しないらしい,Apparently that page doesn't exist anywhere.,404 Not Found,engineer
+1011,HTTP大ピンチ,27,4,GETでアクセスしたらここはPOST専用だと言われた,"I accessed it with GET, but apparently only POST is allowed here.",405 Method Not Allowed,engineer
+1012,HTTP大ピンチ,28,4,返事を待ち続けたけど間に合わなかった,"I kept waiting for a reply, but it never came in time.",408 Request Timeout,engineer
+1013,HTTP大ピンチ,31,4,同時に更新したらお互いの内容がぶつかった,"Two updates happened at once, and they collided.",409 Conflict,engineer
+1014,HTTP大ピンチ,32,4,前はたしかにあったのにもう永遠に戻ってこないらしい,"It definitely used to be here, but now it's gone for good.",410 Gone,engineer
+1015,HTTP大ピンチ,29,4,大きすぎる画像を送ったら受け取ってもらえなかった,"I tried sending too large a file, and it got rejected.",413 Payload Too Large,engineer
+1016,HTTP大ピンチ,30,4,送ったファイルの形式がそもそも対応していないらしい,The file format I sent apparently isn't supported at all.,415 Unsupported Media Type,engineer
+1017,HTTP大ピンチ,33,4,形式は合っているのに内容がおかしいと突き返された,"The format was fine, but the content itself got rejected.",422 Unprocessable Entity,engineer
+1018,HTTP大ピンチ,36,4,焦って何度も送ったらしばらく待つよう言われた,I sent too many requests in a panic and got told to slow down.,429 Too Many Requests,engineer
+1019,HTTP大ピンチ,18,5,サーバーの中でなにか予想外のことが起きたらしい,Something unexpected happened deep inside the server.,500 Internal Server Error,engineer
+1020,HTTP大ピンチ,34,5,そんな機能はサーバーがそもそも知らないと言われた,The server said it has no idea what that feature even is.,501 Not Implemented,engineer
+1021,HTTP大ピンチ,37,5,問い合わせた先のサーバーからおかしな返事が来た,The upstream server sent back a broken reply.,502 Bad Gateway,engineer
+1022,HTTP大ピンチ,35,5,今だけサーバーが対応できないと断られた,The server said it just can't handle anything right now.,503 Service Unavailable,engineer
+1023,HTTP大ピンチ,38,5,問い合わせた先からの返事がいつまでも来なかった,The upstream server never replied in time.,504 Gateway Timeout,engineer
 1101,Linuxコマンドかるた,-,L,ディレクトリ一覧を表示する,Display a list of directory contents.,ls,engineer
 1102,Linuxコマンドかるた,-,P,現在のディレクトリを表示する,Display the current directory.,pwd,engineer
 1103,Linuxコマンドかるた,-,C,ディレクトリを移動する,Change the current directory.,cd,engineer
@@ -433,46 +432,46 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1138,Linuxコマンドかるた,-,W,コマンドの実行ファイルの場所を調べる,Find the location of a command's executable.,which,engineer
 1139,Linuxコマンドかるた,-,W,現在ログインしているユーザー名を表示する,Display the current logged-in user name.,whoami,engineer
 1140,Linuxコマンドかるた,-,H,コンピュータのホスト名を表示する,Display the computer's host name.,hostname,engineer
-1201,Git大ピンチ,-,I,「まずpushして」と言われたけどGitを始めてもいなかった,"You were told to push before initializing Git.",git init,engineer
-1202,Git大ピンチ,-,C,URLだけ渡されて「触っといて」と言われた,"You only received a repository URL.",git clone,engineer
-1203,Git大ピンチ,-,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer
-1204,Git大ピンチ,-,D,レビューで「何を変更したの？」と聞かれ固まった,"Someone asked what changed.",git diff,engineer
-1205,Git大ピンチ,-,L,昨日から壊れてるらしい。いつ壊した？,"The bug appeared yesterday. Which commit caused it?",git log,engineer
-1206,Git大ピンチ,-,B,mainで直接開発していたことに気付いた,"You accidentally developed on main.",git switch -c,engineer
-1207,Git大ピンチ,-,M,レビューOK！でも取り込み方が分からない,"The PR was approved. Now what?",git merge,engineer
-1208,Git大ピンチ,-,R,コミット履歴が「fix」「fix2」「fix3」だらけ,"Your commit history is messy.",git rebase -i,engineer
-1209,Git大ピンチ,-,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,"You must switch tasks immediately.",git stash,engineer
-1210,Git大ピンチ,-,P,自分だけ動く。みんなには見えない,"Only your machine has the changes.",git push,engineer
-1211,Git大ピンチ,-,P,取り込みしないまま続けたら地獄のコンフリクト,"You skipped pull before starting work.",git pull,engineer
-1212,Git大ピンチ,-,F,最新は見たい。でもまだ混ぜたくない,"You only want the latest remote state.",git fetch,engineer
-1213,Git大ピンチ,-,R,昨日の作業全部なかったことにしたい,"You want to discard yesterday's work.",git reset --hard,engineer
-1214,Git大ピンチ,-,R,本番に出したコミットだけ安全に取り消したい,"Undo only one released commit.",git revert,engineer
-1215,Git大ピンチ,-,C,あのバグ修正だけ今のブランチにも欲しい,"You only need one commit.",git cherry-pick,engineer
-1216,Git大ピンチ,-,B,「誰がこのバグ入れた？」会議室が静まり返る,"Who introduced this bug?",git blame,engineer
-1217,Git大ピンチ,-,S,このコミット、本当に何を変更した？,"What exactly changed in this commit?",git show,engineer
-1218,Git大ピンチ,-,R,リモートが増えすぎてpush先が分からない,"Too many remotes. Which one am I using?",git remote -v,engineer
-1219,Git大ピンチ,-,C,知らない名前でコミットされていた,"Your commit author is wrong.",git config --global,engineer
-1220,Git大ピンチ,-,T,v2.0ってどのコミット？誰も分からない,"Nobody knows where version 2.0 is.",git tag,engineer
-1221,Git大ピンチ,-,R,間違えてファイルを削除してしまった,"You deleted the wrong file.",git restore,engineer
-1222,Git大ピンチ,-,C,ブランチを切り替えたらファイルが消えた,"Files disappeared after switching branches.",git checkout,engineer
-1223,Git大ピンチ,-,A,ファイルを追加したのにコミットに入っていなかった,"The new file wasn't included.",git add,engineer
-1224,Git大ピンチ,-,C,コミットした瞬間、誤字を見つけた,"You spotted a typo right after committing.",git commit --amend,engineer
-1225,Git大ピンチ,-,S,コンフリクトを直したつもりなのにまだ終わらない,"You resolved conflicts, but Git disagrees.",git status → git add → git commit,engineer
-1226,Git大ピンチ,-,S,コンフリクトを直したのに「まだ終わってない」と言われた,"Git still thinks the merge isn't finished.",git status → git add → git commit,engineer
-1227,Git大ピンチ,-,R,間違えてmainへpushしてしまった,"You accidentally pushed directly to main.",git revert,engineer
-1228,Git大ピンチ,-,S,ブランチを切り替えたいのに変更が邪魔して進めない,"Uncommitted changes block switching branches.",git stash → git switch,engineer
-1229,Git大ピンチ,-,F,最新を取り込んだら大量コンフリクトになった,"Pull caused a huge merge conflict.",git fetch → git merge,engineer
-1230,Git大ピンチ,-,L,「昨日動いてた版に戻して」と言われた,"Go back to yesterday's version.",git log → git checkout <commit>,engineer
-1231,Git大ピンチ,-,S,どのブランチにいるのか分からなくなった,"You forgot which branch you're on.",git status,engineer
-1232,Git大ピンチ,-,D,レビューで「差分が見えません」と言われた,"The reviewer can't tell what changed.",git diff,engineer
-1233,Git大ピンチ,-,C,レビュー後に1文字だけ直したい,"You only need to fix one typo after review.",git commit --amend,engineer
-1234,Git大ピンチ,-,T,リリース版がどのコミットか誰も覚えていない,"Nobody knows which commit was released.",git tag,engineer
-1235,Git大ピンチ,-,B,「このコード誰が書いた？」全員目をそらした,"Nobody admits writing the code.",git blame,engineer
-1236,Git大ピンチ,-,R,間違えて別ブランチで1時間作業してしまった,"You worked on the wrong branch for an hour.",git stash → git switch → git stash pop,engineer
-1237,Git大ピンチ,-,C,「その修正だけ持ってきて」と言われた,"Only bring over that one fix.",git cherry-pick,engineer
-1238,Git大ピンチ,-,S,マージした瞬間にビルドが壊れた,"The build broke immediately after merging.",git show,engineer
-1239,Git大ピンチ,-,R,リモートが多すぎてpush先を間違えそう,"Too many remotes to remember.",git remote -v,engineer
-1240,Git大ピンチ,-,G,新しいPCなのにコミットできない,"Git isn't configured on the new PC.",git config --global,engineer
+1201,Git大ピンチ,10,I,「まずpushして」と言われたけどGitを始めてもいなかった,You were told to push before initializing Git.,git init,engineer
+1202,Git大ピンチ,11,C,URLだけ渡されて「触っといて」と言われた,You only received a repository URL.,git clone,engineer
+1203,Git大ピンチ,12,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer
+1204,Git大ピンチ,15,D,レビューで「何を変更したの？」と聞かれ固まった,Someone asked what changed.,git diff,engineer
+1205,Git大ピンチ,28,L,昨日から壊れてるらしい。いつ壊した？,The bug appeared yesterday. Which commit caused it?,git log,engineer
+1206,Git大ピンチ,16,B,mainで直接開発していたことに気付いた,You accidentally developed on main.,git switch -c,engineer
+1207,Git大ピンチ,20,M,レビューOK！でも取り込み方が分からない,The PR was approved. Now what?,git merge,engineer
+1208,Git大ピンチ,21,R,コミット履歴が「fix」「fix2」「fix3」だらけ,Your commit history is messy.,git rebase -i,engineer
+1209,Git大ピンチ,29,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,You must switch tasks immediately.,git stash,engineer
+1210,Git大ピンチ,22,P,自分だけ動く。みんなには見えない,Only your machine has the changes.,git push,engineer
+1211,Git大ピンチ,38,P,取り込みしないまま続けたら地獄のコンフリクト,You skipped pull before starting work.,git pull,engineer
+1212,Git大ピンチ,30,F,最新は見たい。でもまだ混ぜたくない,You only want the latest remote state.,git fetch,engineer
+1213,Git大ピンチ,39,R,昨日の作業全部なかったことにしたい,You want to discard yesterday's work.,git reset --hard,engineer
+1214,Git大ピンチ,44,R,本番に出したコミットだけ安全に取り消したい,Undo only one released commit.,git revert,engineer
+1215,Git大ピンチ,45,C,あのバグ修正だけ今のブランチにも欲しい,You only need one commit.,git cherry-pick,engineer
+1216,Git大ピンチ,40,B,「誰がこのバグ入れた？」会議室が静まり返る,Who introduced this bug?,git blame,engineer
+1217,Git大ピンチ,23,S,このコミット、本当に何を変更した？,What exactly changed in this commit?,git show,engineer
+1218,Git大ピンチ,31,R,リモートが増えすぎてpush先が分からない,Too many remotes. Which one am I using?,git remote -v,engineer
+1219,Git大ピンチ,17,C,知らない名前でコミットされていた,Your commit author is wrong.,git config --global,engineer
+1220,Git大ピンチ,32,T,v2.0ってどのコミット？誰も分からない,Nobody knows where version 2.0 is.,git tag,engineer
+1221,Git大ピンチ,24,R,間違えてファイルを削除してしまった,You deleted the wrong file.,git restore,engineer
+1222,Git大ピンチ,33,C,ブランチを切り替えたらファイルが消えた,Files disappeared after switching branches.,git checkout,engineer
+1223,Git大ピンチ,13,A,ファイルを追加したのにコミットに入っていなかった,The new file wasn't included.,git add,engineer
+1224,Git大ピンチ,25,C,コミットした瞬間、誤字を見つけた,You spotted a typo right after committing.,git commit --amend,engineer
+1225,Git大ピンチ,34,S,コンフリクトを直したつもりなのにまだ終わらない,"You resolved conflicts, but Git disagrees.",git status → git add → git commit,engineer
+1226,Git大ピンチ,41,S,コンフリクトを直したのに「まだ終わってない」と言われた,Git still thinks the merge isn't finished.,git status → git add → git commit,engineer
+1227,Git大ピンチ,50,R,間違えてmainへpushしてしまった,You accidentally pushed directly to main.,git revert,engineer
+1228,Git大ピンチ,35,S,ブランチを切り替えたいのに変更が邪魔して進めない,Uncommitted changes block switching branches.,git stash → git switch,engineer
+1229,Git大ピンチ,46,F,最新を取り込んだら大量コンフリクトになった,Pull caused a huge merge conflict.,git fetch → git merge,engineer
+1230,Git大ピンチ,47,L,「昨日動いてた版に戻して」と言われた,Go back to yesterday's version.,git log → git checkout <commit>,engineer
+1231,Git大ピンチ,14,S,どのブランチにいるのか分からなくなった,You forgot which branch you're on.,git status,engineer
+1232,Git大ピンチ,26,D,レビューで「差分が見えません」と言われた,The reviewer can't tell what changed.,git diff,engineer
+1233,Git大ピンチ,27,C,レビュー後に1文字だけ直したい,You only need to fix one typo after review.,git commit --amend,engineer
+1234,Git大ピンチ,42,T,リリース版がどのコミットか誰も覚えていない,Nobody knows which commit was released.,git tag,engineer
+1235,Git大ピンチ,36,B,「このコード誰が書いた？」全員目をそらした,Nobody admits writing the code.,git blame,engineer
+1236,Git大ピンチ,43,R,間違えて別ブランチで1時間作業してしまった,You worked on the wrong branch for an hour.,git stash → git switch → git stash pop,engineer
+1237,Git大ピンチ,48,C,「その修正だけ持ってきて」と言われた,Only bring over that one fix.,git cherry-pick,engineer
+1238,Git大ピンチ,49,S,マージした瞬間にビルドが壊れた,The build broke immediately after merging.,git show,engineer
+1239,Git大ピンチ,37,R,リモートが多すぎてpush先を間違えそう,Too many remotes to remember.,git remote -v,engineer
+1240,Git大ピンチ,18,G,新しいPCなのにコミットできない,Git isn't configured on the new PC.,git config --global,engineer
 1301,SQLかるた,-,S,取得する列を指定する,Specify which columns to retrieve.,SELECT,engineer
 1302,SQLかるた,-,F,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM,engineer
 1303,SQLかるた,-,W,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE,engineer
@@ -535,35 +534,35 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1428,AWSかるた,-,E,EC2にアタッチするブロックストレージ,Block storage attached to EC2 instances.,EBS,engineer
 1429,AWSかるた,-,A,高い性能を持つマネージドリレーショナルDB,A high-performance managed relational database.,Aurora,engineer
 1430,AWSかるた,-,R,大規模なデータウェアハウス,A large-scale data warehouse.,Redshift,engineer
-1501,Java大ピンチ,-,N,nullのはずの変数を当然のように呼び出してしまった,I called a method on something that turned out to be null.,NullPointerException,engineer
-1502,Java大ピンチ,-,I,ファイルを読み込もうとしたら途中で失敗した,Reading the file failed partway through.,IOException,engineer
-1503,Java大ピンチ,-,H,名前で検索したいのに配列だと毎回全部探してしまう,"I wanted to look things up by name, but the array made me scan everything.",HashMap,engineer
-1504,Java大ピンチ,-,A,配列の最後のつもりがその一個先を見ていた,"I thought I was at the last index, but I was already one past it.",ArrayIndexOutOfBoundsException,engineer
-1505,Java大ピンチ,-,C,そのクラスは実行時にはどこにも見つからなかった,"At runtime, that class was nowhere to be found.",ClassNotFoundException,engineer
-1506,Java大ピンチ,-,N,文字列を数値に変換しようとしたら数字になっていなかった,"I tried to convert a string to a number, but it wasn't numeric at all.",NumberFormatException,engineer
-1507,Java大ピンチ,-,I,渡された引数がそもそも受け取れない値だった,The argument I received was simply not acceptable.,IllegalArgumentException,engineer
-1508,Java大ピンチ,-,I,呼んではいけないタイミングでそのメソッドを呼んでしまった,I called that method at a moment it shouldn't have been called.,IllegalStateException,engineer
-1509,Java大ピンチ,-,A,0で割ってしまって計算がそこで止まった,"I divided by zero, and the calculation stopped right there.",ArithmeticException,engineer
-1510,Java大ピンチ,-,C,ループで回している最中にそのコレクションをいじってしまった,I modified the collection while still looping through it.,ConcurrentModificationException,engineer
-1511,Java大ピンチ,-,O,メモリを使い切ってJVMがついに音を上げた,"Memory ran out, and the JVM finally gave up.",OutOfMemoryError,engineer
-1512,Java大ピンチ,-,S,再帰呼び出しが終わる条件を見失って深くなりすぎた,The recursive calls lost their stopping point and went too deep.,StackOverflowError,engineer
-1513,Java大ピンチ,-,A,配列のつもりだったのに要素を増やしたり減らしたりしたくなった,"I started with a plain array, but then wanted to resize it freely.",ArrayList,engineer
-1514,Java大ピンチ,-,L,真ん中への挿入ばかりで配列のコピーに時間がかかっていた,Inserting in the middle kept forcing slow array copies.,LinkedList,engineer
-1515,Java大ピンチ,-,H,同じ値がリストの中に何個も紛れ込んでいた,The same value kept sneaking into the list multiple times.,HashSet,engineer
-1516,Java大ピンチ,-,T,キーの並び順がいつもバラバラで整列させたかった,"The key order was always scrambled, and I wanted it sorted.",TreeMap,engineer
-1517,Java大ピンチ,-,S,文字列を+で繋ぐたびに新しいオブジェクトが量産されていた,Every string concatenation quietly created a brand-new object.,StringBuilder,engineer
-1518,Java大ピンチ,-,O,戻り値がnullかもしれないのにそのまま呼び出してしまいそうだった,"The return value might be null, and I almost called it blindly.",Optional,engineer
-1519,Java大ピンチ,-,S,forループを何重にも書いていたらコードが読みにくくなった,Nested for-loops piled up until the code became unreadable.,Stream,engineer
-1520,Java大ピンチ,-,I,実装は持たずにメソッドの形だけ決めておきたかった,"I wanted to define only the method shapes, with no implementation.",Interface,engineer
-1521,Java大ピンチ,-,A,共通の処理だけ用意して残りは子クラスに任せたかった,I wanted to share some logic but leave the rest to subclasses.,Abstract Class,engineer
-1522,Java大ピンチ,-,G,同じクラスを型ごとにいくつも書きそうになった,I was about to duplicate the same class for every type.,Generics,engineer
-1523,Java大ピンチ,-,T,例外が起きても最後の後始末だけは必ずやりたかった,"Even if an exception occurs, the cleanup still has to run.",try-catch-finally,engineer
-1524,Java大ピンチ,-,S,複数のスレッドが同時に同じ値を書き換えにきた,Multiple threads tried to rewrite the same value at once.,synchronized,engineer
-1525,Java大ピンチ,-,T,重い処理のせいで画面が固まったように見えた,A heavy task made everything look frozen.,Thread,engineer
-1526,Java大ピンチ,-,O,親クラスと同じ動きしかせず子クラスらしい振る舞いに変えられなかった,"The subclass behaved just like its parent, and I needed to change that.",Override,engineer
-1527,Java大ピンチ,-,E,中身が同じはずのオブジェクトが別物として扱われてしまった,Two objects with identical content were treated as different.,equals/hashCode,engineer
-1528,Java大ピンチ,-,F,あとから値を変えられないように絶対に守りたかった,I wanted to make sure that value could never be changed again.,final,engineer
-1529,Java大ピンチ,-,S,インスタンスを作らなくてもその機能だけ使いたかった,I wanted to use that feature without ever creating an instance.,static,engineer
+1501,Java大ピンチ,10,N,nullのはずの変数を当然のように呼び出してしまった,I called a method on something that turned out to be null.,NullPointerException,engineer
+1502,Java大ピンチ,15,I,ファイルを読み込もうとしたら途中で失敗した,Reading the file failed partway through.,IOException,engineer
+1503,Java大ピンチ,28,H,名前で検索したいのに配列だと毎回全部探してしまう,"I wanted to look things up by name, but the array made me scan everything.",HashMap,engineer
+1504,Java大ピンチ,11,A,配列の最後のつもりがその一個先を見ていた,"I thought I was at the last index, but I was already one past it.",ArrayIndexOutOfBoundsException,engineer
+1505,Java大ピンチ,35,C,そのクラスは実行時にはどこにも見つからなかった,"At runtime, that class was nowhere to be found.",ClassNotFoundException,engineer
+1506,Java大ピンチ,16,N,文字列を数値に変換しようとしたら数字になっていなかった,"I tried to convert a string to a number, but it wasn't numeric at all.",NumberFormatException,engineer
+1507,Java大ピンチ,17,I,渡された引数がそもそも受け取れない値だった,The argument I received was simply not acceptable.,IllegalArgumentException,engineer
+1508,Java大ピンチ,20,I,呼んではいけないタイミングでそのメソッドを呼んでしまった,I called that method at a moment it shouldn't have been called.,IllegalStateException,engineer
+1509,Java大ピンチ,12,A,0で割ってしまって計算がそこで止まった,"I divided by zero, and the calculation stopped right there.",ArithmeticException,engineer
+1510,Java大ピンチ,29,C,ループで回している最中にそのコレクションをいじってしまった,I modified the collection while still looping through it.,ConcurrentModificationException,engineer
+1511,Java大ピンチ,36,O,メモリを使い切ってJVMがついに音を上げた,"Memory ran out, and the JVM finally gave up.",OutOfMemoryError,engineer
+1512,Java大ピンチ,30,S,再帰呼び出しが終わる条件を見失って深くなりすぎた,The recursive calls lost their stopping point and went too deep.,StackOverflowError,engineer
+1513,Java大ピンチ,21,A,配列のつもりだったのに要素を増やしたり減らしたりしたくなった,"I started with a plain array, but then wanted to resize it freely.",ArrayList,engineer
+1514,Java大ピンチ,31,L,真ん中への挿入ばかりで配列のコピーに時間がかかっていた,Inserting in the middle kept forcing slow array copies.,LinkedList,engineer
+1515,Java大ピンチ,22,H,同じ値がリストの中に何個も紛れ込んでいた,The same value kept sneaking into the list multiple times.,HashSet,engineer
+1516,Java大ピンチ,32,T,キーの並び順がいつもバラバラで整列させたかった,"The key order was always scrambled, and I wanted it sorted.",TreeMap,engineer
+1517,Java大ピンチ,23,S,文字列を+で繋ぐたびに新しいオブジェクトが量産されていた,Every string concatenation quietly created a brand-new object.,StringBuilder,engineer
+1518,Java大ピンチ,33,O,戻り値がnullかもしれないのにそのまま呼び出してしまいそうだった,"The return value might be null, and I almost called it blindly.",Optional,engineer
+1519,Java大ピンチ,37,S,forループを何重にも書いていたらコードが読みにくくなった,Nested for-loops piled up until the code became unreadable.,Stream,engineer
+1520,Java大ピンチ,24,I,実装は持たずにメソッドの形だけ決めておきたかった,"I wanted to define only the method shapes, with no implementation.",Interface,engineer
+1521,Java大ピンチ,25,A,共通の処理だけ用意して残りは子クラスに任せたかった,I wanted to share some logic but leave the rest to subclasses.,Abstract Class,engineer
+1522,Java大ピンチ,38,G,同じクラスを型ごとにいくつも書きそうになった,I was about to duplicate the same class for every type.,Generics,engineer
+1523,Java大ピンチ,26,T,例外が起きても最後の後始末だけは必ずやりたかった,"Even if an exception occurs, the cleanup still has to run.",try-catch-finally,engineer
+1524,Java大ピンチ,40,S,複数のスレッドが同時に同じ値を書き換えにきた,Multiple threads tried to rewrite the same value at once.,synchronized,engineer
+1525,Java大ピンチ,39,T,重い処理のせいで画面が固まったように見えた,A heavy task made everything look frozen.,Thread,engineer
+1526,Java大ピンチ,27,O,親クラスと同じ動きしかせず子クラスらしい振る舞いに変えられなかった,"The subclass behaved just like its parent, and I needed to change that.",Override,engineer
+1527,Java大ピンチ,34,E,中身が同じはずのオブジェクトが別物として扱われてしまった,Two objects with identical content were treated as different.,equals/hashCode,engineer
+1528,Java大ピンチ,18,F,あとから値を変えられないように絶対に守りたかった,I wanted to make sure that value could never be changed again.,final,engineer
+1529,Java大ピンチ,19,S,インスタンスを作らなくてもその機能だけ使いたかった,I wanted to use that feature without ever creating an instance.,static,engineer
 1601,コードレビューかるた,-,D,同じコードが複数箇所に存在する,The same code exists in multiple places.,DRY原則,engineer
 1602,コードレビューかるた,-,か,変数名から役割が分からない,It's unclear what a variable does from its name.,可読性,engineer
 1603,コードレビューかるた,-,た,1つのメソッドが長すぎる,A single method is too long.,単一責任の原則,engineer
@@ -590,35 +589,35 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1702,セキュリティ大ピンチ,15,ふ,いそいで振り込め　メールを信じた,I trusted an urgent payment email.,フィッシング,engineer
 1703,セキュリティ大ピンチ,12,ま,USBを拾って　そのまま挿した,I plugged in a USB drive I found.,マルウェア,engineer
 1704,セキュリティ大ピンチ,40,し,APIキーを　GitHubで公開した,I exposed an API key on GitHub.,シークレット管理,engineer
-1705,セキュリティ大ピンチ,15,ふ,おなじログイン画面だと　思い込んだ,I assumed the login page was genuine.,フィッシングサイト,engineer
-1706,セキュリティ大ピンチ,20,て,開発用パスワードを　本番でも使った,I used a development password in production.,デフォルトパスワード,engineer
-1707,セキュリティ大ピンチ,25,し,きょうもパッチを　後回しにした,I postponed installing security patches again.,脆弱性,engineer
-1708,セキュリティ大ピンチ,25,ら,暗号化されても　バックアップがない,Everything was encrypted and I had no backup.,ランサムウェア,engineer
-1709,セキュリティ大ピンチ,40,え,検索欄から　データベースが壊れた,The database broke through the search box.,SQLインジェクション,engineer
-1710,セキュリティ大ピンチ,40,く,コメントを書いたら　勝手に画面が動いた,A comment caused unexpected script execution.,XSS,engineer
+1705,セキュリティ大ピンチ,16,ふ,おなじログイン画面だと　思い込んだ,I assumed the login page was genuine.,フィッシングサイト,engineer
+1706,セキュリティ大ピンチ,21,て,開発用パスワードを　本番でも使った,I used a development password in production.,デフォルトパスワード,engineer
+1707,セキュリティ大ピンチ,27,し,きょうもパッチを　後回しにした,I postponed installing security patches again.,脆弱性,engineer
+1708,セキュリティ大ピンチ,28,ら,暗号化されても　バックアップがない,Everything was encrypted and I had no backup.,ランサムウェア,engineer
+1709,セキュリティ大ピンチ,41,え,検索欄から　データベースが壊れた,The database broke through the search box.,SQLインジェクション,engineer
+1710,セキュリティ大ピンチ,42,く,コメントを書いたら　勝手に画面が動いた,A comment caused unexpected script execution.,XSS,engineer
 1711,セキュリティ大ピンチ,45,し,サイトを見ただけで　退会していた,I was logged out or unsubscribed just by visiting a page.,CSRF,engineer
 1712,セキュリティ大ピンチ,35,に,知らない人まで　管理画面に入れた,Unauthorized users reached the admin screen.,認可不備,engineer
-1713,セキュリティ大ピンチ,20,あ,すでに退職した人が　まだログインしていた,A former employee could still log in.,アカウント管理,engineer
+1713,セキュリティ大ピンチ,22,あ,すでに退職した人が　まだログインしていた,A former employee could still log in.,アカウント管理,engineer
 1714,セキュリティ大ピンチ,30,さ,全員を管理者に　してしまった,I gave everyone administrator privileges.,最小権限の原則,engineer
-1715,セキュリティ大ピンチ,15,て,そのままHTTPで　ログインした,I logged in over HTTP.,TLS,engineer
-1716,セキュリティ大ピンチ,20,か,だれが操作したか　分からない,Nobody knew who performed the operation.,監査ログ,engineer
-1717,セキュリティ大ピンチ,35,せ,社内だから安全と　思い込んでいた,I assumed the internal network was safe.,ゼロトラスト,engineer
-1718,セキュリティ大ピンチ,40,あ,つうしんの異常に　誰も気付かなかった,Nobody noticed the suspicious traffic.,IDS,engineer
-1719,セキュリティ大ピンチ,45,あ,敵は見つけたのに　止められなかった,We detected the attack but couldn't stop it.,IPS,engineer
-1720,セキュリティ大ピンチ,40,え,取りつかれても　誰も気付かなかった,The endpoint was compromised without anyone noticing.,EDR,engineer
-1721,セキュリティ大ピンチ,20,せ,長いこと更新を　していなかった,The server hadn't been updated for a long time.,セキュリティパッチ,engineer
-1722,セキュリティ大ピンチ,15,た,認証が　パスワードだけだった,Only a password protected the account.,多要素認証,engineer
-1723,セキュリティ大ピンチ,35,せ,ぬすまれたCookieで　ログインされた,Someone logged in using my stolen cookie.,セッションハイジャック,engineer
-1724,セキュリティ大ピンチ,20,あ,ねだんより　個人情報を守れ,Personal data was stored without protection.,暗号化,engineer
-1725,セキュリティ大ピンチ,15,て,残っていた初期設定で　入られた,Someone logged in with default credentials.,デフォルト認証情報,engineer
-1726,セキュリティ大ピンチ,20,と,アクセスが急に　100万件来た,A million requests suddenly flooded the server.,DoS攻撃,engineer
-1727,セキュリティ大ピンチ,35,こ,秘密鍵を　メールで送ってしまった,I emailed a private key.,公開鍵暗号方式,engineer
-1728,セキュリティ大ピンチ,35,せ,古い設定をコピーしたら　穴だらけだった,I copied an insecure server configuration.,セキュア設定,engineer
-1729,セキュリティ大ピンチ,30,し,へいきだろうで　本番公開した,I released it to production assuming it was safe.,脆弱性診断,engineer
-1730,セキュリティ大ピンチ,15,さ,ほんとうに開いてよかった？　その添付ファイル,Should I really have opened that attachment?,サンドボックス,engineer
+1715,セキュリティ大ピンチ,17,て,そのままHTTPで　ログインした,I logged in over HTTP.,TLS,engineer
+1716,セキュリティ大ピンチ,23,か,だれが操作したか　分からない,Nobody knew who performed the operation.,監査ログ,engineer
+1717,セキュリティ大ピンチ,36,せ,社内だから安全と　思い込んでいた,I assumed the internal network was safe.,ゼロトラスト,engineer
+1718,セキュリティ大ピンチ,43,あ,つうしんの異常に　誰も気付かなかった,Nobody noticed the suspicious traffic.,IDS,engineer
+1719,セキュリティ大ピンチ,46,あ,敵は見つけたのに　止められなかった,We detected the attack but couldn't stop it.,IPS,engineer
+1720,セキュリティ大ピンチ,44,え,取りつかれても　誰も気付かなかった,The endpoint was compromised without anyone noticing.,EDR,engineer
+1721,セキュリティ大ピンチ,24,せ,長いこと更新を　していなかった,The server hadn't been updated for a long time.,セキュリティパッチ,engineer
+1722,セキュリティ大ピンチ,18,た,認証が　パスワードだけだった,Only a password protected the account.,多要素認証,engineer
+1723,セキュリティ大ピンチ,37,せ,ぬすまれたCookieで　ログインされた,Someone logged in using my stolen cookie.,セッションハイジャック,engineer
+1724,セキュリティ大ピンチ,25,あ,ねだんより　個人情報を守れ,Personal data was stored without protection.,暗号化,engineer
+1725,セキュリティ大ピンチ,19,て,残っていた初期設定で　入られた,Someone logged in with default credentials.,デフォルト認証情報,engineer
+1726,セキュリティ大ピンチ,26,と,アクセスが急に　100万件来た,A million requests suddenly flooded the server.,DoS攻撃,engineer
+1727,セキュリティ大ピンチ,38,こ,秘密鍵を　メールで送ってしまった,I emailed a private key.,公開鍵暗号方式,engineer
+1728,セキュリティ大ピンチ,39,せ,古い設定をコピーしたら　穴だらけだった,I copied an insecure server configuration.,セキュア設定,engineer
+1729,セキュリティ大ピンチ,31,し,へいきだろうで　本番公開した,I released it to production assuming it was safe.,脆弱性診断,engineer
+1730,セキュリティ大ピンチ,20,さ,ほんとうに開いてよかった？　その添付ファイル,Should I really have opened that attachment?,サンドボックス,engineer
 1731,セキュリティ大ピンチ,70,え,まさか社内サーバが　外から操作された,The internal server was manipulated from outside.,SSRF,engineer
 1732,セキュリティ大ピンチ,80,え,見せるはずのない　サーバのファイルが見えた,Internal server files became visible.,XXE,engineer
-1733,セキュリティ大ピンチ,70,お,無害な入力のはずが　コマンドが動いた,A harmless input executed a command.,OSコマンドインジェクション,engineer
+1733,セキュリティ大ピンチ,71,お,無害な入力のはずが　コマンドが動いた,A harmless input executed a command.,OSコマンドインジェクション,engineer
 1734,セキュリティ大ピンチ,85,し,メンバーなのに　管理者になっていた,A normal user became an administrator.,JWT,engineer
 1735,セキュリティ大ピンチ,65,お,もれたトークンで　勝手に操作された,A leaked token was used for unauthorized access.,OAuth,engineer
 1736,セキュリティ大ピンチ,55,に,やっぱり開発環境だからと　チェックを外した,I disabled authentication because it was only a development environment.,認証,engineer
@@ -626,75 +625,75 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1801,Webアプリ大ピンチ,10,き,更新したのに昨日の画面のままだった,The page still showed yesterday's version after deployment.,キャッシュ,engineer
 1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション,engineer
 1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション,engineer
-1804,Webアプリ大ピンチ,15,く,これを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer
-1805,Webアプリ大ピンチ,20,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード,engineer
-1806,Webアプリ大ピンチ,25,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト,engineer
-1807,Webアプリ大ピンチ,25,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード,engineer
-1808,Webアプリ大ピンチ,20,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet,engineer
-1809,Webアプリ大ピンチ,25,J,コードを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer
-1810,Webアプリ大ピンチ,30,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式,engineer
-1811,Webアプリ大ピンチ,30,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL,engineer
-1812,Webアプリ大ピンチ,35,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC,engineer
-1813,Webアプリ大ピンチ,35,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC,engineer
-1814,Webアプリ大ピンチ,20,S,コードを書き換えたらデータが入っていない,Changing one SQL query broke everything.,SQL,engineer
-1815,Webアプリ大ピンチ,45,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス,engineer
-1816,Webアプリ大ピンチ,40,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール,engineer
-1817,Webアプリ大ピンチ,20,M,データベースが起動していなかった,The database server wasn't running.,MySQL,engineer
-1818,Webアプリ大ピンチ,30,P,再起動したら直った,Restarting the server fixed it.,Payara,engineer
-1819,Webアプリ大ピンチ,25,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR,engineer
-1820,Webアプリ大ピンチ,35,G,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle,engineer
-1821,Webアプリ大ピンチ,35,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係,engineer
-1822,Webアプリ大ピンチ,20,び,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド,engineer
-1823,Webアプリ大ピンチ,20,J,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript,engineer
-1824,Webアプリ大ピンチ,25,D,要素が見つからないと言われた,The browser says the element can't be found.,DOM,engineer
-1825,Webアプリ大ピンチ,15,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS,engineer
-1826,Webアプリ大ピンチ,30,J,APIの返却結果が読めない,I can't parse the API response.,JSON,engineer
-1827,Webアプリ大ピンチ,30,A,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX,engineer
-1828,Webアプリ大ピンチ,35,ば,入力したのに保存できない,The form won't save my input.,バリデーション,engineer
-1829,Webアプリ大ピンチ,35,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理,engineer
-1830,Webアプリ大ピンチ,20,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ,engineer
-1831,Webアプリ大ピンチ,35,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース,engineer
-1832,Webアプリ大ピンチ,20,で,調べたら動いてしまう,The bug disappears during debugging.,デバッグ,engineer
-1833,Webアプリ大ピンチ,30,も,文字が全部「???」になった,All the text turned into question marks.,文字コード,engineer
-1834,Webアプリ大ピンチ,25,U,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8,engineer
-1835,Webアプリ大ピンチ,20,G,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git,engineer
-1836,Webアプリ大ピンチ,40,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト,engineer
-1837,Webアプリ大ピンチ,40,C,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS,engineer
-1838,Webアプリ大ピンチ,45,N,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題,engineer
-1839,Webアプリ大ピンチ,40,ら,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック,engineer
-1840,Webアプリ大ピンチ,35,に,ログイン状態なのに403になった,I'm logged in but received a 403.,認可,engineer
+1804,Webアプリ大ピンチ,16,く,これを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer
+1805,Webアプリ大ピンチ,21,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード,engineer
+1806,Webアプリ大ピンチ,30,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト,engineer
+1807,Webアプリ大ピンチ,31,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード,engineer
+1808,Webアプリ大ピンチ,22,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet,engineer
+1809,Webアプリ大ピンチ,32,J,コードを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer
+1810,Webアプリ大ピンチ,36,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式,engineer
+1811,Webアプリ大ピンチ,37,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL,engineer
+1812,Webアプリ大ピンチ,42,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC,engineer
+1813,Webアプリ大ピンチ,43,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC,engineer
+1814,Webアプリ大ピンチ,23,S,コードを書き換えたらデータが入っていない,Changing one SQL query broke everything.,SQL,engineer
+1815,Webアプリ大ピンチ,54,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス,engineer
+1816,Webアプリ大ピンチ,50,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール,engineer
+1817,Webアプリ大ピンチ,24,M,データベースが起動していなかった,The database server wasn't running.,MySQL,engineer
+1818,Webアプリ大ピンチ,38,P,再起動したら直った,Restarting the server fixed it.,Payara,engineer
+1819,Webアプリ大ピンチ,33,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR,engineer
+1820,Webアプリ大ピンチ,44,G,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle,engineer
+1821,Webアプリ大ピンチ,45,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係,engineer
+1822,Webアプリ大ピンチ,25,び,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド,engineer
+1823,Webアプリ大ピンチ,26,J,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript,engineer
+1824,Webアプリ大ピンチ,34,D,要素が見つからないと言われた,The browser says the element can't be found.,DOM,engineer
+1825,Webアプリ大ピンチ,17,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS,engineer
+1826,Webアプリ大ピンチ,39,J,APIの返却結果が読めない,I can't parse the API response.,JSON,engineer
+1827,Webアプリ大ピンチ,40,A,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX,engineer
+1828,Webアプリ大ピンチ,46,ば,入力したのに保存できない,The form won't save my input.,バリデーション,engineer
+1829,Webアプリ大ピンチ,47,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理,engineer
+1830,Webアプリ大ピンチ,27,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ,engineer
+1831,Webアプリ大ピンチ,48,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース,engineer
+1832,Webアプリ大ピンチ,28,で,調べたら動いてしまう,The bug disappears during debugging.,デバッグ,engineer
+1833,Webアプリ大ピンチ,41,も,文字が全部「???」になった,All the text turned into question marks.,文字コード,engineer
+1834,Webアプリ大ピンチ,35,U,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8,engineer
+1835,Webアプリ大ピンチ,29,G,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git,engineer
+1836,Webアプリ大ピンチ,51,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト,engineer
+1837,Webアプリ大ピンチ,52,C,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS,engineer
+1838,Webアプリ大ピンチ,55,N,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題,engineer
+1839,Webアプリ大ピンチ,53,ら,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック,engineer
+1840,Webアプリ大ピンチ,49,に,ログイン状態なのに403になった,I'm logged in but received a 403.,認可,engineer
 1901,Windows大ピンチ,10,C,コピーしたつもりが　できていなかった,I thought I copied it but it wasn't copied.,Ctrl+C,engineer
-1902,Windows大ピンチ,10,V,貼り付けたいのに　右クリックできない,I want to paste but can't use the mouse.,Ctrl+V,engineer
-1903,Windows大ピンチ,10,X,別の場所へ　移動したい,I want to move it somewhere else.,Ctrl+X,engineer
-1904,Windows大ピンチ,10,Z,間違えて消してしまった,I accidentally deleted it.,Ctrl+Z,engineer
-1905,Windows大ピンチ,15,Y,戻しすぎて　やっぱり元に戻したい,I undid too much.,Ctrl+Y,engineer
-1906,Windows大ピンチ,10,A,全部まとめて選びたい,I want to select everything.,Ctrl+A,engineer
-1907,Windows大ピンチ,15,F,探したい文字が　見つからない,I can't find the text I'm looking for.,Ctrl+F,engineer
-1908,Windows大ピンチ,10,S,保存する前に　落ちそうだ,The application might crash before I save.,Ctrl+S,engineer
-1909,Windows大ピンチ,15,P,印刷したい,I want to print this.,Ctrl+P,engineer
-1910,Windows大ピンチ,20,T,新しいタブを　開きたい,I want to open a new tab.,Ctrl+T,engineer
-1911,Windows大ピンチ,25,T,閉じたタブを　戻したい,I want to reopen the tab I just closed.,Ctrl+Shift+T,engineer
-1912,Windows大ピンチ,15,R,更新したい,I want to refresh the page.,Ctrl+R,engineer
-1913,Windows大ピンチ,20,T,隣のタブへ　移動したい,I want to move to the next tab.,Ctrl+Tab,engineer
-1914,Windows大ピンチ,20,T,開きすぎて　目的の画面が見つからない,I have too many windows open.,Alt+Tab,engineer
-1915,Windows大ピンチ,15,D,デスクトップを　一瞬だけ見たい,I need to see the desktop quickly.,Windows+D,engineer
-1916,Windows大ピンチ,20,E,エクスプローラーを　開きたい,I need File Explorer.,Windows+E,engineer
-1917,Windows大ピンチ,20,L,席を離れるので　すぐロックしたい,I'm leaving my desk and want to lock my PC.,Windows+L,engineer
-1918,Windows大ピンチ,20,I,設定画面を　開きたい,I need to open Settings.,Windows+I,engineer
-1919,Windows大ピンチ,20,S,アプリやファイルを　すぐ探したい,I need to search for an app or file.,Windows+S,engineer
-1920,Windows大ピンチ,15,F,ファイル名を　変更したい,I want to rename a file.,F2,engineer
-1921,Windows大ピンチ,10,F,画面を　更新したい,I want to refresh the screen.,F5,engineer
-1922,Windows大ピンチ,10,F,ヘルプを　開きたい,I need help.,F1,engineer
-1923,Windows大ピンチ,25,F,終了ボタンが　押せない,I need to close the current application.,Alt+F4,engineer
-1924,Windows大ピンチ,30,E,固まったアプリを　調べたい,I need Task Manager.,Ctrl+Shift+Esc,engineer
-1925,Windows大ピンチ,20,D,ログイン画面に　戻りたい,I need the Windows security screen.,Ctrl+Alt+Delete,engineer
-1926,Windows大ピンチ,25,+,文字が小さすぎて　見えない,The text is too small to read.,Windows++,engineer
-1927,Windows大ピンチ,25,-,画面が大きすぎて　見づらい,Everything is zoomed in too much.,Windows+-,engineer
-1928,Windows大ピンチ,30,P,画面を　そのまま保存したい,I want to save a screenshot.,Windows+PrintScreen,engineer
-1929,Windows大ピンチ,20,S,画面の一部だけ　切り取りたい,I only need part of the screen.,Windows+Shift+S,engineer
-1930,Windows大ピンチ,25,.,絵文字を　入力したい,I want to insert an emoji.,Windows+.,engineer
-1931,Windows大ピンチ,30,V,さっきコピーしたものを　もう一度使いたい,I need something I copied earlier.,Windows+V,engineer
-1932,Windows大ピンチ,35,S,日本語入力に　切り替わらない,I can't switch the input language.,Alt+Shift,engineer
-1933,Windows大ピンチ,35,`,かな入力に　なってしまった,I accidentally switched input modes.,Alt+`,engineer
-1934,Windows大ピンチ,30,D,同じ操作を　何度も繰り返している,I'm repeating the same action over and over.,Ctrl+D,engineer
-1935,Windows大ピンチ,35,F,右クリックメニューを　開きたい,I need the context menu without a mouse.,Shift+F10,engineer
+1902,Windows大ピンチ,11,V,貼り付けたいのに　右クリックできない,I want to paste but can't use the mouse.,Ctrl+V,engineer
+1903,Windows大ピンチ,12,X,別の場所へ　移動したい,I want to move it somewhere else.,Ctrl+X,engineer
+1904,Windows大ピンチ,13,Z,間違えて消してしまった,I accidentally deleted it.,Ctrl+Z,engineer
+1905,Windows大ピンチ,18,Y,戻しすぎて　やっぱり元に戻したい,I undid too much.,Ctrl+Y,engineer
+1906,Windows大ピンチ,14,A,全部まとめて選びたい,I want to select everything.,Ctrl+A,engineer
+1907,Windows大ピンチ,19,F,探したい文字が　見つからない,I can't find the text I'm looking for.,Ctrl+F,engineer
+1908,Windows大ピンチ,15,S,保存する前に　落ちそうだ,The application might crash before I save.,Ctrl+S,engineer
+1909,Windows大ピンチ,20,P,印刷したい,I want to print this.,Ctrl+P,engineer
+1910,Windows大ピンチ,24,T,新しいタブを　開きたい,I want to open a new tab.,Ctrl+T,engineer
+1911,Windows大ピンチ,33,T,閉じたタブを　戻したい,I want to reopen the tab I just closed.,Ctrl+Shift+T,engineer
+1912,Windows大ピンチ,21,R,更新したい,I want to refresh the page.,Ctrl+R,engineer
+1913,Windows大ピンチ,25,T,隣のタブへ　移動したい,I want to move to the next tab.,Ctrl+Tab,engineer
+1914,Windows大ピンチ,26,T,開きすぎて　目的の画面が見つからない,I have too many windows open.,Alt+Tab,engineer
+1915,Windows大ピンチ,22,D,デスクトップを　一瞬だけ見たい,I need to see the desktop quickly.,Windows+D,engineer
+1916,Windows大ピンチ,27,E,エクスプローラーを　開きたい,I need File Explorer.,Windows+E,engineer
+1917,Windows大ピンチ,28,L,席を離れるので　すぐロックしたい,I'm leaving my desk and want to lock my PC.,Windows+L,engineer
+1918,Windows大ピンチ,29,I,設定画面を　開きたい,I need to open Settings.,Windows+I,engineer
+1919,Windows大ピンチ,30,S,アプリやファイルを　すぐ探したい,I need to search for an app or file.,Windows+S,engineer
+1920,Windows大ピンチ,23,F,ファイル名を　変更したい,I want to rename a file.,F2,engineer
+1921,Windows大ピンチ,16,F,画面を　更新したい,I want to refresh the screen.,F5,engineer
+1922,Windows大ピンチ,17,F,ヘルプを　開きたい,I need help.,F1,engineer
+1923,Windows大ピンチ,34,F,終了ボタンが　押せない,I need to close the current application.,Alt+F4,engineer
+1924,Windows大ピンチ,38,E,固まったアプリを　調べたい,I need Task Manager.,Ctrl+Shift+Esc,engineer
+1925,Windows大ピンチ,31,D,ログイン画面に　戻りたい,I need the Windows security screen.,Ctrl+Alt+Delete,engineer
+1926,Windows大ピンチ,35,+,文字が小さすぎて　見えない,The text is too small to read.,Windows++,engineer
+1927,Windows大ピンチ,36,-,画面が大きすぎて　見づらい,Everything is zoomed in too much.,Windows+-,engineer
+1928,Windows大ピンチ,39,P,画面を　そのまま保存したい,I want to save a screenshot.,Windows+PrintScreen,engineer
+1929,Windows大ピンチ,32,S,画面の一部だけ　切り取りたい,I only need part of the screen.,Windows+Shift+S,engineer
+1930,Windows大ピンチ,37,.,絵文字を　入力したい,I want to insert an emoji.,Windows+.,engineer
+1931,Windows大ピンチ,40,V,さっきコピーしたものを　もう一度使いたい,I need something I copied earlier.,Windows+V,engineer
+1932,Windows大ピンチ,42,S,日本語入力に　切り替わらない,I can't switch the input language.,Alt+Shift,engineer
+1933,Windows大ピンチ,43,`,かな入力に　なってしまった,I accidentally switched input modes.,Alt+`,engineer
+1934,Windows大ピンチ,41,D,同じ操作を　何度も繰り返している,I'm repeating the same action over and over.,Ctrl+D,engineer
+1935,Windows大ピンチ,44,F,右クリックメニューを　開きたい,I need the context menu without a mouse.,Shift+F10,engineer
