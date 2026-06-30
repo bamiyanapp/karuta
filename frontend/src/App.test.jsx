@@ -613,6 +613,109 @@ describe('App', () => {
     });
   });
 
+  it('filters all-phrases table by category when a filter button is clicked', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: '読み札Cat1', level: '-', answer: '-' },
+              { id: 'p2', category: 'Cat2', phrase: '読み札Cat2', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    // 両カテゴリの行が表示されるまで待機
+    await waitFor(() => {
+      expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
+      expect(screen.getByText('読み札Cat2')).toBeInTheDocument();
+    });
+
+    // Cat1 フィルタボタンをクリック
+    const cat1FilterBtn = screen.getByRole('button', { name: /^Cat1/ });
+    fireEvent.click(cat1FilterBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
+      expect(screen.queryByText('読み札Cat2')).not.toBeInTheDocument();
+    });
+
+    // 「すべて」ボタンで全件に戻る
+    fireEvent.click(screen.getByRole('button', { name: /^すべて/ }));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
+      expect(screen.getByText('読み札Cat2')).toBeInTheDocument();
+    });
+  });
+
+  it('resets filter category when navigating back from all-phrases view', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: '読み札Cat1', level: '-', answer: '-' },
+              { id: 'p2', category: 'Cat2', phrase: '読み札Cat2', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
+    });
+
+    // フィルタを Cat1 に絞る
+    fireEvent.click(screen.getByRole('button', { name: /^Cat1/ }));
+    await waitFor(() => {
+      expect(screen.queryByText('読み札Cat2')).not.toBeInTheDocument();
+    });
+
+    // 戻るボタンで離脱し再度「全札一覧」へ
+    fireEvent.click(screen.getByRole('button', { name: /← 戻る/ }));
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    // フィルタがリセットされ全件表示されること
+    await waitFor(() => {
+      expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
+      expect(screen.getByText('読み札Cat2')).toBeInTheDocument();
+    });
+  });
+
   it('updates document title when viewing all-phrases', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
