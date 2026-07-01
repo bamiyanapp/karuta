@@ -139,14 +139,15 @@ button:active:not(:disabled) {
   transform: translateY(2px);
 }
 
-/* 全札一覧テーブル：スクロール可能・ヘッダ固定 */
-.all-phrases-table-container {
+/* 全札一覧：種別フィルタと表を同じ領域でスクロールし、表のヘッダのみ画面内に固定 */
+/* 140px は画面上部の「戻る」ヘッダ（高さ約53px + 上下パディング/余白約73px）分の差し引き */
+.all-phrases-scroll-container {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: calc(100vh - 260px);
+  max-height: calc(100vh - 140px);
 }
 
-.all-phrases-table-container thead th {
+.all-phrases-scroll-container thead th {
   position: sticky;
   top: 0;
   z-index: 1;
