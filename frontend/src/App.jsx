@@ -829,7 +829,7 @@ function App() {
           {allPhrases.length === 0 ? (
             <p className="text-muted text-center py-5">読み込み中...</p>
           ) : (
-            <>
+            <div className="all-phrases-scroll-container">
               <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
                 <span className="text-muted small fw-bold me-1">種別:</span>
                 <button
@@ -892,7 +892,7 @@ function App() {
                   </tbody>
                 </table>
               </div>
-            </>
+            </div>
           )}
         </main>
       </div>
