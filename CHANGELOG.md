@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/bamiyanapp/karuta/compare/v1.17.1...v1.18.0) (2026-07-02)
+
+
+### Features
+
+* **reading:** 複数種別選択時に読み上げ末尾でかるた種別を読み上げる ([#172](https://github.com/bamiyanapp/karuta/issues/172)) ([c15a729](https://github.com/bamiyanapp/karuta/commit/c15a729879b165e862ca25ac6001b3a5ca8edca4))
+
 ## [1.17.1](https://github.com/bamiyanapp/karuta/compare/v1.17.0...v1.17.1) (2026-07-01)
 
 
