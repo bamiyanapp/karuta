@@ -56,7 +56,10 @@
   max-width: 800px; /* PCで見やすい幅に制限 */
 }
 
-/* 札の表示コンテナ（縦横比維持） */
+/* 札の表示コンテナ（縦横比維持）
+   overflow: hiddenは3Dフリップアニメーション時代の名残で、フェード方式に移行した現在は
+   コンテンツをクリップする必要がない。iOS Safariではaspect-ratio指定の要素にoverflow: hiddenを
+   組み合わせると札の下端（枠線）が描画されないことがあるため外す */
 .yomifuda-container {
   width: 100%;
   max-width: 300px;
@@ -64,7 +67,6 @@
   margin-left: auto;
   margin-right: auto;
   cursor: pointer;
-  overflow: hidden;
 }
 
 /* フェードアニメーション用 */
