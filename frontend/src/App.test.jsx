@@ -281,6 +281,122 @@ describe('App', () => {
     });
   });
 
+  it('requests announceCategory=true when reading with multiple categories selected', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list') && url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('get-phrases-list') && url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
+      expect(getPhraseCall).toBeDefined();
+      expect(getPhraseCall[0]).toContain('announceCategory=true');
+    });
+
+    randomSpy.mockRestore();
+  });
+
+  it('requests announceCategory=false when reading with a single category selected', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
+    const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
+      expect(getPhraseCall).toBeDefined();
+      expect(getPhraseCall[0]).toContain('announceCategory=false');
+    });
+
+    randomSpy.mockRestore();
+  });
+
+  it('requests announceCategory=true for the detail-view replay when multiple categories are selected', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list') && url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' }] }) };
+      if (url.includes('get-phrases-list') && url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2', kana: 'い', phrase: '読み札2', level: '-' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    fetch.mockClear();
+    fireEvent.click(await screen.findByText('詳細・報告 →'));
+
+    await waitFor(() => {
+      const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
+      expect(getPhraseCall).toBeDefined();
+      expect(getPhraseCall[0]).toContain('announceCategory=true');
+    });
+
+    randomSpy.mockRestore();
+  }, 15000);
+
   it('shows efuda print view with answer fallback to phrase and paginates by 10', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
       id: `p${i}`,

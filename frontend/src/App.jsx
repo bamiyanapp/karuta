@@ -81,6 +81,10 @@ function App() {
     return selectedCategories.join("・");
   }, [selectedCategories]);
 
+  const isMultiCategorySelection = useMemo(() => {
+    return selectedCategories.length > 1;
+  }, [selectedCategories]);
+
   const categoriesForDivision = useMemo(() => {
     if (division !== "kids" && division !== "engineer") return [];
     return categories.filter(cat => cat.group === division);
@@ -240,7 +244,7 @@ function App() {
       const fetchDetail = async () => {
         try {
           const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
-          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
+          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${isMultiCategorySelection}`);
           const data = await response.json();
           if (response.ok) {
             setDetailPhrase(data);
@@ -253,7 +257,7 @@ function App() {
     } else {
       setDetailPhrase(null);
     }
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang]);
+  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, isMultiCategorySelection]);
 
   // 指摘一覧の取得
   useEffect(() => {
@@ -470,7 +474,8 @@ function App() {
         targetPhrase = unreadPhrases[randomIndex];
       }
 
-      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`;
+      const announceCategory = isMultiCategorySelection;
+      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
       const response = await fetch(apiUrl);
       const data = await response.json();
       
@@ -794,7 +799,7 @@ function App() {
                         <div className="efuda-card" key={slotIndex}>
                           {p && (
                             <>
-                              {selectedCategories.length > 1 && (
+                              {isMultiCategorySelection && (
                                 <p className="no-print text-muted small efuda-card-category">{p.category}</p>
                               )}
                               <div className="efuda-card-kana">{p.kana}</div>
