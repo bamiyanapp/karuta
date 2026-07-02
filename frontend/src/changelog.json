@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.18.0",
+    "date": "2026/07/02 00:00",
+    "body": "### Features\n\n* **reading:** 複数種別選択時に読み上げ末尾でかるた種別を読み上げる ([#172](https://github.com/bamiyanapp/karuta/issues/172)) ([c15a729](https://github.com/bamiyanapp/karuta/commit/c15a729879b165e862ca25ac6001b3a5ca8edca4))"
+  },
+  {
+    "version": "1.17.1",
+    "date": "2026/07/01 13:39",
+    "body": "### Bug Fixes\n\n* **all-phrases:** 種別フィルタも表と一緒にスクロールさせヘッダのみ固定 ([#170](https://github.com/bamiyanapp/karuta/issues/170)) ([093a1df](https://github.com/bamiyanapp/karuta/commit/093a1df279990a31cc782550b8547d3c15b385c5))"
+  },
+  {
     "version": "1.17.0",
     "date": "2026/06/30 00:00",
     "body": "### Features\n\n* **all-phrases:** 種別フィルタ追加とヘッダ固定表示 ([#168](https://github.com/bamiyanapp/karuta/issues/168)) ([bf3860d](https://github.com/bamiyanapp/karuta/commit/bf3860d2b5dcd4accd950e8ac734823250ff3aa3))"
