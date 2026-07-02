@@ -9,7 +9,7 @@ id,category,level,kana,phrase,phrase_en,answer,group
 10,大ピンチずかん,6,て,テープの　はしが　みつからない,Can't find the end of the tape.,-,kids
 11,大ピンチずかん,28,え,えだまめが　とんだ,The edamame flew away.,-,kids
 12,大ピンチずかん,24,か,カップめんの　おゆが　たりない,Not enough hot water for the cup noodles.,-,kids
-13,大ピンチずかん,68,う,うんてんちゅうの　くるまの　なかに　おおきな　クモが　いる,There is a big spider in the car while driving.,-,kids
+13,大ピンチずかん,68,う,うんてんしている　くるまのなかに　クモが　でてきた,There is a big spider in the car while driving.,-,kids
 14,大ピンチずかん,35,ゆ,ゆでたまごが　ボロボロ,The boiled egg is falling apart.,-,kids
 15,大ピンチずかん,5,す,ストローが　とれない,Can't take out the straw.,-,kids
 16,大ピンチずかん,27,う,「う」の　もじが　はんたいだった,The letter 'u' was backwards.,-,kids
@@ -28,7 +28,7 @@ id,category,level,kana,phrase,phrase_en,answer,group
 29,大ピンチずかん,46,に,にくがきれない,Can't cut the meat.,-,kids
 30,大ピンチずかん,39,た,たんじょうびケーキのろうそくがきえない,The birthday cake candles won't go out.,-,kids
 32,大ピンチずかん,54,れ,れいとうこがあかない,The freezer won't open.,-,kids
-33,大ピンチずかん,48,ふ,ふくのピラピラがきになる,The loose thread on my clothes is bothering me.,-,kids
+33,大ピンチずかん,48,ふ,ふくの　タグが　きになって　しかたがない,The loose thread on my clothes is bothering me.,-,kids
 34,大ピンチずかん,43,し,しゅくだいノートと　じゆうちょうをまちがえた,Confused the homework notebook with the sketchbook.,-,kids
 35,大ピンチずかん,38,ふ,ふたがしまらない,The lid won't close.,-,kids
 36,大ピンチずかん,32,め,めんつゆがすごくあまった,A lot of noodle dipping sauce was left over.,-,kids
@@ -39,11 +39,11 @@ id,category,level,kana,phrase,phrase_en,answer,group
 41,大ピンチずかん,47,し,シャンプーがめにはいった,Got shampoo in my eyes.,-,kids
 42,大ピンチずかん,51,ば,バッグのなかですいとうがもれた,The water bottle leaked inside the bag.,-,kids
 43,大ピンチずかん,56,な,なまえがおもいだせない,Can't remember the name.,-,kids
-44,大ピンチずかん,64,き,きんじょのおばさんが　ずっとなまえをまちがえている,The neighborhood lady has been getting my name wrong for a long time.,-,kids
+44,大ピンチずかん,64,き,きんじょの　おばさんに　なまえを　いつも　まちがえられる,The neighborhood lady has been getting my name wrong for a long time.,-,kids
 45,大ピンチずかん,50,お,おゆがない,There is no hot water.,-,kids
 46,大ピンチずかん,45,ど,ドアをあけられてさむい,Someone opened the door and it's cold.,-,kids
 47,大ピンチずかん,40,せ,せんせいのメガネがとんだ,The teacher's glasses flew off.,-,kids
-48,大ピンチずかん,36,ほ,ほねをとっていたら　ぐちゃぐちゃになった,It became a mess while I was trying to remove the bones.,-,kids
+48,大ピンチずかん,36,ほ,ほねを　とるのに　しっぱいして　みが　くずれた,It became a mess while I was trying to remove the bones.,-,kids
 49,大ピンチずかん,29,ぎ,ぎゅうにゅうがこぼれた,The milk spilled.,-,kids
 50,大ピンチずかん,96,か,かさがうらがえった,The umbrella turned inside out.,-,kids
 51,大ピンチずかん,97,じ,じてんしゃがドミノだおし,The bicycles fell over like dominoes.,-,kids
@@ -51,15 +51,15 @@ id,category,level,kana,phrase,phrase_en,answer,group
 53,大ピンチずかん,99,ね,ネコがついてくる,A cat is following me.,-,kids
 54,大ピンチずかん,100,ど,どしゃぶりなのにかさがない,It's pouring rain but I don't have an umbrella.,-,kids
 55,大ピンチずかん,58,れ,れいとうこがしまらない,The freezer won't close.,-,kids
-56,大ピンチずかん,59,さ,さようならのおじぎで　ランドセルのなかみがぜんぶでた,Everything fell out of my backpack when I bowed to say goodbye.,-,kids
+56,大ピンチずかん,59,さ,さげたあたまの　いきおいで　ランドセルの　なかみが　ぜんぶとびだした,Everything fell out of my backpack when I bowed to say goodbye.,-,kids
 57,大ピンチずかん,84,ま,まいご,I'm lost.,-,kids
 58,大ピンチずかん,82,か,かいものがながい,Shopping is taking a long time.,-,kids
 59,大ピンチずかん,81,じ,じてんしゃにハチがとまっている,A bee is sitting on the bicycle.,-,kids
 60,大ピンチずかん,60,せ,せんせいに　おかあさんといってしまった,I accidentally called my teacher 'Mom'.,-,kids
 61,大ピンチずかん,61,ぎ,ギターのなかにおかしがおちた,A snack fell inside the guitar.,-,kids
 62,大ピンチずかん,62,ず,ズボンのゴムがきれた,The elastic in my pants snapped.,-,kids
-63,大ピンチずかん,63,さ,さなぎからかえったカブトムシが　よなかにだっそうして　とびまわっている,The beetle that emerged from its pupa escaped at night and is flying around.,-,kids
-64,大ピンチずかん,57,け,けしゴムにさした　えんぴつのしんが　けしたときにつく,The pencil lead stuck in the eraser leaves marks when I erase.,-,kids
+63,大ピンチずかん,63,さ,さなぎからかえった　カブトムシが　まよなかに　へやじゅうを　とびまわっている,The beetle that emerged from its pupa escaped at night and is flying around.,-,kids
+64,大ピンチずかん,57,け,けしゴムに　ついた　えんぴつのしんの　あとが　けすたびに　うつる,The pencil lead stuck in the eraser leaves marks when I erase.,-,kids
 65,大ピンチずかん,89,お,おきられない,Can't wake up.,-,kids
 66,大ピンチずかん,91,で,かばしらに　じてんしゃで　つっこんだ,Crashed my bicycle into a mosquito swarm.,-,kids
 67,大ピンチずかん,93,と,トイレがつまった,The toilet is clogged.,-,kids
@@ -79,7 +79,7 @@ id,category,level,kana,phrase,phrase_en,answer,group
 81,大ピンチずかん,69,じ,じぶんのいえでトイレがつまった,The toilet at my own house is clogged.,-,kids
 82,大ピンチずかん,8,あ,あたまにつけたわゴムがとれない,Can't remove the rubber band I put on my head.,-,kids
 83,大ピンチずかん,12,や,ビニールぶくろがめくれない,Can't open the plastic bag.,-,kids
-84,大ピンチずかん,15,し,しょくばんを　がんばってスライスしているうちに　ぺしゃんこになっていた,The bread got squashed while I was trying hard to slice it.,-,kids
+84,大ピンチずかん,15,し,しょくばんを　スライスしたら　ぺったんこに　つぶれた,The bread got squashed while I was trying hard to slice it.,-,kids
 85,大ピンチずかん,7,ぺ,ペンがしみてつくえについた,The pen leaked onto the desk.,-,kids
 86,大ピンチずかん,80,や,やっぱりさむかった,It was cold after all.,-,kids
 87,大ピンチずかん,74,と,トイレのかみがない,There is no toilet paper.,-,kids
@@ -89,10 +89,10 @@ id,category,level,kana,phrase,phrase_en,answer,group
 91,大ピンチずかん,65,は,ハエがじぶんにばかりとまる,Flies only land on me.,-,kids
 92,大ピンチずかん,83,い,イヌがすごくなめてくる,The dog is licking me a lot.,-,kids
 93,大ピンチずかん,75,し,しらないひとのてをにぎっていた,Was holding a stranger's hand.,-,kids
-94,大ピンチずかん,85,し,シロツメクサの　かんむりをよくみると　アブラムシだらけだった,"When I looked closely at the clover crown, it was full of aphids.",-,kids
+94,大ピンチずかん,85,し,シロツメクサで　つくった　かんむりに　アブラムシが　いっぱいついていた,"When I looked closely at the clover crown, it was full of aphids.",-,kids
 95,大ピンチずかん,79,ば,バッグにアリがあつまってきた,Ants gathered on the bag.,-,kids
-96,大ピンチずかん,78,し,しんしつの　てんじょうのもくめが　ひとのかおにみえてきた,The wood grain on the bedroom ceiling started to look like a person's face.,-,kids
-97,大ピンチずかん,41,や,やすみじかんに　おいた　すいとうが　そのまま,The water bottle I left during recess is still there.,-,kids
+96,大ピンチずかん,78,し,しんしつの　てんじょうに　ひとのかおみたいな　もようが　ある,The wood grain on the bedroom ceiling started to look like a person's face.,-,kids
+97,大ピンチずかん,41,や,やすみじかんに　おいた　すいとうを　とりに　いくのを　わすれた,The water bottle I left during recess is still there.,-,kids
 98,大ピンチずかん,42,ご,ごはんが　たりない,Not enough food.,-,kids
 99,大ピンチずかん,44,は,はなしを　きいてなかった,Wasn't listening.,-,kids
 100,大ピンチずかん,2,の,のんだガムに　まだあじが　たくさんのこっていた,Swallowed the gum; it still had a lot of flavor left.,-,kids
