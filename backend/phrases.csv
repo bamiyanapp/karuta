@@ -262,65 +262,65 @@ id,category,level,kana,phrase,phrase_en,answer,group
 264,いろはかるた（意味）,-,れ,忠告は耳に痛いが自分のためになる,Good medicine tastes bitter,良薬は口に苦し,kids
 265,いろはかるた（意味）,-,そ,長男は大事に育てられ世間知らずになりがちだということ,The eldest son is often naive,総領の甚六,kids
 266,いろはかるた（意味）,-,つ,似ているようで実際は大きな違いがある,Like night and day,月とすっぽん,kids
-267,百人一首,-,あ,あきのたの かりほのいおの とまをあらみ わがころもでは つゆにぬれつつ,"In the autumn field, in the temporary hut's rough rush-mats, my sleeves are getting wet with dew.",-,kids
-268,百人一首,-,あ,あきかぜに たなびくくもの たえまより もれいづるつきの かげのさやけさ,"Through the rifts in the clouds trailing in the autumn wind, how clear the moonlight leaks out.",-,kids
-269,百人一首,-,あ,あしびきの やまどりのをの しだりをの ながながしよを ひとりかもねむ,"Must I sleep alone through the long, long night, like the long, trailing tail of the mountain pheasant?",-,kids
-270,百人一首,-,あ,あまのはら ふりさけみれば かすがなる みかさのやまに いでしつきかも,"When I look out over the plain of heaven, is that the same moon that rose over Mount Mikasa in Kasuga?",-,kids
-271,百人一首,-,あ,あわれとも いうべきひとは おもほえで みのいたずらに なりぬべきかな,"Since there is no one who might feel pity for me, I suppose I shall just pass away in vain.",-,kids
-272,百人一首,-,い,いまはただ おもひたえなむ とばかりを ひとづてならで いうよしもがな,Now I just want to give up my love; if only I could tell you this directly and not through others.,-,kids
-273,百人一首,-,い,いまこむと いいしばかりに ながつきの ありあけのつきを まちいでつるかな,"Just because you said 'I'll come soon', I have waited until the morning moon of the long month appeared.",-,kids
-274,百人一首,-,い,いろはにほへど ちりぬるを わがよたれぞ つねならむ,"Though flowers are fragrant, they will fall; in our world, who can remain forever?",-,kids
-275,百人一首,-,い,いのちながくは かたみにあはず ひとりして ものおもふよぞ ながかりける,"If I live long, we might not meet again; the night I spend alone in thought is so very long.",-,kids
-276,百人一首,-,い,いにしへの ならのみやこの やへざくら けふここのへに にほひぬるかな,The eight-layered cherry blossoms of the ancient capital of Nara are fragrantly blooming today in the imperial palace.,-,kids
-277,百人一首,-,う,うかりける ひとをはつせの やまおろしよ はげしかれとは いのらぬものを,"O mountain wind of Hatsuse, I did not pray for you to be so harsh, though she is cold to me.",-,kids
-278,百人一首,-,う,うらみわび ほさぬそでだに あるものを こひにくちなむ なこそをしけれ,"I resent her and am weary; my sleeves never dry, and I fear my reputation will rot away in this love.",-,kids
-279,百人一首,-,え,えにしあらば あはむとぞおもふ いざさらば わがなとひとは わすれざらなむ,"If there is fate, I believe we shall meet; now farewell, and may you not forget my name.",-,kids
-280,百人一首,-,お,おおえやま いくののみちの とおければ まだふみもみず あまのはしだて,The road to Ikuno over Mount Oe is so far that I have seen neither a letter nor Amanohashidate.,-,kids
-281,百人一首,-,お,おくやまに もみぢふみわけ なくしかの こゑきくときぞ あきはかなしき,"When I hear the voice of the stag crying as he steps through the maple leaves deep in the mountains, autumn is truly sad.",-,kids
-282,百人一首,-,か,かささぎの わたせるはしに おくしもの しろきをみれば よぞふけにける,"When I see the white frost on the bridge the magpies are said to have spread, I know the night has deepened.",-,kids
-283,百人一首,-,か,かぜをいたみ いはうつなみの おのれのみ くだけてものを おもふころかな,"Like the waves breaking against the rocks in the fierce wind, I alone am broken as I think of my love.",-,kids
-284,百人一首,-,き,きみがため はるののにいでて わかなつむ わがころもでに ゆきはふりつつ,"For your sake, I went out to the spring fields to pick young greens, while snow fell on my sleeves.",-,kids
-285,百人一首,-,き,きみがため をしからざりし いのちさへ ながくもがなと おもひけるかな,"For your sake, I did not value my life, but now I wish it would be long.",-,kids
-286,百人一首,-,く,くさもきも いろかはれども わたつみの なみのはなにぞ あきなかりける,"Though the colors of plants and trees change, there is no autumn in the flowers of the sea waves.",-,kids
-287,百人一首,-,く,くれなゐに みづくくるとは ききしかど あきぞこのはに まじりけるかな,"I heard that the water is dyed crimson, but it seems autumn has mixed into the leaves.",-,kids
-288,百人一首,-,こ,こころあてに をらばやをらむ はつしもの おきまどはせる しらぎくのはな,"If I were to pick them at random, I might pick the white chrysanthemums that the first frost has confused.",-,kids
-289,百人一首,-,こ,このたびは ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,"At this time, I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.",-,kids
-290,百人一首,-,さ,さびしさに やどをたちいでて ながむれば いづこもおなじ あきのゆふぐれ,"In my loneliness, I leave my house and look out; everywhere it is the same autumn evening.",-,kids
-291,百人一首,-,し,しのぶれど いろにいでにけり わがこひは ものやおもふと ひとのとふまで,"Though I try to hide it, my love shows in my face, until people ask if I am lost in thought.",-,kids
-292,百人一首,-,す,すみのえの きしによるなみ よるさへや ゆめのかよひぢ ひとめよくらむ,"Like the waves approaching the shore of Suminoe, even at night do you avoid people's eyes on the dream path?",-,kids
-293,百人一首,-,せ,せをはやみ いはにせかるる たきがはの われてもすゑに あはむとぞおもふ,"Like the river current split by a rock in the rapids, though divided, I know we shall meet in the end.",-,kids
-294,百人一首,-,そ,そらしらぬ ゆきふみわけて いでつるは ひとつのえだに つるをたづねて,"I went out treading through the snow I didn't know, seeking a vine on a single branch.",-,kids
-295,百人一首,-,た,たごのうらに うちいでてみれば しろたへの ふじのたかねに ゆきはふりつつ,"When I go out to the shore of Tago and look, snow is falling on the white peak of Mount Fuji.",-,kids
-296,百人一首,-,ち,ちはやぶる かみよもきかず たつたがは からくれなゐに みづくくるとは,"Never heard of even in the age of the mighty gods, that the Tatsuta River is dyed in deep crimson.",-,kids
-297,百人一首,-,つ,つくばねの みねよりおつる みなのがは こひぞつもりて ふちとなりぬる,"Like the Minano River falling from the peak of Tsukubane, my love has accumulated and become a deep pool.",-,kids
-298,百人一首,-,て,てふことも いまはむかしに なりぬれば たがためにかは なにかうらみむ,"Since even that has become a thing of the past, for whose sake should I hold any resentment?",-,kids
-299,百人一首,-,と,ともしびを かきたつるまも なつかしき いづれのよひに みえぬまにまに,"Even while trimming the lamp, I miss you; on which evening did I not see you?",-,kids
-300,百人一首,-,な,ながからむ こころもしらず くろかみの みだれてけさは ものをこそおもへ,"Uncertain of how long his heart will stay,my black hair lies in disarray this morning and so, I am lost in troubled thoughts.",-,kids
-301,百人一首,-,に,にしきなる ふくろにいれて いはざかり いづれのやまを こえぬとぞおもふ,I put it in a brocade bag; I wonder which mountain it crossed in its peak of silence.,-,kids
-302,百人一首,-,ぬ,ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.,-,kids
-303,百人一首,-,ね,ねがはくは はなのしたにて はるしなむ そのきさらぎの もちづきのころ,"My wish is to die in spring under the flowers, around the time of the full moon in the second month.",-,kids
-304,百人一首,-,の,のちのよを おもへばかろし ほととぎす あかつきかけて なきつるものを,"Thinking of the afterlife makes it seem light, while the cuckoo cries toward the dawn.",-,kids
-305,百人一首,-,は,はるすぎて なつきにけらし しろたへの ころもほすてふ あまのかぐやま,Spring has passed and summer seems to have come; white robes are said to be dried on the heavenly Mount Kagu.,-,kids
-306,百人一首,-,ひ,ひさかたの ひかりのどけき はるのひに しづこころなく はなのちるらむ,"On this spring day when the light is so calm, why do the cherry blossoms scatter with such unquiet hearts?",-,kids
-307,百人一首,-,ふ,ふくからに あきのくさきの しをるれば むべやまかぜを あらしといふらむ,"Since the autumn plants and trees wither as soon as it blows, it is no wonder the mountain wind is called a storm.",-,kids
-308,百人一首,-,へ,へにける いくよをかさね たまづさの ふみをひらけば こひぞつもりぬる,"As I open the letter after many passing nights, my love has truly accumulated.",-,kids
-309,百人一首,-,ほ,ほととぎす なきつるかたを ながむれば ただありあけの つきぞのこれる,"When I look toward where the cuckoo cried, only the morning moon remains.",-,kids
-310,百人一首,-,ま,まつとしき たかしのはまの あまごろも ぬれにぞぬれし いろはかはらず,"Waiting on the beach of Takashi, the fisher's robe got soaked and soaked, but its color remained unchanged.",-,kids
-311,百人一首,-,み,みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ,"Like the Izumi River flowing through the plain of Mika, when did I see you that I should love you so?",-,kids
-312,百人一首,-,む,むらさめの つゆもまだひぬ まきのはに きりたちのぼる あきのゆふぐれ,"Before the dew of the passing shower has dried on the fir leaves, the mist rises on an autumn evening.",-,kids
-313,百人一首,-,め,めぐりあひて みしやそれとも わかぬまに くもがくれにし よはのつきかな,"Meeting by chance, before I could even tell if it was you, you were hidden by clouds like the midnight moon.",-,kids
-314,百人一首,-,も,ももしきや ふるきのきばの しのぶにも なほあまりある むかしなりけり,"In the palace, even the ferns on the old eaves make me yearn for the past more than I can bear.",-,kids
-315,百人一首,-,や,やすらはで ねなましものを さよふけて かたぶくまでの つきをみしかな,I should have gone to sleep without waiting; I watched the moon until it began to sink late at night.,-,kids
-316,百人一首,-,ゆ,ゆらのとを わたるふなびと かぢをたえ ゆくへもしらぬ こひのみちかな,"Like a mariner crossing the Yura Strait with a lost oar, I know not where the path of my love leads.",-,kids
-317,百人一首,-,よ,よをこめて とりのそらねは はかるとも よにあふさかの せきはゆるさじ,"Though you try to deceive with a bird's false cry in the dead of night, the gate of Osaka shall not let you pass.",-,kids
-318,百人一首,-,ら,らいしやうの いのちのはてを しらぬまに けふをかぎりと おもひけるかな,"Not knowing the end of my life in the next world, I thought today would be the limit.",-,kids
-319,百人一首,-,り,りくかぜの さむきにたへて みちのくの しのぶもぢずり たれゆゑにけむ,"Enduring the cold land wind, for whose sake was the tangled print of Michinoku's Shinobu?",-,kids
-320,百人一首,-,る,るりのつぼ いづれのひとも すむらむと こころをかけし いろはみえず,"In the lapis lazuli jar where everyone might live, I cannot see the colors I set my heart on.",-,kids
-321,百人一首,-,れ,れいよりも こころをつくせ さくらばな ちりぬるのちも にほひをこそ,"Exert your heart more than usual, cherry blossoms; even after you fall, leave your fragrance.",-,kids
-322,百人一首,-,ろ,ろばたにて こまをつなぎて みるほどに はなぞちりける さくらかな,"While tethering my horse by the roadside, the cherry blossoms were scattering.",-,kids
-323,百人一首,-,わ,わたのはら やそしまかけて こぎいでぬと ひとにはつげよ あまのつりぶね,"Tell the people that I have rowed out over the wide sea toward the many islands, O fisher's boat.",-,kids
-324,百人一首,-,を,をぐらやま みねのもみぢば こころあらば いまひとたびの みゆきまたなむ,"O maple leaves on the peak of Mount Ogura, if you have a heart, wait for one more imperial visit.",-,kids
-325,百人一首,-,ん,んにゃくにしゅう つねのことばを うたにして こころをつたふ みちぞたふとき,"Turning ordinary words into songs to convey the heart, the path is truly noble.",-,kids
+267,百人一首,-,あ,あきのたの かりほのいおの とまをあらみ わがころもでは つゆにぬれつつ,"In the autumn field, in the temporary hut's rough rush-mats, my sleeves are getting wet with dew.",わがころもでは つゆにぬれつつ,kids
+268,百人一首,-,あ,あきかぜに たなびくくもの たえまより もれいづるつきの かげのさやけさ,"Through the rifts in the clouds trailing in the autumn wind, how clear the moonlight leaks out.",もれいづるつきの かげのさやけさ,kids
+269,百人一首,-,あ,あしびきの やまどりのをの しだりをの ながながしよを ひとりかもねむ,"Must I sleep alone through the long, long night, like the long, trailing tail of the mountain pheasant?",ながながしよを ひとりかもねむ,kids
+270,百人一首,-,あ,あまのはら ふりさけみれば かすがなる みかさのやまに いでしつきかも,"When I look out over the plain of heaven, is that the same moon that rose over Mount Mikasa in Kasuga?",みかさのやまに いでしつきかも,kids
+271,百人一首,-,あ,あわれとも いうべきひとは おもほえで みのいたずらに なりぬべきかな,"Since there is no one who might feel pity for me, I suppose I shall just pass away in vain.",みのいたずらに なりぬべきかな,kids
+272,百人一首,-,い,いまはただ おもひたえなむ とばかりを ひとづてならで いうよしもがな,Now I just want to give up my love; if only I could tell you this directly and not through others.,ひとづてならで いうよしもがな,kids
+273,百人一首,-,い,いまこむと いいしばかりに ながつきの ありあけのつきを まちいでつるかな,"Just because you said 'I'll come soon', I have waited until the morning moon of the long month appeared.",ありあけのつきを まちいでつるかな,kids
+274,百人一首,-,い,いろはにほへど ちりぬるを わがよたれぞ つねならむ,"Though flowers are fragrant, they will fall; in our world, who can remain forever?",わがよたれぞ つねならむ,kids
+275,百人一首,-,い,いのちながくは かたみにあはず ひとりして ものおもふよぞ ながかりける,"If I live long, we might not meet again; the night I spend alone in thought is so very long.",ものおもふよぞ ながかりける,kids
+276,百人一首,-,い,いにしへの ならのみやこの やへざくら けふここのへに にほひぬるかな,The eight-layered cherry blossoms of the ancient capital of Nara are fragrantly blooming today in the imperial palace.,けふここのへに にほひぬるかな,kids
+277,百人一首,-,う,うかりける ひとをはつせの やまおろしよ はげしかれとは いのらぬものを,"O mountain wind of Hatsuse, I did not pray for you to be so harsh, though she is cold to me.",はげしかれとは いのらぬものを,kids
+278,百人一首,-,う,うらみわび ほさぬそでだに あるものを こひにくちなむ なこそをしけれ,"I resent her and am weary; my sleeves never dry, and I fear my reputation will rot away in this love.",こひにくちなむ なこそをしけれ,kids
+279,百人一首,-,え,えにしあらば あはむとぞおもふ いざさらば わがなとひとは わすれざらなむ,"If there is fate, I believe we shall meet; now farewell, and may you not forget my name.",わがなとひとは わすれざらなむ,kids
+280,百人一首,-,お,おおえやま いくののみちの とおければ まだふみもみず あまのはしだて,The road to Ikuno over Mount Oe is so far that I have seen neither a letter nor Amanohashidate.,まだふみもみず あまのはしだて,kids
+281,百人一首,-,お,おくやまに もみぢふみわけ なくしかの こゑきくときぞ あきはかなしき,"When I hear the voice of the stag crying as he steps through the maple leaves deep in the mountains, autumn is truly sad.",こゑきくときぞ あきはかなしき,kids
+282,百人一首,-,か,かささぎの わたせるはしに おくしもの しろきをみれば よぞふけにける,"When I see the white frost on the bridge the magpies are said to have spread, I know the night has deepened.",しろきをみれば よぞふけにける,kids
+283,百人一首,-,か,かぜをいたみ いはうつなみの おのれのみ くだけてものを おもふころかな,"Like the waves breaking against the rocks in the fierce wind, I alone am broken as I think of my love.",くだけてものを おもふころかな,kids
+284,百人一首,-,き,きみがため はるののにいでて わかなつむ わがころもでに ゆきはふりつつ,"For your sake, I went out to the spring fields to pick young greens, while snow fell on my sleeves.",わがころもでに ゆきはふりつつ,kids
+285,百人一首,-,き,きみがため をしからざりし いのちさへ ながくもがなと おもひけるかな,"For your sake, I did not value my life, but now I wish it would be long.",ながくもがなと おもひけるかな,kids
+286,百人一首,-,く,くさもきも いろかはれども わたつみの なみのはなにぞ あきなかりける,"Though the colors of plants and trees change, there is no autumn in the flowers of the sea waves.",なみのはなにぞ あきなかりける,kids
+287,百人一首,-,く,くれなゐに みづくくるとは ききしかど あきぞこのはに まじりけるかな,"I heard that the water is dyed crimson, but it seems autumn has mixed into the leaves.",あきぞこのはに まじりけるかな,kids
+288,百人一首,-,こ,こころあてに をらばやをらむ はつしもの おきまどはせる しらぎくのはな,"If I were to pick them at random, I might pick the white chrysanthemums that the first frost has confused.",おきまどはせる しらぎくのはな,kids
+289,百人一首,-,こ,このたびは ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,"At this time, I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.",もみぢのにしき かみのまにまに,kids
+290,百人一首,-,さ,さびしさに やどをたちいでて ながむれば いづこもおなじ あきのゆふぐれ,"In my loneliness, I leave my house and look out; everywhere it is the same autumn evening.",いづこもおなじ あきのゆふぐれ,kids
+291,百人一首,-,し,しのぶれど いろにいでにけり わがこひは ものやおもふと ひとのとふまで,"Though I try to hide it, my love shows in my face, until people ask if I am lost in thought.",ものやおもふと ひとのとふまで,kids
+292,百人一首,-,す,すみのえの きしによるなみ よるさへや ゆめのかよひぢ ひとめよくらむ,"Like the waves approaching the shore of Suminoe, even at night do you avoid people's eyes on the dream path?",ゆめのかよひぢ ひとめよくらむ,kids
+293,百人一首,-,せ,せをはやみ いはにせかるる たきがはの われてもすゑに あはむとぞおもふ,"Like the river current split by a rock in the rapids, though divided, I know we shall meet in the end.",われてもすゑに あはむとぞおもふ,kids
+294,百人一首,-,そ,そらしらぬ ゆきふみわけて いでつるは ひとつのえだに つるをたづねて,"I went out treading through the snow I didn't know, seeking a vine on a single branch.",ひとつのえだに つるをたづねて,kids
+295,百人一首,-,た,たごのうらに うちいでてみれば しろたへの ふじのたかねに ゆきはふりつつ,"When I go out to the shore of Tago and look, snow is falling on the white peak of Mount Fuji.",ふじのたかねに ゆきはふりつつ,kids
+296,百人一首,-,ち,ちはやぶる かみよもきかず たつたがは からくれなゐに みづくくるとは,"Never heard of even in the age of the mighty gods, that the Tatsuta River is dyed in deep crimson.",からくれなゐに みづくくるとは,kids
+297,百人一首,-,つ,つくばねの みねよりおつる みなのがは こひぞつもりて ふちとなりぬる,"Like the Minano River falling from the peak of Tsukubane, my love has accumulated and become a deep pool.",こひぞつもりて ふちとなりぬる,kids
+298,百人一首,-,て,てふことも いまはむかしに なりぬれば たがためにかは なにかうらみむ,"Since even that has become a thing of the past, for whose sake should I hold any resentment?",たがためにかは なにかうらみむ,kids
+299,百人一首,-,と,ともしびを かきたつるまも なつかしき いづれのよひに みえぬまにまに,"Even while trimming the lamp, I miss you; on which evening did I not see you?",いづれのよひに みえぬまにまに,kids
+300,百人一首,-,な,ながからむ こころもしらず くろかみの みだれてけさは ものをこそおもへ,"Uncertain of how long his heart will stay,my black hair lies in disarray this morning and so, I am lost in troubled thoughts.",みだれてけさは ものをこそおもへ,kids
+301,百人一首,-,に,にしきなる ふくろにいれて いはざかり いづれのやまを こえぬとぞおもふ,I put it in a brocade bag; I wonder which mountain it crossed in its peak of silence.,いづれのやまを こえぬとぞおもふ,kids
+302,百人一首,-,ぬ,ぬさもとりあへず たむけやま もみぢのにしき かみのまにまに,I could not even bring an offering; let the gods take the brocade of maple leaves on Mount Tamuke.,もみぢのにしき かみのまにまに,kids
+303,百人一首,-,ね,ねがはくは はなのしたにて はるしなむ そのきさらぎの もちづきのころ,"My wish is to die in spring under the flowers, around the time of the full moon in the second month.",そのきさらぎの もちづきのころ,kids
+304,百人一首,-,の,のちのよを おもへばかろし ほととぎす あかつきかけて なきつるものを,"Thinking of the afterlife makes it seem light, while the cuckoo cries toward the dawn.",あかつきかけて なきつるものを,kids
+305,百人一首,-,は,はるすぎて なつきにけらし しろたへの ころもほすてふ あまのかぐやま,Spring has passed and summer seems to have come; white robes are said to be dried on the heavenly Mount Kagu.,ころもほすてふ あまのかぐやま,kids
+306,百人一首,-,ひ,ひさかたの ひかりのどけき はるのひに しづこころなく はなのちるらむ,"On this spring day when the light is so calm, why do the cherry blossoms scatter with such unquiet hearts?",しづこころなく はなのちるらむ,kids
+307,百人一首,-,ふ,ふくからに あきのくさきの しをるれば むべやまかぜを あらしといふらむ,"Since the autumn plants and trees wither as soon as it blows, it is no wonder the mountain wind is called a storm.",むべやまかぜを あらしといふらむ,kids
+308,百人一首,-,へ,へにける いくよをかさね たまづさの ふみをひらけば こひぞつもりぬる,"As I open the letter after many passing nights, my love has truly accumulated.",ふみをひらけば こひぞつもりぬる,kids
+309,百人一首,-,ほ,ほととぎす なきつるかたを ながむれば ただありあけの つきぞのこれる,"When I look toward where the cuckoo cried, only the morning moon remains.",ただありあけの つきぞのこれる,kids
+310,百人一首,-,ま,まつとしき たかしのはまの あまごろも ぬれにぞぬれし いろはかはらず,"Waiting on the beach of Takashi, the fisher's robe got soaked and soaked, but its color remained unchanged.",ぬれにぞぬれし いろはかはらず,kids
+311,百人一首,-,み,みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ,"Like the Izumi River flowing through the plain of Mika, when did I see you that I should love you so?",いつみきとてか こひしかるらむ,kids
+312,百人一首,-,む,むらさめの つゆもまだひぬ まきのはに きりたちのぼる あきのゆふぐれ,"Before the dew of the passing shower has dried on the fir leaves, the mist rises on an autumn evening.",きりたちのぼる あきのゆふぐれ,kids
+313,百人一首,-,め,めぐりあひて みしやそれとも わかぬまに くもがくれにし よはのつきかな,"Meeting by chance, before I could even tell if it was you, you were hidden by clouds like the midnight moon.",くもがくれにし よはのつきかな,kids
+314,百人一首,-,も,ももしきや ふるきのきばの しのぶにも なほあまりある むかしなりけり,"In the palace, even the ferns on the old eaves make me yearn for the past more than I can bear.",なほあまりある むかしなりけり,kids
+315,百人一首,-,や,やすらはで ねなましものを さよふけて かたぶくまでの つきをみしかな,I should have gone to sleep without waiting; I watched the moon until it began to sink late at night.,かたぶくまでの つきをみしかな,kids
+316,百人一首,-,ゆ,ゆらのとを わたるふなびと かぢをたえ ゆくへもしらぬ こひのみちかな,"Like a mariner crossing the Yura Strait with a lost oar, I know not where the path of my love leads.",ゆくへもしらぬ こひのみちかな,kids
+317,百人一首,-,よ,よをこめて とりのそらねは はかるとも よにあふさかの せきはゆるさじ,"Though you try to deceive with a bird's false cry in the dead of night, the gate of Osaka shall not let you pass.",よにあふさかの せきはゆるさじ,kids
+318,百人一首,-,ら,らいしやうの いのちのはてを しらぬまに けふをかぎりと おもひけるかな,"Not knowing the end of my life in the next world, I thought today would be the limit.",けふをかぎりと おもひけるかな,kids
+319,百人一首,-,り,りくかぜの さむきにたへて みちのくの しのぶもぢずり たれゆゑにけむ,"Enduring the cold land wind, for whose sake was the tangled print of Michinoku's Shinobu?",しのぶもぢずり たれゆゑにけむ,kids
+320,百人一首,-,る,るりのつぼ いづれのひとも すむらむと こころをかけし いろはみえず,"In the lapis lazuli jar where everyone might live, I cannot see the colors I set my heart on.",こころをかけし いろはみえず,kids
+321,百人一首,-,れ,れいよりも こころをつくせ さくらばな ちりぬるのちも にほひをこそ,"Exert your heart more than usual, cherry blossoms; even after you fall, leave your fragrance.",ちりぬるのちも にほひをこそ,kids
+322,百人一首,-,ろ,ろばたにて こまをつなぎて みるほどに はなぞちりける さくらかな,"While tethering my horse by the roadside, the cherry blossoms were scattering.",はなぞちりける さくらかな,kids
+323,百人一首,-,わ,わたのはら やそしまかけて こぎいでぬと ひとにはつげよ あまのつりぶね,"Tell the people that I have rowed out over the wide sea toward the many islands, O fisher's boat.",ひとにはつげよ あまのつりぶね,kids
+324,百人一首,-,を,をぐらやま みねのもみぢば こころあらば いまひとたびの みゆきまたなむ,"O maple leaves on the peak of Mount Ogura, if you have a heart, wait for one more imperial visit.",いまひとたびの みゆきまたなむ,kids
+325,百人一首,-,ん,んにゃくにしゅう つねのことばを うたにして こころをつたふ みちぞたふとき,"Turning ordinary words into songs to convey the heart, the path is truly noble.",こころをつたふ みちぞたふとき,kids
 326,大ピンチずかん,92,た,たからものいれが　あかない,I can't open treasure box.,-,kids
 327,大ピンチずかん,1,が,がむを　のんだ,I swallowed gum.,-,kids
 400,しょうがっこうかるた,-,あ,あさきたら あいさつしよう げんきよく,"When morning comes, greet cheerfully.",-,kids
