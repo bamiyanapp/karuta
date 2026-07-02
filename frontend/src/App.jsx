@@ -61,6 +61,12 @@ function App() {
   const [sortOrder, setSortOrder] = useState(() => {
     return localStorage.getItem("sortOrder") || "random";
   });
+  const [themeSetting, setThemeSetting] = useState(() => {
+    return localStorage.getItem("theme") || "system";
+  });
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  });
   const [historyByCategory, setHistoryByCategory] = useState({});
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -72,6 +78,10 @@ function App() {
 
   const flipTimeoutRef = useRef(null);
   const startTimeRef = useRef(null);
+
+  const resolvedTheme = useMemo(() => {
+    return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
+  }, [themeSetting, systemPrefersDark]);
 
   const categoryKey = useMemo(() => {
     return JSON.stringify(selectedCategories.slice().sort());
@@ -619,6 +629,23 @@ function App() {
   useEffect(() => {
     localStorage.setItem("sortOrder", sortOrder);
   }, [sortOrder]);
+
+  useEffect(() => {
+    localStorage.setItem("theme", themeSetting);
+  }, [themeSetting]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
+  }, [resolvedTheme]);
+
+  // OSの配色設定(ダーク/ライト)の変更をリアルタイムに反映する
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!mediaQuery) return;
+    const handleChange = (e) => setSystemPrefersDark(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const resetGame = () => {
     setSelectedCategories([]);
@@ -1200,6 +1227,14 @@ function App() {
 
       <footer className="text-center mt-5 pt-4 border-top">
         <section className="settings-container mb-4 p-3 mx-auto shadow-sm rounded-4 bg-light border" style={{ maxWidth: "500px" }}>
+          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
+            <span className="fw-bold text-dark small">テーマ:</span>
+            <div className="btn-group btn-group-sm" role="group">
+              <button onClick={() => setThemeSetting("system")} className={`btn ${themeSetting === "system" ? 'btn-dark' : 'btn-outline-dark'}`}>自動</button>
+              <button onClick={() => setThemeSetting("light")} className={`btn ${themeSetting === "light" ? 'btn-dark' : 'btn-outline-dark'}`}>ライト</button>
+              <button onClick={() => setThemeSetting("dark")} className={`btn ${themeSetting === "dark" ? 'btn-dark' : 'btn-outline-dark'}`}>ダーク</button>
+            </div>
+          </div>
           <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
             <span className="fw-bold text-dark small">言語:</span>
             <div className="btn-group btn-group-sm" role="group">
