@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/bamiyanapp/karuta/compare/v1.18.1...v1.19.0) (2026-07-02)
+
+
+### Features
+
+* **ui:** OS設定に自動追従するダークモードを追加 ([#176](https://github.com/bamiyanapp/karuta/issues/176)) ([ba5f084](https://github.com/bamiyanapp/karuta/commit/ba5f08473a36d648671d87044f7fa1e0030d608e))
+
 ## [1.18.1](https://github.com/bamiyanapp/karuta/compare/v1.18.0...v1.18.1) (2026-07-02)
 
 

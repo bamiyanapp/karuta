@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.18.1",
+    "version": "1.19.0",
     "date": "2026/07/02 00:00",
+    "body": "### Features\n\n* **ui:** OS設定に自動追従するダークモードを追加 ([#176](https://github.com/bamiyanapp/karuta/issues/176)) ([ba5f084](https://github.com/bamiyanapp/karuta/commit/ba5f08473a36d648671d87044f7fa1e0030d608e))"
+  },
+  {
+    "version": "1.18.1",
+    "date": "2026/07/02 12:22",
     "body": "### Bug Fixes\n\n* **phrases:** 百人一首の下の句をanswerに設定 ([#174](https://github.com/bamiyanapp/karuta/issues/174)) ([d78960c](https://github.com/bamiyanapp/karuta/commit/d78960ca35e28d1c8c96543c24625fc1fe2f7894))"
   },
   {
