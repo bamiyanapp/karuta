@@ -7,6 +7,13 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const pollyClient = new PollyClient({ region: "ap-northeast-1" });
 const crypto = require("crypto");
 
+function escapeSsml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function normalizeSpeechRate(rate) {
   if (!rate) return "90%";
   const rateStr = String(rate);
@@ -220,6 +227,7 @@ exports.getPhrase = async (event) => {
     const rawSpeechRate = params.speechRate || "90%";
     const speechRate = normalizeSpeechRate(rawSpeechRate);
     const lang = params.lang || "ja";
+    const announceCategory = params.announceCategory === "true";
     let targetId = params.id || null;
     const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME;
 
@@ -277,7 +285,7 @@ exports.getPhrase = async (event) => {
       : selectedItem.phrase;
 
     const cacheId = crypto.createHash("sha256").update(
-      `${targetId}-${repeatCount}-${speechRate}-${lang}-${JSON.stringify([level, speechPhrase])}`
+      `${targetId}-${repeatCount}-${speechRate}-${lang}-${announceCategory}-${JSON.stringify([level, speechPhrase, selectedItem.category])}`
     ).digest("hex");
 
     if (pollyCacheTableName) {
@@ -308,6 +316,11 @@ exports.getPhrase = async (event) => {
       let innerContent = phraseWithLevel;
       if (repeatCount >= 2) {
         innerContent = `${phraseWithLevel}<break time="1500ms"/>${phraseWithLevel}`;
+      }
+
+      // 複数種別を選択している場合、読み札がどの種別のものかを最後に1回だけ読み上げる（言語設定によらず日本語で読み上げる）
+      if (announceCategory && selectedItem.category) {
+        innerContent = `${innerContent}<break time="800ms"/>${escapeSsml(selectedItem.category)}`;
       }
 
       const ssmlText = `<speak><prosody rate="${speechRate}">${innerContent}</prosody></speak>`;

@@ -387,6 +387,133 @@ describe('getPhrase', () => {
         expect(pollyParams.Text).toContain('<prosody rate="110%">');
     });
 
+    it('should append the category once at the end when announceCategory is true', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1', announceCategory: 'true' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toBe('<speak><prosody rate="90%">phrase 1<break time="800ms"/>犬棒かるた</prosody></speak>');
+    });
+
+    it('should append the category only once after both repeats when repeatCount is 2', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '2', announceCategory: 'true' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toBe(
+            '<speak><prosody rate="90%">phrase 1<break time="1500ms"/>phrase 1<break time="800ms"/>犬棒かるた</prosody></speak>'
+        );
+        // カテゴリの読み上げは1回のみ含まれる
+        expect(pollyParams.Text.split('犬棒かるた').length - 1).toBe(1);
+    });
+
+    it('should not append the category when announceCategory is not set', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).not.toContain('犬棒かるた');
+    });
+
+    it('should announce the category in Japanese even when lang is en', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', phrase_en: 'Phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1', announceCategory: 'true', lang: 'en' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('犬棒かるた');
+        expect(pollyParams.Text).toContain('Phrase 1');
+    });
+
+    it('should escape SSML-significant characters in the category name', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'A&B<C>', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({}); // Cache put
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1', announceCategory: 'true' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('A&amp;B&lt;C&gt;');
+        expect(pollyParams.Text).not.toContain('A&B<C>');
+    });
+
+    it('should use a different cache key when announceCategory changes', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = () => {
+            const s = new Readable();
+            s.push('audio data');
+            s.push(null);
+            return s;
+        };
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', level: '-' }],
+        });
+        const baseEvent = { queryStringParameters: { id: 'p1' } };
+        await getPhrase(baseEvent);
+        const firstCacheId = ddbMock.commandCalls(PutCommand)[0].args[0].input.Item.id;
+
+        const announceEvent = { queryStringParameters: { id: 'p1', announceCategory: 'true' } };
+        await getPhrase(announceEvent);
+        const secondCacheId = ddbMock.commandCalls(PutCommand)[1].args[0].input.Item.id;
+
+        expect(secondCacheId).not.toBe(firstCacheId);
+    });
+
     it('should use a different cache key when the phrase text changes for the same id', async () => {
         ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
         ddbMock.on(PutCommand).resolves({});
