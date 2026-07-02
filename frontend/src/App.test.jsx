@@ -692,6 +692,38 @@ describe('App', () => {
     expect(localStorage.getItem('speechRate')).toBe('100%');
   });
 
+  it('applies the selected theme to the document and persists it', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    // 初期値は自動(システム設定追従)で、matchMediaが使えない環境ではライト扱い
+    expect(document.documentElement.getAttribute('data-bs-theme')).toBe('light');
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
+    const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    fireEvent.click(await screen.findByText('ダーク'));
+    expect(localStorage.getItem('theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-bs-theme')).toBe('dark');
+
+    fireEvent.click(screen.getByText('ライト'));
+    expect(localStorage.getItem('theme')).toBe('light');
+    expect(document.documentElement.getAttribute('data-bs-theme')).toBe('light');
+
+    fireEvent.click(screen.getByText('自動'));
+    expect(localStorage.getItem('theme')).toBe('system');
+  });
+
   it('shows an answer column with data and blank fallback in all-phrases view', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,

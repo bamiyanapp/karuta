@@ -3,6 +3,54 @@
   width: 100%;
 }
 
+/* ダークモード: bg-light/bg-white/text-dark等はBootstrap 5.3のカラーモードに追従しない
+   静的ユーティリティのため、その参照元のCSS変数を直接再定義して連動させる */
+[data-bs-theme="dark"] {
+  --bs-light-rgb: 43, 43, 43;
+  --bs-dark-rgb: 228, 228, 228;
+  --bs-white-rgb: 30, 30, 30;
+}
+
+/* かるた札は常に紙面のような明るい配色を保つ意匠のため、文字色の反転対象から除外する */
+[data-bs-theme="dark"] .yomifuda {
+  --bs-dark-rgb: 33, 37, 41;
+}
+
+[data-bs-theme="dark"] .btn-dark {
+  --bs-btn-bg: #e4e4e4;
+  --bs-btn-border-color: #e4e4e4;
+  --bs-btn-color: #121212;
+  --bs-btn-hover-bg: #cfcfcf;
+  --bs-btn-hover-border-color: #cfcfcf;
+  --bs-btn-hover-color: #121212;
+  --bs-btn-active-bg: #cfcfcf;
+  --bs-btn-active-border-color: #cfcfcf;
+  --bs-btn-active-color: #121212;
+}
+
+/* btn-outline-dark/btn-outline-secondaryは--bs-btn-colorに固定の16進値を持つため、
+   --bs-dark-rgb等の再定義では追従しない。個別に上書きする */
+[data-bs-theme="dark"] .btn-outline-dark {
+  --bs-btn-color: #e4e4e4;
+  --bs-btn-border-color: #e4e4e4;
+  --bs-btn-hover-color: #121212;
+  --bs-btn-hover-bg: #e4e4e4;
+  --bs-btn-hover-border-color: #e4e4e4;
+  --bs-btn-active-color: #121212;
+  --bs-btn-active-bg: #e4e4e4;
+  --bs-btn-active-border-color: #e4e4e4;
+  --bs-btn-disabled-color: #e4e4e4;
+  --bs-btn-disabled-border-color: #e4e4e4;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  --bs-btn-color: #adb5bd;
+  --bs-btn-border-color: #6c757d;
+  --bs-btn-hover-color: #121212;
+  --bs-btn-hover-bg: #adb5bd;
+  --bs-btn-hover-border-color: #adb5bd;
+}
+
 /* ページ全体の中央寄せを保証 */
 .container {
   max-width: 800px; /* PCで見やすい幅に制限 */
@@ -107,6 +155,10 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+[data-bs-theme="dark"] .category-selection-container {
+  background-color: #1e1e1e;
+}
+
 .btn-karuta {
   background-color: #e44d26;
   color: white;
@@ -152,6 +204,19 @@ button:active:not(:disabled) {
   top: 0;
   z-index: 1;
   background-color: #f8f9fa;
+}
+
+/* thead.table-lightは--bs-table-color/--bs-table-bgに固定の16進値を持つため、
+   --bs-dark-rgb等の再定義では追従しない。個別に上書きする。
+   なおsticky化のためthead thには背景色を直接指定しているため、--bs-table-bgとは別に
+   background-colorも上書きする必要がある */
+[data-bs-theme="dark"] .all-phrases-scroll-container thead.table-light {
+  --bs-table-color: #e4e4e4;
+  --bs-table-bg: #2b2b2b;
+}
+
+[data-bs-theme="dark"] .all-phrases-scroll-container thead th {
+  background-color: #2b2b2b;
 }
 
 /* 絵札印刷（エーワン マルチカード ZT51677_A 実測準拠：上下7mm・左右12mm余白、列間4mm・行間2mm） */
