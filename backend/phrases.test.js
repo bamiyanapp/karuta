@@ -5,7 +5,9 @@ import { parse } from 'csv-parse/sync';
 
 // answerが読み札(phrase)内に登場すると、答えが読み札から自明になってしまい謎解きとして成立しない。
 // おばけかるたは妖怪名を読み札内で名乗る伝統的な構造のため、この制約から除外する。
-const CATEGORIES_ALLOWING_ANSWER_IN_PHRASE = new Set(['おばけかるた']);
+// 百人一首は読み札(phrase)が上の句+下の句の全句で、answer(下の句)がその一部として
+// 必然的に含まれる構造のため、同様に除外する。
+const CATEGORIES_ALLOWING_ANSWER_IN_PHRASE = new Set(['おばけかるた', '百人一首']);
 // 整数levelの許容正規表現: 科学記数法・浮動小数・空白混入を弾く
 const POSITIVE_INT_RE = /^\d+$/;
 
@@ -120,7 +122,9 @@ function expectedKana(target) {
 }
 
 // かなが読み札先頭文字由来のカテゴリ（answerがあっても読み札を参照する）
-const CATEGORIES_KANA_FROM_PHRASE = new Set(['おばけかるた']);
+// 百人一首はkanaが上の句（読み札=phrase）の決まり字先頭文字であり、
+// answer（下の句）の先頭文字ではないため、読み札を参照するカテゴリに含める。
+const CATEGORIES_KANA_FROM_PHRASE = new Set(['おばけかるた', '百人一首']);
 
 // かなの導出規則がテキスト先頭文字では検証できないカテゴリ
 // （概念ベース・日本語読み・ショートカットキー等）
