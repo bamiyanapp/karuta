@@ -446,6 +446,9 @@ describe('App', () => {
 
     fireEvent.click(screen.getByText('印刷する'));
     expect(window.print).toHaveBeenCalled();
+
+    // 選択カテゴリが1つの場合でも、絵札にかるた種別が表示される
+    expect(document.querySelector('.efuda-card-category')).toHaveTextContent('Cat1');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
