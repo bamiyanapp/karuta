@@ -826,9 +826,7 @@ function App() {
                         <div className="efuda-card" key={slotIndex}>
                           {p && (
                             <>
-                              {isMultiCategorySelection && (
-                                <p className="no-print text-muted small efuda-card-category">{p.category}</p>
-                              )}
+                              <p className="no-print text-muted small efuda-card-category">{p.category}</p>
                               <div className="efuda-card-kana">{p.kana}</div>
                               <div className="efuda-card-text">{getEfudaText(p)}</div>
                             </>
