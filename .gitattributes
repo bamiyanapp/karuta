@@ -1,0 +1,5 @@
+# frontend/src/changelog.json は semantic-release が release ブランチ上でのみ
+# 生成する成果物であり、main 側の内容は sync PR 経由の副産物に過ぎない。
+# release と main のマージ時に不要なコンフリクトを起こさないよう、
+# 常に現在のブランチ（マージ先）側の内容を優先する。
+frontend/src/changelog.json merge=ours
