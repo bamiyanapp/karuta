@@ -364,13 +364,13 @@ function App() {
       }
   
       await playIntroSound();
-      
-      // 読み上げ開始タイミングで計測開始
-      startTimeRef.current = Date.now();
 
       let animationPromise = Promise.resolve();
 
       if (phraseData) {
+        // 読み上げ開始タイミングで計測開始（リピート再生時は計測中の開始点を上書きしない）
+        startTimeRef.current = Date.now();
+
         if (flipTimeoutRef.current) {
           clearTimeout(flipTimeoutRef.current);
           flipTimeoutRef.current = null;
@@ -766,12 +766,13 @@ function App() {
               <h2 className="h5 fw-bold mb-3 text-dark">かるたの誤りを指摘する</h2>
               <form onSubmit={postComment}>
                   <div className="mb-3">
-                    <textarea 
-                      className="form-control rounded-3" 
-                      rows="3" 
+                    <textarea
+                      className="form-control rounded-3"
+                      rows="3"
                       placeholder="例：かなが間違っている、フレーズが違うなど"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
+                      maxLength={1000}
                       required
                     ></textarea>
                   </div>
@@ -826,9 +827,7 @@ function App() {
                         <div className="efuda-card" key={slotIndex}>
                           {p && (
                             <>
-                              {isMultiCategorySelection && (
-                                <p className="no-print text-muted small efuda-card-category">{p.category}</p>
-                              )}
+                              <p className="no-print text-muted small efuda-card-category">{p.category}</p>
                               <div className="efuda-card-kana">{p.kana}</div>
                               <div className="efuda-card-text">{getEfudaText(p)}</div>
                             </>

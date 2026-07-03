@@ -446,6 +446,9 @@ describe('App', () => {
 
     fireEvent.click(screen.getByText('印刷する'));
     expect(window.print).toHaveBeenCalled();
+
+    // 選択カテゴリが1つの場合でも、絵札にかるた種別が表示される
+    expect(document.querySelector('.efuda-card-category')).toHaveTextContent('Cat1');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
@@ -655,6 +658,10 @@ describe('App', () => {
       expect(screen.getByText('答え')).toBeInTheDocument();
       expect(screen.getByText('回答A')).toBeInTheDocument();
     });
+
+    // バックエンドの上限(1000文字)と揃え、送信後に拒否される体験を防ぐ
+    const commentTextarea = screen.getByPlaceholderText('例：かなが間違っている、フレーズが違うなど');
+    expect(commentTextarea).toHaveAttribute('maxlength', '1000');
 
     randomSpy.mockRestore();
   }, 15000);
@@ -896,5 +903,68 @@ describe('App', () => {
       expect(document.title).toBe('全札一覧 | かるた読み上げアプリ');
     });
   });
+
+  it('does not reset the elapsed-time start point when the card is replayed before advancing', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        // 未読の札を残しておき、記録直後に「全て読了」分岐へ入らないようにする
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) {
+        return { ok: true, json: async () => ({ message: 'ok' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    // 読み上げ中〜完了直後にカードをリピート再生させる
+    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 8000 });
+    fireEvent.click(screen.getByText('もう一度'));
+
+    // リピート再生（イントロ音＋本編）が終わるまで待つ
+    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 8000 });
+
+    fetch.mockClear();
+    fireEvent.click(screen.getByText('次の札'));
+
+    let recordTimeCall;
+    await waitFor(() => {
+      recordTimeCall = fetch.mock.calls.find(([callUrl]) => callUrl.includes('/record-time'));
+      expect(recordTimeCall).toBeDefined();
+    });
+
+    const body = JSON.parse(recordTimeCall[1].body);
+    // リピート再生で計測開始点がリセットされていれば、経過時間はごく短時間になってしまう
+    expect(body.time).toBeGreaterThan(2);
+  }, 15000);
 
 });

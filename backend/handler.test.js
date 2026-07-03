@@ -202,6 +202,101 @@ describe('postComment', () => {
         expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 when comment exceeds the maximum length', async () => {
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'a'.repeat(1001),
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(400);
+        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
+    });
+
+    it('should accept a comment exactly at the maximum length', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'a'.repeat(1000),
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 when comment is not a string', async () => {
+        const event = {
+            body: JSON.stringify({ phraseId: 'p1', category: 'c1', phrase: 'phrase 1', comment: 12345 }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should only allow the configured frontend origin in CORS headers', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+    });
+
+    it('should reflect the local dev server origin so `npm run dev` against the deployed API keeps working', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { origin: 'http://localhost:5173' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173');
+    });
+
+    it('should not reflect an untrusted origin, falling back to the production origin', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { origin: 'https://evil.example.com' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+    });
+
+    it('should also read a capitalized Origin header (some proxy integrations do not lowercase it)', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { Origin: 'http://localhost:5173' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173');
+    });
+
     it('should handle errors', async () => {
         ddbMock.on(PutCommand).rejects(new Error('DynamoDB error'));
         const event = {
@@ -268,6 +363,36 @@ describe('getCongratulationAudio', () => {
         expect(pollyCalls.length).toBe(1);
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="120%">');
+    });
+
+    it('should fall back to the default speechRate when given a value not on the allowlist (SSML injection attempt)', async () => {
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        // 数字始まりでない文字列を使い、キーワード許可リストのフォールバック分岐を確実に通す
+        const event = {
+            queryStringParameters: { lang: 'ja', speechRate: 'x-slow"/></prosody><speak>injected' },
+        };
+        await getCongratulationAudio(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('<prosody rate="90%">');
+        expect(pollyParams.Text).not.toContain('injected');
+    });
+
+    it('should allow a known SSML rate keyword through unchanged', async () => {
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { lang: 'ja', speechRate: 'slow' } };
+        await getCongratulationAudio(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('<prosody rate="slow">');
     });
 });
 
@@ -385,6 +510,87 @@ describe('getPhrase', () => {
         expect(pollyCalls.length).toBe(1);
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="110%">');
+    });
+
+    it('should escape SSML special characters in the phrase text', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'A & B <are> "friends"', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toBe('<speak><prosody rate="90%">A &amp; B &lt;are&gt; "friends"</prosody></speak>');
+    });
+
+    it('should escape SSML special characters in the level text', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '<injected>' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', repeatCount: '1' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('&lt;injected&gt;');
+        expect(pollyParams.Text).not.toContain('<injected>');
+    });
+
+    it('should fall back to the default speechRate when given a value not on the allowlist (SSML injection attempt)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        // 数字始まりでない文字列を使い、キーワード許可リストのフォールバック分岐を確実に通す
+        const event = {
+            queryStringParameters: { id: 'p1', speechRate: 'x-slow"/></prosody><speak>injected' },
+        };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('<prosody rate="90%">');
+        expect(pollyParams.Text).not.toContain('injected');
+    });
+
+    it('should allow a known SSML rate keyword through unchanged', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', speechRate: 'slow' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.Text).toContain('<prosody rate="slow">');
     });
 
     it('should append the category once at the end when announceCategory is true', async () => {
@@ -608,5 +814,41 @@ describe('recordTime', () => {
         const event = { body: JSON.stringify({ id: 'p1' }) }; // missing category and time
         const response = await recordTime(event);
         expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when time is zero', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 0 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when time is negative', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: -5 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should accept time exactly at the abnormal-value cap boundary and update the average', async () => {
+        ddbMock.on(GetCommand).resolves({
+            Item: { id: 'p1', category: 'c1', readCount: 0, averageTime: 0 }
+        });
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 300 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(200);
+
+        const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+        expect(updateParams.ExpressionAttributeValues[':at']).toBe(300);
+    });
+
+    it('should reject (400) time above the abnormal-value cap without writing to DynamoDB, so readCount/averageTime stay consistent (e.g. left idle for hours)', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 21673.39 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+        // readCountとaverageTimeが常に対応するサンプル数を保つよう、
+        // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
+        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
     });
 });
