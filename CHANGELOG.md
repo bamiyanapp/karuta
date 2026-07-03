@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/bamiyanapp/karuta/compare/v1.19.1...v1.19.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* **app:** record-time送信失敗時にエラーハンドリングを追加 ([#224](https://github.com/bamiyanapp/karuta/issues/224)) ([a897469](https://github.com/bamiyanapp/karuta/commit/a89746963b8d0aa663d919a6157aabf13bed474c))
+
 ## [1.19.1](https://github.com/bamiyanapp/karuta/compare/v1.19.0...v1.19.1) (2026-07-03)
 
 
