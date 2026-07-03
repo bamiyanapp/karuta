@@ -967,4 +967,56 @@ describe('App', () => {
     expect(body.time).toBeGreaterThan(2);
   }, 15000);
 
+  it('logs an error instead of throwing an unhandled rejection when record-time fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) {
+        return Promise.reject(new Error('network error'));
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error recording time:', expect.any(Error));
+    });
+
+    consoleErrorSpy.mockRestore();
+  }, 15000);
+
 });
