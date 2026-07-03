@@ -766,12 +766,13 @@ function App() {
               <h2 className="h5 fw-bold mb-3 text-dark">かるたの誤りを指摘する</h2>
               <form onSubmit={postComment}>
                   <div className="mb-3">
-                    <textarea 
-                      className="form-control rounded-3" 
-                      rows="3" 
+                    <textarea
+                      className="form-control rounded-3"
+                      rows="3"
                       placeholder="例：かなが間違っている、フレーズが違うなど"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
+                      maxLength={1000}
                       required
                     ></textarea>
                   </div>

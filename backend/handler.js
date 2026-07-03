@@ -7,6 +7,19 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const pollyClient = new PollyClient({ region: "ap-northeast-1" });
 const crypto = require("crypto");
 
+// フロントエンド（GitHub Pages）およびローカル開発サーバーのオリジンのみ許可し、
+// CORSを介した第三者からの無制限なAPI呼び出し（Amazon Pollyの課金濫用等）を防ぐ
+const ALLOWED_ORIGINS = [
+  "https://bamiyanapp.github.io",
+  "http://localhost:5173", // npm run dev（Vite開発サーバー）
+  "http://localhost:4173", // npm run preview（Viteプレビューサーバー）
+];
+
+function resolveAllowedOrigin(event) {
+  const requestOrigin = event?.headers?.origin || event?.headers?.Origin;
+  return ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
+}
+
 function escapeSsml(text) {
   return String(text)
     .replace(/&/g, "&amp;")
@@ -39,6 +52,7 @@ function normalizeSpeechRate(rate) {
 const MAX_ELAPSED_SECONDS = 300;
 
 exports.recordTime = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const body = JSON.parse(event.body);
     const { id, category, time, difficulty } = body; // category, difficultyを追加
@@ -54,7 +68,7 @@ exports.recordTime = async (event) => {
     ) {
       return {
         statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ message: "Invalid input" }),
       };
     }
@@ -67,7 +81,7 @@ exports.recordTime = async (event) => {
     if (!Item) {
       return {
         statusCode: 404,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ message: "Phrase not found" }),
       };
     }
@@ -108,28 +122,37 @@ exports.recordTime = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Time recorded successfully" }),
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error" }),
     };
   }
 }
 
+// コメントの過大な長さによるスパム・ストレージ濫用を防ぐための上限
+const MAX_COMMENT_LENGTH = 1000;
+
 exports.postComment = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const body = JSON.parse(event.body);
     const { phraseId, category, phrase, comment } = body;
 
-    if (!phraseId || !comment) {
+    if (
+      !phraseId ||
+      !comment ||
+      typeof comment !== 'string' ||
+      comment.length > MAX_COMMENT_LENGTH
+    ) {
       return {
         statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ message: "Invalid input" }),
       };
     }
@@ -150,20 +173,21 @@ exports.postComment = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Comment posted successfully" }),
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error" }),
     };
   }
 };
 
 exports.getComments = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const scanParams = {
       TableName: process.env.COMMENTS_TABLE_NAME,
@@ -175,20 +199,21 @@ exports.getComments = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ comments: items }),
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error" }),
     };
   }
 };
 
 exports.getCongratulationAudio = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const params = event.queryStringParameters || {};
     const rawSpeechRate = params.speechRate || "90%";
@@ -222,7 +247,7 @@ exports.getCongratulationAudio = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Credentials": true,
       },
       body: JSON.stringify({
@@ -233,13 +258,14 @@ exports.getCongratulationAudio = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
     };
   }
 };
 
 exports.getPhrase = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const params = event.queryStringParameters || {};
     const category = params.category || null;
@@ -290,7 +316,7 @@ exports.getPhrase = async (event) => {
     if (!selectedItem) {
       return {
         statusCode: 404,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ message: "Phrase not found" }),
       };
     }
@@ -388,7 +414,7 @@ exports.getPhrase = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Credentials": true,
       },
       body: JSON.stringify(responseBody),
@@ -397,13 +423,14 @@ exports.getPhrase = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
     };
   }
 };
 
 exports.getPhrasesList = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const category = event.queryStringParameters ? event.queryStringParameters.category : null;
     let items = [];
@@ -436,20 +463,21 @@ exports.getPhrasesList = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ phrases: items }),
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error" }),
     };
   }
 };
 
 exports.getCategories = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const scanParams = {
       TableName: process.env.TABLE_NAME,
@@ -477,7 +505,7 @@ exports.getCategories = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Credentials": true,
       },
       body: JSON.stringify({ categories }),
@@ -486,7 +514,7 @@ exports.getCategories = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
     };
   }

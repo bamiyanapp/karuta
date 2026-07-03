@@ -202,6 +202,101 @@ describe('postComment', () => {
         expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 when comment exceeds the maximum length', async () => {
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'a'.repeat(1001),
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(400);
+        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
+    });
+
+    it('should accept a comment exactly at the maximum length', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'a'.repeat(1000),
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 when comment is not a string', async () => {
+        const event = {
+            body: JSON.stringify({ phraseId: 'p1', category: 'c1', phrase: 'phrase 1', comment: 12345 }),
+        };
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should only allow the configured frontend origin in CORS headers', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+    });
+
+    it('should reflect the local dev server origin so `npm run dev` against the deployed API keeps working', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { origin: 'http://localhost:5173' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173');
+    });
+
+    it('should not reflect an untrusted origin, falling back to the production origin', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { origin: 'https://evil.example.com' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+    });
+
+    it('should also read a capitalized Origin header (some proxy integrations do not lowercase it)', async () => {
+        ddbMock.on(PutCommand).resolves({});
+        const event = {
+            headers: { Origin: 'http://localhost:5173' },
+            body: JSON.stringify({
+                phraseId: 'p1',
+                category: 'c1',
+                phrase: 'phrase 1',
+                comment: 'This is a comment',
+            }),
+        };
+        const response = await postComment(event);
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173');
+    });
+
     it('should handle errors', async () => {
         ddbMock.on(PutCommand).rejects(new Error('DynamoDB error'));
         const event = {
