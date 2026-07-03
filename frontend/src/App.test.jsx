@@ -659,6 +659,10 @@ describe('App', () => {
       expect(screen.getByText('回答A')).toBeInTheDocument();
     });
 
+    // バックエンドの上限(1000文字)と揃え、送信後に拒否される体験を防ぐ
+    const commentTextarea = screen.getByPlaceholderText('例：かなが間違っている、フレーズが違うなど');
+    expect(commentTextarea).toHaveAttribute('maxlength', '1000');
+
     randomSpy.mockRestore();
   }, 15000);
 

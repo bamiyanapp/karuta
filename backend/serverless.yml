@@ -31,6 +31,10 @@ custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
+  allowedOrigins:
+    - https://bamiyanapp.github.io
+    - http://localhost:5173 # npm run dev（Vite開発サーバー）
+    - http://localhost:4173 # npm run preview（Viteプレビューサーバー）
 
 functions:
   getPhrase:
@@ -39,49 +43,56 @@ functions:
       - http:
           path: get-phrase
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   getCategories:
     handler: handler.getCategories
     events:
       - http:
           path: get-categories
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   getCongratulationAudio:
     handler: handler.getCongratulationAudio
     events:
       - http:
           path: get-congratulation-audio
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   getPhrasesList:
     handler: handler.getPhrasesList
     events:
       - http:
           path: get-phrases-list
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   postComment:
     handler: handler.postComment
     events:
       - http:
           path: post-comment
           method: post
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   getComments:
     handler: handler.getComments
     events:
       - http:
           path: get-comments
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
   recordTime:
     handler: handler.recordTime
     events:
       - http:
           path: record-time
           method: post
-          cors: true
+          cors:
+            origins: ${self:custom.allowedOrigins}
 
 resources:
   Resources:
