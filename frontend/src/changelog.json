@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.19.1",
+    "date": "2026/07/03 00:00",
+    "body": "### Bug Fixes\n\n* **ci:** sync-releaseジョブのchangelog.jsonマージコンフリクトを解消 ([#211](https://github.com/bamiyanapp/karuta/issues/211)) ([38bd921](https://github.com/bamiyanapp/karuta/commit/38bd9211855d6f5965d89a09df6888b1a57cf3b2))\n* **efuda:** 選択が1種別のみでも絵札印刷画面に種別名を表示 ([#179](https://github.com/bamiyanapp/karuta/issues/179)) ([b141ab5](https://github.com/bamiyanapp/karuta/commit/b141ab552a36759014ae3896706685d0f6d14648))\n* **frontend:** 読み札カードのiOS Safariでの下端見切れを修正 ([#181](https://github.com/bamiyanapp/karuta/issues/181)) ([108c6cd](https://github.com/bamiyanapp/karuta/commit/108c6cde671d654f370b0eb1133eb9e73ae61864))\n* **handler:** CORSをフロントエンドオリジンに制限しコメント長を検証 ([#209](https://github.com/bamiyanapp/karuta/issues/209)) ([7677335](https://github.com/bamiyanapp/karuta/commit/7677335bf7d74eb9c2a67d98c39f7994753e3e63)), closes [#184](https://github.com/bamiyanapp/karuta/issues/184)\n* **handler:** 読み札本文のSSML未エスケープとspeechRateの検証不足を修正 ([#208](https://github.com/bamiyanapp/karuta/issues/208)) ([8593858](https://github.com/bamiyanapp/karuta/commit/85938582bda2a99649fd3052f71a9d7077d70309)), closes [#183](https://github.com/bamiyanapp/karuta/issues/183)\n* **phrases:** 大ピンチずかんの読み札表現を著作権配慮で変更 ([#182](https://github.com/bamiyanapp/karuta/issues/182)) ([3a3d7f9](https://github.com/bamiyanapp/karuta/commit/3a3d7f95ff2f934a917c6269f2c4886129bd897f))\n* **reading:** リピート再生で読み上げ計測の開始点がリセットされる不具合を修正 ([#206](https://github.com/bamiyanapp/karuta/issues/206)) ([c3701a5](https://github.com/bamiyanapp/karuta/commit/c3701a535b30ac0f2210ac07dbff459aabadd9a7)), closes [#132](https://github.com/bamiyanapp/karuta/issues/132) [#131](https://github.com/bamiyanapp/karuta/issues/131)\n* **record-time:** 読み上げ経過時間の異常値が統計を汚染しないよう上限チェックを追加 ([#207](https://github.com/bamiyanapp/karuta/issues/207)) ([6afc7b3](https://github.com/bamiyanapp/karuta/commit/6afc7b3e63db4f555ba02232e343e68023d5f6d1)), closes [#132](https://github.com/bamiyanapp/karuta/issues/132)"
+  },
+  {
     "version": "1.19.0",
-    "date": "2026/07/02 00:00",
+    "date": "2026/07/02 12:55",
     "body": "### Features\n\n* **ui:** OS設定に自動追従するダークモードを追加 ([#176](https://github.com/bamiyanapp/karuta/issues/176)) ([ba5f084](https://github.com/bamiyanapp/karuta/commit/ba5f08473a36d648671d87044f7fa1e0030d608e))"
   },
   {
