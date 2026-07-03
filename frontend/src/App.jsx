@@ -364,13 +364,13 @@ function App() {
       }
   
       await playIntroSound();
-      
-      // 読み上げ開始タイミングで計測開始
-      startTimeRef.current = Date.now();
 
       let animationPromise = Promise.resolve();
 
       if (phraseData) {
+        // 読み上げ開始タイミングで計測開始（リピート再生時は計測中の開始点を上書きしない）
+        startTimeRef.current = Date.now();
+
         if (flipTimeoutRef.current) {
           clearTimeout(flipTimeoutRef.current);
           flipTimeoutRef.current = null;
