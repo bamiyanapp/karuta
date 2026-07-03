@@ -453,6 +453,8 @@ function App() {
             time: elapsedTime,
             difficulty: difficulty,
           }),
+        }).catch((error) => {
+          console.error("Error recording time:", error);
         });
       }
       startTimeRef.current = null;
