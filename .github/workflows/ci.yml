@@ -133,6 +133,12 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # frontend/src/changelog.json は release 専用の生成物であり release 側の内容を常に優先する。
+          # リポジトリの .gitattributes は release ブランチに反映されるまで有効にならないため、
+          # ローカルの属性ファイルを直接指定してこの実行から即時に効かせる。
+          echo "frontend/src/changelog.json merge=ours" > "$RUNNER_TEMP/karuta-merge.gitattributes"
+          git config --global core.attributesFile "$RUNNER_TEMP/karuta-merge.gitattributes"
+          git config --global merge.ours.driver true
           git fetch --tags origin
           # ローカル release にチェックアウト
           git checkout release
