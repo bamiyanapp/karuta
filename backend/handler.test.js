@@ -609,4 +609,40 @@ describe('recordTime', () => {
         const response = await recordTime(event);
         expect(response.statusCode).toBe(400);
     });
+
+    it('should return 400 when time is zero', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 0 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when time is negative', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: -5 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should accept time exactly at the abnormal-value cap boundary and update the average', async () => {
+        ddbMock.on(GetCommand).resolves({
+            Item: { id: 'p1', category: 'c1', readCount: 0, averageTime: 0 }
+        });
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 300 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(200);
+
+        const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+        expect(updateParams.ExpressionAttributeValues[':at']).toBe(300);
+    });
+
+    it('should reject (400) time above the abnormal-value cap without writing to DynamoDB, so readCount/averageTime stay consistent (e.g. left idle for hours)', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 21673.39 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+        // readCountとaverageTimeが常に対応するサンプル数を保つよう、
+        // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
+        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    });
 });

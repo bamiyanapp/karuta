@@ -26,12 +26,23 @@ function normalizeSpeechRate(rate) {
   return rateStr;
 }
 
+// タブを開いたまま放置する等で生じる異常値を統計に混入させないための経過時間の上限（秒）
+const MAX_ELAPSED_SECONDS = 300;
+
 exports.recordTime = async (event) => {
   try {
     const body = JSON.parse(event.body);
     const { id, category, time, difficulty } = body; // category, difficultyを追加
 
-    if (!id || !category || typeof time !== 'number' || isNaN(time) || !isFinite(time)) {
+    if (
+      !id ||
+      !category ||
+      typeof time !== 'number' ||
+      isNaN(time) ||
+      !isFinite(time) ||
+      time <= 0 ||
+      time > MAX_ELAPSED_SECONDS
+    ) {
       return {
         statusCode: 400,
         headers: { "Access-Control-Allow-Origin": "*" },
@@ -55,7 +66,7 @@ exports.recordTime = async (event) => {
     const oldReadCount = Item.readCount || 0;
     const oldAverageTime = Item.averageTime || 0;
     const oldAverageDifficulty = Item.averageDifficulty || 0;
-    
+
     const newReadCount = oldReadCount + 1;
     let newAverageTime = ((oldAverageTime * oldReadCount) + time) / newReadCount;
 
