@@ -27,8 +27,12 @@ function escapeSsml(text) {
     .replace(/>/g, "&gt;");
 }
 
+// SSMLのprosody rate属性としてPollyが受け付けるキーワード
+const ALLOWED_SPEECH_RATE_KEYWORDS = ["x-slow", "slow", "medium", "fast", "x-fast"];
+const DEFAULT_SPEECH_RATE = "90%";
+
 function normalizeSpeechRate(rate) {
-  if (!rate) return "90%";
+  if (!rate) return DEFAULT_SPEECH_RATE;
   const rateStr = String(rate);
   if (/^\d/.test(rateStr)) {
     const num = parseInt(rateStr, 10);
@@ -36,7 +40,12 @@ function normalizeSpeechRate(rate) {
       return `${num}%`;
     }
   }
-  return rateStr;
+  if (ALLOWED_SPEECH_RATE_KEYWORDS.includes(rateStr)) {
+    return rateStr;
+  }
+  // 未知の値をそのままSSML属性に埋め込むとインジェクションの余地があるため、
+  // 許可されていない値は既定値にフォールバックする
+  return DEFAULT_SPEECH_RATE;
 }
 
 // タブを開いたまま放置する等で生じる異常値を統計に混入させないための経過時間の上限（秒）
@@ -348,7 +357,8 @@ exports.getPhrase = async (event) => {
       }
 
       const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
-      const phraseWithLevel = hasLevel ? `${levelPrefix}, ${level}. ${speechPhrase}` : speechPhrase;
+      const escapedPhrase = escapeSsml(speechPhrase);
+      const phraseWithLevel = hasLevel ? `${levelPrefix}, ${escapeSsml(level)}. ${escapedPhrase}` : escapedPhrase;
 
       let innerContent = phraseWithLevel;
       if (repeatCount >= 2) {
