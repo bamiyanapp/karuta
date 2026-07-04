@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.24.0",
+    "version": "1.25.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **reading:** 次の札の音声をプリフェッチして待ち時間を削減 ([#245](https://github.com/bamiyanapp/karuta/issues/245)) ([f80c86d](https://github.com/bamiyanapp/karuta/commit/f80c86d726b846cf83b48666fa7c4a095b306d50))"
+  },
+  {
+    "version": "1.24.0",
+    "date": "2026/07/04 03:27",
     "body": "### Features\n\n* **reading:** 読み上げ中に停止できる機能を追加 ([#243](https://github.com/bamiyanapp/karuta/issues/243)) ([2159ff0](https://github.com/bamiyanapp/karuta/commit/2159ff0d5a25545bf7caafd5471103c55a48f563))"
   },
   {
