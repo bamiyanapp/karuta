@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.28.0",
+    "version": "1.29.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **pwa:** ホーム画面追加導線をSafari/Android向けに追加 ([#253](https://github.com/bamiyanapp/karuta/issues/253)) ([80c78e6](https://github.com/bamiyanapp/karuta/commit/80c78e6c84ca6bf5d20686f98c297e878ba32612))"
+  },
+  {
+    "version": "1.28.0",
+    "date": "2026/07/04 07:03",
     "body": "### Features\n\n* **score:** プレイヤー別の取り札スコア記録機能を追加 ([#251](https://github.com/bamiyanapp/karuta/issues/251)) ([627c875](https://github.com/bamiyanapp/karuta/commit/627c875c4f81947375539425cda73478cda58449))"
   },
   {
