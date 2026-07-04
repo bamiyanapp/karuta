@@ -141,6 +141,20 @@
   margin-top: 0.5rem;
 }
 
+/* こども向けは、より大きな文字でかな（読み仮名）を優先して見せる */
+.yomifuda-kids .yomifuda-kana {
+  width: 84px;
+  height: 84px;
+}
+
+.yomifuda-kids .yomifuda-kana span {
+  font-size: 44px;
+}
+
+.yomifuda-kids .yomifuda-phrase {
+  font-size: clamp(24px, 9vw, 40px);
+}
+
 .yomifuda-level {
   position: absolute;
   bottom: 20px;

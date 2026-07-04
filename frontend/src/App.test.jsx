@@ -588,6 +588,56 @@ describe('App', () => {
     });
   });
 
+  it('hides the level/difficulty jargon and enlarges the phrase card for the kids division', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '3' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-phrase')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Cat1' }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const phraseCard = screen.getByText('読み札1', { selector: '.yomifuda-phrase' }).closest('.yomifuda');
+      expect(phraseCard).toHaveClass('yomifuda-kids');
+    }, { timeout: 8000 });
+
+    expect(screen.queryByText(/レベル:/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('所要時間')).toBeInTheDocument();
+    }, { timeout: 4000 });
+    expect(screen.queryByText('難易度レベル')).not.toBeInTheDocument();
+
+    randomSpy.mockRestore();
+  }, 15000);
+
   it('shows the answer on the result screen after reading a phrase with answer data', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
     fetch.mockImplementation(async (url) => {
