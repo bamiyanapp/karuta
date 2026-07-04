@@ -32,5 +32,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.js',
+    // setupTests.js で waitFor 系のデフォルトタイムアウトを底上げしているため、
+    // 個別に timeout を指定していないテストが vitest 側の既定値(5000ms)で
+    // 先に打ち切られないよう、テスト自体のタイムアウトも合わせて底上げする。
+    testTimeout: 10000,
   },
 })
