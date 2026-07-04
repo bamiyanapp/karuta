@@ -1,3 +1,10 @@
+## [1.19.5](https://github.com/bamiyanapp/karuta/compare/v1.19.4...v1.19.5) (2026-07-04)
+
+
+### Bug Fixes
+
+* 低優先度バグ3件（[#191](https://github.com/bamiyanapp/karuta/issues/191), [#229](https://github.com/bamiyanapp/karuta/issues/229), [#230](https://github.com/bamiyanapp/karuta/issues/230)）を修正 ([#232](https://github.com/bamiyanapp/karuta/issues/232)) ([dab199e](https://github.com/bamiyanapp/karuta/commit/dab199ecb31546e203b2234e907451ec61f61cba))
+
 ## [1.19.4](https://github.com/bamiyanapp/karuta/compare/v1.19.3...v1.19.4) (2026-07-04)
 
 
