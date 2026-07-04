@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
 
@@ -1315,4 +1315,75 @@ describe('App', () => {
     consoleErrorSpy.mockRestore();
   }, 15000);
 
+  it('shows a session summary with total/fastest/slowest time and confetti when all phrases are read', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常に未読の先頭（p1→p2の順）を選ばせる
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        const id = new URL(url).searchParams.get('id');
+        return { ok: true, json: async () => ({ id, category: 'Cat1', kana: 'あ', phrase: `読み札${id === 'p1' ? '1' : '2'}`, level: '-', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) {
+        return { ok: true, json: async () => ({ message: 'ok' }) };
+      }
+      if (url.includes('get-congratulation-audio')) {
+        return { ok: true, json: async () => ({ audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    // 2枚目の待機時間を1枚目より意図的に長くし、最速/最遅の判定を決定的にする
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    expect(screen.getByText('合計所要時間')).toBeInTheDocument();
+
+    const fastestCard = screen.getByText('最速の札').parentElement;
+    expect(within(fastestCard).getByText('読み札1')).toBeInTheDocument();
+
+    const slowestCard = screen.getByText('最も時間がかかった札').parentElement;
+    expect(within(slowestCard).getByText('読み札2')).toBeInTheDocument();
+
+    expect(document.querySelectorAll('.confetti-piece').length).toBeGreaterThan(0);
+
+    randomSpy.mockRestore();
+  }, 20000);
 });
