@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/bamiyanapp/karuta/compare/v1.28.0...v1.29.0) (2026-07-04)
+
+
+### Features
+
+* **pwa:** ホーム画面追加導線をSafari/Android向けに追加 ([#253](https://github.com/bamiyanapp/karuta/issues/253)) ([80c78e6](https://github.com/bamiyanapp/karuta/commit/80c78e6c84ca6bf5d20686f98c297e878ba32612))
+
 # [1.28.0](https://github.com/bamiyanapp/karuta/compare/v1.27.0...v1.28.0) (2026-07-04)
 
 
