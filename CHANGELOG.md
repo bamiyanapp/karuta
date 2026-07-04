@@ -1,3 +1,24 @@
+# [1.28.0](https://github.com/bamiyanapp/karuta/compare/v1.27.0...v1.28.0) (2026-07-04)
+
+
+### Features
+
+* **score:** プレイヤー別の取り札スコア記録機能を追加 ([#251](https://github.com/bamiyanapp/karuta/issues/251)) ([627c875](https://github.com/bamiyanapp/karuta/commit/627c875c4f81947375539425cda73478cda58449))
+
+# [1.27.0](https://github.com/bamiyanapp/karuta/compare/v1.26.0...v1.27.0) (2026-07-04)
+
+
+### Features
+
+* **result:** 読了時のリザルト画面にセッションサマリーと紙吹雪演出を追加 ([#249](https://github.com/bamiyanapp/karuta/issues/249)) ([ed6771c](https://github.com/bamiyanapp/karuta/commit/ed6771ce256ccc091e695e2606992552bc8793fa))
+
+# [1.26.0](https://github.com/bamiyanapp/karuta/compare/v1.25.0...v1.26.0) (2026-07-04)
+
+
+### Features
+
+* **auto-advance:** 自動読み上げモード（ハンズフリー進行）を追加 ([#247](https://github.com/bamiyanapp/karuta/issues/247)) ([a2b0ee5](https://github.com/bamiyanapp/karuta/commit/a2b0ee565f35d40b22ebc72595acbcdc28ecd495))
+
 # [1.25.0](https://github.com/bamiyanapp/karuta/compare/v1.24.0...v1.25.0) (2026-07-04)
 
 
