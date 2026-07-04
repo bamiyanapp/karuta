@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.29.2",
+    "version": "1.29.3",
     "date": "2026/07/04",
+    "body": "### Bug Fixes\n\n* **frontend:** 停止操作後にisReadingが固定され読み上げ不能になる不具合を修正 ([#270](https://github.com/bamiyanapp/karuta/issues/270)) ([0fb6c47](https://github.com/bamiyanapp/karuta/commit/0fb6c47cea038998888a82f0c71a3482ca3f581c))"
+  },
+  {
+    "version": "1.29.2",
+    "date": "2026/07/04 11:42",
     "body": "### Bug Fixes\n\n* **frontend:** frontend-testの慢性的なタイムアウトFlakinessを緩和 ([#268](https://github.com/bamiyanapp/karuta/issues/268)) ([3c02c8c](https://github.com/bamiyanapp/karuta/commit/3c02c8c0128b51e84d2fa5a125622bb42fd64e99)), closes [#264](https://github.com/bamiyanapp/karuta/issues/264)"
   },
   {

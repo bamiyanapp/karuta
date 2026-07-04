@@ -1,3 +1,10 @@
+## [1.29.3](https://github.com/bamiyanapp/karuta/compare/v1.29.2...v1.29.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **frontend:** 停止操作後にisReadingが固定され読み上げ不能になる不具合を修正 ([#270](https://github.com/bamiyanapp/karuta/issues/270)) ([0fb6c47](https://github.com/bamiyanapp/karuta/commit/0fb6c47cea038998888a82f0c71a3482ca3f581c))
+
 ## [1.29.2](https://github.com/bamiyanapp/karuta/compare/v1.29.1...v1.29.2) (2026-07-04)
 
 
