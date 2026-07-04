@@ -75,6 +75,12 @@ function App() {
   const [sortOrder, setSortOrder] = useState(() => {
     return localStorage.getItem("sortOrder") || "random";
   });
+  const [autoAdvance, setAutoAdvance] = useState(() => {
+    return localStorage.getItem("autoAdvance") === "true";
+  });
+  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(() => {
+    return parseInt(localStorage.getItem("autoAdvanceInterval") || "10", 10);
+  });
   const [themeSetting, setThemeSetting] = useState(() => {
     return localStorage.getItem("theme") || "system";
   });
@@ -102,6 +108,7 @@ function App() {
   const currentAudioRef = useRef(null);
   const stopRequestedRef = useRef(false);
   const prefetchedNextRef = useRef(null);
+  const autoAdvanceTimeoutRef = useRef(null);
 
   const resolvedTheme = useMemo(() => {
     return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
@@ -375,13 +382,13 @@ function App() {
       if (isReading || audioQueue.length === 0) {
         return;
       }
-  
+
       setIsReading(true);
       const { phraseData, audioData } = audioQueue[0];
-  
+
       if (phraseData) {
         setCurrentPhrase(phraseData);
-        
+
         setHistoryByCategory(prev => {
           const currentList = prev[categoryKey] || [];
           if (currentList.find(p => p.id === phraseData.id && p.category === phraseData.category)) {
@@ -393,7 +400,7 @@ function App() {
           };
         });
       }
-  
+
       await playIntroSound();
       // 停止ボタンが押されていたら、次のフェーズ（本編読み上げ）に進まず打ち切る
       if (stopRequestedRef.current) {
@@ -495,6 +502,56 @@ function App() {
     };
   }, [isReading, selectedCategories, allPhrasesForCategory, currentHistory, sortOrder, repeatCount, speechRate, lang, isMultiCategorySelection]);
 
+  // 自動読み上げモード：札の読み上げが完了し「次の札」を待っている状態
+  // （手動なら次の札ボタンを押すタイミング）で一定時間経過したら自動で次へ進む。
+  // このアプリでは「次の札」への1回の操作が、直前の札の結果表示と次の札の
+  // 読み上げ開始を両方まとめて行う設計になっているため、result表示中ではなく
+  // 直前の札のphrase表示中（読み上げ完了後の待機状態）を起点にする。
+  useEffect(() => {
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+
+    if (!autoAdvance || isAllRead || isReading || loading || displayContent.type !== "phrase") {
+      return;
+    }
+
+    autoAdvanceTimeoutRef.current = setTimeout(() => {
+      autoAdvanceTimeoutRef.current = null;
+      playKaruta();
+    }, autoAdvanceInterval * 1000);
+
+    return () => {
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+    };
+    // playKarutaは毎レンダーで再生成される関数であり、選択カテゴリや読み上げ設定
+    // （sortOrder/repeatCount/speechRate/lang等）をクロージャで参照している。
+    // playKaruta自体を依存配列に含めると無関係な再レンダーでもタイマーが
+    // 再設定されてしまうため、代わりにplayKarutaが参照する状態を依存配列に
+    // 列挙する（プリフェッチ用useEffectと同じ考え方）。これにより待機中に
+    // 設定が変わった場合も最新の設定でタイマーが張り直される
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    autoAdvance,
+    autoAdvanceInterval,
+    displayContent,
+    isReading,
+    loading,
+    isAllRead,
+    selectedCategories,
+    allPhrasesForCategory,
+    currentHistory,
+    sortOrder,
+    repeatCount,
+    speechRate,
+    lang,
+    isMultiCategorySelection,
+  ]);
+
   const playKaruta = async () => {
     const targetPhrase = currentPhrase;
     
@@ -530,8 +587,16 @@ function App() {
           type: "result",
           content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer },
         };
+
+        // 結果表示のフェード完了を待ってから次の札の取得・再生に進む。
+        // 待たずに次の札をすぐキューへ入れると、次の札側のフリップ完了待ち
+        // （animationResolveRef）をこの結果表示のフェード完了が誤って解決して
+        // しまい、次の札の表示が中断される不具合があったため、明示的に区切る。
+        const resultFadePromise = new Promise(resolve => {
+          animationResolveRef.current = resolve;
+        });
         setIsFadingOut(true);
-        
+
         fetch(`${API_BASE_URL}/record-time`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -544,6 +609,8 @@ function App() {
         }).catch((error) => {
           console.error("Error recording time:", error);
         });
+
+        await resultFadePromise;
       }
       startTimeRef.current = null;
     }
@@ -759,6 +826,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem("sortOrder", sortOrder);
   }, [sortOrder]);
+
+  useEffect(() => {
+    localStorage.setItem("autoAdvance", autoAdvance.toString());
+  }, [autoAdvance]);
+
+  useEffect(() => {
+    localStorage.setItem("autoAdvanceInterval", autoAdvanceInterval.toString());
+  }, [autoAdvanceInterval]);
 
   useEffect(() => {
     localStorage.setItem("theme", themeSetting);
@@ -1424,12 +1499,26 @@ function App() {
               <button onClick={() => setSpeechRate("100%")} className={`btn ${speechRate === "100%" ? 'btn-dark' : 'btn-outline-dark'}`}>はやい</button>
             </div>
           </div>
-          <div className="d-flex align-items-center justify-content-center gap-3">
+          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
             <span className="fw-bold text-dark small">回数:</span>
             <div className="btn-group btn-group-sm" role="group">
               <button onClick={() => setRepeatCount(1)} className={`btn ${repeatCount === 1 ? 'btn-dark' : 'btn-outline-dark'}`}>1回</button>
               <button onClick={() => setRepeatCount(2)} className={`btn ${repeatCount === 2 ? 'btn-dark' : 'btn-outline-dark'}`}>2回</button>
             </div>
+          </div>
+          <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+            <span className="fw-bold text-dark small">自動で次へ:</span>
+            <div className="btn-group btn-group-sm" role="group">
+              <button onClick={() => setAutoAdvance(false)} className={`btn ${!autoAdvance ? 'btn-dark' : 'btn-outline-dark'}`}>オフ</button>
+              <button onClick={() => setAutoAdvance(true)} className={`btn ${autoAdvance ? 'btn-dark' : 'btn-outline-dark'}`}>オン</button>
+            </div>
+            {autoAdvance && (
+              <div className="btn-group btn-group-sm" role="group">
+                <button onClick={() => setAutoAdvanceInterval(10)} className={`btn ${autoAdvanceInterval === 10 ? 'btn-dark' : 'btn-outline-dark'}`}>10秒</button>
+                <button onClick={() => setAutoAdvanceInterval(20)} className={`btn ${autoAdvanceInterval === 20 ? 'btn-dark' : 'btn-outline-dark'}`}>20秒</button>
+                <button onClick={() => setAutoAdvanceInterval(30)} className={`btn ${autoAdvanceInterval === 30 ? 'btn-dark' : 'btn-outline-dark'}`}>30秒</button>
+              </div>
+            )}
           </div>
         </section>
       <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
