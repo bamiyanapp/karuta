@@ -87,6 +87,8 @@ function App() {
 
   const flipTimeoutRef = useRef(null);
   const startTimeRef = useRef(null);
+  const currentAudioRef = useRef(null);
+  const stopRequestedRef = useRef(false);
 
   const resolvedTheme = useMemo(() => {
     return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
@@ -333,8 +335,15 @@ function App() {
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioData);
-      audio.onended = () => resolve();
-      audio.onerror = (e) => reject(e);
+      currentAudioRef.current = { audio, resolve };
+      audio.onended = () => {
+        if (currentAudioRef.current?.audio === audio) currentAudioRef.current = null;
+        resolve();
+      };
+      audio.onerror = (e) => {
+        if (currentAudioRef.current?.audio === audio) currentAudioRef.current = null;
+        reject(e);
+      };
       audio.play().catch(e => reject(e));
     });
   }, []);
@@ -373,6 +382,11 @@ function App() {
       }
   
       await playIntroSound();
+      // 停止ボタンが押されていたら、次のフェーズ（本編読み上げ）に進まず打ち切る
+      if (stopRequestedRef.current) {
+        stopRequestedRef.current = false;
+        return;
+      }
 
       let animationPromise = Promise.resolve();
 
@@ -395,16 +409,24 @@ function App() {
           setIsFadingOut(true);
         }, 3000); // 待機時間
       }
-      
+
       await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
-      
+      if (stopRequestedRef.current) {
+        stopRequestedRef.current = false;
+        return;
+      }
+
       await animationPromise;
+      if (stopRequestedRef.current) {
+        stopRequestedRef.current = false;
+        return;
+      }
 
       if (!phraseData) {
         nextContentRef.current = { type: 'initial' };
         setIsFadingOut(true);
       }
-      
+
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
     };
@@ -519,6 +541,40 @@ function App() {
     if (target && target.audioData) {
         setAudioQueue(prev => [...prev, { phraseData: null, audioData: target.audioData }]);
     }
+  };
+
+  const stopReading = () => {
+    if (!isReading) return;
+
+    // playNextInQueue内のawaitチェーンを、次の工程（本編読み上げ・フェード）に
+    // 進ませずに打ち切るためのフラグ
+    stopRequestedRef.current = true;
+
+    if (currentAudioRef.current) {
+      const { audio, resolve } = currentAudioRef.current;
+      audio.pause();
+      currentAudioRef.current = null;
+      resolve();
+    }
+
+    if (flipTimeoutRef.current) {
+      clearTimeout(flipTimeoutRef.current);
+      flipTimeoutRef.current = null;
+    }
+
+    if (animationResolveRef.current) {
+      animationResolveRef.current();
+      animationResolveRef.current = null;
+    }
+
+    // 中断された読み上げの計測を、次回の記録に誤って持ち越さないようにする
+    startTimeRef.current = null;
+
+    setIsFadingOut(false);
+    nextContentRef.current = { type: "initial" };
+    setDisplayContent({ type: "initial" });
+    setAudioQueue([]);
+    setIsReading(false);
   };
 
   const playCongratulationAudio = async () => {
@@ -1246,6 +1302,7 @@ function App() {
                 {loading ? "読み込み中..." : "次の札"}
               </button>
               <button onClick={repeatPhrase} disabled={isReading || !currentPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-dark bg-white text-dark shadow-sm">もう一度</button>
+              <button onClick={stopReading} disabled={!isReading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-danger bg-white text-danger shadow-sm">停止</button>
             </div>
           </>
         )}
