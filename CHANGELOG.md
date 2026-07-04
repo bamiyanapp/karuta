@@ -1,3 +1,10 @@
+## [1.19.3](https://github.com/bamiyanapp/karuta/compare/v1.19.2...v1.19.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **handler:** recordTimeの読み書きを非アトミックな平均計算からADD加算方式に修正 ([#226](https://github.com/bamiyanapp/karuta/issues/226)) ([944bcb6](https://github.com/bamiyanapp/karuta/commit/944bcb6373c4a239f1387b3ba88a0542d0f64ad8))
+
 ## [1.19.2](https://github.com/bamiyanapp/karuta/compare/v1.19.1...v1.19.2) (2026-07-03)
 
 
