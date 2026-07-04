@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.23.0",
+    "version": "1.24.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **reading:** 読み上げ中に停止できる機能を追加 ([#243](https://github.com/bamiyanapp/karuta/issues/243)) ([2159ff0](https://github.com/bamiyanapp/karuta/commit/2159ff0d5a25545bf7caafd5471103c55a48f563))"
+  },
+  {
+    "version": "1.23.0",
+    "date": "2026/07/04 03:17",
     "body": "### Features\n\n* **history:** 読み上げ履歴をsessionStorageに永続化 ([#241](https://github.com/bamiyanapp/karuta/issues/241)) ([e48a146](https://github.com/bamiyanapp/karuta/commit/e48a146182b752a10d3d24b8fa81e50f38ac8831))"
   },
   {

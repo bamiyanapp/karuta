@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/bamiyanapp/karuta/compare/v1.23.0...v1.24.0) (2026-07-04)
+
+
+### Features
+
+* **reading:** 読み上げ中に停止できる機能を追加 ([#243](https://github.com/bamiyanapp/karuta/issues/243)) ([2159ff0](https://github.com/bamiyanapp/karuta/commit/2159ff0d5a25545bf7caafd5471103c55a48f563))
+
 # [1.23.0](https://github.com/bamiyanapp/karuta/compare/v1.22.0...v1.23.0) (2026-07-04)
 
 
