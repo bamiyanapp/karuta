@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.30.0",
+    "version": "1.31.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* ci.ymlをdev-standardsのreusable workflow呼び出しに縮小 ([#280](https://github.com/bamiyanapp/karuta/issues/280)) ([1b4e0db](https://github.com/bamiyanapp/karuta/commit/1b4e0db4c04d732e3e3df9374f5cf99efa635eff))"
+  },
+  {
+    "version": "1.30.0",
+    "date": "2026/07/04 21:56",
     "body": "### Features\n\n* 開発ルールをdev-standardsに共通化しsubmoduleで参照 ([#278](https://github.com/bamiyanapp/karuta/issues/278)) ([7457832](https://github.com/bamiyanapp/karuta/commit/745783203e484df27a3301d478d10aaf762acdb2))"
   },
   {
