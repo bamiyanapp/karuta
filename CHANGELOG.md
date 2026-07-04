@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/bamiyanapp/karuta/compare/v1.24.0...v1.25.0) (2026-07-04)
+
+
+### Features
+
+* **reading:** 次の札の音声をプリフェッチして待ち時間を削減 ([#245](https://github.com/bamiyanapp/karuta/issues/245)) ([f80c86d](https://github.com/bamiyanapp/karuta/commit/f80c86d726b846cf83b48666fa7c4a095b306d50))
+
 # [1.24.0](https://github.com/bamiyanapp/karuta/compare/v1.23.0...v1.24.0) (2026-07-04)
 
 
