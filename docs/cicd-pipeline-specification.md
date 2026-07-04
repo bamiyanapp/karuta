@@ -52,6 +52,7 @@ CI/CDパイプラインで使用される環境変数を以下に示します。
 | `AWS_SECRET_ACCESS_KEY` | AWSアカウントへのシークレットアクセスキー | `****************************************` |
 | `GITHUB_TOKEN` | GitHub APIへのアクセスに使用されるトークン | `ghp_**********************************` |
 | `GEMINI_API_KEY` | 自動コーディングに用いるGeminiのトークン | `*********************************` |
+| `BOT_TOKEN` | `release`⇄`main`の自動同期コミット・PR作成、および`semantic-release`実行時のpush権限確保に使用されるボット用トークン（`ci.yml`の`sync-release`ジョブのcheckout、`cd.yml`のcheckout・Semantic Release・PR作成・auto-mergeで使用） | `ghp_**********************************` |
 
 
 # Release → Main 自動同期 PR（CI スキップ運用）について
