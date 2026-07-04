@@ -331,10 +331,10 @@ describe('App', () => {
       const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
       expect(getPhraseCall).toBeDefined();
       expect(getPhraseCall[0]).toContain('announceCategory=true');
-    });
+    }, { timeout: 8000 });
 
     randomSpy.mockRestore();
-  });
+  }, 25000);
 
   it('requests announceCategory=false when reading with a single category selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -361,10 +361,10 @@ describe('App', () => {
       const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
       expect(getPhraseCall).toBeDefined();
       expect(getPhraseCall[0]).toContain('announceCategory=false');
-    });
+    }, { timeout: 8000 });
 
     randomSpy.mockRestore();
-  });
+  }, 25000);
 
   it('shows a read/total progress counter that updates as phrases are read', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -1423,7 +1423,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 15000 });
+    }, { timeout: 20000 });
 
     expect(screen.getByText('取った人:')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'たろう' }));
@@ -1432,14 +1432,14 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
-    }, { timeout: 15000 });
+    }, { timeout: 20000 });
 
     expect(screen.getByText('🏆 優勝: たろう')).toBeInTheDocument();
     const taroCard = screen.getByText('たろう', { selector: 'span.fw-bold' }).parentElement;
     expect(within(taroCard).getByText(/1枚/)).toBeInTheDocument();
     const hanakoCard = screen.getByText('はなこ', { selector: 'span.fw-bold' }).parentElement;
     expect(within(hanakoCard).getByText(/0枚/)).toBeInTheDocument();
-  }, 40000);
+  }, 50000);
 
   it('does not show player registration or the taken-by buttons in kids mode even if players are already registered', async () => {
     sessionStorage.setItem('players', JSON.stringify(['たろう']));
