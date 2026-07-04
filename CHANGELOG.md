@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/bamiyanapp/karuta/compare/v1.25.0...v1.26.0) (2026-07-04)
+
+
+### Features
+
+* **auto-advance:** 自動読み上げモード（ハンズフリー進行）を追加 ([#247](https://github.com/bamiyanapp/karuta/issues/247)) ([a2b0ee5](https://github.com/bamiyanapp/karuta/commit/a2b0ee565f35d40b22ebc72595acbcdc28ecd495))
+
 # [1.25.0](https://github.com/bamiyanapp/karuta/compare/v1.24.0...v1.25.0) (2026-07-04)
 
 
