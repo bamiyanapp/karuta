@@ -135,6 +135,32 @@ function App() {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
   }, [categoryKey, historyByCategory]);
 
+  // 読了時のセッションサマリー（合計所要時間・最速/最遅の札）
+  const sessionSummary = useMemo(() => {
+    if (!isAllRead) return null;
+    const timedEntries = currentHistory.filter(p => p.elapsedTime && isFinite(parseFloat(p.elapsedTime)));
+    if (timedEntries.length === 0) return null;
+
+    const totalTime = timedEntries.reduce((sum, p) => sum + parseFloat(p.elapsedTime), 0);
+    const fastest = timedEntries.reduce((a, b) => (parseFloat(b.elapsedTime) < parseFloat(a.elapsedTime) ? b : a));
+    const slowest = timedEntries.reduce((a, b) => (parseFloat(b.elapsedTime) > parseFloat(a.elapsedTime) ? b : a));
+
+    return { totalTime, fastest, slowest };
+  }, [isAllRead, currentHistory]);
+
+  // 読了時の紙吹雪演出（isAllReadになった時点の1回だけ生成し、以降の再レンダーでは揺れ動かさない）
+  const confettiPieces = useMemo(() => {
+    if (!isAllRead) return [];
+    const emojis = ["🎉", "✨", "🎊", "⭐"];
+    return Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      left: Math.random() * 100,
+      delay: Math.random() * 0.6,
+      duration: 2.2 + Math.random() * 1.2,
+    }));
+  }, [isAllRead]);
+
   const EFUDA_PER_PAGE = 10;
   const efudaPages = useMemo(() => {
     const pages = [];
@@ -1421,11 +1447,50 @@ function App() {
 
       <main className="text-center">
         {isAllRead ? (
-          <div className="alert alert-success py-5 mb-5 shadow-sm rounded-4 border-0">
-            <h2 className="display-5 fw-bold mb-3">🎉 おめでとう！ 🎉</h2>
-            <p className="lead mb-4">すべての札を読み上げました！</p>
-            <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">もう一度最初から遊ぶ</button>
-          </div>
+          <>
+            {confettiPieces.length > 0 && (
+              <div className="confetti-container" aria-hidden="true">
+                {confettiPieces.map(c => (
+                  <span
+                    key={c.id}
+                    className="confetti-piece"
+                    style={{ left: `${c.left}%`, animationDelay: `${c.delay}s`, animationDuration: `${c.duration}s` }}
+                  >
+                    {c.emoji}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="alert alert-success py-5 mb-5 shadow-sm rounded-4 border-0">
+              <h2 className="display-5 fw-bold mb-3">🎉 おめでとう！ 🎉</h2>
+              <p className="lead mb-4">すべての札を読み上げました！</p>
+              {sessionSummary && (
+                <div className="row justify-content-center g-3 mb-4 text-dark">
+                  <div className="col-6 col-md-4">
+                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
+                      <div className="text-muted small">合計所要時間</div>
+                      <div className="h4 fw-bold mb-0">{sessionSummary.totalTime.toFixed(2)}秒</div>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-4">
+                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
+                      <div className="text-muted small">最速の札</div>
+                      <div className="fw-bold text-truncate">{sessionSummary.fastest.phrase}</div>
+                      <div className="small text-muted">{sessionSummary.fastest.elapsedTime}秒</div>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-4">
+                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
+                      <div className="text-muted small">最も時間がかかった札</div>
+                      <div className="fw-bold text-truncate">{sessionSummary.slowest.phrase}</div>
+                      <div className="small text-muted">{sessionSummary.slowest.elapsedTime}秒</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">もう一度最初から遊ぶ</button>
+            </div>
+          </>
         ) : (
           <>     
             <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
