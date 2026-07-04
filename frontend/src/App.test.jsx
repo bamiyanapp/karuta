@@ -13,6 +13,7 @@ window.fetch = vi.fn();
 window.Audio = vi.fn().mockImplementation((url) => {
   const audio = {
     play: vi.fn().mockResolvedValue(),
+    pause: vi.fn(),
     load: vi.fn(),
     // Simulate successful loading
     set src(url) {
@@ -1034,6 +1035,56 @@ describe('App', () => {
       expect(document.title).toBe('全札一覧 | かるた読み上げアプリ');
     });
   });
+
+  it('stops the current reading and resets the queue when the stop button is pressed', async () => {
+    const originalAudio = window.Audio;
+    const pauseMock = vi.fn();
+    // このテストは「再生中に停止ボタンを押す」挙動を検証するため、通常のモックのように
+    // 即座にonendedを発火させず、再生が継続している状態（ユーザーが停止ボタンを押す
+    // 前に音声が終わってしまわない状態）を維持できるAudioモックに差し替える
+    window.Audio = vi.fn().mockImplementation((url) => {
+      const audio = {
+        play: vi.fn().mockResolvedValue(),
+        pause: pauseMock,
+        load: vi.fn(),
+        set src(_url) {
+          // onendedを意図的に発火させない
+        },
+      };
+      if (url) audio.src = url;
+      return audio;
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    const stopButton = await screen.findByRole('button', { name: '停止' });
+    await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 4000 });
+
+    fireEvent.click(stopButton);
+
+    expect(pauseMock).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '停止' })).toBeDisabled();
+      expect(screen.getByText('準備完了')).toBeInTheDocument();
+    });
+
+    window.Audio = originalAudio;
+  }, 10000);
 
   it('does not reset the elapsed-time start point when the card is replayed before advancing', async () => {
     fetch.mockImplementation(async (url) => {
