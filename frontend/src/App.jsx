@@ -11,6 +11,18 @@ const HISTORY_STORAGE_KEY = "historyByCategory";
 const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
 const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
 
+// 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
+const pickTargetPhrase = (unreadPhrases, sortOrder) => {
+  if (sortOrder === "easy") {
+    return [...unreadPhrases].sort((a, b) => (a.averageDifficulty || 0) - (b.averageDifficulty || 0))[0];
+  }
+  if (sortOrder === "hard") {
+    return [...unreadPhrases].sort((a, b) => (b.averageDifficulty || 0) - (a.averageDifficulty || 0))[0];
+  }
+  const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
+  return unreadPhrases[randomIndex];
+};
+
 function App() {
   const [categories, setCategories] = useState([]);
   const [division, setDivision] = useState(() => {
@@ -89,6 +101,7 @@ function App() {
   const startTimeRef = useRef(null);
   const currentAudioRef = useRef(null);
   const stopRequestedRef = useRef(false);
+  const prefetchedNextRef = useRef(null);
 
   const resolvedTheme = useMemo(() => {
     return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
@@ -438,6 +451,50 @@ function App() {
     }
   }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, historyByCategory]);
 
+  // 現在の札を読み上げている間に、次に読み上げる予定の札の音声を先読みしておく
+  useEffect(() => {
+    if (!isReading || selectedCategories.length === 0 || allPhrasesForCategory.length === 0) {
+      return;
+    }
+
+    const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
+    const unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(`${p.category}:${p.id}`));
+    if (unreadPhrases.length === 0) {
+      return;
+    }
+
+    const announceCategory = isMultiCategorySelection;
+    const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, announceCategory, sortOrder });
+
+    const alreadyPrefetched = prefetchedNextRef.current;
+    if (
+      alreadyPrefetched &&
+      alreadyPrefetched.settingsSignature === settingsSignature &&
+      unreadPhrases.some(p => p.id === alreadyPrefetched.phrase.id && p.category === alreadyPrefetched.phrase.category)
+    ) {
+      return;
+    }
+
+    const nextTargetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
+    let cancelled = false;
+
+    const apiUrl = `${API_BASE_URL}/get-phrase?id=${nextTargetPhrase.id}&category=${encodeURIComponent(nextTargetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
+
+    fetch(apiUrl)
+      .then(response => response.json().then(data => ({ ok: response.ok, data })))
+      .then(({ ok, data }) => {
+        if (cancelled || !ok) return;
+        prefetchedNextRef.current = { phrase: nextTargetPhrase, data, settingsSignature };
+      })
+      .catch(error => {
+        console.error("Error prefetching next phrase:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isReading, selectedCategories, allPhrasesForCategory, currentHistory, sortOrder, repeatCount, speechRate, lang, isMultiCategorySelection]);
+
   const playKaruta = async () => {
     const targetPhrase = currentPhrase;
     
@@ -505,27 +562,33 @@ function App() {
         return;
       }
 
+      const announceCategory = isMultiCategorySelection;
+      const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, announceCategory, sortOrder });
+      const prefetched = prefetchedNextRef.current;
       let targetPhrase;
-      if (sortOrder === "easy") {
-        unreadPhrases.sort((a, b) => (a.averageDifficulty || 0) - (b.averageDifficulty || 0));
-        targetPhrase = unreadPhrases[0];
-      } else if (sortOrder === "hard") {
-        unreadPhrases.sort((a, b) => (b.averageDifficulty || 0) - (a.averageDifficulty || 0));
-        targetPhrase = unreadPhrases[0];
+      let data;
+
+      if (
+        prefetched &&
+        prefetched.settingsSignature === settingsSignature &&
+        unreadPhrases.some(p => p.id === prefetched.phrase.id && p.category === prefetched.phrase.category)
+      ) {
+        // プリフェッチ済みの音声データをそのまま使い、取得待ちをスキップする
+        targetPhrase = prefetched.phrase;
+        data = prefetched.data;
+        prefetchedNextRef.current = null;
       } else {
-        const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
-        targetPhrase = unreadPhrases[randomIndex];
+        targetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
+
+        const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
+        const response = await fetch(apiUrl);
+        data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Fetch failed");
+        }
       }
 
-      const announceCategory = isMultiCategorySelection;
-      const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || "Fetch failed");
-      }
-      
       setAudioQueue(prev => [...prev, { phraseData: data, audioData: data.audioData }]);
 
     } catch (error) {
