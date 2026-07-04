@@ -2,7 +2,7 @@ service: karuta-app
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: ap-northeast-1
   environment:
     TABLE_NAME: ${self:custom.tableName}
