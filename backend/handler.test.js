@@ -147,6 +147,19 @@ describe('getPhrasesList', () => {
       const response = await getPhrasesList({});
       expect(response.statusCode).toBe(500);
     });
+
+    it('should compute averageTime/averageDifficulty from totalTime/totalDifficulty and not leak the raw totals', async () => {
+      ddbMock.on(ScanCommand).resolves({
+        Items: [{ id: '1', category: 'Category1', readCount: 4, totalTime: 40, totalDifficulty: 8 }],
+      });
+
+      const response = await getPhrasesList({});
+      const body = JSON.parse(response.body);
+
+      expect(body.phrases).toEqual([
+        { id: '1', category: 'Category1', readCount: 4, averageTime: 10, averageDifficulty: 2 },
+      ]);
+    });
 });
 
 describe('getComments', () => {
@@ -473,6 +486,45 @@ describe('getPhrase', () => {
         expect(body.averageTime).toBe(12.3);
     });
 
+    it('should compute averageTime/averageDifficulty from totalTime/totalDifficulty when present (post-migration data)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', readCount: 4, totalTime: 40, totalDifficulty: 8 }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+        expect(body.readCount).toBe(4);
+        expect(body.averageTime).toBe(10);
+        expect(body.averageDifficulty).toBe(2);
+    });
+
+    it('should fall back to 0 instead of returning NaN/Infinity if totalTime/totalDifficulty end up corrupted', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', readCount: 4, totalTime: NaN, totalDifficulty: Infinity }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+        expect(body.averageTime).toBe(0);
+        expect(body.averageDifficulty).toBe(0);
+    });
+
     it('should include the answer field in the response when present', async () => {
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', answer: '回答A' }],
@@ -784,27 +836,44 @@ describe('recordTime', () => {
         process.env.TABLE_NAME = 'TestTable';
     });
 
-    it('should record time and update statistics', async () => {
-        ddbMock.on(GetCommand).resolves({
-            Item: { id: 'p1', category: 'c1', readCount: 1, averageTime: 10 }
-        });
+    it('should atomically ADD readCount/totalTime/totalDifficulty without reading current values first', async () => {
         ddbMock.on(UpdateCommand).resolves({});
 
         const event = {
-            body: JSON.stringify({ id: 'p1', category: 'c1', time: 20 })
+            body: JSON.stringify({ id: 'p1', category: 'c1', time: 20, difficulty: 3 })
         };
         const response = await recordTime(event);
         expect(response.statusCode).toBe(200);
 
+        // 読み取り→書き込みの競合を避けるため、GetItemを使わずUpdateItemのADDのみで完結させる
+        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
         const updateCalls = ddbMock.commandCalls(UpdateCommand);
         expect(updateCalls.length).toBe(1);
         const updateParams = updateCalls[0].args[0].input;
-        expect(updateParams.ExpressionAttributeValues[':rc']).toBe(2);
-        expect(updateParams.ExpressionAttributeValues[':at']).toBe(15);
+        expect(updateParams.Key).toEqual({ category: 'c1', id: 'p1' });
+        expect(updateParams.ConditionExpression).toBe('attribute_exists(id)');
+        expect(updateParams.UpdateExpression).toBe('ADD readCount :one, totalTime :time, totalDifficulty :difficulty');
+        expect(updateParams.ExpressionAttributeValues[':one']).toBe(1);
+        expect(updateParams.ExpressionAttributeValues[':time']).toBe(20);
+        expect(updateParams.ExpressionAttributeValues[':difficulty']).toBe(3);
+    });
+
+    it('should ADD only readCount/totalTime when difficulty is omitted', async () => {
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 20 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(200);
+
+        const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+        expect(updateParams.UpdateExpression).toBe('ADD readCount :one, totalTime :time');
+        expect(updateParams.ExpressionAttributeValues[':difficulty']).toBeUndefined();
     });
 
     it('should return 404 if phrase not found', async () => {
-        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        const error = new Error('The conditional request failed');
+        error.name = 'ConditionalCheckFailedException';
+        ddbMock.on(UpdateCommand).rejects(error);
         const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 10 }) };
         const response = await recordTime(event);
         expect(response.statusCode).toBe(404);
@@ -828,10 +897,7 @@ describe('recordTime', () => {
         expect(response.statusCode).toBe(400);
     });
 
-    it('should accept time exactly at the abnormal-value cap boundary and update the average', async () => {
-        ddbMock.on(GetCommand).resolves({
-            Item: { id: 'p1', category: 'c1', readCount: 0, averageTime: 0 }
-        });
+    it('should accept time exactly at the abnormal-value cap boundary', async () => {
         ddbMock.on(UpdateCommand).resolves({});
 
         const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 300 }) };
@@ -839,16 +905,15 @@ describe('recordTime', () => {
         expect(response.statusCode).toBe(200);
 
         const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
-        expect(updateParams.ExpressionAttributeValues[':at']).toBe(300);
+        expect(updateParams.ExpressionAttributeValues[':time']).toBe(300);
     });
 
-    it('should reject (400) time above the abnormal-value cap without writing to DynamoDB, so readCount/averageTime stay consistent (e.g. left idle for hours)', async () => {
+    it('should reject (400) time above the abnormal-value cap without writing to DynamoDB, so readCount/totalTime stay consistent (e.g. left idle for hours)', async () => {
         const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 21673.39 }) };
         const response = await recordTime(event);
         expect(response.statusCode).toBe(400);
-        // readCountとaverageTimeが常に対応するサンプル数を保つよう、
+        // readCountとtotalTimeが常に対応するサンプル数を保つよう、
         // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
-        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
         expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
     });
 });

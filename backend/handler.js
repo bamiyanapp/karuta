@@ -27,6 +27,29 @@ function escapeSsml(text) {
     .replace(/>/g, "&gt;");
 }
 
+// recordTimeがtotalTime/totalDifficulty（合計値）をADDで積み上げる方式のため、
+// 表示側で平均値（averageTime/averageDifficulty）を都度計算する。
+// totalTime/totalDifficultyが無い（移行前の）アイテムは、既存のaverageTime/averageDifficultyを
+// そのまま使う（後方互換）。
+function safeAverage(total, readCount, legacyAverage) {
+  if (readCount > 0 && typeof total === "number") {
+    const average = total / readCount;
+    return isNaN(average) || !isFinite(average) ? 0 : average;
+  }
+  return legacyAverage || 0;
+}
+
+function computePhraseStats(item) {
+  if (typeof item.totalTime !== "number" && typeof item.totalDifficulty !== "number") {
+    return item;
+  }
+  const { totalTime, totalDifficulty, ...rest } = item;
+  const readCount = item.readCount || 0;
+  const averageTime = safeAverage(totalTime, readCount, item.averageTime);
+  const averageDifficulty = safeAverage(totalDifficulty, readCount, item.averageDifficulty);
+  return { ...rest, averageTime, averageDifficulty };
+}
+
 // SSMLのprosody rate属性としてPollyが受け付けるキーワード
 const ALLOWED_SPEECH_RATE_KEYWORDS = ["x-slow", "slow", "medium", "fast", "x-fast"];
 const DEFAULT_SPEECH_RATE = "90%";
@@ -51,6 +74,10 @@ function normalizeSpeechRate(rate) {
 // タブを開いたまま放置する等で生じる異常値を統計に混入させないための経過時間の上限（秒）
 const MAX_ELAPSED_SECONDS = 300;
 
+// readCount/averageTime/averageDifficultyはGetItemで読んだ値を元にアプリ側で平均を
+// 計算してからUpdateItemする方式だと、複数端末からの同時リクエストで競合し値がずれる。
+// そのため合計値（totalTime, totalDifficulty）とreadCountをDynamoDBのADDで加算し、
+// 表示側（getPhrase/getPhrasesList）で平均を計算する方式にすることでアトミックに更新する。
 exports.recordTime = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
@@ -73,52 +100,36 @@ exports.recordTime = async (event) => {
       };
     }
 
-    const { Item } = await docClient.send(new GetCommand({
-      TableName: process.env.TABLE_NAME,
-      Key: { category, id },
-    }));
-
-    if (!Item) {
-      return {
-        statusCode: 404,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Phrase not found" }),
-      };
-    }
-
-    const oldReadCount = Item.readCount || 0;
-    const oldAverageTime = Item.averageTime || 0;
-    const oldAverageDifficulty = Item.averageDifficulty || 0;
-
-    const newReadCount = oldReadCount + 1;
-    let newAverageTime = ((oldAverageTime * oldReadCount) + time) / newReadCount;
-
-    // 数値の健全性チェック
-    if (isNaN(newAverageTime) || !isFinite(newAverageTime)) {
-        newAverageTime = time;
-    }
-
-    let updateExpression = "set readCount = :rc, averageTime = :at";
+    let updateExpression = "ADD readCount :one, totalTime :time";
     let expressionAttributeValues = {
-      ":rc": newReadCount,
-      ":at": newAverageTime,
+      ":one": 1,
+      ":time": time,
     };
 
     if (typeof difficulty === 'number' && !isNaN(difficulty) && isFinite(difficulty)) {
-      let newAverageDifficulty = ((oldAverageDifficulty * oldReadCount) + difficulty) / newReadCount;
-      if (isNaN(newAverageDifficulty) || !isFinite(newAverageDifficulty)) {
-        newAverageDifficulty = difficulty;
-      }
-      updateExpression += ", averageDifficulty = :ad";
-      expressionAttributeValues[":ad"] = newAverageDifficulty;
+      updateExpression += ", totalDifficulty :difficulty";
+      expressionAttributeValues[":difficulty"] = difficulty;
     }
 
-    await docClient.send(new UpdateCommand({
-      TableName: process.env.TABLE_NAME,
-      Key: { category, id },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expressionAttributeValues,
-    }));
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: { category, id },
+        // カテゴリ/IDの入力ミスで存在しない項目を新規作成してしまわないようにする
+        ConditionExpression: "attribute_exists(id)",
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+      }));
+    } catch (error) {
+      if (error.name === "ConditionalCheckFailedException") {
+        return {
+          statusCode: 404,
+          headers: { "Access-Control-Allow-Origin": allowedOrigin },
+          body: JSON.stringify({ message: "Phrase not found" }),
+        };
+      }
+      throw error;
+    }
 
     return {
       statusCode: 200,
@@ -290,7 +301,7 @@ exports.getPhrase = async (event) => {
       // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -397,6 +408,7 @@ exports.getPhrase = async (event) => {
       }
     }
 
+    const stats = computePhraseStats(selectedItem);
     const responseBody = {
       id: selectedItem.id,
       category: selectedItem.category,
@@ -406,9 +418,9 @@ exports.getPhrase = async (event) => {
       kana: selectedItem.kana,
       answer: selectedItem.answer,
       audioData: audioData,
-      readCount: selectedItem.readCount || 0,
-      averageTime: selectedItem.averageTime || 0,
-      averageDifficulty: selectedItem.averageDifficulty || 0,
+      readCount: stats.readCount || 0,
+      averageTime: stats.averageTime || 0,
+      averageDifficulty: stats.averageDifficulty || 0,
     };
 
     return {
@@ -442,7 +454,7 @@ exports.getPhrasesList = async (event) => {
         ExpressionAttributeValues: {
           ":cat": category,
         },
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -452,7 +464,7 @@ exports.getPhrasesList = async (event) => {
     } else {
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -464,7 +476,7 @@ exports.getPhrasesList = async (event) => {
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ phrases: items }),
+      body: JSON.stringify({ phrases: items.map(computePhraseStats) }),
     };
   } catch (error) {
     console.error(error);

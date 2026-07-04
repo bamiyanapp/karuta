@@ -23,7 +23,7 @@ async function resetStats(category, id) {
       Key: { category, id },
       // カテゴリ/IDの入力ミスで存在しない項目を新規作成してしまわないようにする
       ConditionExpression: "attribute_exists(category)",
-      UpdateExpression: "set readCount = :zero, averageTime = :zero, averageDifficulty = :zero",
+      UpdateExpression: "set readCount = :zero, averageTime = :zero, averageDifficulty = :zero, totalTime = :zero, totalDifficulty = :zero",
       ExpressionAttributeValues: { ":zero": 0 },
     }));
     console.log("Reset complete.");
