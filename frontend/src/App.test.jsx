@@ -1204,6 +1204,88 @@ describe('App', () => {
     window.Audio = originalAudio;
   }, 10000);
 
+  it('recovers isReading (does not get stuck) after stopping mid-intro-sound and starting the next card (issue #262)', async () => {
+    const originalAudio = window.Audio;
+    const pauseMock = vi.fn();
+    // カード1のイントロ音の再生中に停止ボタンを確実に捕まえられるよう、
+    // 通常のテスト用モック（onendedを即座に自動発火させる）とは異なり、
+    // onendedを意図的に発火させないモックに一時的に差し替える。
+    window.Audio = vi.fn().mockImplementation((url) => {
+      const audio = {
+        play: vi.fn().mockResolvedValue(),
+        pause: pauseMock,
+        load: vi.fn(),
+        set src(_url) {
+          // onendedを意図的に発火させない
+        },
+      };
+      if (url) audio.src = url;
+      return audio;
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/get-phrase?id=p1')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy1' }) };
+      if (url.includes('/get-phrase?id=p2')) return { ok: true, json: async () => ({ id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', audioData: 'dummy2' }) };
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({ message: 'ok' }) };
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+      await waitFor(() => screen.getByText('次の札'));
+      fireEvent.click(screen.getByText('次の札'));
+
+      // イントロ音（たいこの音）再生中に停止ボタンを押す
+      const stopButton = await screen.findByRole('button', { name: '停止' });
+      await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 4000 });
+      fireEvent.click(stopButton);
+
+      expect(pauseMock).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: '停止' })).toBeDisabled();
+      });
+
+      // 以降のカードは通常のテスト用モック（onendedが自動発火する）に戻し、
+      // カード2の読み上げが自然に完了できるようにする。
+      window.Audio = originalAudio;
+
+      // 停止直後に「次の札」を押しても、isReadingが真に固定されて以降ずっと
+      // 読み上げできなくなってはいけない（停止ボタンがいずれ押せなくなること＝
+      // isReadingがfalseに戻ることを確認する）。
+      fireEvent.click(screen.getByText('次の札'));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole('button', { name: '停止' })).toBeDisabled();
+        },
+        { timeout: 8000 }
+      );
+
+      // カード2が実際に履歴へ記録され、次のカードへ進めることも確認する
+      expect(screen.getAllByText('読み札2').length).toBeGreaterThan(0);
+    } finally {
+      window.Audio = originalAudio;
+    }
+  }, 15000);
+
   it('does not reset the elapsed-time start point when the card is replayed before advancing', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
