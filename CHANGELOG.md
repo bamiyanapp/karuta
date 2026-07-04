@@ -1,3 +1,10 @@
+## [1.29.2](https://github.com/bamiyanapp/karuta/compare/v1.29.1...v1.29.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **frontend:** frontend-testの慢性的なタイムアウトFlakinessを緩和 ([#268](https://github.com/bamiyanapp/karuta/issues/268)) ([3c02c8c](https://github.com/bamiyanapp/karuta/commit/3c02c8c0128b51e84d2fa5a125622bb42fd64e99)), closes [#264](https://github.com/bamiyanapp/karuta/issues/264)
+
 ## [1.29.1](https://github.com/bamiyanapp/karuta/compare/v1.29.0...v1.29.1) (2026-07-04)
 
 

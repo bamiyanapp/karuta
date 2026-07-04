@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.29.1",
+    "version": "1.29.2",
     "date": "2026/07/04",
+    "body": "### Bug Fixes\n\n* **frontend:** frontend-testの慢性的なタイムアウトFlakinessを緩和 ([#268](https://github.com/bamiyanapp/karuta/issues/268)) ([3c02c8c](https://github.com/bamiyanapp/karuta/commit/3c02c8c0128b51e84d2fa5a125622bb42fd64e99)), closes [#264](https://github.com/bamiyanapp/karuta/issues/264)"
+  },
+  {
+    "version": "1.29.1",
+    "date": "2026/07/04 07:30",
     "body": "### Bug Fixes\n\n* **deploy:** LambdaランタイムをEOL間近のnodejs18.xからnodejs20.xへ更新 ([#255](https://github.com/bamiyanapp/karuta/issues/255)) ([1703855](https://github.com/bamiyanapp/karuta/commit/1703855b915ecd2568c1db120c53d29c61660a7c))"
   },
   {
