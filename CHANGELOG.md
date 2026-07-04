@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/bamiyanapp/karuta/compare/v1.29.4...v1.30.0) (2026-07-04)
+
+
+### Features
+
+* 開発ルールをdev-standardsに共通化しsubmoduleで参照 ([#278](https://github.com/bamiyanapp/karuta/issues/278)) ([7457832](https://github.com/bamiyanapp/karuta/commit/745783203e484df27a3301d478d10aaf762acdb2))
+
 ## [1.29.4](https://github.com/bamiyanapp/karuta/compare/v1.29.3...v1.29.4) (2026-07-04)
 
 
