@@ -53,6 +53,16 @@ describe('App', () => {
     expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
   });
 
+  it('shows a get-categories-specific error message when fetching categories fails, instead of the generic submit-failure message', async () => {
+    fetch.mockRejectedValueOnce(new Error('network error'));
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
+  });
+
   it('shows the matching category list after choosing a division', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
@@ -766,6 +776,10 @@ describe('App', () => {
       expect(screen.getByText('回答A')).toBeInTheDocument();
       expect(screen.getByText('読み札B').closest('tr')).not.toHaveTextContent('-');
     });
+
+    // 読み札列・答え列の幅バランスが崩れないよう、同じ幅指定クラスを共有していることを確認する
+    expect(screen.getByText('読み札', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
+    expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
   });
 
   it('filters all-phrases table by category when a filter button is clicked', async () => {

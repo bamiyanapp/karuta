@@ -30,41 +30,36 @@ try {
     });
   }
   
+  // タグのコミット日時（実際のリリース時刻）を取得する。バージョンのタグがまだ
+  // 存在しない/取得できない場合（リリース対象バージョン自身の実行時等）はnullを返す。
+  // 呼び出し側でCHANGELOG.mdの日付（日付のみ、時刻情報を持たない）にフォールバックする。
   function getReleaseDate(version) {
+    let dateStr;
     try {
-      // try v${version}
-      let dateStr;
+      dateStr = execSync(`git log -1 --format=%ai v${version}`, { stdio: 'pipe' }).toString().trim();
+    } catch (e) {
+      // ignore
+    }
+
+    if (!dateStr) {
       try {
-        dateStr = execSync(`git log -1 --format=%ai v${version}`, { stdio: 'pipe' }).toString().trim();
+        dateStr = execSync(`git log -1 --format=%ai ${version}`, { stdio: 'pipe' }).toString().trim();
       } catch (e) {
         // ignore
       }
-
-      if (!dateStr) {
-        try {
-          dateStr = execSync(`git log -1 --format=%ai ${version}`, { stdio: 'pipe' }).toString().trim();
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      if (!dateStr) return null;
-
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return null;
-
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      const H = String(date.getHours()).padStart(2, '0');
-      const M = String(date.getMinutes()).padStart(2, '0');
-      return `${y}/${m}/${d} ${H}:${M}`;
-    } catch (error) {
-      // Fallback to changelog date, assuming midnight if no time is available
-      const fallbackDate = new Date(version);
-      if (isNaN(fallbackDate.getTime())) return null;
-      return `${fallbackDate.getFullYear()}/${String(fallbackDate.getMonth() + 1).padStart(2, '0')}/${String(fallbackDate.getDate()).padStart(2, '0')} 00:00`;
     }
+
+    if (!dateStr) return null;
+
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const H = String(date.getHours()).padStart(2, '0');
+    const M = String(date.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${d} ${H}:${M}`;
   }
 
   for (let i = 0; i < matches.length; i++) {
@@ -78,12 +73,11 @@ try {
     
     const gitDate = getReleaseDate(current.version);
 
+    // タグのコミット時刻が取得できない場合、実際には無い時刻情報を「00:00」として
+    // 補ってしまうと実時刻と見分けがつかなくなるため、日付のみを表示する
     entries.push({
       version: current.version,
-      date: gitDate || 
-            (current.date.match(/^\d{4}-\d{2}-\d{2}$/) 
-              ? `${current.date.replace(/-/g, '/')}` + ' 00:00'
-              : current.date.replace(/-/g, '/')),
+      date: gitDate || current.date.replace(/-/g, '/'),
       body: body
     });
   }
