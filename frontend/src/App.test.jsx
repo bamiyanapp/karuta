@@ -1286,6 +1286,61 @@ describe('App', () => {
     }
   }, 15000);
 
+  it('reads many phrases back-to-back without ever stalling, all the way through to the session summary (issue #262 regression coverage)', async () => {
+    // 未読み札から常に先頭（p1→p2→...の順）を選ばせ、カードの出現順を固定する
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const CARD_COUNT = 5;
+
+    const phrases = Array.from({ length: CARD_COUNT }, (_, i) => ({
+      id: `p${i + 1}`,
+      category: 'Cat1',
+      kana: 'あ',
+      phrase: `読み札${i + 1}`,
+      level: '-',
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      if (url.includes('/get-phrase?')) {
+        const id = new URL(url).searchParams.get('id');
+        return { ok: true, json: async () => ({ id, category: 'Cat1', kana: 'あ', phrase: `読み札${id.slice(1)}`, level: '-', audioData: `dummy-${id}` }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({ message: 'ok' }) };
+      if (url.includes('get-congratulation-audio')) return { ok: true, json: async () => ({ audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+      for (let i = 1; i <= CARD_COUNT; i++) {
+        await waitFor(() => screen.getByText('次の札'));
+        fireEvent.click(screen.getByText('次の札'));
+
+        // 1枚でも滞留していれば、ここでタイムアウトして失敗する
+        await waitFor(() => {
+          expect(screen.getByText(`読み札${i}`, { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+        }, { timeout: 8000 });
+      }
+
+      // 最後の札を読み終えた後も「次の札」が機能し、読了サマリーまで到達できる
+      // （＝どこかで読み上げ不能に固定されていない）ことを確認する
+      fireEvent.click(screen.getByText('次の札'));
+
+      await waitFor(() => {
+        expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
+      }, { timeout: 8000 });
+    } finally {
+      randomSpy.mockRestore();
+    }
+  }, 40000);
+
   it('does not reset the elapsed-time start point when the card is replayed before advancing', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
