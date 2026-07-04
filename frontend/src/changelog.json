@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.22.0",
+    "version": "1.23.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **history:** 読み上げ履歴をsessionStorageに永続化 ([#241](https://github.com/bamiyanapp/karuta/issues/241)) ([e48a146](https://github.com/bamiyanapp/karuta/commit/e48a146182b752a10d3d24b8fa81e50f38ac8831))"
+  },
+  {
+    "version": "1.22.0",
+    "date": "2026/07/04 03:08",
     "body": "### Features\n\n* **game:** こども向けモードの読み札表示を最適化 ([#239](https://github.com/bamiyanapp/karuta/issues/239)) ([59a47a0](https://github.com/bamiyanapp/karuta/commit/59a47a08f7e820ef68a2da5ef8f38285755aa492))"
   },
   {
