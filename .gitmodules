@@ -1,0 +1,4 @@
+[submodule "dev-standards"]
+	path = dev-standards
+	url = https://github.com/bamiyanapp/dev-standards.git
+	branch = claude/dev-standards-setup-spnjdf
