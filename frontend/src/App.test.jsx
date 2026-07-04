@@ -1268,23 +1268,25 @@ describe('App', () => {
       window.Audio = originalAudio;
 
       // 停止直後に「次の札」を押しても、isReadingが真に固定されて以降ずっと
-      // 読み上げできなくなってはいけない（停止ボタンがいずれ押せなくなること＝
-      // isReadingがfalseに戻ることを確認する）。
+      // 読み上げできなくなってはいけない。
       fireEvent.click(screen.getByText('次の札'));
 
-      await waitFor(
-        () => {
-          expect(screen.getByRole('button', { name: '停止' })).toBeDisabled();
-        },
-        { timeout: 8000 }
-      );
+      // まずカード2が実際に読み上げを開始した（isReadingがtrueになった）ことを
+      // 確認する。これを確認せずに次のtoBeDisabled()だけを見ると、カード2が
+      // そもそも開始できずに停止ボタンが無効のまま据え置かれているだけの状態
+      // （＝本来検知すべき回帰）を誤って合格させてしまう。
+      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).not.toBeDisabled(), { timeout: 8000 });
+
+      // その上で、カード2の読み上げが最後まで自然に完了し
+      // （＝停止ボタンがいずれ押せなくなる＝isReadingがfalseに戻る）ことを確認する。
+      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).toBeDisabled(), { timeout: 8000 });
 
       // カード2が実際に履歴へ記録され、次のカードへ進めることも確認する
       expect(screen.getAllByText('読み札2').length).toBeGreaterThan(0);
     } finally {
       window.Audio = originalAudio;
     }
-  }, 15000);
+  }, 25000);
 
   it('reads many phrases back-to-back without ever stalling, all the way through to the session summary (issue #262 regression coverage)', async () => {
     // 未読み札から常に先頭（p1→p2→...の順）を選ばせ、カードの出現順を固定する
