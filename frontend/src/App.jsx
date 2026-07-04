@@ -1131,10 +1131,10 @@ function App() {
   const renderPhrase = (phrase) => {
     if (!phrase) return null;
     return (
-        <div className="yomifuda" onClick={repeatPhrase} role="button" aria-label="もう一度">
+        <div className={`yomifuda ${division === "kids" ? "yomifuda-kids" : ""}`} onClick={repeatPhrase} role="button" aria-label="もう一度">
             <div className="yomifuda-kana"><span>{phrase.kana || (phrase.phrase && phrase.phrase[0])}</span></div>
             <div className="yomifuda-phrase">{phrase.phrase}</div>
-            {phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
+            {division !== "kids" && phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
         </div>
     );
   }
@@ -1152,9 +1152,13 @@ function App() {
               🎉 平均より速い！
             </div>
           )}
-          
-          <div className="text-muted mb-2">難易度レベル</div>
-          <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
+
+          {division !== "kids" && (
+            <>
+              <div className="text-muted mb-2">難易度レベル</div>
+              <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
+            </>
+          )}
 
           {result.answer && result.answer !== "-" && (
             <>
