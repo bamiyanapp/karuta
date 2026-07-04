@@ -682,7 +682,11 @@ function App() {
 
   const toggleDraftCategory = (cat) => {
     if (division === "kids") {
-      setDraftCategories(prev => (prev.includes(cat) ? [] : [cat]));
+      // こども向けは1件しか選べない仕様のため、決定ボタン・確認モーダルを
+      // 経由せずワンタップで読み上げ画面に遷移する
+      setSelectedCategories([cat]);
+      setDraftCategories([]);
+      setView("game");
       return;
     }
     setDraftCategories(prev =>
@@ -1078,7 +1082,7 @@ function App() {
               ))
             )}
           </div>
-          {categoriesForDivision.length > 0 && (
+          {division === "engineer" && categoriesForDivision.length > 0 && (
             <div className="text-center mt-4">
               <button
                 onClick={handleDecideClick}

@@ -147,15 +147,21 @@ describe('App', () => {
     expect(screen.getByText(/更新履歴を見る/)).toBeInTheDocument();
   });
 
-  it('only allows a single category to be selected for the kids division', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        categories: [
-          { name: 'Cat1', group: 'kids' },
-          { name: 'Cat2', group: 'kids' },
-        ],
-      }),
+  it('navigates straight to the game screen on a single tap for the kids division, skipping the decide button and confirmation modal', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'Cat1', group: 'kids' },
+              { name: 'Cat2', group: 'kids' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
     });
 
     await act(async () => {
@@ -165,14 +171,14 @@ describe('App', () => {
     fireEvent.click(screen.getByText('こども向け'));
 
     const cat1Button = await screen.findByRole('button', { name: /Cat1/ });
-    const cat2Button = await screen.findByRole('button', { name: /Cat2/ });
+    expect(screen.queryByText(/決定/)).not.toBeInTheDocument();
 
     fireEvent.click(cat1Button);
-    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
 
-    fireEvent.click(cat2Button);
-    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() => {
+      expect(screen.queryByText(/お手元に持っていますか/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '次の札' })).toBeInTheDocument();
+    });
   });
 
   it('returns to the division selection screen via the back button', async () => {
@@ -249,10 +255,6 @@ describe('App', () => {
 
     const categoryButton = screen.getByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-
-    await waitFor(() => screen.getByText(/をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Cat1' })).toBeInTheDocument();
@@ -348,8 +350,6 @@ describe('App', () => {
 
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -384,8 +384,6 @@ describe('App', () => {
     fireEvent.click(await screen.findByText('こども向け'));
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => {
       expect(screen.getByText('読み上げ済み 0 / 全2枚')).toBeInTheDocument();
@@ -469,8 +467,6 @@ describe('App', () => {
 
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('絵札を印刷する'));
     fireEvent.click(screen.getByText('絵札を印刷する'));
@@ -631,8 +627,6 @@ describe('App', () => {
 
     const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -689,8 +683,6 @@ describe('App', () => {
 
     const categoryButton = await screen.findByRole('button', { name: 'Cat1' });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -728,8 +720,6 @@ describe('App', () => {
     // Select Category
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     // Check setting buttons
     expect(screen.getByText('English')).toBeInTheDocument();
@@ -763,8 +753,6 @@ describe('App', () => {
 
     const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
     fireEvent.click(categoryButton);
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     fireEvent.click(await screen.findByText('ダーク'));
     expect(localStorage.getItem('theme')).toBe('dark');
@@ -987,8 +975,6 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByText('こども向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -1051,8 +1037,6 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByText('こども向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
