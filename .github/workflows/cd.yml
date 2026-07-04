@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      new_release_published: ${{ steps.check-release.outputs.new_release_published }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,12 +62,27 @@ jobs:
       # release への追従直後に実行することで、他のマージとの競合（semantic-release が
       # 「ローカルの release が remote より古い」と判定してリリースを黒くスキップする
       # 問題）が起きる時間差を最小化する
+      - name: Record pre-release commit
+        id: pre-release
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+      # semantic-release は新バージョンを発行した場合のみ release ブランチに
+      # コミットを追加するため、実行前後のコミットを比較して新リリースの有無を判定する
+      - name: Check if a new release was published
+        id: check-release
+        run: |
+          AFTER_SHA=$(git rev-parse HEAD)
+          if [ "${{ steps.pre-release.outputs.sha }}" != "$AFTER_SHA" ]; then
+            echo "new_release_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Create PR from release to main
         id: sync-pr
+        if: steps.check-release.outputs.new_release_published == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
@@ -83,9 +100,13 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: gh pr merge --auto --squash "${{ steps.sync-pr.outputs.pull-request-url }}"
+        run: |
+          gh pr merge --auto --squash \
+            --subject "chore: sync release branch into main (#${{ steps.sync-pr.outputs.pull-request-number }}) [skip ci]" \
+            "${{ steps.sync-pr.outputs.pull-request-url }}"
   build-and-deploy-frontend:
     needs: release
+    if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -121,6 +142,7 @@ jobs:
 
   deploy-backend:
     needs: release
+    if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
