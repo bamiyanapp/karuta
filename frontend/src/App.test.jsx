@@ -1386,4 +1386,85 @@ describe('App', () => {
 
     randomSpy.mockRestore();
   }, 20000);
+
+  it('registers players, records who took each card, and shows the winner on the result screen', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', phrase: '読み札1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({ message: 'ok' }) };
+      if (url.includes('get-congratulation-audio')) return { ok: true, json: async () => ({ audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+
+    const nameInput = screen.getByPlaceholderText('名前を入力');
+    fireEvent.change(nameInput, { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('追加'));
+    fireEvent.change(nameInput, { target: { value: 'はなこ' } });
+    fireEvent.click(screen.getByText('追加'));
+
+    expect(screen.getByText('たろう')).toBeInTheDocument();
+    expect(screen.getByText('はなこ')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    expect(screen.getByText('取った人:')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'たろう' }));
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    expect(screen.getByText('🏆 優勝: たろう')).toBeInTheDocument();
+    const taroCard = screen.getByText('たろう', { selector: 'span.fw-bold' }).parentElement;
+    expect(within(taroCard).getByText(/1枚/)).toBeInTheDocument();
+    const hanakoCard = screen.getByText('はなこ', { selector: 'span.fw-bold' }).parentElement;
+    expect(within(hanakoCard).getByText(/0枚/)).toBeInTheDocument();
+  }, 15000);
+
+  it('does not show player registration or the taken-by buttons in kids mode even if players are already registered', async () => {
+    sessionStorage.setItem('players', JSON.stringify(['たろう']));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', phrase: '読み札1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    expect(screen.queryByText('取った人:')).not.toBeInTheDocument();
+  }, 15000);
 });
