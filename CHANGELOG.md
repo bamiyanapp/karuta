@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/bamiyanapp/karuta/compare/v1.21.0...v1.22.0) (2026-07-04)
+
+
+### Features
+
+* **game:** こども向けモードの読み札表示を最適化 ([#239](https://github.com/bamiyanapp/karuta/issues/239)) ([59a47a0](https://github.com/bamiyanapp/karuta/commit/59a47a08f7e820ef68a2da5ef8f38285755aa492))
+
 # [1.21.0](https://github.com/bamiyanapp/karuta/compare/v1.20.0...v1.21.0) (2026-07-04)
 
 
