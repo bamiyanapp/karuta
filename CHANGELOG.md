@@ -1,3 +1,10 @@
+## [1.29.1](https://github.com/bamiyanapp/karuta/compare/v1.29.0...v1.29.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **deploy:** LambdaランタイムをEOL間近のnodejs18.xからnodejs20.xへ更新 ([#255](https://github.com/bamiyanapp/karuta/issues/255)) ([1703855](https://github.com/bamiyanapp/karuta/commit/1703855b915ecd2568c1db120c53d29c61660a7c))
+
 # [1.29.0](https://github.com/bamiyanapp/karuta/compare/v1.28.0...v1.29.0) (2026-07-04)
 
 
