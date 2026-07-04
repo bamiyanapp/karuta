@@ -86,14 +86,21 @@ jobs:
           script: |
             const prNumber = context.payload.pull_request.number;
             const branchName = context.payload.pull_request.head.ref;
+            const isSyncPR = branchName.startsWith('sync/release-to-main');
             console.log(`Attempting to merge PR #${prNumber}`);
             try {
-              await github.rest.pulls.merge({
+              const mergeParams = {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: prNumber,
                 merge_method: "squash"
-              });
+              };
+              // release→main同期PRのsquashコミットには [skip ci] を明示し、
+              // main への push で再度CIが走ることを防ぐ
+              if (isSyncPR) {
+                mergeParams.commit_title = `chore: sync release branch into main (#${prNumber}) [skip ci]`;
+              }
+              await github.rest.pulls.merge(mergeParams);
               console.log(`Successfully merged PR #${prNumber}`);
             } catch (error) {
               console.error(`Failed to merge PR #${prNumber}:`, error.message);
