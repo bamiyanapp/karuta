@@ -363,6 +363,43 @@ describe('App', () => {
     randomSpy.mockRestore();
   });
 
+  it('shows a read/total progress counter that updates as phrases are read', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }),
+        };
+      }
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    const categoryButton = await screen.findByRole('button', { name: /Cat1/ });
+    fireEvent.click(categoryButton);
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み上げ済み 0 / 全2枚')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み上げ済み 1 / 全2枚')).toBeInTheDocument();
+    });
+
+    randomSpy.mockRestore();
+  });
+
   it('requests announceCategory=true for the detail-view replay when multiple categories are selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {

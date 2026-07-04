@@ -1178,8 +1178,32 @@ function App() {
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4">
         <h1 className="h2 fw-bold text-dark notranslate">{categoryLabel}</h1>
+        {!isAllRead && allPhrasesForCategory.length > 0 && (() => {
+          const readCount = Math.min(currentHistory.length, allPhrasesForCategory.length);
+          return (
+            <div className="mt-2 mx-auto" style={{ maxWidth: "300px" }}>
+              <div className="text-muted small mb-1">
+                読み上げ済み {readCount} / 全{allPhrasesForCategory.length}枚
+              </div>
+              <div
+                className="progress"
+                style={{ height: "8px" }}
+                role="progressbar"
+                aria-label="読み上げ進捗"
+                aria-valuenow={readCount}
+                aria-valuemin={0}
+                aria-valuemax={allPhrasesForCategory.length}
+              >
+                <div
+                  className="progress-bar progress-bar-karuta"
+                  style={{ width: `${(readCount / allPhrasesForCategory.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          );
+        })()}
       </header>
-      
+
       <main className="text-center">
         {isAllRead ? (
           <div className="alert alert-success py-5 mb-5 shadow-sm rounded-4 border-0">
