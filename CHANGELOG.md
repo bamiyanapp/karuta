@@ -1,3 +1,17 @@
+# [1.32.0](https://github.com/bamiyanapp/karuta/compare/v1.31.0...v1.32.0) (2026-07-04)
+
+
+### Features
+
+* **cd:** releaseジョブをdev-standardsのreusable workflowに置換 ([#282](https://github.com/bamiyanapp/karuta/issues/282)) ([d1a2f22](https://github.com/bamiyanapp/karuta/commit/d1a2f221fdeb90eb411f11aecb26b8714d9f5e2d))
+
+# [1.31.0](https://github.com/bamiyanapp/karuta/compare/v1.30.0...v1.31.0) (2026-07-04)
+
+
+### Features
+
+* ci.ymlをdev-standardsのreusable workflow呼び出しに縮小 ([#280](https://github.com/bamiyanapp/karuta/issues/280)) ([1b4e0db](https://github.com/bamiyanapp/karuta/commit/1b4e0db4c04d732e3e3df9374f5cf99efa635eff))
+
 # [1.30.0](https://github.com/bamiyanapp/karuta/compare/v1.29.4...v1.30.0) (2026-07-04)
 
 
