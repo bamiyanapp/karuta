@@ -59,7 +59,9 @@ async function seed() {
         answer: record.answer ? record.answer.trim() : "-",
         readCount: existingItem ? existingItem.readCount : 0,
         averageTime: existingItem ? existingItem.averageTime : 0,
-        averageDifficulty: existingItem ? (existingItem.averageDifficulty || 0) : 0
+        averageDifficulty: existingItem ? (existingItem.averageDifficulty || 0) : 0,
+        totalTime: existingItem ? (existingItem.totalTime || 0) : 0,
+        totalDifficulty: existingItem ? (existingItem.totalDifficulty || 0) : 0
       });
     }
 
