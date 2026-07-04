@@ -208,6 +208,42 @@ button:active:not(:disabled) {
   background-color: #f8f9fa;
 }
 
+/* 読み札列が長文になりがちで答え列との幅バランスが崩れるため、
+   table-layoutをfixedにして両列に同じ幅を割り当てる。
+   fixedレイアウトは全列の幅決定方式に影響するため、他の列（カテゴリ等）が
+   残り幅の均等割りで不自然に狭くならないよう、全列に明示的な幅を指定する */
+.all-phrases-table-container table {
+  table-layout: fixed;
+}
+
+.all-phrases-col-balanced {
+  width: 22%;
+}
+
+.all-phrases-table-container th:nth-child(1) {
+  width: 14%;
+}
+
+.all-phrases-table-container th:nth-child(4) {
+  width: 6%;
+}
+
+.all-phrases-table-container th:nth-child(5) {
+  width: 8%;
+}
+
+.all-phrases-table-container th:nth-child(6) {
+  width: 10%;
+}
+
+.all-phrases-table-container th:nth-child(7) {
+  width: 8%;
+}
+
+.all-phrases-table-container th:nth-child(8) {
+  width: 10%;
+}
+
 /* thead.table-lightは--bs-table-color/--bs-table-bgに固定の16進値を持つため、
    --bs-dark-rgb等の再定義では追従しない。個別に上書きする。
    なおsticky化のためthead thには背景色を直接指定しているため、--bs-table-bgとは別に

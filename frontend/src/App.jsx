@@ -213,7 +213,7 @@ function App() {
           }
         }
     } catch {
-      alert("送信に失敗しました。");
+      alert("カテゴリの取得に失敗しました。");
     }
     };
     fetchCategories();
@@ -888,10 +888,10 @@ function App() {
                       <th scope="col" className="ps-4" style={{ cursor: "pointer" }} onClick={() => handleSort('category')}>
                         カテゴリ{renderSortArrow('category')}
                       </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('phrase')}>
+                      <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('phrase')}>
                         読み札{renderSortArrow('phrase')}
                       </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('answer')}>
+                      <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('answer')}>
                         答え{renderSortArrow('answer')}
                       </th>
                       <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('level')}>
