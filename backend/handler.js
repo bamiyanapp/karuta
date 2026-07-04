@@ -275,6 +275,10 @@ exports.getCongratulationAudio = async (event) => {
   }
 };
 
+// キャッシュキーの組み合わせ（読み上げ速度・回数・言語・カテゴリ告知有無等）分だけ
+// レコードが際限なく増加しないよう、DynamoDB TTLで一定期間後に自動削除する
+const POLLY_CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30日
+
 exports.getPhrase = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
@@ -403,6 +407,7 @@ exports.getPhrase = async (event) => {
             id: cacheId,
             audioData: audioData,
             createdAt: new Date().toISOString(),
+            ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
           },
         }));
       }
