@@ -53,6 +53,7 @@ describe('データ整合性', () => {
   });
 
   it('不正な改行・制御文字が含まれていないこと', () => {
+    // eslint-disable-next-line no-control-regex -- 制御文字混入の検出が本テストの目的そのもの
     const controlRe = /[\x00-\x1F\x7F]/;
     for (const r of records) {
       for (const [field, value] of Object.entries(r)) {
