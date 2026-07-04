@@ -433,6 +433,7 @@ function App() {
       // 停止ボタンが押されていたら、次のフェーズ（本編読み上げ）に進まず打ち切る
       if (stopRequestedRef.current) {
         stopRequestedRef.current = false;
+        setIsReading(false);
         return;
       }
 
@@ -461,12 +462,14 @@ function App() {
       await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
       if (stopRequestedRef.current) {
         stopRequestedRef.current = false;
+        setIsReading(false);
         return;
       }
 
       await animationPromise;
       if (stopRequestedRef.current) {
         stopRequestedRef.current = false;
+        setIsReading(false);
         return;
       }
 
