@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/bamiyanapp/karuta/compare/v1.22.0...v1.23.0) (2026-07-04)
+
+
+### Features
+
+* **history:** 読み上げ履歴をsessionStorageに永続化 ([#241](https://github.com/bamiyanapp/karuta/issues/241)) ([e48a146](https://github.com/bamiyanapp/karuta/commit/e48a146182b752a10d3d24b8fa81e50f38ac8831))
+
 # [1.22.0](https://github.com/bamiyanapp/karuta/compare/v1.21.0...v1.22.0) (2026-07-04)
 
 
