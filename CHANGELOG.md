@@ -1,3 +1,10 @@
+## [1.19.4](https://github.com/bamiyanapp/karuta/compare/v1.19.3...v1.19.4) (2026-07-04)
+
+
+### Bug Fixes
+
+* **handler:** PollyキャッシュテーブルにTTLを追加し無限増加を防止 ([#228](https://github.com/bamiyanapp/karuta/issues/228)) ([28fb82c](https://github.com/bamiyanapp/karuta/commit/28fb82c8daba27652a4e2a0b6030e30a67dee362))
+
 ## [1.19.3](https://github.com/bamiyanapp/karuta/compare/v1.19.2...v1.19.3) (2026-07-04)
 
 
