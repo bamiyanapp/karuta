@@ -18,92 +18,15 @@ concurrency:
 
 jobs:
   release:
-    name: Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      new_release_published: ${{ steps.check-release.outputs.new_release_published }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: release
-          fetch-depth: 0
-          token: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "lts/*"
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@main
+    with:
+      base_branch: main
+      release_branch: release
+      sync_branch_prefix: sync/release-to-main
+      merge_ours_paths: frontend/src/changelog.json
+    secrets:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
-      # release を main の最新コミットまで追従させる（main の方が進んでいる場合のみマージ）
-      - name: Sync release with main
-        run: |
-          git fetch origin --tags --prune
-          git fetch origin main
-          MAIN_HEAD=$(git rev-parse origin/main)
-          RELEASE_HEAD=$(git rev-parse release)
-          if [ "$MAIN_HEAD" != "$RELEASE_HEAD" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            # frontend/src/changelog.json は release 専用の生成物であり release 側の内容を常に優先する。
-            # リポジトリの .gitattributes は release ブランチに反映されるまで有効にならないため、
-            # ローカルの属性ファイルを直接指定してこの実行から即時に効かせる。
-            echo "frontend/src/changelog.json merge=ours" > "$RUNNER_TEMP/karuta-merge.gitattributes"
-            git config core.attributesFile "$RUNNER_TEMP/karuta-merge.gitattributes"
-            git config merge.ours.driver true
-            git merge --no-ff origin/main -m "Chore: Merge main into release"
-            git push origin release
-          fi
-
-      # release への追従直後に実行することで、他のマージとの競合（semantic-release が
-      # 「ローカルの release が remote より古い」と判定してリリースを黒くスキップする
-      # 問題）が起きる時間差を最小化する
-      - name: Record pre-release commit
-        id: pre-release
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Semantic Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN != '' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-      # semantic-release は新バージョンを発行した場合のみ release ブランチに
-      # コミットを追加するため、実行前後のコミットを比較して新リリースの有無を判定する
-      - name: Check if a new release was published
-        id: check-release
-        run: |
-          AFTER_SHA=$(git rev-parse HEAD)
-          if [ "${{ steps.pre-release.outputs.sha }}" != "$AFTER_SHA" ]; then
-            echo "new_release_published=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Create PR from release to main
-        id: sync-pr
-        if: steps.check-release.outputs.new_release_published == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.BOT_TOKEN }}
-          base: main
-          head: release
-          branch: sync/release-to-main
-          branch-suffix: timestamp
-          delete-branch: true
-          title: "Sync release branch into main"
-          body: "Automated PR to sync release changes into main."
-          draft: false
-          commit-message: "chore: sync release branch into main [skip ci]"
-      - name: Enable auto-merge for sync PR
-        if: steps.sync-pr.outputs.pull-request-number
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: |
-          gh pr merge --auto --squash \
-            --subject "chore: sync release branch into main (#${{ steps.sync-pr.outputs.pull-request-number }}) [skip ci]" \
-            "${{ steps.sync-pr.outputs.pull-request-url }}"
   build-and-deploy-frontend:
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
