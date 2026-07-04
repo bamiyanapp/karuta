@@ -1,8 +1,14 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import ReactMarkdown from "react-markdown";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
-import changelogData from "./changelog.json";
+import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { useSessionStorageState } from "./hooks/useSessionStorageState";
+import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
+import DetailView from "./views/DetailView";
+import PrintEfudaView from "./views/PrintEfudaView";
+import AllPhrasesView from "./views/AllPhrasesView";
+import CommentsView from "./views/CommentsView";
+import ChangelogView from "./views/ChangelogView";
 
 const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
@@ -10,9 +16,6 @@ const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
 const SCORES_STORAGE_KEY = "scoresByCategory";
 const MAX_PLAYERS = 6;
-
-const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
-const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
 
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
@@ -66,55 +69,20 @@ function App() {
   const [isReading, setIsReading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isAllRead, setIsAllRead] = useState(false);
-  const [repeatCount, setRepeatCount] = useState(() => {
-    return parseInt(localStorage.getItem("repeatCount") || "2", 10);
-  });
-  const [speechRate, setSpeechRate] = useState(() => {
-    return localStorage.getItem("speechRate") || "80%";
-  });
-  const [lang, setLang] = useState(() => {
-    return localStorage.getItem("lang") || "ja";
-  });
-  const [sortOrder, setSortOrder] = useState(() => {
-    return localStorage.getItem("sortOrder") || "random";
-  });
-  const [autoAdvance, setAutoAdvance] = useState(() => {
-    return localStorage.getItem("autoAdvance") === "true";
-  });
-  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(() => {
-    return parseInt(localStorage.getItem("autoAdvanceInterval") || "10", 10);
-  });
-  const [themeSetting, setThemeSetting] = useState(() => {
-    return localStorage.getItem("theme") || "system";
-  });
+  const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
+  const [speechRate, setSpeechRate] = useLocalStorageState("speechRate", "80%");
+  const [lang, setLang] = useLocalStorageState("lang", "ja");
+  const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
+  const [autoAdvance, setAutoAdvance] = useLocalStorageState("autoAdvance", false, (v) => v === "true");
+  const [autoAdvanceInterval, setAutoAdvanceInterval] = useLocalStorageState("autoAdvanceInterval", 10, (v) => parseInt(v, 10));
+  const [themeSetting, setThemeSetting] = useLocalStorageState("theme", "system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
-  const [historyByCategory, setHistoryByCategory] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem(HISTORY_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
-  const [players, setPlayers] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem(PLAYERS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [historyByCategory, setHistoryByCategory] = useSessionStorageState(HISTORY_STORAGE_KEY, {});
+  const [players, setPlayers] = useSessionStorageState(PLAYERS_STORAGE_KEY, []);
   const [newPlayerName, setNewPlayerName] = useState("");
-  const [scoresByCategory, setScoresByCategory] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem(SCORES_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [scoresByCategory, setScoresByCategory] = useSessionStorageState(SCORES_STORAGE_KEY, {});
   const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -516,7 +484,7 @@ function App() {
     return () => {
       if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
-  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, historyByCategory]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, historyByCategory, setHistoryByCategory]);
 
   // 現在の札を読み上げている間に、次に読み上げる予定の札の音声を先読みしておく
   useEffect(() => {
@@ -809,49 +777,16 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (selectedCategories.length > 0) {
-      params.set("category", serializeCategoriesParam(selectedCategories));
-    } else {
-      params.delete("category");
-    }
-
-    if (division) {
-      params.set("division", division);
-    } else {
-      params.delete("division");
-    }
-
-    if (detailPhraseId) {
-      params.set("id", detailPhraseId);
-    } else {
-      params.delete("id");
-    }
-
-    if (view === "comments" || view === "changelog" || view === "all-phrases" || view === "print-efuda") {
-      params.set("view", view);
-    } else {
-      params.delete("view");
-    }
-
-    const newSearch = params.toString();
-    const url = newSearch ? `?${newSearch}` : window.location.pathname;
-    window.history.pushState({}, "", url);
-  }, [selectedCategories, division, detailPhraseId, view]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const category = params.get("category");
-      setSelectedCategories(parseCategoriesParam(category));
-      setDivision(params.get("division") || null);
-      setDetailPhraseId(params.get("id"));
-      setView(params.get("view") || "game");
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  useUrlQuerySync({
+    selectedCategories,
+    division,
+    detailPhraseId,
+    view,
+    setSelectedCategories,
+    setDivision,
+    setDetailPhraseId,
+    setView,
+  });
 
   useEffect(() => {
     if (view === "comments") {
@@ -870,46 +805,6 @@ function App() {
       document.title = "かるた読み上げアプリ";
     }
   }, [categoryLabel, detailPhraseId, detailPhrase, view]);
-
-  useEffect(() => {
-    localStorage.setItem("repeatCount", repeatCount.toString());
-  }, [repeatCount]);
-
-  useEffect(() => {
-    localStorage.setItem("speechRate", speechRate);
-  }, [speechRate]);
-
-  useEffect(() => {
-    localStorage.setItem("lang", lang);
-  }, [lang]);
-
-  useEffect(() => {
-    localStorage.setItem("sortOrder", sortOrder);
-  }, [sortOrder]);
-
-  useEffect(() => {
-    localStorage.setItem("autoAdvance", autoAdvance.toString());
-  }, [autoAdvance]);
-
-  useEffect(() => {
-    localStorage.setItem("autoAdvanceInterval", autoAdvanceInterval.toString());
-  }, [autoAdvanceInterval]);
-
-  useEffect(() => {
-    localStorage.setItem("theme", themeSetting);
-  }, [themeSetting]);
-
-  useEffect(() => {
-    sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyByCategory));
-  }, [historyByCategory]);
-
-  useEffect(() => {
-    sessionStorage.setItem(PLAYERS_STORAGE_KEY, JSON.stringify(players));
-  }, [players]);
-
-  useEffect(() => {
-    sessionStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(scoresByCategory));
-  }, [scoresByCategory]);
 
   // ラウンドが切り替わったら「取った人」の選択状態をリセットする
   // （もう一度再生（phraseDataなしのキュー投入）ではcurrentPhraseが変わらないため反応しない）
@@ -1044,289 +939,57 @@ function App() {
 
   if (detailPhraseId) {
     return (
-      <div className="container py-4 mx-auto">
-        <header className="text-center mb-4 border-bottom pb-3">
-          <div className="d-flex justify-content-between align-items-center">
-            <button onClick={closeDetail} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold notranslate">{detailPhrase ? detailPhrase.category : (detailPhraseCategory || categoryLabel)} の詳細</h1>
-            <div style={{ width: "60px" }}></div>
-          </div>
-        </header>
-
-        <main className="text-center py-4">
-          {!detailPhrase ? (
-            <div className="p-5 text-muted">読み込み中...</div>
-          ) : (
-            <div className="mx-auto" style={{ maxWidth: "600px" }}>
-              <div className="d-flex justify-content-center mb-4">
-                <div className="yomifuda-container mb-4" onClick={repeatPhrase} role="button">
-                  <div className="yomifuda shadow-lg">
-                    <div className="yomifuda-kana"><span>{detailPhrase.kana || (detailPhrase.phrase && detailPhrase.phrase[0])}</span></div>
-                    <div className="yomifuda-phrase">{detailPhrase.phrase}</div>
-                    {detailPhrase.phrase_en && <div className="yomifuda-phrase-en">{detailPhrase.phrase_en}</div>}
-                    {detailPhrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {detailPhrase.level}</div>}
-                  </div>
-                </div>
-              </div>
-              <div className="mb-4 text-muted">
-                <p>読み上げ回数: {detailPhrase.readCount || 0}回</p>
-                <p>平均時間: {(detailPhrase.averageTime || 0).toFixed(2)}秒</p>
-                <p>難易度レベル: {(detailPhrase.averageDifficulty || 0).toFixed(2)}</p>
-              </div>
-
-              {detailPhrase.answer && detailPhrase.answer !== "-" && (
-                <div className="mb-4">
-                  <div className="text-muted mb-2">答え</div>
-                  <div className="h4 fw-bold text-dark">{detailPhrase.answer}</div>
-                </div>
-              )}
-              <div className="mb-5">
-                <button 
-                  onClick={repeatPhrase} 
-                  className="btn btn-lg px-5 py-3 fw-bold rounded-pill shadow btn-karuta"
-                >
-                  読み上げる
-                </button>
-              </div>
-
-            <section className="comment-form-container text-start p-4 bg-light rounded-4 shadow-sm border">
-              <h2 className="h5 fw-bold mb-3 text-dark">かるたの誤りを指摘する</h2>
-              <form onSubmit={postComment}>
-                  <div className="mb-3">
-                    <textarea
-                      className="form-control rounded-3"
-                      rows="3"
-                      placeholder="例：かなが間違っている、フレーズが違うなど"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      maxLength={1000}
-                      required
-                    ></textarea>
-                  </div>
-                  <button type="submit" disabled={postingComment} className="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm">
-                    {postingComment ? "送信中..." : "指摘内容を送信する"}
-                  </button>
-                </form>
-              </section>
-            </div>
-          )}
-        </main>
-      </div>
+      <DetailView
+        detailPhrase={detailPhrase}
+        detailPhraseCategory={detailPhraseCategory}
+        categoryLabel={categoryLabel}
+        closeDetail={closeDetail}
+        repeatPhrase={repeatPhrase}
+        commentText={commentText}
+        setCommentText={setCommentText}
+        postComment={postComment}
+        postingComment={postingComment}
+      />
     );
   }
 
   if (view === "print-efuda") {
-    const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
-
     return (
-      <div className="container efuda-print-container py-4 mx-auto">
-        <header className="text-center mb-4 border-bottom pb-3 no-print">
-          <div className="d-flex justify-content-between align-items-center">
-            <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h4 m-0 fw-bold notranslate">{categoryLabel}の絵札印刷</h1>
-            <div style={{ width: "60px" }}></div>
-          </div>
-        </header>
-
-        {selectedCategories.length === 0 ? (
-          <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>
-        ) : allPhrasesForCategory.length === 0 ? (
-          <p className="text-muted text-center py-5 no-print">読み込み中...</p>
-        ) : (
-          <>
-            <div className="no-print text-center mb-4">
-              <p className="text-muted small mb-3">
-                用紙: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51677" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
-                印刷ダイアログで「用紙サイズ: A4」「余白: なし」「拡大縮小: 実際のサイズ(100%)」「ヘッダーとフッター: オフ」に設定してください。
-              </p>
-              <button onClick={() => window.print()} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-karuta">
-                印刷する
-              </button>
-            </div>
-
-            <div className="efuda-print-area">
-              {efudaPages.map((page, pageIndex) => (
-                <div className="efuda-page" key={pageIndex}>
-                  <div className="efuda-grid">
-                    {Array.from({ length: EFUDA_PER_PAGE }).map((_, slotIndex) => {
-                      const p = page.items[slotIndex];
-                      return (
-                        <div className="efuda-card" key={slotIndex}>
-                          {p && (
-                            <>
-                              <p className="no-print text-muted small efuda-card-category">{p.category}</p>
-                              <div className="efuda-card-kana">{p.kana}</div>
-                              <div className="efuda-card-text">{getEfudaText(p)}</div>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      <PrintEfudaView
+        categoryLabel={categoryLabel}
+        setView={setView}
+        selectedCategories={selectedCategories}
+        allPhrasesForCategory={allPhrasesForCategory}
+        efudaPages={efudaPages}
+        efudaPerPage={EFUDA_PER_PAGE}
+      />
     );
   }
 
   if (view === "all-phrases") {
     return (
-      <div className="container py-4 mx-auto">
-        <header className="text-center mb-4 border-bottom pb-3">
-          <div className="d-flex justify-content-between align-items-center">
-            <button onClick={() => { setView("game"); setSelectedCategories([]); setFilterCategory(''); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h2 fw-bold m-0 text-dark">全札一覧</h1>
-            <div style={{ width: "60px" }}></div>
-          </div>
-        </header>
-
-        <main className="mx-auto" style={{ maxWidth: "1200px" }}>
-          {allPhrases.length === 0 ? (
-            <p className="text-muted text-center py-5">読み込み中...</p>
-          ) : (
-            <div className="all-phrases-scroll-container">
-              <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
-                <span className="text-muted small fw-bold me-1">種別:</span>
-                <button
-                  className={`btn btn-sm rounded-pill ${filterCategory === '' ? 'btn-dark' : 'btn-outline-secondary'}`}
-                  onClick={() => setFilterCategory('')}
-                >
-                  すべて ({allPhrases.length})
-                </button>
-                {uniqueCategories.map(cat => (
-                  <button
-                    key={cat}
-                    className={`btn btn-sm rounded-pill notranslate ${filterCategory === cat ? 'btn-karuta' : 'btn-outline-secondary'}`}
-                    onClick={() => setFilterCategory(cat)}
-                  >
-                    {cat} ({categoryCount[cat] || 0})
-                  </button>
-                ))}
-              </div>
-              <div className="all-phrases-table-container shadow-sm rounded-4 bg-white">
-                <table className="table table-hover mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th scope="col" className="ps-4" style={{ cursor: "pointer" }} onClick={() => handleSort('category')}>
-                        カテゴリ{renderSortArrow('category')}
-                      </th>
-                      <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('phrase')}>
-                        読み札{renderSortArrow('phrase')}
-                      </th>
-                      <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('answer')}>
-                        答え{renderSortArrow('answer')}
-                      </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('level')}>
-                        Lv{renderSortArrow('level')}
-                      </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('readCount')}>
-                        回数{renderSortArrow('readCount')}
-                      </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageTime')}>
-                        平均時間{renderSortArrow('averageTime')}
-                      </th>
-                      <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageDifficulty')}>
-                        難易度{renderSortArrow('averageDifficulty')}
-                      </th>
-                      <th scope="col" className="text-end pe-4">詳細</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPhrases.map((p) => (
-                      <tr key={`${p.category}-${p.id}`} style={{ cursor: "pointer" }} onClick={() => openDetail(p.id, p.category)}>
-                        <td className="ps-4 text-muted small">{p.category}</td>
-                        <td className="fw-bold">{p.phrase}</td>
-                        <td>{p.answer && p.answer !== "-" ? p.answer : ""}</td>
-                        <td>{p.level !== "-" ? p.level : ""}</td>
-                        <td>{p.readCount || 0}</td>
-                        <td>{(p.averageTime || 0).toFixed(2)}s</td>
-                        <td>{(p.averageDifficulty || 0).toFixed(2)}</td>
-                        <td className="text-end pe-4 text-primary">→</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+      <AllPhrasesView
+        allPhrases={allPhrases}
+        filterCategory={filterCategory}
+        setFilterCategory={setFilterCategory}
+        uniqueCategories={uniqueCategories}
+        categoryCount={categoryCount}
+        filteredPhrases={filteredPhrases}
+        renderSortArrow={renderSortArrow}
+        handleSort={handleSort}
+        openDetail={openDetail}
+        setView={setView}
+        setSelectedCategories={setSelectedCategories}
+      />
     );
   }
 
   if (view === "comments") {
-    return (
-      <div className="container py-4 mx-auto">
-        <header className="text-center mb-5 border-bottom pb-3">
-          <div className="d-flex justify-content-between align-items-center">
-            <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h2 fw-bold m-0 text-dark">指摘された内容一覧</h1>
-            <div style={{ width: "60px" }}></div>
-          </div>
-        </header>
-
-        <main className="mx-auto" style={{ maxWidth: "800px" }}>
-          {allComments.length === 0 ? (
-            <p className="text-muted text-center py-5">まだ指摘はありません。</p>
-          ) : (
-            <div className="row g-4">
-              {allComments.map(c => (
-                <div key={c.id} className="col-12">
-                  <div className="card border-0 shadow-sm rounded-4 h-100 bg-white">
-                    <div className="card-body p-4">
-                      <div className="d-flex justify-content-between align-items-start mb-3">
-                        <span className="badge bg-secondary rounded-pill">{c.category}</span>
-                        <small className="text-muted">{new Date(c.createdAt).toLocaleString()}</small>
-                      </div>
-                      <h5 className="card-title fw-bold text-dark mb-3">「{c.phrase}」</h5>
-                      <div className="p-3 bg-light rounded-3 border-start border-4 border-danger">
-                        <p className="card-text mb-0 text-dark">{c.comment}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
-    );
+    return <CommentsView allComments={allComments} setView={setView} />;
   }
 
   if (view === "changelog") {
-    return (
-      <div className="container py-4 mx-auto">
-        <header className="text-center mb-5 border-bottom pb-3">
-            <div className="d-flex justify-content-between align-items-center">
-            <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-            <h1 className="h2 fw-bold m-0 text-dark">更新履歴</h1>
-            <div style={{ width: "60px" }}></div>
-            </div>
-        </header>
-        <main className="mx-auto" style={{ maxWidth: "800px" }}>
-            {changelogData.length === 0 ? (
-                <p className="text-muted text-center py-5">履歴はありません。</p>
-            ) : (
-                <div className="d-flex flex-column gap-4">
-                    {changelogData.map((entry, index) => (
-                        <div key={index} className="card border-0 shadow-sm rounded-4 bg-white">
-                            <div className="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
-                                <h2 className="h5 fw-bold m-0">v{entry.version}</h2>
-                                <small className="text-muted">{entry.date}</small>
-                            </div>
-                            <div className="card-body p-4">
-                                <ReactMarkdown>{entry.body}</ReactMarkdown>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </main>
-      </div>
-    );
+    return <ChangelogView setView={setView} />;
   }
 
   if (selectedCategories.length === 0 && !division) {
