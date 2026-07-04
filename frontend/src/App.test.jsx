@@ -36,6 +36,8 @@ describe('App', () => {
     vi.clearAllMocks();
     // Reset URL
     window.history.pushState({}, '', '/');
+    // 読み上げ履歴の永続化先（sessionStorage）をテスト間で引き継がないようにする
+    sessionStorage.clear();
   });
 
   it('renders division selection screen initially', async () => {
@@ -754,6 +756,46 @@ describe('App', () => {
 
     randomSpy.mockRestore();
   }, 15000);
+
+  it('persists the reading history across a reload via sessionStorage', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }),
+        };
+      }
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    const { unmount } = render(<App />);
+    await act(async () => {});
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('読み上げ済み 0 / 全2枚'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み上げ済み 1 / 全2枚')).toBeInTheDocument();
+    });
+
+    // ページリロードを模擬する（URLはpushStateにより既にcategory/divisionを保持している）
+    unmount();
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('読み上げ済み 1 / 全2枚')).toBeInTheDocument();
+    });
+
+    randomSpy.mockRestore();
+  });
 
   it('updates settings (lang, sort order, speech rate)', async () => {
     fetch.mockImplementation(async (url) => {

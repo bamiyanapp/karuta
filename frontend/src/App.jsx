@@ -6,6 +6,8 @@ import changelogData from "./changelog.json";
 
 const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
+const HISTORY_STORAGE_KEY = "historyByCategory";
+
 const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
 const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
 
@@ -67,7 +69,14 @@ function App() {
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
-  const [historyByCategory, setHistoryByCategory] = useState({});
+  const [historyByCategory, setHistoryByCategory] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(HISTORY_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [draftCategories, setDraftCategories] = useState([]);
@@ -635,6 +644,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("theme", themeSetting);
   }, [themeSetting]);
+
+  useEffect(() => {
+    sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyByCategory));
+  }, [historyByCategory]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
@@ -1299,7 +1312,7 @@ function App() {
             </div>
           </div>
         </section>
-      <p className="text-muted small mb-4">リロードすると履歴はリセットされます。</p>
+      <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
       <div className="d-flex flex-wrap gap-2 justify-content-center">
         <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
         <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
