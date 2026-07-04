@@ -139,3 +139,6 @@ resources:
         BillingMode: PAY_PER_REQUEST
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
+        TimeToLiveSpecification: # キャッシュキーの組み合わせ分レコードが際限なく増加するのを防ぐため、一定期間後に自動削除する
+          AttributeName: ttl
+          Enabled: true

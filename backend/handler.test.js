@@ -435,6 +435,12 @@ describe('getPhrase', () => {
         const body = JSON.parse(response.body);
         expect(body.id).toBe('p1');
         expect(body.audioData).toBeDefined();
+
+        // キャッシュキーの組み合わせ分レコードが無限に増え続けないよう、TTL(30日後のUnix秒)を設定する
+        const putParams = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+        const expectedTtl = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        expect(putParams.Item.ttl).toBeGreaterThan(Math.floor(Date.now() / 1000));
+        expect(putParams.Item.ttl).toBeCloseTo(expectedTtl, -1);
     });
 
     it('should return a phrase with audio from cache', async () => {
