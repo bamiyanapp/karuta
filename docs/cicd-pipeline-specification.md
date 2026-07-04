@@ -6,29 +6,30 @@
 
 ```mermaid
 graph TD
-    A[PR / Push] --> B[CI Workflow];
+    A[PR] --> B[CI Workflow];
     B -->|Success| C[Auto Merge to main];
-    C --> D[CI Workflow on main];
-    D -->|Completed| E[CD Workflow];
-    E -->|on release branch| F{Semantic Release};
+    C --> D[sync-release job: main を release へ push];
+    D --> E[CD Workflow on release branch];
+    E --> F{Semantic Release};
     F --> G[Deploy Frontend to GitHub Pages];
     F --> H[Deploy Backend to AWS];
 ```
 
 ## 1. CI ワークフロー (`ci.yml`)
 - **トリガー**:
-  - `main` または `release` ブランチへのプッシュ
+  - `main` ブランチへのプッシュ
   - 全てのプルリクエスト
 - **実行内容**:
   - `commitlint`: コミットメッセージが Conventional Commits 形式に従っているか検証
   - `frontend-test`: フロントエンドの Lint、ビルド、および Vitest によるテスト
   - `backend-test`: バックエンドの Vitest によるテスト
   - `merge`: PR の場合、テスト成功後に `main` ブランチへ自動マージ（Squash merge）
+  - `sync-release`: `merge` 完了後、`main` の最新コミットを `release` ブランチへマージ＆プッシュ（この push が CD ワークフローのトリガーとなる）
 
 ## 2. CD ワークフロー (`cd.yml`)
 - **トリガー**:
-  - `main` または `release` ブランチへのプッシュ
-  - CI ワークフローの成功完了（`workflow_run`）
+  - `release` ブランチへのプッシュのみ
+  - このプッシュは、PR マージ後に CI ワークフロー内の `sync-release` ジョブが `main` を `release` へマージ・プッシュすることで発生する（`main` への直接プッシュや `workflow_run` によるトリガーは無い）
 - **実行内容**:
   - `release`: `semantic-release` によるバージョン自動採番、タグ付け、および `CHANGELOG.md` の更新
   - `build-and-deploy-frontend`: フロントエンドをビルドし、GitHub Pages へデプロイ
