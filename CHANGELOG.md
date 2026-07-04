@@ -1,3 +1,17 @@
+# [1.21.0](https://github.com/bamiyanapp/karuta/compare/v1.20.0...v1.21.0) (2026-07-04)
+
+
+### Features
+
+* **category:** こども向け選択をワンタップで読み上げ画面へ遷移 ([#237](https://github.com/bamiyanapp/karuta/issues/237)) ([be53413](https://github.com/bamiyanapp/karuta/commit/be53413d91d9054c75080441611d95f19fae2dfa))
+
+# [1.20.0](https://github.com/bamiyanapp/karuta/compare/v1.19.5...v1.20.0) (2026-07-04)
+
+
+### Features
+
+* **game:** ゲーム画面に残り札数・進捗表示を追加 ([#234](https://github.com/bamiyanapp/karuta/issues/234)) ([33618e1](https://github.com/bamiyanapp/karuta/commit/33618e137d18b316198472465098b7e4f5ad9760))
+
 ## [1.19.5](https://github.com/bamiyanapp/karuta/compare/v1.19.4...v1.19.5) (2026-07-04)
 
 
