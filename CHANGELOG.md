@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/bamiyanapp/karuta/compare/v1.27.0...v1.28.0) (2026-07-04)
+
+
+### Features
+
+* **score:** プレイヤー別の取り札スコア記録機能を追加 ([#251](https://github.com/bamiyanapp/karuta/issues/251)) ([627c875](https://github.com/bamiyanapp/karuta/commit/627c875c4f81947375539425cda73478cda58449))
+
 # [1.27.0](https://github.com/bamiyanapp/karuta/compare/v1.26.0...v1.27.0) (2026-07-04)
 
 

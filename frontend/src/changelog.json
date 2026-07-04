@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.27.0",
+    "version": "1.28.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **score:** プレイヤー別の取り札スコア記録機能を追加 ([#251](https://github.com/bamiyanapp/karuta/issues/251)) ([627c875](https://github.com/bamiyanapp/karuta/commit/627c875c4f81947375539425cda73478cda58449))"
+  },
+  {
+    "version": "1.27.0",
+    "date": "2026/07/04 06:40",
     "body": "### Features\n\n* **result:** 読了時のリザルト画面にセッションサマリーと紙吹雪演出を追加 ([#249](https://github.com/bamiyanapp/karuta/issues/249)) ([ed6771c](https://github.com/bamiyanapp/karuta/commit/ed6771ce256ccc091e695e2606992552bc8793fa))"
   },
   {
