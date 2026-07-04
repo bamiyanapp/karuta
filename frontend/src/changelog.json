@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.26.0",
+    "version": "1.27.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **result:** 読了時のリザルト画面にセッションサマリーと紙吹雪演出を追加 ([#249](https://github.com/bamiyanapp/karuta/issues/249)) ([ed6771c](https://github.com/bamiyanapp/karuta/commit/ed6771ce256ccc091e695e2606992552bc8793fa))"
+  },
+  {
+    "version": "1.26.0",
+    "date": "2026/07/04 06:05",
     "body": "### Features\n\n* **auto-advance:** 自動読み上げモード（ハンズフリー進行）を追加 ([#247](https://github.com/bamiyanapp/karuta/issues/247)) ([a2b0ee5](https://github.com/bamiyanapp/karuta/commit/a2b0ee565f35d40b22ebc72595acbcdc28ecd495))"
   },
   {

@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/bamiyanapp/karuta/compare/v1.26.0...v1.27.0) (2026-07-04)
+
+
+### Features
+
+* **result:** 読了時のリザルト画面にセッションサマリーと紙吹雪演出を追加 ([#249](https://github.com/bamiyanapp/karuta/issues/249)) ([ed6771c](https://github.com/bamiyanapp/karuta/commit/ed6771ce256ccc091e695e2606992552bc8793fa))
+
 # [1.26.0](https://github.com/bamiyanapp/karuta/compare/v1.25.0...v1.26.0) (2026-07-04)
 
 
