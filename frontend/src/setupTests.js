@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
+
+// CI環境ではローカルより実行が遅くなることがあり、waitFor系のデフォルトタイムアウト(1000ms)では
+// 音声再生・アニメーション待ちを伴うテストがまれにタイムアウトすることがあるため底上げする。
+configure({ asyncUtilTimeout: 3000 });
 
 // Node 22+ がフラグなしの `localStorage` グローバルを提供するが、
 // `--localstorage-file` 未指定だと getItem/setItem が機能せず jsdom の実装を覆ってしまう。
