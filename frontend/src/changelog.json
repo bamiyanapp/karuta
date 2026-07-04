@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.19.3",
+    "version": "1.19.4",
     "date": "2026/07/04 00:00",
+    "body": "### Bug Fixes\n\n* **handler:** PollyキャッシュテーブルにTTLを追加し無限増加を防止 ([#228](https://github.com/bamiyanapp/karuta/issues/228)) ([28fb82c](https://github.com/bamiyanapp/karuta/commit/28fb82c8daba27652a4e2a0b6030e30a67dee362))"
+  },
+  {
+    "version": "1.19.3",
+    "date": "2026/07/04 01:19",
     "body": "### Bug Fixes\n\n* **handler:** recordTimeの読み書きを非アトミックな平均計算からADD加算方式に修正 ([#226](https://github.com/bamiyanapp/karuta/issues/226)) ([944bcb6](https://github.com/bamiyanapp/karuta/commit/944bcb6373c4a239f1387b3ba88a0542d0f64ad8))"
   },
   {
