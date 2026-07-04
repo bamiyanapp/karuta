@@ -1,3 +1,10 @@
+## [1.29.4](https://github.com/bamiyanapp/karuta/compare/v1.29.3...v1.29.4) (2026-07-04)
+
+
+### Bug Fixes
+
+* **ci:** release同期時の無駄なCI再実行と無条件デプロイを解消 ([#272](https://github.com/bamiyanapp/karuta/issues/272)) ([97c76c0](https://github.com/bamiyanapp/karuta/commit/97c76c0e881fb78a6bb46ff181e39505e2a04c6e))
+
 ## [1.29.3](https://github.com/bamiyanapp/karuta/compare/v1.29.2...v1.29.3) (2026-07-04)
 
 
