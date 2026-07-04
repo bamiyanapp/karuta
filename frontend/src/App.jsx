@@ -7,6 +7,9 @@ import changelogData from "./changelog.json";
 const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
+const PLAYERS_STORAGE_KEY = "players";
+const SCORES_STORAGE_KEY = "scoresByCategory";
+const MAX_PLAYERS = 6;
 
 const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
 const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
@@ -95,7 +98,25 @@ function App() {
       return {};
     }
   });
-  
+  const [players, setPlayers] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(PLAYERS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [scoresByCategory, setScoresByCategory] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(SCORES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [draftCategories, setDraftCategories] = useState([]);
 
@@ -134,6 +155,19 @@ function App() {
   const currentHistory = useMemo(() => {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
   }, [categoryKey, historyByCategory]);
+
+  const currentScores = useMemo(() => {
+    return categoryKey ? (scoresByCategory[categoryKey] || {}) : {};
+  }, [categoryKey, scoresByCategory]);
+
+  // 読了時のスコア集計（参加者が1人以上登録されている場合のみ表示する）
+  const scoreSummary = useMemo(() => {
+    if (!isAllRead || division === "kids" || players.length === 0) return null;
+    const entries = players.map(name => ({ name, count: currentScores[name] || 0 }));
+    const maxCount = Math.max(0, ...entries.map(e => e.count));
+    const winners = maxCount > 0 ? entries.filter(e => e.count === maxCount).map(e => e.name) : [];
+    return { entries, winners };
+  }, [isAllRead, division, players, currentScores]);
 
   // 読了時のセッションサマリー（合計所要時間・最速/最遅の札）
   const sessionSummary = useMemo(() => {
@@ -870,6 +904,20 @@ function App() {
   }, [historyByCategory]);
 
   useEffect(() => {
+    sessionStorage.setItem(PLAYERS_STORAGE_KEY, JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    sessionStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(scoresByCategory));
+  }, [scoresByCategory]);
+
+  // ラウンドが切り替わったら「取った人」の選択状態をリセットする
+  // （もう一度再生（phraseDataなしのキュー投入）ではcurrentPhraseが変わらないため反応しない）
+  useEffect(() => {
+    setCurrentRoundTakenBy(null);
+  }, [currentPhrase]);
+
+  useEffect(() => {
     document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
   }, [resolvedTheme]);
 
@@ -897,10 +945,50 @@ function App() {
       ...prev,
       [categoryKey]: []
     }));
+    setScoresByCategory(prev => ({
+      ...prev,
+      [categoryKey]: {}
+    }));
     setCurrentPhrase(null);
     setDisplayContent({ type: "initial" });
     setIsAllRead(false);
     setIsFadingOut(false);
+  };
+
+  const addPlayer = () => {
+    const trimmed = newPlayerName.trim();
+    if (!trimmed || players.includes(trimmed) || players.length >= MAX_PLAYERS) return;
+    setPlayers(prev => [...prev, trimmed]);
+    setNewPlayerName("");
+  };
+
+  const removePlayer = (name) => {
+    setPlayers(prev => prev.filter(p => p !== name));
+    setScoresByCategory(prev => {
+      const next = {};
+      for (const [catKey, scores] of Object.entries(prev)) {
+        const catScores = { ...scores };
+        delete catScores[name];
+        next[catKey] = catScores;
+      }
+      return next;
+    });
+  };
+
+  // 取った人を記録する（同じ人を再度タップした場合は取り消し扱いにする）
+  const recordTaken = (name) => {
+    if (!currentPhrase) return;
+    setScoresByCategory(prev => {
+      const catScores = { ...(prev[categoryKey] || {}) };
+      if (currentRoundTakenBy) {
+        catScores[currentRoundTakenBy] = Math.max(0, (catScores[currentRoundTakenBy] || 0) - 1);
+      }
+      if (name !== currentRoundTakenBy) {
+        catScores[name] = (catScores[name] || 0) + 1;
+      }
+      return { ...prev, [categoryKey]: catScores };
+    });
+    setCurrentRoundTakenBy(prev => (prev === name ? null : name));
   };
 
   const selectDivision = (div) => {
@@ -1348,6 +1436,41 @@ function App() {
                   <h3 className="h5 mb-4 fw-bold">
                     {draftCategories.map(cat => `「${cat}」`).join("")}をお手元に持っていますか？
                   </h3>
+
+                  <div className="mb-4 text-start">
+                    <h4 className="h6 fw-bold mb-2">取った人を記録する参加者（任意）</h4>
+                    {players.length > 0 && (
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        {players.map(name => (
+                          <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
+                            {name}
+                            <button
+                              type="button"
+                              onClick={() => removePlayer(name)}
+                              className="btn-close btn-close-white"
+                              style={{ fontSize: "0.6rem" }}
+                              aria-label={`${name}を削除`}
+                            ></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {players.length < MAX_PLAYERS && (
+                      <div className="d-flex gap-2">
+                        <input
+                          type="text"
+                          value={newPlayerName}
+                          onChange={(e) => setNewPlayerName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
+                          placeholder="名前を入力"
+                          className="form-control"
+                          maxLength={20}
+                        />
+                        <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="d-flex gap-2 justify-content-center">
                     <button onClick={confirmCategory} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">はい</button>
                     <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">いいえ</button>
@@ -1488,17 +1611,52 @@ function App() {
                   </div>
                 </div>
               )}
+              {scoreSummary && (
+                <div className="mb-4 text-dark">
+                  <h3 className="h5 fw-bold mb-3">
+                    {scoreSummary.winners.length === 1
+                      ? `🏆 優勝: ${scoreSummary.winners[0]}`
+                      : scoreSummary.winners.length > 1
+                      ? `🏆 優勝: ${scoreSummary.winners.join('・')}（同点）`
+                      : "取った札の記録はありません"}
+                  </h3>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    {scoreSummary.entries.map(e => (
+                      <div key={e.name} className="bg-white rounded-3 shadow-sm px-3 py-2">
+                        <span className="fw-bold">{e.name}</span>: {e.count}枚
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">もう一度最初から遊ぶ</button>
             </div>
           </>
         ) : (
-          <>     
+          <>
             <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
               {displayContent.type === 'phrase' && renderPhrase(displayContent.content)}
               {displayContent.type === 'result' && renderResult(displayContent.content)}
               {displayContent.type === 'initial' && renderInitial()}
             </div>
-            
+
+            {displayContent.type === 'phrase' && division !== "kids" && players.length > 0 && (
+              <div className="mb-4">
+                <div className="text-muted small mb-2">取った人:</div>
+                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                  {players.map(name => (
+                    <button
+                      key={name}
+                      onClick={() => recordTaken(name)}
+                      className={`btn btn-sm rounded-pill px-3 ${currentRoundTakenBy === name ? 'btn-dark' : 'btn-outline-dark'}`}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
               <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
                 {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
