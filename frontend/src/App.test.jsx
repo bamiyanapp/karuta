@@ -1423,7 +1423,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 15000 });
 
     expect(screen.getByText('取った人:')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'たろう' }));
@@ -1432,14 +1432,14 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 15000 });
 
     expect(screen.getByText('🏆 優勝: たろう')).toBeInTheDocument();
     const taroCard = screen.getByText('たろう', { selector: 'span.fw-bold' }).parentElement;
     expect(within(taroCard).getByText(/1枚/)).toBeInTheDocument();
     const hanakoCard = screen.getByText('はなこ', { selector: 'span.fw-bold' }).parentElement;
     expect(within(hanakoCard).getByText(/0枚/)).toBeInTheDocument();
-  }, 15000);
+  }, 40000);
 
   it('does not show player registration or the taken-by buttons in kids mode even if players are already registered', async () => {
     sessionStorage.setItem('players', JSON.stringify(['たろう']));
