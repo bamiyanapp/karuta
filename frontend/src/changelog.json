@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.19.5",
+    "version": "1.20.0",
     "date": "2026/07/04",
+    "body": "### Features\n\n* **game:** ゲーム画面に残り札数・進捗表示を追加 ([#234](https://github.com/bamiyanapp/karuta/issues/234)) ([33618e1](https://github.com/bamiyanapp/karuta/commit/33618e137d18b316198472465098b7e4f5ad9760))"
+  },
+  {
+    "version": "1.19.5",
+    "date": "2026/07/04 02:20",
     "body": "### Bug Fixes\n\n* 低優先度バグ3件（[#191](https://github.com/bamiyanapp/karuta/issues/191), [#229](https://github.com/bamiyanapp/karuta/issues/229), [#230](https://github.com/bamiyanapp/karuta/issues/230)）を修正 ([#232](https://github.com/bamiyanapp/karuta/issues/232)) ([dab199e](https://github.com/bamiyanapp/karuta/commit/dab199ecb31546e203b2234e907451ec61f61cba))"
   },
   {
