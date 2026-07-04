@@ -105,6 +105,7 @@ graph TD
 | group | String | - | 対象区分（`kids`: こども向け / `engineer`: エンジニア向け） |
 | phrase | String | - | 読み上げテキスト（日本語） |
 | phrase_en | String | - | 読み上げテキスト（英語） |
+| answer | String | - | 答え（取り札）のテキスト |
 | kana | String | - | フレーズの読み（かな） |
 | level | String/Number | - | 難易度レベル |
 | readCount | Number | - | 読み上げられた回数 |
@@ -157,6 +158,7 @@ Amazon Polly で生成した音声データのキャッシュ。
    - `phrase`: 読み上げテキスト
    - `kana`: 読み（かな）
    - `phrase_en`: 英語テキスト（任意）
+   - `answer`: 答え（取り札）のテキスト
    - `level`: 難易度（数値または `-`）
    - `group`: 対象区分（`kids`: こども向け / `engineer`: エンジニア向け）
 2. 変更を `main` ブランチにコミット＆プッシュします。
