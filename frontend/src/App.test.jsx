@@ -401,6 +401,61 @@ describe('App', () => {
     randomSpy.mockRestore();
   });
 
+  it('prefetches the next phrase while the current one is being read, and reuses it without an extra fetch', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const getPhraseCallIds = [];
+    const phraseById = {
+      p1: { id: 'p1', category: 'Cat1', phrase: '読み札1' },
+      p2: { id: 'p2', category: 'Cat1', phrase: '読み札2' },
+    };
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        const id = new URL(url).searchParams.get('id');
+        getPhraseCallIds.push(id);
+        return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    // p1読み上げ中（isReading）にp2が先読みされるのを待つ
+    await waitFor(() => {
+      expect(getPhraseCallIds).toContain('p2');
+    }, { timeout: 4000 });
+
+    // p1の読み上げが完了する（次の札を再度押せる状態に戻る）のを待つ
+    await waitFor(() => expect(screen.getByText('次の札')).not.toBeDisabled(), { timeout: 8000 });
+
+    const callCountBeforeSecondClick = getPhraseCallIds.length;
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    // プリフェッチ済みのp2をそのまま使うため、/get-phraseの追加呼び出しは発生しない
+    expect(getPhraseCallIds.length).toBe(callCountBeforeSecondClick);
+    expect(getPhraseCallIds).toEqual(['p1', 'p2']);
+
+    randomSpy.mockRestore();
+  }, 15000);
+
   it('requests announceCategory=true for the detail-view replay when multiple categories are selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {
