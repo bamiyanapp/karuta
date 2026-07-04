@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.19.3",
+    "date": "2026/07/04 00:00",
+    "body": "### Bug Fixes\n\n* **handler:** recordTimeの読み書きを非アトミックな平均計算からADD加算方式に修正 ([#226](https://github.com/bamiyanapp/karuta/issues/226)) ([944bcb6](https://github.com/bamiyanapp/karuta/commit/944bcb6373c4a239f1387b3ba88a0542d0f64ad8))"
+  },
+  {
     "version": "1.19.2",
-    "date": "2026/07/03 00:00",
+    "date": "2026/07/03 14:51",
     "body": "### Bug Fixes\n\n* **app:** record-time送信失敗時にエラーハンドリングを追加 ([#224](https://github.com/bamiyanapp/karuta/issues/224)) ([a897469](https://github.com/bamiyanapp/karuta/commit/a89746963b8d0aa663d919a6157aabf13bed474c))"
   },
   {
