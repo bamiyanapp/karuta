@@ -1,5 +1,1 @@
-# Git命名・コミットメッセージのフォーマット規約
-
-ブランチ命名規則およびコミットメッセージのフォーマット（subject/bodyの構造）は、リポジトリルートの `CLAUDE.md` と `.claude/skills/git-conventions/` を正（唯一の情報源）とする。
-
-本ファイルは内容を重複して保持しない。`CLAUDE.md` が更新された場合は、本ファイルの参照先・記述に矛盾がないか確認し、必要に応じて追従して修正すること。
+../dev-standards/.clinerules/02-git-conventions.md
