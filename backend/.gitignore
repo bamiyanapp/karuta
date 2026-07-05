@@ -1,0 +1,5 @@
+# Serverless Framework
+.serverless/
+
+# Backup files
+karuta-phrases-backup.json
