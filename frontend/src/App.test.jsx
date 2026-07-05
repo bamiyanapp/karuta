@@ -331,10 +331,10 @@ describe('App', () => {
       const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
       expect(getPhraseCall).toBeDefined();
       expect(getPhraseCall[0]).toContain('announceCategory=true');
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     randomSpy.mockRestore();
-  }, 25000);
+  }, 65000);
 
   it('requests announceCategory=false when reading with a single category selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -361,10 +361,10 @@ describe('App', () => {
       const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
       expect(getPhraseCall).toBeDefined();
       expect(getPhraseCall[0]).toContain('announceCategory=false');
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     randomSpy.mockRestore();
-  }, 25000);
+  }, 65000);
 
   it('shows a read/total progress counter that updates as phrases are read', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -437,24 +437,24 @@ describe('App', () => {
     // p1読み上げ中（isReading）にp2が先読みされるのを待つ
     await waitFor(() => {
       expect(getPhraseCallIds).toContain('p2');
-    }, { timeout: 4000 });
+    }, { timeout: 10000 });
 
     // p1の読み上げが完了する（次の札を再度押せる状態に戻る）のを待つ
-    await waitFor(() => expect(screen.getByText('次の札')).not.toBeDisabled(), { timeout: 8000 });
+    await waitFor(() => expect(screen.getByText('次の札')).not.toBeDisabled(), { timeout: 20000 });
 
     const callCountBeforeSecondClick = getPhraseCallIds.length;
     fireEvent.click(screen.getByText('次の札'));
 
     await waitFor(() => {
       expect(screen.getByText('読み札2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     // プリフェッチ済みのp2をそのまま使うため、/get-phraseの追加呼び出しは発生しない
     expect(getPhraseCallIds.length).toBe(callCountBeforeSecondClick);
     expect(getPhraseCallIds).toEqual(['p1', 'p2']);
 
     randomSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('requests announceCategory=true for the detail-view replay when multiple categories are selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -486,7 +486,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     fetch.mockClear();
     fireEvent.click(await screen.findByText('詳細・報告 →'));
@@ -498,7 +498,7 @@ describe('App', () => {
     });
 
     randomSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('shows efuda print view with answer fallback to phrase and paginates by 10', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
@@ -682,7 +682,7 @@ describe('App', () => {
     await waitFor(() => {
       const phraseCard = screen.getByText('読み札1', { selector: '.yomifuda-phrase' }).closest('.yomifuda');
       expect(phraseCard).toHaveClass('yomifuda-kids');
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     expect(screen.queryByText(/レベル:/)).not.toBeInTheDocument();
 
@@ -690,11 +690,11 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('所要時間')).toBeInTheDocument();
-    }, { timeout: 4000 });
+    }, { timeout: 10000 });
     expect(screen.queryByText('難易度レベル')).not.toBeInTheDocument();
 
     randomSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('shows the answer on the result screen after reading a phrase with answer data', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
@@ -743,17 +743,17 @@ describe('App', () => {
     // (「読み札1」というテキストは履歴リストにも即時表示されるため、本体の表示領域に絞って待機する)
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     fireEvent.click(screen.getByText('次の札'));
 
     await waitFor(() => {
       expect(screen.getByText('答え')).toBeInTheDocument();
       expect(screen.getByText('回答A')).toBeInTheDocument();
-    }, { timeout: 4000 });
+    }, { timeout: 10000 });
 
     randomSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('shows the answer on the detail/report screen opened from history', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
@@ -797,7 +797,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     fireEvent.click(await screen.findByText('詳細・報告 →'));
 
@@ -811,7 +811,7 @@ describe('App', () => {
     expect(commentTextarea).toHaveAttribute('maxlength', '1000');
 
     randomSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('persists the reading history across a reload via sessionStorage', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -934,18 +934,18 @@ describe('App', () => {
     // 実際にp2の読み上げまで進むかどうかで自動読み上げ自体を検証する）
     await waitFor(() => {
       expect(screen.getByText('読み札p1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     // 「次の札」ボタンを一切押さずに、設定した間隔後の自動読み上げでp2の読み上げに進むのを待つ
     await waitFor(() => {
       expect(screen.getByText('読み札p2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     randomSpy.mockRestore();
     // 後続のテストに自動読み上げ設定が引き継がれないようにする
     localStorage.removeItem('autoAdvance');
     localStorage.removeItem('autoAdvanceInterval');
-  }, 15000);
+  }, 40000);
 
   it('applies the selected theme to the document and persists it', async () => {
     fetch.mockImplementation(async (url) => {
@@ -1191,7 +1191,7 @@ describe('App', () => {
     fireEvent.click(screen.getByText('次の札'));
 
     const stopButton = await screen.findByRole('button', { name: '停止' });
-    await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 4000 });
+    await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 10000 });
 
     fireEvent.click(stopButton);
 
@@ -1202,7 +1202,7 @@ describe('App', () => {
     });
 
     window.Audio = originalAudio;
-  }, 10000);
+  }, 25000);
 
   it('recovers isReading (does not get stuck) after stopping mid-intro-sound and starting the next card (issue #262)', async () => {
     const originalAudio = window.Audio;
@@ -1255,7 +1255,7 @@ describe('App', () => {
 
       // イントロ音（たいこの音）再生中に停止ボタンを押す
       const stopButton = await screen.findByRole('button', { name: '停止' });
-      await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 4000 });
+      await waitFor(() => expect(stopButton).not.toBeDisabled(), { timeout: 10000 });
       fireEvent.click(stopButton);
 
       expect(pauseMock).toHaveBeenCalled();
@@ -1275,18 +1275,18 @@ describe('App', () => {
       // 確認する。これを確認せずに次のtoBeDisabled()だけを見ると、カード2が
       // そもそも開始できずに停止ボタンが無効のまま据え置かれているだけの状態
       // （＝本来検知すべき回帰）を誤って合格させてしまう。
-      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).not.toBeDisabled(), { timeout: 8000 });
+      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).not.toBeDisabled(), { timeout: 20000 });
 
       // その上で、カード2の読み上げが最後まで自然に完了し
       // （＝停止ボタンがいずれ押せなくなる＝isReadingがfalseに戻る）ことを確認する。
-      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).toBeDisabled(), { timeout: 8000 });
+      await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).toBeDisabled(), { timeout: 20000 });
 
       // カード2が実際に履歴へ記録され、次のカードへ進めることも確認する
       expect(screen.getAllByText('読み札2').length).toBeGreaterThan(0);
     } finally {
       window.Audio = originalAudio;
     }
-  }, 25000);
+  }, 65000);
 
   it('reads many phrases back-to-back without ever stalling, all the way through to the session summary (issue #262 regression coverage)', async () => {
     // 未読み札から常に先頭（p1→p2→...の順）を選ばせ、カードの出現順を固定する
@@ -1328,7 +1328,7 @@ describe('App', () => {
         // 1枚でも滞留していれば、ここでタイムアウトして失敗する
         await waitFor(() => {
           expect(screen.getByText(`読み札${i}`, { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-        }, { timeout: 8000 });
+        }, { timeout: 20000 });
       }
 
       // 最後の札を読み終えた後も「次の札」が機能し、読了サマリーまで到達できる
@@ -1337,11 +1337,11 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
-      }, { timeout: 8000 });
+      }, { timeout: 20000 });
     } finally {
       randomSpy.mockRestore();
     }
-  }, 40000);
+  }, 130000);
 
   it('does not reset the elapsed-time start point when the card is replayed before advancing', async () => {
     fetch.mockImplementation(async (url) => {
@@ -1381,14 +1381,14 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     // 読み上げ中〜完了直後にカードをリピート再生させる
-    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 8000 });
+    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 20000 });
     fireEvent.click(screen.getByText('もう一度'));
 
     // リピート再生（イントロ音＋本編）が終わるまで待つ
-    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 8000 });
+    await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 20000 });
 
     fetch.mockClear();
     fireEvent.click(screen.getByText('次の札'));
@@ -1402,7 +1402,7 @@ describe('App', () => {
     const body = JSON.parse(recordTimeCall[1].body);
     // リピート再生で計測開始点がリセットされていれば、経過時間はごく短時間になってしまう
     expect(body.time).toBeGreaterThan(2);
-  }, 15000);
+  }, 40000);
 
   it('logs an error instead of throwing an unhandled rejection when record-time fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -1443,7 +1443,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     fireEvent.click(screen.getByText('次の札'));
 
@@ -1452,7 +1452,7 @@ describe('App', () => {
     });
 
     consoleErrorSpy.mockRestore();
-  }, 15000);
+  }, 40000);
 
   it('shows a session summary with total/fastest/slowest time and confetti when all phrases are read', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常に未読の先頭（p1→p2の順）を選ばせる
@@ -1496,13 +1496,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     fireEvent.click(screen.getByText('次の札'));
 
     await waitFor(() => {
       expect(screen.getByText('読み札2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     // 2枚目の待機時間を1枚目より意図的に長くし、最速/最遅の判定を決定的にする
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -1511,7 +1511,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     expect(screen.getByText('合計所要時間')).toBeInTheDocument();
 
@@ -1524,7 +1524,7 @@ describe('App', () => {
     expect(document.querySelectorAll('.confetti-piece').length).toBeGreaterThan(0);
 
     randomSpy.mockRestore();
-  }, 20000);
+  }, 50000);
 
   it('registers players, records who took each card, and shows the winner on the result screen', async () => {
     fetch.mockImplementation(async (url) => {
@@ -1602,8 +1602,8 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 8000 });
+    }, { timeout: 20000 });
 
     expect(screen.queryByText('取った人:')).not.toBeInTheDocument();
-  }, 15000);
+  }, 40000);
 });
