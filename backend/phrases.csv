@@ -697,3 +697,53 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1933,Windows大ピンチ,43,`,かな入力に　なってしまった,I accidentally switched input modes.,Alt+`,engineer
 1934,Windows大ピンチ,41,D,同じ操作を　何度も繰り返している,I'm repeating the same action over and over.,Ctrl+D,engineer
 1935,Windows大ピンチ,44,F,右クリックメニューを　開きたい,I need the context menu without a mouse.,Shift+F10,engineer
+2001,モダンソフトウェア開発かるた,-,し,不具合は後ではなく、できるだけ開発の早い段階で見つけようという考え方。,"The idea of finding bugs as early in development as possible, rather than later.",シフトレフト,engineer
+2002,モダンソフトウェア開発かるた,-,し,リリース後の利用状況や運用データを開発改善に活かす考え方。,The idea of using post-release usage and operational data to improve development.,シフトライト,engineer
+2003,モダンソフトウェア開発かるた,-,D,開発と運用の壁をなくし、素早く価値を届ける文化や手法。,A culture and set of practices that break down the wall between development and operations to deliver value faster.,DevOps,engineer
+2004,モダンソフトウェア開発かるた,-,D,セキュリティを開発や運用の後付けではなく、最初から組み込む考え方。,"The idea of building security in from the start, rather than adding it on after development and operations.",DevSecOps,engineer
+2005,モダンソフトウェア開発かるた,-,G,Gitを唯一の正しい状態としてインフラやアプリを管理する運用手法。,An operational approach that manages infrastructure and applications using Git as the single source of truth.,GitOps,engineer
+2006,モダンソフトウェア開発かるた,-,P,開発者が開発に集中できる共通基盤を提供する取り組み。,An initiative that provides a shared platform so developers can focus on building.,Platform Engineering,engineer
+2007,モダンソフトウェア開発かるた,-,D,業務知識を中心にソフトウェアを設計する設計手法。,A design approach that puts business and domain knowledge at the center of software design.,DDD,engineer
+2008,モダンソフトウェア開発かるた,-,T,まずテストを書き、その後で実装する開発手法。,"A development method where you write the test first, then the implementation.",TDD,engineer
+2009,モダンソフトウェア開発かるた,-,B,利用者の振る舞いを基準に仕様を表現しながら開発する手法。,A method of developing while expressing specifications based on user behavior.,BDD,engineer
+2010,モダンソフトウェア開発かるた,-,り,動作は変えずにコードの構造だけを改善する作業。,The work of improving code structure without changing its behavior.,リファクタリング,engineer
+2011,モダンソフトウェア開発かるた,-,C,コード変更を頻繁に統合し、自動ビルドやテストを行う仕組み。,A mechanism that frequently integrates code changes and runs automated builds and tests.,CI,engineer
+2012,モダンソフトウェア開発かるた,-,C,いつでもリリースできる状態を維持する継続的な開発手法。,A continuous development practice that keeps software always ready to release.,Continuous Delivery,engineer
+2013,モダンソフトウェア開発かるた,-,C,テストに合格した変更を人手を介さず本番へ反映する仕組み。,A mechanism that automatically deploys changes that pass tests to production without human intervention.,Continuous Deployment,engineer
+2014,モダンソフトウェア開発かるた,-,ひ,一定の品質基準を満たさなければ先へ進めない仕組み。,A mechanism that blocks progress unless a certain quality standard is met.,品質ゲート,engineer
+2015,モダンソフトウェア開発かるた,-,ふ,デプロイせずに機能のオン・オフを切り替える仕組み。,A mechanism for turning features on and off without redeploying.,フィーチャーフラグ,engineer
+2016,モダンソフトウェア開発かるた,-,か,一部の利用者だけに新機能を公開して安全性を確認する手法。,A technique that releases a new feature to only a subset of users to verify its safety.,カナリアリリース,engineer
+2017,モダンソフトウェア開発かるた,-,ぶ,新旧2つの環境を切り替えて安全にリリースする手法。,"A technique that safely releases software by switching between two environments, old and new.",ブルーグリーンデプロイ,engineer
+2018,モダンソフトウェア開発かるた,-,と,長期間ブランチを分けず、メインブランチへ頻繁に統合する開発手法。,A development method that avoids long-lived branches and integrates into the main branch frequently.,トランクベース開発,engineer
+2019,モダンソフトウェア開発かるた,-,I,サーバーやクラウド構成をコードとして管理する考え方。,The idea of managing server and cloud configuration as code.,IaC,engineer
+2020,モダンソフトウェア開発かるた,-,D,アプリケーションを実行環境ごとパッケージ化するコンテナ技術。,A container technology that packages an application together with its runtime environment.,Docker,engineer
+2021,モダンソフトウェア開発かるた,-,K,コンテナを自動配置・運用・拡張するオーケストレーション基盤。,"An orchestration platform that automatically deploys, operates, and scales containers.",Kubernetes,engineer
+2022,モダンソフトウェア開発かるた,-,さ,サービス間通信を共通基盤で管理する仕組み。,A mechanism that manages communication between services through a common infrastructure layer.,サービスメッシュ,engineer
+2023,モダンソフトウェア開発かるた,-,さ,サーバー管理を意識せずアプリケーションを実行する仕組み。,A mechanism for running applications without having to manage servers.,サーバーレス,engineer
+2024,モダンソフトウェア開発かるた,-,ま,システムを小さな独立したサービスへ分割する設計。,"A design that splits a system into small, independent services.",マイクロサービス,engineer
+2025,モダンソフトウェア開発かるた,-,も,モノリスを保ちながら内部を疎結合なモジュールで構成する設計。,A design that keeps a monolith while structuring its internals as loosely coupled modules.,モジュラーモノリス,engineer
+2026,モダンソフトウェア開発かるた,-,く,ビジネスロジックを外部技術から独立させる設計思想。,A design philosophy that keeps business logic independent of external technologies.,クリーンアーキテクチャ,engineer
+2027,モダンソフトウェア開発かるた,-,C,更新処理と参照処理を分離して設計するアーキテクチャ。,An architecture that separates the design of update processing from read processing.,CQRS,engineer
+2028,モダンソフトウェア開発かるた,-,E,状態ではなく発生したイベントを記録してシステムを管理する手法。,"A technique that manages a system by recording the events that occurred, rather than its state.",Event Sourcing,engineer
+2029,モダンソフトウェア開発かるた,-,O,システム内部の状態を外部から把握しやすくする考え方。,The idea of making a system's internal state easy to understand from the outside.,Observability,engineer
+2030,モダンソフトウェア開発かるた,-,O,ログ・メトリクス・トレースを共通仕様で収集する仕組み。,"A mechanism for collecting logs, metrics, and traces under a common specification.",OpenTelemetry,engineer
+2031,モダンソフトウェア開発かるた,-,S,サービス品質を測るための具体的な指標。,A concrete metric used to measure the quality of a service.,SLI,engineer
+2032,モダンソフトウェア開発かるた,-,S,サービス品質について目標値を定めたもの。,A defined target value for a service's quality.,SLO,engineer
+2033,モダンソフトウェア開発かるた,-,え,許容できる障害や失敗の範囲を数値化した考え方。,The idea of quantifying the acceptable range of failures or outages.,エラーバジェット,engineer
+2034,モダンソフトウェア開発かるた,-,ぽ,障害後に原因や改善策を振り返る活動。,An activity that reviews the cause and improvements after an incident.,ポストモーテム,engineer
+2035,モダンソフトウェア開発かるた,-,Z,社内外を問わず何も信用せず毎回検証するセキュリティモデル。,"A security model that trusts nothing, inside or outside the network, and verifies every time.",Zero Trust,engineer
+2036,モダンソフトウェア開発かるた,-,S,ソフトウェアを構成する部品一覧をまとめた情報。,Information that lists the components that make up a piece of software.,SBOM,engineer
+2037,モダンソフトウェア開発かるた,-,P,ルールやポリシーをコードで管理・自動適用する手法。,A technique for managing and automatically enforcing rules and policies as code.,Policy as Code,engineer
+2038,モダンソフトウェア開発かるた,-,F,デリバリー性能を4つの指標で測定するフレームワーク。,A framework that measures delivery performance using four metrics.,Four Keys,engineer
+2039,モダンソフトウェア開発かるた,-,D,開発組織の成果を測る代表的な4つの指標。,A representative set of four metrics for measuring a development organization's performance.,DORAメトリクス,engineer
+2040,モダンソフトウェア開発かるた,-,S,生産性を多面的に評価するためのフレームワーク。,A framework for evaluating productivity from multiple perspectives.,SPACEフレームワーク,engineer
+2041,モダンソフトウェア開発かるた,-,D,開発者が快適に開発できる体験を重視する考え方。,An idea that values the experience of developers being able to work comfortably.,DevEx,engineer
+2042,モダンソフトウェア開発かるた,-,C,開発者が理解や作業に必要とする認知的な負荷。,The mental effort a developer needs to understand and do their work.,Cognitive Load,engineer
+2043,モダンソフトウェア開発かるた,-,ぎ,将来の保守性を犠牲にして短期的な開発を優先した結果生じる問題。,Problems that arise from prioritizing short-term development at the expense of future maintainability.,技術的負債,engineer
+2044,モダンソフトウェア開発かるた,-,ご,開発者が迷わず利用できる推奨された標準的な開発手順。,"A recommended, standard development path that developers can follow without confusion.",ゴールデンパス,engineer
+2045,モダンソフトウェア開発かるた,-,A,人の指示だけでなく、自律的に判断しながら作業を進めるAI。,"An AI that carries out work by making its own decisions, not just following instructions.",AIエージェント,engineer
+2046,モダンソフトウェア開発かるた,-,C,AIが必要な情報を適切に利用できるよう文脈を設計する技術。,The technique of designing context so an AI can properly use the information it needs.,Context Engineering,engineer
+2047,モダンソフトウェア開発かるた,-,M,AIが外部ツールやデータと標準方式で連携するためのプロトコル。,A protocol that lets AI connect with external tools and data in a standard way.,MCP,engineer
+2048,モダンソフトウェア開発かるた,-,R,外部知識を検索してからAIが回答を生成する手法。,A technique where AI generates answers after retrieving external knowledge.,RAG,engineer
+2049,モダンソフトウェア開発かるた,-,A,AIが複数の工程を自律的に計画・実行するワークフロー。,A workflow in which AI autonomously plans and executes multiple steps.,Agentic Workflow,engineer
+2050,モダンソフトウェア開発かるた,-,A,設計上の重要な意思決定とその理由を記録する文書。,A document that records an important design decision and its rationale.,ADR,engineer
