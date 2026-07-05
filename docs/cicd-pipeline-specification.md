@@ -2,19 +2,20 @@
 
 本プロジェクトの CI/CD は [dev-standards の共通パイプライン仕様](../dev-standards/docs/cicd-pipeline-specification.md)（`reusable-ci.yml` / `reusable-cd.yml`）をベースに構築されている。
 
-ワークフローの共通ジョブ構成、リリース運用、および同期PR運用のためのブランチ保護設定については上記ドキュメントを参照すること。本ドキュメントには karuta 固有の内容のみを記載する。
+ワークフローの共通ジョブ構成およびリリース運用については上記ドキュメントを参照すること。本ドキュメントには karuta 固有の内容のみを記載する。
 
 ## Architecture
 
 ```mermaid
 graph TD
     A[PR] --> B[CI Workflow];
-    B -->|Success| C[Auto Merge to main];
-    C --> D[sync-release job: main を release へ push];
-    D --> E[CD Workflow on release branch];
-    E --> F{Semantic Release};
-    F --> G[Deploy Frontend to GitHub Pages];
-    F --> H[Deploy Backend to AWS];
+    B --> C[frontend-test / backend-test];
+    C -->|Success| D[merge job: 作業ブランチ上でSemantic Release実行];
+    D --> E[merge job: mainへSquash merge、タグ付け替え];
+    E --> F[CD Workflow on main push];
+    F --> G{HEADのタグからリリース検知};
+    G --> H[Deploy Frontend to GitHub Pages];
+    G --> I[Deploy Backend to AWS];
 ```
 
 ## デプロイジョブ（`cd.yml` 固有）

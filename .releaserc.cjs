@@ -1,5 +1,7 @@
 module.exports = {
-  branches: ["release"],
+  // 実際の対象ブランチはCIの merge job から `--branches` で都度PRの作業ブランチに
+  // 上書きされる（`--no-ci` 実行のため、この静的な設定はドキュメント的な意味合いのみ）
+  branches: ["main"],
   repositoryUrl: "https://github.com/bamiyanapp/karuta.git",
   plugins: [
     [

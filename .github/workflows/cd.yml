@@ -4,7 +4,7 @@ run-name: CD ${{ github.event.head_commit.message }}
 on:
   push:
     branches:
-      - release
+      - main
 permissions:
   contents: write
   issues: write
@@ -19,15 +19,6 @@ concurrency:
 jobs:
   release:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@main
-    with:
-      base_branch: main
-      release_branch: release
-      sync_branch_prefix: sync/release-to-main
-      merge_ours_paths: frontend/src/changelog.json
-      enable_changelog_json: true
-      changelog_json_output_path: frontend/src/changelog.json
-    secrets:
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
   build-and-deploy-frontend:
     needs: release
@@ -40,7 +31,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: release # Checkout the release branch for deployment
+          ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -73,7 +64,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: release # Checkout the release branch for deployment
+          ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4

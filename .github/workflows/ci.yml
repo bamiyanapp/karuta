@@ -19,8 +19,8 @@ jobs:
       frontend_dir: frontend
       backend_dir: backend
       base_branch: main
-      release_branch: release
-      sync_branch_prefix: sync/release-to-main
-      merge_ours_paths: frontend/src/changelog.json
+      enable_release: true
+      enable_changelog_json: true
+      changelog_json_output_path: frontend/src/changelog.json
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
