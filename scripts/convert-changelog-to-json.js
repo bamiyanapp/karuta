@@ -1,1 +1,0 @@
-../dev-standards/scripts/convert-changelog-to-json.js

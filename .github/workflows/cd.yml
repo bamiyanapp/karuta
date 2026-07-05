@@ -24,6 +24,8 @@ jobs:
       release_branch: release
       sync_branch_prefix: sync/release-to-main
       merge_ours_paths: frontend/src/changelog.json
+      enable_changelog_json: true
+      changelog_json_output_path: frontend/src/changelog.json
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
