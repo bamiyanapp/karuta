@@ -12,10 +12,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^10.0.0",
     "@vitest/coverage-v8": "^3.2.4",
     "aws-sdk-client-mock": "^4.1.0",
-    "eslint": "^9.39.1",
+    "eslint": "^10.0.0",
     "globals": "^17.0.0",
     "serverless": "^4.0.0",
     "vitest": "^3.2.4"
