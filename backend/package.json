@@ -17,7 +17,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "eslint": "^9.39.1",
     "globals": "^17.0.0",
-    "serverless": "^3.39.0",
+    "serverless": "^4.0.0",
     "vitest": "^3.2.4"
   },
   "dependencies": {
