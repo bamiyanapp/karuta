@@ -296,6 +296,64 @@ describe('App', () => {
     });
   });
 
+  it('skips the possession-check question and shows a generic prompt when all selected categories have requiresPossessionCheck: false', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer', requiresPossessionCheck: false }, { name: 'Cat2', group: 'engineer', requiresPossessionCheck: false }] }) };
+      if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText('ゲームを開始しますか？'));
+    expect(screen.queryByText(/お手元に持っていますか/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Cat1・Cat2' })).toBeInTheDocument();
+    });
+  });
+
+  it('only asks about the possession of categories with requiresPossessionCheck: true when a mix is selected', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer', requiresPossessionCheck: true }, { name: 'Cat2', group: 'engineer', requiresPossessionCheck: false }] }) };
+      if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText('「Cat1」をお手元に持っていますか？'));
+  });
+
   it('requests announceCategory=true when reading with multiple categories selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {
