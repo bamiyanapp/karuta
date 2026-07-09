@@ -10,6 +10,10 @@
 
 このリポジトリはCI（`.github/workflows/ci.yml`で`enable_auto_merge: false`を指定）によりPRの自動マージを無効化しており、CIが通過してもマージは人手で行う運用とする。共通ルール「10. PR（MR）承認・マージ禁止」を厳守し、PR（MR）の承認・マージは行わないこと。
 
+### PR（MR）自動作成
+
+git-workflow Skillの定めるとおり、作業ブランチの変更をpushした後のPR作成はユーザーへ都度確認せず自動で行う。「PRを作成してよいか」を尋ねる必要はない。既に同一の作業ブランチに対応するPRが存在する場合は新規作成せずpushのみで更新する。PR作成後の承認・マージは「10. PR（MR）承認・マージ禁止」のとおり行わない。
+
 ### dev-standards submodule更新
 
 `dev-standards`は特定コミットに固定したgit submoduleとして参照しているため、dev-standards側の変更は自動反映されない。Renovate（`renovate.json`の`git-submodules`設定）がdev-standards mainの更新を検知し、submodule参照コミットを更新するPRを自動作成する。このPRについても上記のCI・自動マージ規則（承認・マージ禁止）が適用される。
