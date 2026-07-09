@@ -997,6 +997,7 @@ function App() {
         filteredPhrases={filteredPhrases}
         renderSortArrow={renderSortArrow}
         handleSort={handleSort}
+        sortConfig={sortConfig}
         openDetail={openDetail}
         setView={setView}
         setSelectedCategories={setSelectedCategories}

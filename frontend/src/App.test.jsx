@@ -1105,6 +1105,54 @@ describe('App', () => {
     expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
   });
 
+  it('supports keyboard sorting and exposes aria-sort on the all-phrases table headers (issue #195)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: 'あ', level: '-', answer: '-' },
+              { id: 'p2', category: 'Cat1', phrase: 'い', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    const phraseHeader = await screen.findByText('読み札', { selector: 'th' });
+
+    // ソート前は方向が確定していないためaria-sortはnone
+    expect(phraseHeader).toHaveAttribute('aria-sort', 'none');
+    expect(phraseHeader).toHaveAttribute('tabIndex', '0');
+
+    fireEvent.keyDown(phraseHeader, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(phraseHeader).toHaveAttribute('aria-sort', 'ascending');
+    });
+
+    fireEvent.keyDown(phraseHeader, { key: ' ' });
+
+    await waitFor(() => {
+      expect(phraseHeader).toHaveAttribute('aria-sort', 'descending');
+    });
+  });
+
   it('filters all-phrases table by category when a filter button is clicked', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
