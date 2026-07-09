@@ -20,7 +20,6 @@ jobs:
       backend_dir: backend
       base_branch: main
       enable_release: true
-      enable_auto_merge: false
       enable_changelog_json: true
       changelog_json_output_path: frontend/src/changelog.json
     secrets:
