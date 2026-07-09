@@ -29,6 +29,7 @@ Thumbs.db
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # commit skill が下書きに使う一時ファイル
 commit_msg*.txt

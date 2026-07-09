@@ -10,7 +10,9 @@ import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 
-const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
