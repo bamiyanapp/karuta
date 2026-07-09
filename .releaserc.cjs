@@ -1,68 +1,16 @@
-module.exports = {
-  // 実際の対象ブランチはCIの merge job から `--branches` で都度PRの作業ブランチに
-  // 上書きされる（`--no-ci` 実行のため、この静的な設定はドキュメント的な意味合いのみ）
-  branches: ["main"],
+// CIのmergeジョブが、dev-standardsのrelease-config.cjsをこのファイルと同じ
+// ディレクトリへコピーしてから semantic-release を実行する
+// （enable_shared_release_config: true。詳細はdev-standards/release-config.cjs参照）。
+// ローカルで直接 npx semantic-release を実行する場合は、事前に
+// `cp dev-standards/release-config.cjs .` を行うこと。
+const { buildReleaseConfig } = require("./release-config.cjs");
+
+module.exports = buildReleaseConfig({
   repositoryUrl: "https://github.com/bamiyanapp/karuta.git",
-  plugins: [
-    [
-      "@semantic-release/commit-analyzer",
-      {
-        preset: "conventionalcommits",
-        releaseRules: [
-          // 小文字（正規）
-          { type: "feat", release: "minor" },
-          { type: "fix", release: "patch" },
-
-          // 大文字対応
-          { type: "Feat", release: "minor" },
-          { type: "Fix", release: "patch" },
-          { type: "Refactor", release: "patch" },
-
-          // スラッシュ系（今ある履歴対応）
-          { type: "Feat/fix", release: "patch" },
-          { type: "Fix/tech", release: "patch" },
-
-          // 明示的にリリースしない
-          { type: "Docs", release: false },
-          { type: "Chore", release: false }
-        ],
-        defaultReleaseType: "patch"
-      }
-    ],
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
-    [
-      "@semantic-release/npm",
-      {
-        "npmPublish": false
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        prepareCmd: "node scripts/convert-changelog-to-json.js"
-      }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "successComment": false,
-        "failCommentCondition": false,
-        "releasedLabels": false
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        assets: [
-          "CHANGELOG.md",
-          "frontend/src/changelog.json",
-          "package.json",
-          "package-lock.json"
-        ],
-        message:
-          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-      }
-    ]
-  ]
-};
+  gitAssets: ["CHANGELOG.md", "frontend/src/changelog.json", "package.json", "package-lock.json"],
+  // 過去のコミット履歴対応（スラッシュ系のtype表記）
+  extraReleaseRules: [
+    { type: "Feat/fix", release: "patch" },
+    { type: "Fix/tech", release: "patch" },
+  ],
+});
