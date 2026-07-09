@@ -120,6 +120,16 @@ function App() {
     return categories.filter(cat => cat.group === division);
   }, [categories, division]);
 
+  // 答えのデータがある（＝市販品でなくオリジナルの）かるたは所持確認が不要なため、
+  // 選択中のかるたのうち実際に所持確認が必要なものだけを抽出する
+  const draftCategoriesRequiringPossessionCheck = useMemo(() => {
+    return draftCategories.filter(name => {
+      const cat = categories.find(c => c.name === name);
+      // フィールド未設定時は従来どおり所持確認が必要な扱いとする
+      return cat ? cat.requiresPossessionCheck !== false : true;
+    });
+  }, [draftCategories, categories]);
+
   const currentHistory = useMemo(() => {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
   }, [categoryKey, historyByCategory]);
@@ -1100,7 +1110,9 @@ function App() {
               <div className="modal-content rounded-4 border-0 shadow">
                 <div className="modal-body p-5 text-center">
                   <h3 className="h5 mb-4 fw-bold">
-                    {draftCategories.map(cat => `「${cat}」`).join("")}をお手元に持っていますか？
+                    {draftCategoriesRequiringPossessionCheck.length > 0
+                      ? `${draftCategoriesRequiringPossessionCheck.map(cat => `「${cat}」`).join("")}をお手元に持っていますか？`
+                      : "ゲームを開始しますか？"}
                   </h3>
 
                   <div className="mb-4 text-start">

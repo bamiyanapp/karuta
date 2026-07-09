@@ -498,7 +498,7 @@ exports.getCategories = async (event) => {
   try {
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "category, #grp",
+      ProjectionExpression: "category, #grp, answer",
       ExpressionAttributeNames: {
         "#grp": "group",
       },
@@ -506,17 +506,30 @@ exports.getCategories = async (event) => {
     const scanResult = await docClient.send(new ScanCommand(scanParams));
     const items = scanResult.Items || [];
 
+    // 全フレーズに答えのデータがあるかるたは市販品ではなくオリジナルのため、
+    // 実物の所持確認は不要と判断する（backend/phrases.csvのanswer列が"-"のもののみ市販品扱い）。
     const categoryMap = new Map();
     items.forEach(item => {
       const name = item.category || "大ピンチずかん";
+      const hasAnswer = !!item.answer && item.answer !== "-";
       if (!categoryMap.has(name)) {
-        categoryMap.set(name, item.group === "engineer" ? "engineer" : "kids");
+        categoryMap.set(name, {
+          group: item.group === "engineer" ? "engineer" : "kids",
+          allHaveAnswer: hasAnswer,
+        });
+      } else {
+        const info = categoryMap.get(name);
+        info.allHaveAnswer = info.allHaveAnswer && hasAnswer;
       }
     });
 
-    let categories = [...categoryMap.entries()].map(([name, group]) => ({ name, group }));
+    let categories = [...categoryMap.entries()].map(([name, info]) => ({
+      name,
+      group: info.group,
+      requiresPossessionCheck: !info.allHaveAnswer,
+    }));
     if (categories.length === 0) {
-      categories = [{ name: "大ピンチずかん", group: "kids" }];
+      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true }];
     }
 
     return {

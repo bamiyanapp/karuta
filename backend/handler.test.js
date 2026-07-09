@@ -34,8 +34,8 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'Category1', group: 'kids' },
-      { name: 'Category2', group: 'engineer' },
+      { name: 'Category1', group: 'kids', requiresPossessionCheck: true },
+      { name: 'Category2', group: 'engineer', requiresPossessionCheck: true },
     ]);
   });
 
@@ -52,8 +52,8 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'Category1', group: 'kids' },
-      { name: 'Category2', group: 'kids' },
+      { name: 'Category1', group: 'kids', requiresPossessionCheck: true },
+      { name: 'Category2', group: 'kids', requiresPossessionCheck: true },
     ]);
   });
 
@@ -66,7 +66,43 @@ describe('getCategories', () => {
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids' }]);
+    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids', requiresPossessionCheck: true }]);
+  });
+
+  it('should mark a category as not requiring possession check when every phrase has answer data', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { category: 'OriginalCat', group: 'engineer', answer: 'シフトレフト' },
+        { category: 'OriginalCat', group: 'engineer', answer: 'DevOps' },
+        { category: 'CommercialCat', group: 'kids', answer: '-' },
+      ],
+    });
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.categories).toEqual([
+      { name: 'OriginalCat', group: 'engineer', requiresPossessionCheck: false },
+      { name: 'CommercialCat', group: 'kids', requiresPossessionCheck: true },
+    ]);
+  });
+
+  it('should require possession check when only some phrases in a category have answer data', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { category: 'MixedCat', group: 'engineer', answer: 'シフトレフト' },
+        { category: 'MixedCat', group: 'engineer', answer: '-' },
+      ],
+    });
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.categories).toEqual([
+      { name: 'MixedCat', group: 'engineer', requiresPossessionCheck: true },
+    ]);
   });
 
   it('should handle errors', async () => {
