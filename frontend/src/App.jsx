@@ -10,7 +10,9 @@ import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 
-const API_BASE_URL = "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -52,6 +54,10 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") || "game";
   });
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
   const [allComments, setAllComments] = useState([]);
 
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]);
@@ -273,12 +279,13 @@ function App() {
           const availableCategories = data.categories || [];
           setCategories(availableCategories);
 
-          if (selectedCategories.length > 0 && availableCategories.length > 0 && view === "game") {
+          if (availableCategories.length > 0 && viewRef.current === "game") {
             const availableNames = availableCategories.map(cat => cat.name);
-            const stillValid = selectedCategories.filter(cat => availableNames.includes(cat));
-            if (stillValid.length !== selectedCategories.length) {
-              setSelectedCategories(stillValid);
-            }
+            setSelectedCategories(prev => {
+              if (prev.length === 0) return prev;
+              const stillValid = prev.filter(cat => availableNames.includes(cat));
+              return stillValid.length !== prev.length ? stillValid : prev;
+            });
           }
         }
     } catch {
@@ -286,7 +293,7 @@ function App() {
     }
     };
     fetchCategories();
-  }, [selectedCategories, view]);
+  }, []);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
   useEffect(() => {
@@ -990,6 +997,7 @@ function App() {
         filteredPhrases={filteredPhrases}
         renderSortArrow={renderSortArrow}
         handleSort={handleSort}
+        sortConfig={sortConfig}
         openDetail={openDetail}
         setView={setView}
         setSelectedCategories={setSelectedCategories}

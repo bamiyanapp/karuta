@@ -238,6 +238,35 @@ describe('App', () => {
     }, { timeout: 3000 });
   });
 
+  it('fetches get-categories only once, even after selecting a category (issue #193)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
+    await waitFor(() => {
+      const elements = screen.queryAllByText('Cat1');
+      expect(elements.length).toBeGreaterThan(0);
+    });
+
+    const categoryButton = screen.getByRole('button', { name: /Cat1/ });
+    fireEvent.click(categoryButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Cat1' })).toBeInTheDocument();
+    });
+
+    const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
+    expect(categoriesCalls.length).toBe(1);
+  });
+
   it('starts game when category is selected', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
@@ -1074,6 +1103,54 @@ describe('App', () => {
     // 読み札列・答え列の幅バランスが崩れないよう、同じ幅指定クラスを共有していることを確認する
     expect(screen.getByText('読み札', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
     expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
+  });
+
+  it('supports keyboard sorting and exposes aria-sort on the all-phrases table headers (issue #195)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: 'あ', level: '-', answer: '-' },
+              { id: 'p2', category: 'Cat1', phrase: 'い', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    const phraseHeader = await screen.findByText('読み札', { selector: 'th' });
+
+    // ソート前は方向が確定していないためaria-sortはnone
+    expect(phraseHeader).toHaveAttribute('aria-sort', 'none');
+    expect(phraseHeader).toHaveAttribute('tabIndex', '0');
+
+    fireEvent.keyDown(phraseHeader, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(phraseHeader).toHaveAttribute('aria-sort', 'ascending');
+    });
+
+    fireEvent.keyDown(phraseHeader, { key: ' ' });
+
+    await waitFor(() => {
+      expect(phraseHeader).toHaveAttribute('aria-sort', 'descending');
+    });
   });
 
   it('filters all-phrases table by category when a filter button is clicked', async () => {

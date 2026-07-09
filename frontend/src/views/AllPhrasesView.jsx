@@ -7,10 +7,23 @@ function AllPhrasesView({
   filteredPhrases,
   renderSortArrow,
   handleSort,
+  sortConfig,
   openDetail,
   setView,
   setSelectedCategories,
 }) {
+  const getAriaSort = (key) => {
+    if (sortConfig.key !== key) return 'none';
+    return sortConfig.direction === 'asc' ? 'ascending' : 'descending';
+  };
+
+  const handleHeaderKeyDown = (key) => (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleSort(key);
+    }
+  };
+
   return (
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4 border-bottom pb-3">
@@ -48,25 +61,25 @@ function AllPhrasesView({
               <table className="table table-hover mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th scope="col" className="ps-4" style={{ cursor: "pointer" }} onClick={() => handleSort('category')}>
+                    <th scope="col" className="ps-4" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('category')} onClick={() => handleSort('category')} onKeyDown={handleHeaderKeyDown('category')}>
                       カテゴリ{renderSortArrow('category')}
                     </th>
-                    <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('phrase')}>
+                    <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('phrase')} onClick={() => handleSort('phrase')} onKeyDown={handleHeaderKeyDown('phrase')}>
                       読み札{renderSortArrow('phrase')}
                     </th>
-                    <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} onClick={() => handleSort('answer')}>
+                    <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('answer')} onClick={() => handleSort('answer')} onKeyDown={handleHeaderKeyDown('answer')}>
                       答え{renderSortArrow('answer')}
                     </th>
-                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('level')}>
+                    <th scope="col" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('level')} onClick={() => handleSort('level')} onKeyDown={handleHeaderKeyDown('level')}>
                       Lv{renderSortArrow('level')}
                     </th>
-                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('readCount')}>
+                    <th scope="col" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('readCount')} onClick={() => handleSort('readCount')} onKeyDown={handleHeaderKeyDown('readCount')}>
                       回数{renderSortArrow('readCount')}
                     </th>
-                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageTime')}>
+                    <th scope="col" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('averageTime')} onClick={() => handleSort('averageTime')} onKeyDown={handleHeaderKeyDown('averageTime')}>
                       平均時間{renderSortArrow('averageTime')}
                     </th>
-                    <th scope="col" style={{ cursor: "pointer" }} onClick={() => handleSort('averageDifficulty')}>
+                    <th scope="col" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('averageDifficulty')} onClick={() => handleSort('averageDifficulty')} onKeyDown={handleHeaderKeyDown('averageDifficulty')}>
                       難易度{renderSortArrow('averageDifficulty')}
                     </th>
                     <th scope="col" className="text-end pe-4">詳細</th>
