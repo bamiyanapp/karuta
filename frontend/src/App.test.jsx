@@ -238,6 +238,35 @@ describe('App', () => {
     }, { timeout: 3000 });
   });
 
+  it('fetches get-categories only once, even after selecting a category (issue #193)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+
+    await waitFor(() => {
+      const elements = screen.queryAllByText('Cat1');
+      expect(elements.length).toBeGreaterThan(0);
+    });
+
+    const categoryButton = screen.getByRole('button', { name: /Cat1/ });
+    fireEvent.click(categoryButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Cat1' })).toBeInTheDocument();
+    });
+
+    const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
+    expect(categoriesCalls.length).toBe(1);
+  });
+
   it('starts game when category is selected', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
