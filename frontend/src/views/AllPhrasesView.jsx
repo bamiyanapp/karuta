@@ -2,6 +2,8 @@ function AllPhrasesView({
   allPhrases,
   filterCategory,
   setFilterCategory,
+  searchQuery,
+  setSearchQuery,
   uniqueCategories,
   categoryCount,
   filteredPhrases,
@@ -28,7 +30,7 @@ function AllPhrasesView({
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4 border-bottom pb-3">
         <div className="d-flex justify-content-between align-items-center">
-          <button onClick={() => { setView("game"); setSelectedCategories([]); setFilterCategory(''); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+          <button onClick={() => { setView("game"); setSelectedCategories([]); setFilterCategory(''); setSearchQuery(''); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
           <h1 className="h2 fw-bold m-0 text-dark">全札一覧</h1>
           <div style={{ width: "60px" }}></div>
         </div>
@@ -57,6 +59,20 @@ function AllPhrasesView({
                 </button>
               ))}
             </div>
+            <div className="mb-3">
+              <input
+                type="search"
+                className="form-control"
+                style={{ maxWidth: "360px" }}
+                placeholder="読み札・読み・答えで検索"
+                aria-label="読み札・読み・答えで検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {filteredPhrases.length === 0 && (
+              <p className="text-muted text-center py-4">該当する札が見つかりません。</p>
+            )}
             <div className="all-phrases-table-container shadow-sm rounded-4 bg-white">
               <table className="table table-hover mb-0">
                 <thead className="table-light">

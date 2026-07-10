@@ -1256,6 +1256,74 @@ describe('App', () => {
     });
   });
 
+  it('filters all-phrases table by search text across phrase/kana/answer (issue #222)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: '犬も歩けば棒に当たる', kana: 'い', level: '-', answer: '-' },
+              { id: 'p2', category: 'Cat1', phrase: '猫に小判', kana: 'ね', level: '-', answer: '真珠' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    await waitFor(() => {
+      expect(screen.getByText('犬も歩けば棒に当たる')).toBeInTheDocument();
+      expect(screen.getByText('猫に小判')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('読み札・読み・答えで検索');
+
+    // 読み札の部分一致で絞り込み
+    fireEvent.change(searchInput, { target: { value: '棒に当たる' } });
+    await waitFor(() => {
+      expect(screen.getByText('犬も歩けば棒に当たる')).toBeInTheDocument();
+      expect(screen.queryByText('猫に小判')).not.toBeInTheDocument();
+    });
+
+    // 答えの部分一致で絞り込み（大文字小文字を区別しない）
+    fireEvent.change(searchInput, { target: { value: '真珠' } });
+    await waitFor(() => {
+      expect(screen.getByText('猫に小判')).toBeInTheDocument();
+      expect(screen.queryByText('犬も歩けば棒に当たる')).not.toBeInTheDocument();
+    });
+
+    // 該当なしの場合は案内文を表示
+    fireEvent.change(searchInput, { target: { value: '該当しない文字列' } });
+    await waitFor(() => {
+      expect(screen.getByText('該当する札が見つかりません。')).toBeInTheDocument();
+    });
+
+    // 戻るボタンで離脱すると検索クエリがリセットされる
+    fireEvent.change(searchInput, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: /← 戻る/ }));
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('読み札・読み・答えで検索')).toHaveValue('');
+      expect(screen.getByText('犬も歩けば棒に当たる')).toBeInTheDocument();
+      expect(screen.getByText('猫に小判')).toBeInTheDocument();
+    });
+  });
+
   it('updates document title when viewing all-phrases', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
