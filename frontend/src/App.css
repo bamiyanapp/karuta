@@ -380,6 +380,8 @@ button:active:not(:disabled) {
   text-align: center;
   line-height: 1.3;
   word-break: break-word;
+  /* カードは常に白背景の紙面を模すため、ダークモードのbody文字色（薄灰色）を継承させず黒固定にする */
+  color: #000;
 }
 
 .efuda-card-category {
