@@ -550,6 +550,7 @@ describe('App', () => {
       if (url.includes('get-phrases-list') && url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' }] }) };
       if (url.includes('get-phrases-list') && url.includes('category=Cat2')) return { ok: true, json: async () => ({ phrases: [{ id: 'p2', category: 'Cat2', kana: 'い', phrase: '読み札2', level: '-' }] }) };
       if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      if (url.includes('get-comments')) return { ok: true, json: async () => ({ comments: [] }) };
       return { ok: false };
     });
 
@@ -867,6 +868,7 @@ describe('App', () => {
         };
         return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
       }
+      if (url.includes('get-comments')) return { ok: true, json: async () => ({ comments: [] }) };
       return { ok: false };
     });
 
@@ -1103,6 +1105,63 @@ describe('App', () => {
     // 読み札列・答え列の幅バランスが崩れないよう、同じ幅指定クラスを共有していることを確認する
     expect(screen.getByText('読み札', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
     expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
+  });
+
+  it('shows existing comments for the phrase on the detail screen (issue #223)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: '読み札A', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-phrase?')) {
+        return {
+          ok: true,
+          json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札A', kana: 'よ', level: '-', answer: '-' }),
+        };
+      }
+      if (url.includes('get-comments')) {
+        return {
+          ok: true,
+          json: async () => ({
+            comments: [
+              { id: 'c1', phraseId: 'p1', category: 'Cat1', phrase: '読み札A', comment: 'かなが間違っています', createdAt: '2026-01-01T00:00:00.000Z' },
+              { id: 'c2', phraseId: 'p2', category: 'Cat1', phrase: '読み札B', comment: '別の札への指摘', createdAt: '2026-01-01T00:00:00.000Z' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+    await waitFor(() => {
+      expect(screen.getByText('読み札A')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('読み札A'));
+
+    await waitFor(() => {
+      expect(screen.getByText('これまでの指摘（1件）')).toBeInTheDocument();
+      expect(screen.getByText('かなが間違っています')).toBeInTheDocument();
+      expect(screen.queryByText('別の札への指摘')).not.toBeInTheDocument();
+    });
   });
 
   it('supports keyboard sorting and exposes aria-sort on the all-phrases table headers (issue #195)', async () => {

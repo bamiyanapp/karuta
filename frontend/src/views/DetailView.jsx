@@ -8,6 +8,7 @@ function DetailView({
   setCommentText,
   postComment,
   postingComment,
+  detailPhraseComments,
 }) {
   return (
     <div className="container py-4 mx-auto">
@@ -54,6 +55,20 @@ function DetailView({
                 読み上げる
               </button>
             </div>
+
+          {detailPhraseComments && detailPhraseComments.length > 0 && (
+            <section className="text-start mb-4">
+              <h2 className="h6 fw-bold mb-3 text-muted">これまでの指摘（{detailPhraseComments.length}件）</h2>
+              <div className="d-flex flex-column gap-2">
+                {detailPhraseComments.map(c => (
+                  <div key={c.id} className="p-3 bg-light rounded-3 border-start border-4 border-danger">
+                    <small className="text-muted d-block mb-1">{new Date(c.createdAt).toLocaleString()}</small>
+                    <p className="mb-0 text-dark">{c.comment}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="comment-form-container text-start p-4 bg-light rounded-4 shadow-sm border">
             <h2 className="h5 fw-bold mb-3 text-dark">かるたの誤りを指摘する</h2>
