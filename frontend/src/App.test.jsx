@@ -1,6 +1,21 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+
+// PDFダウンロード機能（issue #199）のテスト用。html2canvas/jsPDFはjsdom環境で
+// 実際のcanvas描画・PDFバイナリ生成をサポートしないため、呼び出しの発生と引数のみを検証する
+vi.mock('html2canvas', () => ({
+  default: vi.fn().mockResolvedValue({ toDataURL: () => 'data:image/png;base64,dummy' }),
+}));
+vi.mock('jspdf', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    addPage: vi.fn(),
+    addImage: vi.fn(),
+    save: vi.fn(),
+  })),
+}));
 
 window.alert = vi.fn();
 
@@ -637,6 +652,54 @@ describe('App', () => {
 
     // 選択カテゴリが1つの場合でも、絵札にかるた種別が表示される
     expect(document.querySelector('.efuda-card-category')).toHaveTextContent('Cat1');
+  });
+
+  it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
+    const phrases = Array.from({ length: 11 }, (_, i) => ({
+      id: `p${i}`,
+      category: 'Cat1',
+      kana: 'あ',
+      phrase: `読み札テキスト${i}`,
+      answer: `回答${i}`,
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      // 11枚 → 10面/ページなので2ページ生成される
+      expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('PDFをダウンロード'));
+    });
+
+    await waitFor(() => {
+      expect(html2canvas).toHaveBeenCalledTimes(2);
+    });
+
+    // no-printの要素（画面上は表示されているカテゴリラベル等）を撮影対象から隠す指定になっている
+    const captureOptions = html2canvas.mock.calls[0][1];
+    expect(typeof captureOptions.onclone).toBe('function');
+
+    const jsPdfInstance = jsPDF.mock.results[0].value;
+    expect(jsPdfInstance.addPage).toHaveBeenCalledTimes(1); // 2ページ目の追加分のみ
+    expect(jsPdfInstance.addImage).toHaveBeenCalledTimes(2);
+    expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札.pdf');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
