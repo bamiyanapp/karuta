@@ -71,6 +71,28 @@ function normalizeSpeechRate(rate) {
   return DEFAULT_SPEECH_RATE;
 }
 
+// 日本語で選択可能な声の許可リスト（キー: PollyのVoiceId、値: 対応するEngine）。
+// 任意の文字列をそのままPollyのVoiceIdへ渡すと存在しない値でのAPI呼び出しやコスト濫用の余地があるため、
+// 許可リストに無い値は既定のMizukiにフォールバックする
+const JAPANESE_VOICES = {
+  Mizuki: "standard",
+  Takumi: "standard",
+  Kazuha: "neural",
+  Tomoko: "neural",
+};
+const DEFAULT_JAPANESE_VOICE_ID = "Mizuki";
+
+// 英語は現状Ruth固定（声選択の対象外）
+function resolveVoice(lang, requestedVoiceId) {
+  if (lang === "en") {
+    return { voiceId: "Ruth", engine: "neural" };
+  }
+  if (requestedVoiceId && Object.prototype.hasOwnProperty.call(JAPANESE_VOICES, requestedVoiceId)) {
+    return { voiceId: requestedVoiceId, engine: JAPANESE_VOICES[requestedVoiceId] };
+  }
+  return { voiceId: DEFAULT_JAPANESE_VOICE_ID, engine: JAPANESE_VOICES[DEFAULT_JAPANESE_VOICE_ID] };
+}
+
 // タブを開いたまま放置する等で生じる異常値を統計に混入させないための経過時間の上限（秒）
 const MAX_ELAPSED_SECONDS = 300;
 
@@ -231,15 +253,10 @@ exports.getCongratulationAudio = async (event) => {
     const speechRate = normalizeSpeechRate(rawSpeechRate);
     const lang = params.lang || "ja";
 
-    let speechText = "おめでとう、全て読み終わりました";
-    let voiceId = "Mizuki";
-    let engine = "standard";
-
-    if (lang === "en") {
-      speechText = "Congratulations! You have finished all the cards.";
-      voiceId = "Ruth";
-      engine = "neural";
-    }
+    const speechText = lang === "en"
+      ? "Congratulations! You have finished all the cards."
+      : "おめでとう、全て読み終わりました";
+    const { voiceId, engine } = resolveVoice(lang, params.voiceId);
 
     const pollyParams = {
       Text: `<speak><prosody rate="${speechRate}">${speechText}</prosody></speak>`,
@@ -344,9 +361,10 @@ exports.getPhrase = async (event) => {
     const speechPhrase = lang === "en"
       ? (selectedItem.phrase_en || selectedItem.phrase)
       : selectedItem.phrase;
+    const { voiceId, engine } = resolveVoice(lang, params.voiceId);
 
     const cacheId = crypto.createHash("sha256").update(
-      `${targetId}-${repeatCount}-${speechRate}-${lang}-${announceCategory}-${JSON.stringify([level, speechPhrase, selectedItem.category])}`
+      `${targetId}-${repeatCount}-${speechRate}-${lang}-${announceCategory}-${voiceId}-${JSON.stringify([level, speechPhrase, selectedItem.category])}`
     ).digest("hex");
 
     if (pollyCacheTableName) {
@@ -361,15 +379,7 @@ exports.getPhrase = async (event) => {
     }
 
     if (!audioData) {
-      let voiceId = "Mizuki";
-      let engine = "standard";
-      let levelPrefix = "レベル";
-
-      if (lang === "en") {
-        voiceId = "Ruth";
-        engine = "neural";
-        levelPrefix = "Level";
-      }
+      const levelPrefix = lang === "en" ? "Level" : "レベル";
 
       const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
       const escapedPhrase = escapeSsml(speechPhrase);

@@ -986,6 +986,57 @@ describe('App', () => {
     localStorage.removeItem('autoAdvanceInterval');
   });
 
+  it('shows the voice selector only for Japanese, updates the setting, and includes voiceId in the phrase request (issue #217)', async () => {
+    // 直前のテストがlocalStorageにlang='en'を残す場合があるため、日本語から始まることを明示する
+    localStorage.setItem('lang', 'ja');
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' }] }) };
+      }
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    // 日本語（デフォルト）では声選択が表示され、既定値はMizuki
+    expect(screen.getByText('声:')).toBeInTheDocument();
+    expect(localStorage.getItem('voiceId')).toBe('Mizuki');
+
+    fireEvent.click(screen.getByText('Kazuha'));
+    expect(localStorage.getItem('voiceId')).toBe('Kazuha');
+
+    // Englishでは声選択欄自体が表示されなくなる（英語はRuth固定のため対象外）
+    fireEvent.click(screen.getByText('English'));
+    expect(screen.queryByText('声:')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('日本語'));
+    expect(screen.getByText('声:')).toBeInTheDocument();
+
+    await waitFor(() => screen.getByText('次の札'));
+    fetch.mockClear();
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
+      expect(getPhraseCall).toBeDefined();
+      expect(getPhraseCall[0]).toContain('voiceId=Kazuha');
+    });
+
+    localStorage.removeItem('voiceId');
+    localStorage.removeItem('lang');
+    randomSpy.mockRestore();
+  });
+
   it('automatically advances to the next phrase after the configured interval when auto-advance is on', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     // UIが提示する最短の間隔（10秒）だと実時間のかかるテストになってしまうため、

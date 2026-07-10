@@ -80,6 +80,7 @@ function App() {
   const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
   const [speechRate, setSpeechRate] = useLocalStorageState("speechRate", "80%");
   const [lang, setLang] = useLocalStorageState("lang", "ja");
+  const [voiceId, setVoiceId] = useLocalStorageState("voiceId", "Mizuki");
   const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
   const [autoAdvance, setAutoAdvance] = useLocalStorageState("autoAdvance", false, (v) => v === "true");
   const [autoAdvanceInterval, setAutoAdvanceInterval] = useLocalStorageState("autoAdvanceInterval", 10, (v) => parseInt(v, 10));
@@ -341,7 +342,7 @@ function App() {
       const fetchDetail = async () => {
         try {
           const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
-          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${isMultiCategorySelection}`);
+          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${isMultiCategorySelection}`);
           const data = await response.json();
           if (response.ok) {
             setDetailPhrase(data);
@@ -354,7 +355,7 @@ function App() {
     } else {
       setDetailPhrase(null);
     }
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, isMultiCategorySelection]);
+  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
   useEffect(() => {
@@ -535,7 +536,7 @@ function App() {
     }
 
     const announceCategory = isMultiCategorySelection;
-    const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, announceCategory, sortOrder });
+    const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, voiceId, announceCategory, sortOrder });
 
     const alreadyPrefetched = prefetchedNextRef.current;
     if (
@@ -549,7 +550,7 @@ function App() {
     const nextTargetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
     let cancelled = false;
 
-    const apiUrl = `${API_BASE_URL}/get-phrase?id=${nextTargetPhrase.id}&category=${encodeURIComponent(nextTargetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
+    const apiUrl = `${API_BASE_URL}/get-phrase?id=${nextTargetPhrase.id}&category=${encodeURIComponent(nextTargetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${announceCategory}`;
 
     fetch(apiUrl)
       .then(response => response.json().then(data => ({ ok: response.ok, data })))
@@ -564,7 +565,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [isReading, selectedCategories, allPhrasesForCategory, currentHistory, sortOrder, repeatCount, speechRate, lang, isMultiCategorySelection]);
+  }, [isReading, selectedCategories, allPhrasesForCategory, currentHistory, sortOrder, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   // 自動読み上げモード：札の読み上げが完了し「次の札」を待っている状態
   // （手動なら次の札ボタンを押すタイミング）で一定時間経過したら自動で次へ進む。
@@ -694,7 +695,7 @@ function App() {
       }
 
       const announceCategory = isMultiCategorySelection;
-      const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, announceCategory, sortOrder });
+      const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, voiceId, announceCategory, sortOrder });
       const prefetched = prefetchedNextRef.current;
       let targetPhrase;
       let data;
@@ -711,7 +712,7 @@ function App() {
       } else {
         targetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
 
-        const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&announceCategory=${announceCategory}`;
+        const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${announceCategory}`;
         const response = await fetch(apiUrl);
         data = await response.json();
 
@@ -773,7 +774,7 @@ function App() {
 
   const playCongratulationAudio = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}`);
+      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}`);
       const data = await response.json();
       if (response.ok) {
         await playAudio(data.audioData);
@@ -1413,6 +1414,17 @@ function App() {
               <button onClick={() => setLang("en")} className={`btn ${lang === "en" ? 'btn-dark' : 'btn-outline-dark'}`}>English</button>
             </div>
           </div>
+          {lang === "ja" && (
+            <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2 flex-wrap">
+              <span className="fw-bold text-dark small">声:</span>
+              <div className="btn-group btn-group-sm" role="group">
+                <button onClick={() => setVoiceId("Mizuki")} className={`btn ${voiceId === "Mizuki" ? 'btn-dark' : 'btn-outline-dark'}`}>Mizuki</button>
+                <button onClick={() => setVoiceId("Takumi")} className={`btn ${voiceId === "Takumi" ? 'btn-dark' : 'btn-outline-dark'}`}>Takumi</button>
+                <button onClick={() => setVoiceId("Kazuha")} className={`btn ${voiceId === "Kazuha" ? 'btn-dark' : 'btn-outline-dark'}`}>Kazuha</button>
+                <button onClick={() => setVoiceId("Tomoko")} className={`btn ${voiceId === "Tomoko" ? 'btn-dark' : 'btn-outline-dark'}`}>Tomoko</button>
+              </div>
+            </div>
+          )}
           <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
             <span className="fw-bold text-dark small">順番:</span>
             <div className="btn-group btn-group-sm" role="group">
