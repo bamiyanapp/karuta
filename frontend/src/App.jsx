@@ -64,6 +64,7 @@ function App() {
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [filterCategory, setFilterCategory] = useState(''); // 全札一覧フィルタ
+  const [searchQuery, setSearchQuery] = useState(''); // 全札一覧テキスト検索
   const [currentPhrase, setCurrentPhrase] = useState(null);
   
   const [displayContent, setDisplayContent] = useState({ type: "initial" });
@@ -258,9 +259,18 @@ function App() {
   }, [allPhrases]);
 
   const filteredPhrases = useMemo(() => {
-    if (!filterCategory) return sortedPhrases;
-    return sortedPhrases.filter(p => p.category === filterCategory);
-  }, [sortedPhrases, filterCategory]);
+    let items = sortedPhrases;
+    if (filterCategory) {
+      items = items.filter(p => p.category === filterCategory);
+    }
+    const trimmedQuery = searchQuery.trim().toLowerCase();
+    if (trimmedQuery) {
+      items = items.filter(p =>
+        [p.phrase, p.kana, p.answer].some(field => (field || '').toLowerCase().includes(trimmedQuery))
+      );
+    }
+    return items;
+  }, [sortedPhrases, filterCategory, searchQuery]);
 
   const renderSortArrow = (key) => {
       if (sortConfig.key === key) {
@@ -992,6 +1002,8 @@ function App() {
         allPhrases={allPhrases}
         filterCategory={filterCategory}
         setFilterCategory={setFilterCategory}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         uniqueCategories={uniqueCategories}
         categoryCount={categoryCount}
         filteredPhrases={filteredPhrases}
