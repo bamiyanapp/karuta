@@ -3,5 +3,20 @@
   "extends": ["config:recommended"],
   "git-submodules": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "groupName": "vite",
+      "matchPackageNames": ["vite", "@vitejs/plugin-react"]
+    },
+    {
+      "groupName": "eslint",
+      "matchPackageNames": [
+        "eslint",
+        "@eslint/js",
+        "eslint-plugin-react-hooks",
+        "eslint-plugin-react-refresh"
+      ]
+    }
+  ]
 }
