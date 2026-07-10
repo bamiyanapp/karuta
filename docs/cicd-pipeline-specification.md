@@ -18,6 +18,13 @@ graph TD
     G --> I[Deploy Backend to AWS];
 ```
 
+## ⚠️ PRは必ずCIのBot自動マージに任せること（人手でのマージ禁止）
+
+Semantic Releaseの実行は、CI（`reusable-ci.yml`の`merge`ジョブ）がPRの自動マージ処理の中で行う。このジョブは`pull_request`イベントでのみ起動するため、**人がGitHub UI上で直接「Merge pull request」を押してPRをマージすると、`merge`ジョブが実行される機会がなくなりSemantic Releaseが一切走らない**。その結果、リリースタグが作られずCD側の「HEADのタグからリリース検知」が常に空振りし、`build-and-deploy-frontend`・`deploy-backend`（DynamoDBの`seed.js`同期を含む）が黙ってスキップされ続ける。CIの各ジョブ自体は成功扱いになるため、この状態は気づきにくい。
+
+- PRのCIが通過したら、GitHub UI上で自分でマージボタンを押さず、CIのBot（`merge`ジョブ）による自動マージを待つこと。
+- 万一、人手マージによりリリースが滞留した場合は、（内容を問わない）任意の新規PRを作成しBot自動マージさせることで、そのマージ時点で未リリースの全コミットがまとめてリリースされ、デプロイが追いつく。
+
 ## デプロイジョブ（`cd.yml` 固有）
 
 `release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。
