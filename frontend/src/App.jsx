@@ -345,10 +345,10 @@ function App() {
     }
   }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, isMultiCategorySelection]);
 
-  // 指摘一覧の取得
+  // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
   useEffect(() => {
     const fetchComments = async () => {
-      if (view === "comments") {
+      if (view === "comments" || detailPhraseId) {
         try {
           const response = await fetch(`${API_BASE_URL}/get-comments`);
           const data = await response.json();
@@ -361,7 +361,12 @@ function App() {
       }
     };
     fetchComments();
-  }, [view]);
+  }, [view, detailPhraseId]);
+
+  const detailPhraseComments = useMemo(() => {
+    if (!detailPhrase) return [];
+    return allComments.filter(c => c.phraseId === detailPhrase.id);
+  }, [allComments, detailPhrase]);
 
   // 全札一覧の取得
   useEffect(() => {
@@ -969,6 +974,7 @@ function App() {
         setCommentText={setCommentText}
         postComment={postComment}
         postingComment={postingComment}
+        detailPhraseComments={detailPhraseComments}
       />
     );
   }
