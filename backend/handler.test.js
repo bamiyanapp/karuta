@@ -443,6 +443,34 @@ describe('getCongratulationAudio', () => {
         const pollyParams = pollyMock.calls()[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="slow">');
     });
+
+    it('should use the requested Japanese voiceId when it is on the allowlist (issue #217)', async () => {
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { lang: 'ja', voiceId: 'Takumi' } };
+        await getCongratulationAudio(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Takumi');
+        expect(pollyParams.Engine).toBe('standard');
+    });
+
+    it('should ignore voiceId and always use Ruth for English', async () => {
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { lang: 'en', voiceId: 'Kazuha' } };
+        await getCongratulationAudio(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Ruth');
+        expect(pollyParams.Engine).toBe('neural');
+    });
 });
 
 describe('getPhrase', () => {
@@ -498,6 +526,111 @@ describe('getPhrase', () => {
         const event = { queryStringParameters: { id: 'p1' } };
         const response = await getPhrase(event);
         expect(response.statusCode).toBe(404);
+    });
+
+    it('should default to Mizuki (standard) when no voiceId is given (issue #217)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Mizuki');
+        expect(pollyParams.Engine).toBe('standard');
+    });
+
+    it('should use the requested Japanese voiceId when it is on the allowlist (issue #217)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', voiceId: 'Kazuha' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Kazuha');
+        expect(pollyParams.Engine).toBe('neural');
+    });
+
+    it('should fall back to Mizuki when the requested voiceId is not on the allowlist', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', voiceId: 'NotARealVoice' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Mizuki');
+        expect(pollyParams.Engine).toBe('standard');
+    });
+
+    it('should ignore voiceId and always use Ruth for English', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', phrase_en: 'phrase one', level: '1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', lang: 'en', voiceId: 'Kazuha' } };
+        await getPhrase(event);
+
+        const pollyParams = pollyMock.calls()[0].args[0].input;
+        expect(pollyParams.VoiceId).toBe('Ruth');
+        expect(pollyParams.Engine).toBe('neural');
+    });
+
+    it('should cache different voiceId requests for the same phrase separately (issue #217)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        // ストリームは一度読み取ると再利用できないため、呼び出しごとに新しいStreamを返す
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => {
+            const s = new Readable();
+            s.push('audio data');
+            s.push(null);
+            return { AudioStream: s };
+        });
+
+        await getPhrase({ queryStringParameters: { id: 'p1', voiceId: 'Mizuki' } });
+        await getPhrase({ queryStringParameters: { id: 'p1', voiceId: 'Takumi' } });
+
+        // GetCommandはPollyキャッシュの確認用（この呼び出しではidはScanCommand経由で取得するためGetCommandを使わない）。
+        // voiceIdが異なれば別のキャッシュキーで問い合わせるはず
+        const cacheGetKeys = ddbMock.commandCalls(GetCommand).map((call) => call.args[0].input.Key.id);
+        expect(cacheGetKeys).toHaveLength(2);
+        expect(new Set(cacheGetKeys).size).toBe(2);
     });
 
     it('should handle errors', async () => {
