@@ -19,6 +19,13 @@ concurrency:
 jobs:
   release:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@main
+    with:
+      enable_release: true
+      enable_changelog_json: true
+      changelog_json_output_path: frontend/src/changelog.json
+      enable_shared_release_config: true
+    secrets:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
   build-and-deploy-frontend:
     needs: release
