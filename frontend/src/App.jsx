@@ -4,6 +4,7 @@ import karutaImage from "./assets/karuta_inubou.png";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
+import { useWakeLock } from "./hooks/useWakeLock";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
@@ -807,6 +808,8 @@ function App() {
     setDetailPhraseId,
     setView,
   });
+
+  useWakeLock(view === "game" && selectedCategories.length > 0);
 
   useEffect(() => {
     if (view === "comments") {
