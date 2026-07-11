@@ -1,5 +1,12 @@
 service: karuta-app
 
+# Serverless Framework v4以降はCLI起動時にSaaSへのサインイン（serverless login/
+# SERVERLESS_ACCESS_KEY）が必須となり、CIにその認証情報を設定していないため
+# `npx serverless deploy`が「You must sign in or use a license key」で失敗する。
+# このリポジトリはv4固有の機能（httpApi等）を使用していないため、
+# サインイン不要なv3系に固定してこの問題を回避する。
+frameworkVersion: '3'
+
 provider:
   name: aws
   runtime: nodejs20.x
