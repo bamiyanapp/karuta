@@ -25,24 +25,39 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
       const pageElements = document.querySelectorAll(".efuda-print-area .efuda-page");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-      for (let i = 0; i < pageElements.length; i++) {
-        // scale: 2で解像度を上げ、印刷用途でも文字が粗くならないようにする。
-        // no-printは@media printでのみ非表示になる（画面上は表示されたまま）ため、
-        // html2canvasが画面表示状態をそのまま撮影しないよう、cloneした文書側で明示的に隠す
-        const canvas = await html2canvas(pageElements[i], {
-          scale: 2,
-          useCORS: true,
-          onclone: (clonedDoc) => {
-            clonedDoc.querySelectorAll(".no-print").forEach((el) => {
-              el.style.display = "none";
-            });
-          },
-        });
-        const imageData = canvas.toDataURL("image/png");
-        if (i > 0) {
-          pdf.addPage();
+      // .efuda-pageは狭い画面での画面プレビュー用にzoomで縮小表示している（issue #387）ことがある。
+      // html2canvasはzoomによる縮小後の外枠サイズは正しく捉える一方、内部のmm単位のフォントサイズは
+      // 縮小前のまま描画してしまい、文字が枠からはみ出して崩れる。そのためキャプチャ中だけ
+      // zoomを1に固定し、「印刷する」（window.print()、@media printでzoom:1）と同じ実寸で
+      // 撮影されるようにする
+      pageElements.forEach((el) => {
+        el.style.zoom = "1";
+      });
+
+      try {
+        for (let i = 0; i < pageElements.length; i++) {
+          // scale: 2で解像度を上げ、印刷用途でも文字が粗くならないようにする。
+          // no-printは@media printでのみ非表示になる（画面上は表示されたまま）ため、
+          // html2canvasが画面表示状態をそのまま撮影しないよう、cloneした文書側で明示的に隠す
+          const canvas = await html2canvas(pageElements[i], {
+            scale: 2,
+            useCORS: true,
+            onclone: (clonedDoc) => {
+              clonedDoc.querySelectorAll(".no-print").forEach((el) => {
+                el.style.display = "none";
+              });
+            },
+          });
+          const imageData = canvas.toDataURL("image/png");
+          if (i > 0) {
+            pdf.addPage();
+          }
+          pdf.addImage(imageData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
         }
-        pdf.addImage(imageData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+      } finally {
+        pageElements.forEach((el) => {
+          el.style.zoom = "";
+        });
       }
 
       const sideLabel = printSide === "back" ? "裏面" : "表面";
