@@ -8,6 +8,7 @@ provider:
     TABLE_NAME: ${self:custom.tableName}
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
     POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
+    VOICE_AUDIO_BUCKET_NAME: ${self:custom.voiceAudioBucketName}-${aws:accountId} # 追加
   iam:
     role:
       statements:
@@ -18,7 +19,7 @@ provider:
             - dynamodb:GetItem
             - dynamodb:PutItem
             - dynamodb:UpdateItem
-          Resource: 
+          Resource:
             - !GetAtt KarutaTable.Arn
             - !GetAtt CommentsTable.Arn
             - !GetAtt PollyCacheTable.Arn # 追加
@@ -26,11 +27,22 @@ provider:
           Action:
             - polly:SynthesizeSpeech
           Resource: "*"
+        - Effect: Allow # 追加（issue #382: 音声認識で回答を拾う機能）
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource: !Sub "${VoiceAudioBucket.Arn}/*"
+        - Effect: Allow # 追加（issue #382: 音声認識で回答を拾う機能。Transcribeはリソースレベル制限に対応しないため*を許可）
+          Action:
+            - transcribe:StartTranscriptionJob
+            - transcribe:GetTranscriptionJob
+          Resource: "*"
 
 custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
+  voiceAudioBucketName: karuta-voice-audio # 追加。バケット名はグローバルに一意である必要があるためアカウントIDを付与する
   allowedOrigins:
     - https://bamiyanapp.github.io
     - http://localhost:5173 # npm run dev（Vite開発サーバー）
@@ -93,6 +105,22 @@ functions:
           method: post
           cors:
             origins: ${self:custom.allowedOrigins}
+  startSpeechRecognition: # 追加（issue #382: 音声認識で回答を拾う機能）
+    handler: handler.startSpeechRecognition
+    events:
+      - http:
+          path: start-speech-recognition
+          method: post
+          cors:
+            origins: ${self:custom.allowedOrigins}
+  getSpeechRecognitionResult: # 追加（issue #382: 音声認識で回答を拾う機能）
+    handler: handler.getSpeechRecognitionResult
+    events:
+      - http:
+          path: get-speech-recognition-result
+          method: get
+          cors:
+            origins: ${self:custom.allowedOrigins}
 
 resources:
   Resources:
@@ -142,3 +170,17 @@ resources:
         TimeToLiveSpecification: # キャッシュキーの組み合わせ分レコードが際限なく増加するのを防ぐため、一定期間後に自動削除する
           AttributeName: ttl
           Enabled: true
+    VoiceAudioBucket: # 追加（issue #382: 音声認識で回答を拾う機能）
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.voiceAudioBucketName}-${aws:accountId}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration: # 録音・認識結果は判定後不要になるため、取り違え時の保持コスト・情報漏洩リスクを抑えるべく短期間で自動削除する
+          Rules:
+            - Id: ExpireVoiceRecognitionObjects
+              Status: Enabled
+              ExpirationInDays: 1
