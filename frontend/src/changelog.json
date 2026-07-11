@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.17.1",
+    "date": "2026/07/01 13:39",
+    "body": "### Bug Fixes\n\n* **backend:** Serverless FrameworkをCIでサインイン不要なv3系に固定する ([#371](https://github.com/bamiyanapp/karuta/issues/371)) ([a4fa721](https://github.com/bamiyanapp/karuta/commit/a4fa721dbddef8c31554d8f16ed3a31160f95563))"
+  },
+  {
     "version": "1.17.0",
-    "date": "2026/06/30 15:55",
+    "date": "2026/07/11 09:48",
     "body": "### Features\n\n* **print:** 絵札印刷画面に裏面印刷を追加する ([#370](https://github.com/bamiyanapp/karuta/issues/370)) ([57010e6](https://github.com/bamiyanapp/karuta/commit/57010e61d4f4a0ba31a2605e790cc69da60b1f71))"
   },
   {
@@ -146,7 +151,7 @@
   },
   {
     "version": "1.17.0",
-    "date": "2026/06/30 15:55",
+    "date": "2026/07/11 09:48",
     "body": "### Features\n\n* **all-phrases:** 種別フィルタ追加とヘッダ固定表示 ([#168](https://github.com/bamiyanapp/karuta/issues/168)) ([bf3860d](https://github.com/bamiyanapp/karuta/commit/bf3860d2b5dcd4accd950e8ac734823250ff3aa3))"
   },
   {

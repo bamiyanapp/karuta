@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/bamiyanapp/karuta/compare/v1.17.0...v1.17.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** Serverless FrameworkをCIでサインイン不要なv3系に固定する ([#371](https://github.com/bamiyanapp/karuta/issues/371)) ([a4fa721](https://github.com/bamiyanapp/karuta/commit/a4fa721dbddef8c31554d8f16ed3a31160f95563))
+
 # [1.17.0](https://github.com/bamiyanapp/karuta/compare/v1.16.0...v1.17.0) (2026-07-11)
 
 
