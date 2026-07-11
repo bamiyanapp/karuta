@@ -1,3 +1,10 @@
+## [1.17.2](https://github.com/bamiyanapp/karuta/compare/v1.17.1...v1.17.2) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** frameworkVersionの指定形式をバージョン解決エラーから修正する ([#374](https://github.com/bamiyanapp/karuta/issues/374)) ([ac0c7ae](https://github.com/bamiyanapp/karuta/commit/ac0c7ae47bbef96f37170ae671ab446b005290f5))
+
 ## [1.17.1](https://github.com/bamiyanapp/karuta/compare/v1.17.0...v1.17.1) (2026-07-11)
 
 
