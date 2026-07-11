@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.16.0",
+    "date": "2026/06/30 14:26",
+    "body": "### Features\n\n* **print:** 絵札の文字サイズをさらに拡大する ([#367](https://github.com/bamiyanapp/karuta/issues/367)) ([02afa1a](https://github.com/bamiyanapp/karuta/commit/02afa1a0c91446413e35e5bd5b0ec61810343a08))"
+  },
+  {
     "version": "1.15.0",
-    "date": "2026/06/29 14:12",
+    "date": "2026/07/11 09:34",
     "body": "### Features\n\n* **print:** 用紙案内にインクジェット用品番を追記する ([#366](https://github.com/bamiyanapp/karuta/issues/366)) ([347a7ad](https://github.com/bamiyanapp/karuta/commit/347a7ad9d7f2fbe780948094e370ada7c776ca84))"
   },
   {
@@ -151,7 +156,7 @@
   },
   {
     "version": "1.15.0",
-    "date": "2026/06/29 14:12",
+    "date": "2026/07/11 09:34",
     "body": "### Features\n\n* **frontend:** PWAの更新検知とプロンプトUIの追加 ([#162](https://github.com/bamiyanapp/karuta/issues/162)) ([dd45840](https://github.com/bamiyanapp/karuta/commit/dd458402cb8051d104ac7f389ae69e2545e11dbc))"
   },
   {

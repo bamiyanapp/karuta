@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/bamiyanapp/karuta/compare/v1.15.0...v1.16.0) (2026-07-11)
+
+
+### Features
+
+* **print:** 絵札の文字サイズをさらに拡大する ([#367](https://github.com/bamiyanapp/karuta/issues/367)) ([02afa1a](https://github.com/bamiyanapp/karuta/commit/02afa1a0c91446413e35e5bd5b0ec61810343a08))
+
 # [1.15.0](https://github.com/bamiyanapp/karuta/compare/v1.14.0...v1.15.0) (2026-07-11)
 
 
