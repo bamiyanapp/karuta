@@ -758,6 +758,60 @@ describe('App', () => {
     expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札_表面.pdf');
   });
 
+  it('forces zoom to 1 on each .efuda-page while capturing, and restores it afterward (issue #392: PDF text rendering breaks when the on-screen preview is zoomed out on narrow viewports)', async () => {
+    const phrases = Array.from({ length: 1 }, (_, i) => ({
+      id: `p${i}`,
+      category: 'Cat1',
+      kana: 'あ',
+      phrase: `読み札テキスト${i}`,
+      answer: `回答${i}`,
+      level: '3',
+      averageTime: 0,
+      averageDifficulty: 0,
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
+    });
+
+    // 画面プレビュー用のzoom（狭い画面での縮小表示、issue #387）が既に適用されている状態を模す
+    const pageEl = document.querySelector('.efuda-page');
+    pageEl.style.zoom = '0.5';
+
+    let zoomDuringCapture;
+    html2canvas.mockImplementationOnce(async (el) => {
+      zoomDuringCapture = el.style.zoom;
+      return { toDataURL: () => 'data:image/png;base64,dummy' };
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('PDFをダウンロード'));
+    });
+
+    await waitFor(() => {
+      expect(html2canvas).toHaveBeenCalledTimes(1);
+    });
+
+    expect(zoomDuringCapture).toBe('1');
+    expect(pageEl.style.zoom).toBe('');
+  });
+
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
