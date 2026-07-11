@@ -2,13 +2,24 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
-import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime } from './handler';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
+import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, startSpeechRecognition, getSpeechRecognitionResult } from './handler';
 import { Readable } from 'stream';
 import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const pollyMock = mockClient(PollyClient);
+const s3Mock = mockClient(S3Client);
+const transcribeMock = mockClient(TranscribeClient);
+
+function readableFromString(text) {
+    const stream = new Readable();
+    stream.push(text);
+    stream.push(null);
+    return stream;
+}
 
 vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid');
 vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -1090,5 +1101,224 @@ describe('recordTime', () => {
         // readCountとtotalTimeが常に対応するサンプル数を保つよう、
         // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
         expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    });
+});
+
+describe('startSpeechRecognition', () => {
+    beforeEach(() => {
+        s3Mock.reset();
+        transcribeMock.reset();
+        process.env.VOICE_AUDIO_BUCKET_NAME = 'TestVoiceBucket';
+    });
+
+    it('should upload audio to S3, start a Transcribe job, and return the jobName', async () => {
+        s3Mock.on(PutObjectCommand).resolves({});
+        transcribeMock.on(StartTranscriptionJobCommand).resolves({});
+
+        const event = {
+            body: JSON.stringify({
+                audioData: 'data:audio/webm;base64,ZmFrZS1hdWRpby1kYXRh',
+                id: 'p1',
+                category: 'c1',
+                lang: 'ja',
+            }),
+        };
+        const response = await startSpeechRecognition(event);
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.jobName).toBe('mock-uuid');
+
+        const putCall = s3Mock.commandCalls(PutObjectCommand)[0].args[0].input;
+        expect(putCall.Bucket).toBe('TestVoiceBucket');
+        expect(putCall.Key).toBe('voice-input/mock-uuid.webm');
+
+        const startCall = transcribeMock.commandCalls(StartTranscriptionJobCommand)[0].args[0].input;
+        expect(startCall.LanguageCode).toBe('ja-JP');
+        expect(startCall.Media.MediaFileUri).toBe('s3://TestVoiceBucket/voice-input/mock-uuid.webm');
+    });
+
+    it('should use en-US when lang is en', async () => {
+        s3Mock.on(PutObjectCommand).resolves({});
+        transcribeMock.on(StartTranscriptionJobCommand).resolves({});
+
+        const event = {
+            body: JSON.stringify({
+                audioData: 'data:audio/webm;base64,ZmFrZS1hdWRpby1kYXRh',
+                id: 'p1',
+                category: 'c1',
+                lang: 'en',
+            }),
+        };
+        await startSpeechRecognition(event);
+
+        const startCall = transcribeMock.commandCalls(StartTranscriptionJobCommand)[0].args[0].input;
+        expect(startCall.LanguageCode).toBe('en-US');
+    });
+
+    it('should return 400 when id/category/audioData are missing', async () => {
+        const event = { body: JSON.stringify({ id: 'p1' }) };
+        const response = await startSpeechRecognition(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when audioData is not a valid audio data URI', async () => {
+        const event = {
+            body: JSON.stringify({
+                audioData: 'not-a-data-uri',
+                id: 'p1',
+                category: 'c1',
+            }),
+        };
+        const response = await startSpeechRecognition(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when audioData exceeds the size limit', async () => {
+        const event = {
+            body: JSON.stringify({
+                audioData: `data:audio/webm;base64,${'A'.repeat(3_000_001)}`,
+                id: 'p1',
+                category: 'c1',
+            }),
+        };
+        const response = await startSpeechRecognition(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should handle errors', async () => {
+        s3Mock.on(PutObjectCommand).rejects(new Error('S3 error'));
+        const event = {
+            body: JSON.stringify({
+                audioData: 'data:audio/webm;base64,ZmFrZS1hdWRpby1kYXRh',
+                id: 'p1',
+                category: 'c1',
+            }),
+        };
+        const response = await startSpeechRecognition(event);
+        expect(response.statusCode).toBe(500);
+    });
+});
+
+describe('getSpeechRecognitionResult', () => {
+    beforeEach(() => {
+        s3Mock.reset();
+        transcribeMock.reset();
+        ddbMock.reset();
+        process.env.VOICE_AUDIO_BUCKET_NAME = 'TestVoiceBucket';
+        process.env.TABLE_NAME = 'TestTable';
+    });
+
+    it('should return IN_PROGRESS while the job is still running', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'IN_PROGRESS' },
+        });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(200);
+        expect(JSON.parse(response.body)).toEqual({ status: 'IN_PROGRESS' });
+    });
+
+    it('should return FAILED with the failure reason', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'FAILED', FailureReason: 'boom' },
+        });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(200);
+        expect(JSON.parse(response.body)).toEqual({ status: 'FAILED', message: 'boom' });
+    });
+
+    it('should judge correct when the transcript matches the answer', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'COMPLETED' },
+        });
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: readableFromString(JSON.stringify({ results: { transcripts: [{ transcript: 'てんぐ' }] } })),
+        });
+        ddbMock.on(GetCommand).resolves({ Item: { id: 'p1', category: 'c1', answer: 'てんぐ', kana: 'た' } });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.status).toBe('COMPLETED');
+        expect(body.transcript).toBe('てんぐ');
+        expect(body.isCorrect).toBe(true);
+    });
+
+    it('should judge correct on a fuzzy (near) match within the distance threshold', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'COMPLETED' },
+        });
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: readableFromString(JSON.stringify({ results: { transcripts: [{ transcript: 'てんぐう' }] } })),
+        });
+        ddbMock.on(GetCommand).resolves({ Item: { id: 'p1', category: 'c1', answer: 'てんぐ', kana: 'た' } });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        const body = JSON.parse(response.body);
+        expect(body.isCorrect).toBe(true);
+    });
+
+    it('should judge incorrect when the transcript does not match', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'COMPLETED' },
+        });
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: readableFromString(JSON.stringify({ results: { transcripts: [{ transcript: '全然違う言葉' }] } })),
+        });
+        ddbMock.on(GetCommand).resolves({ Item: { id: 'p1', category: 'c1', answer: 'てんぐ', kana: 'た' } });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        const body = JSON.parse(response.body);
+        expect(body.isCorrect).toBe(false);
+    });
+
+    it('should fall back to matching against kana when answer is "-"', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'COMPLETED' },
+        });
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: readableFromString(JSON.stringify({ results: { transcripts: [{ transcript: 'たんじょうびケーキがたおれてイチゴがころがった' }] } })),
+        });
+        ddbMock.on(GetCommand).resolves({
+            Item: { id: 'p1', category: 'c1', answer: '-', kana: 'たんじょうびケーキがたおれてイチゴがころがった' },
+        });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        const body = JSON.parse(response.body);
+        expect(body.isCorrect).toBe(true);
+    });
+
+    it('should return 404 when the phrase no longer exists', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).resolves({
+            TranscriptionJob: { TranscriptionJobStatus: 'COMPLETED' },
+        });
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: readableFromString(JSON.stringify({ results: { transcripts: [{ transcript: 'てんぐ' }] } })),
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 when jobName/id/category are missing', async () => {
+        const event = { queryStringParameters: { jobName: 'job1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should handle errors', async () => {
+        transcribeMock.on(GetTranscriptionJobCommand).rejects(new Error('Transcribe error'));
+        const event = { queryStringParameters: { jobName: 'job1', id: 'p1', category: 'c1' } };
+        const response = await getSpeechRecognitionResult(event);
+        expect(response.statusCode).toBe(500);
     });
 });

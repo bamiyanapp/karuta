@@ -1,10 +1,14 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } = require("@aws-sdk/client-transcribe");
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const pollyClient = new PollyClient({ region: "ap-northeast-1" });
+const s3Client = new S3Client({ region: "ap-northeast-1" });
+const transcribeClient = new TranscribeClient({ region: "ap-northeast-1" });
 const crypto = require("crypto");
 
 // フロントエンド（GitHub Pages）およびローカル開発サーバーのオリジンのみ許可し、
@@ -549,6 +553,213 @@ exports.getCategories = async (event) => {
         "Access-Control-Allow-Credentials": true,
       },
       body: JSON.stringify({ categories }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+    };
+  }
+};
+
+// 録音データ（data URI）の許容上限。数秒程度の発話であれば十分な余裕を持たせつつ、
+// 悪意あるリクエストによるS3/Transcribeの課金濫用を防ぐ
+const MAX_AUDIO_DATA_URI_LENGTH = 3_000_000; // 概ねbase64で3MB（デコード後2MB強）
+
+const AUDIO_DATA_URI_PATTERN = /^data:audio\/([a-zA-Z0-9.+-]+);base64,(.+)$/s;
+
+function decodeAudioDataUri(audioData) {
+  const match = typeof audioData === "string" ? audioData.match(AUDIO_DATA_URI_PATTERN) : null;
+  if (!match) {
+    return null;
+  }
+  const [, subtype, base64Body] = match;
+  return { mediaFormat: subtype.toLowerCase(), buffer: Buffer.from(base64Body, "base64") };
+}
+
+// 全角英数・カタカナを半角/ひらがなへ寄せ、記号・空白を除去する。
+// AWS Transcribeの認識結果とphrases.csv側の表記揺れ（カタカナ語の送り仮名等）を
+// 吸収するための簡易正規化であり、完全な表記統一を保証するものではない
+function normalizeJapaneseText(text) {
+  return String(text || "")
+    .normalize("NFKC")
+    .replace(/[ァ-ヶ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60)) // カタカナ→ひらがな
+    .replace(/[\s、。！？「」『』・,.!?]/g, "")
+    .toLowerCase();
+}
+
+// 2文字列の編集距離（レーベンシュタイン距離）。認識結果が短い発話であることを踏まえ、
+// 外部ライブラリを追加せず素直なDP実装で十分とした
+function levenshteinDistance(a, b) {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const distances = Array.from({ length: rows }, (_, i) => [i, ...new Array(cols - 1).fill(0)]);
+  for (let j = 0; j < cols; j += 1) {
+    distances[0][j] = j;
+  }
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      distances[i][j] = Math.min(
+        distances[i - 1][j] + 1,
+        distances[i][j - 1] + 1,
+        distances[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return distances[rows - 1][cols - 1];
+}
+
+// answerが"-"（未設定）のカテゴリでは読み札そのものの聞き取り一致を見る必要があるため、
+// kanaへフォールバックする。しきい値は誤認識の揺れを吸収しつつ全くの別語を弾ける程度
+// （文字数の3割まで異なっていても許容）に経験的に設定している
+const MATCH_DISTANCE_RATIO_THRESHOLD = 0.3;
+
+function isAnswerMatch(transcript, phrase) {
+  const rawTarget = phrase?.answer && phrase.answer !== "-" ? phrase.answer : phrase?.kana;
+  const normalizedTarget = normalizeJapaneseText(rawTarget);
+  const normalizedTranscript = normalizeJapaneseText(transcript);
+
+  if (!normalizedTarget || !normalizedTranscript) {
+    return false;
+  }
+  if (normalizedTranscript.includes(normalizedTarget)) {
+    return true;
+  }
+  const distance = levenshteinDistance(normalizedTarget, normalizedTranscript);
+  return distance / normalizedTarget.length <= MATCH_DISTANCE_RATIO_THRESHOLD;
+}
+
+// 音声データをS3へアップロードし、AWS Transcribeの非同期ジョブを開始する。
+// ジョブ完了までは通常数秒〜十数秒かかるため、Lambda 1回の呼び出し内で待たず、
+// クライアントにjobNameを返してgetSpeechRecognitionResultでポーリングさせる方式にした
+// （API GatewayのLambda統合タイムアウト内で確実に完了する保証がないため）
+exports.startSpeechRecognition = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
+  try {
+    const body = JSON.parse(event.body);
+    const { audioData, id, category, lang } = body;
+
+    if (!id || !category || !audioData || audioData.length > MAX_AUDIO_DATA_URI_LENGTH) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ message: "Invalid input" }),
+      };
+    }
+
+    const decoded = decodeAudioDataUri(audioData);
+    if (!decoded) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ message: "Invalid audio data" }),
+      };
+    }
+
+    const bucketName = process.env.VOICE_AUDIO_BUCKET_NAME;
+    const jobName = crypto.randomUUID();
+    const inputKey = `voice-input/${jobName}.${decoded.mediaFormat}`;
+    const outputKey = `voice-output/${jobName}.json`;
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: inputKey,
+      Body: decoded.buffer,
+    }));
+
+    await transcribeClient.send(new StartTranscriptionJobCommand({
+      TranscriptionJobName: jobName,
+      LanguageCode: lang === "en" ? "en-US" : "ja-JP",
+      MediaFormat: decoded.mediaFormat,
+      Media: { MediaFileUri: `s3://${bucketName}/${inputKey}` },
+      OutputBucketName: bucketName,
+      OutputKey: outputKey,
+    }));
+
+    return {
+      statusCode: 200,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ jobName }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+    };
+  }
+};
+
+exports.getSpeechRecognitionResult = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
+  try {
+    const params = event.queryStringParameters || {};
+    const { jobName, id, category } = params;
+
+    if (!jobName || !id || !category) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ message: "Invalid input" }),
+      };
+    }
+
+    const jobResult = await transcribeClient.send(new GetTranscriptionJobCommand({
+      TranscriptionJobName: jobName,
+    }));
+    const job = jobResult.TranscriptionJob;
+
+    if (job.TranscriptionJobStatus === "IN_PROGRESS" || job.TranscriptionJobStatus === "QUEUED") {
+      return {
+        statusCode: 200,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ status: "IN_PROGRESS" }),
+      };
+    }
+
+    if (job.TranscriptionJobStatus === "FAILED") {
+      return {
+        statusCode: 200,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ status: "FAILED", message: job.FailureReason }),
+      };
+    }
+
+    const bucketName = process.env.VOICE_AUDIO_BUCKET_NAME;
+    const outputKey = `voice-output/${jobName}.json`;
+    const outputObject = await s3Client.send(new GetObjectCommand({
+      Bucket: bucketName,
+      Key: outputKey,
+    }));
+    const outputBuffer = await streamToBuffer(outputObject.Body);
+    const transcriptJson = JSON.parse(outputBuffer.toString("utf-8"));
+    const transcript = transcriptJson?.results?.transcripts?.[0]?.transcript || "";
+
+    const getResult = await docClient.send(new GetCommand({
+      TableName: process.env.TABLE_NAME,
+      Key: { category, id },
+    }));
+
+    if (!getResult.Item) {
+      return {
+        statusCode: 404,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ message: "Phrase not found" }),
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({
+        status: "COMPLETED",
+        transcript,
+        isCorrect: isAnswerMatch(transcript, getResult.Item),
+      }),
     };
   } catch (error) {
     console.error(error);
