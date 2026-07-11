@@ -328,6 +328,12 @@ button:active:not(:disabled) {
   height: 297mm;
   background: white;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  /* ビューポート幅がA4実寸（210mm）に満たない場合、画面プレビューでは縮小して
+     全体を表示する。zoomは（transformと異なり）子要素のmm単位レイアウトを
+     保ったままレンダリングサイズごと縮小でき、親のflexコンテナも縮小後の
+     サイズを基準にレイアウトし直すため、中央寄せでも左側が画面外へ
+     はみ出さない。印刷時（@media print）はA4実寸に戻す */
+  zoom: min(1, calc(100vw / 210mm));
 }
 
 .efuda-grid {
@@ -437,6 +443,8 @@ button:active:not(:disabled) {
   .efuda-page {
     box-shadow: none;
     page-break-after: always;
+    /* 画面プレビュー用の縮小（zoom）を印刷時は無効化し、A4実寸のまま出力する */
+    zoom: 1;
   }
 
   .efuda-page:last-child {
