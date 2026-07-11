@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/bamiyanapp/karuta/compare/v1.17.4...v1.18.0) (2026-07-11)
+
+
+### Features
+
+* **voice:** 音声認識で回答を判定する機能を追加する ([#386](https://github.com/bamiyanapp/karuta/issues/386)) ([e2bb53b](https://github.com/bamiyanapp/karuta/commit/e2bb53b19c910a9d29919918ef3e5b506ba8fe78)), closes [#382](https://github.com/bamiyanapp/karuta/issues/382)
+
 ## [1.17.4](https://github.com/bamiyanapp/karuta/compare/v1.17.3...v1.17.4) (2026-07-11)
 
 
