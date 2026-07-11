@@ -10,11 +10,15 @@ vi.mock('html2canvas', () => ({
   default: vi.fn().mockResolvedValue({ toDataURL: () => 'data:image/png;base64,dummy' }),
 }));
 vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    addPage: vi.fn(),
-    addImage: vi.fn(),
-    save: vi.fn(),
-  })),
+  // アプリ側は `new jsPDF(...)` で呼び出すため、vitest v4ではアロー関数を
+  // モック実装に使えない（アロー関数は元々コンストラクタ不可というJS仕様どおりの挙動）
+  default: vi.fn().mockImplementation(function () {
+    return {
+      addPage: vi.fn(),
+      addImage: vi.fn(),
+      save: vi.fn(),
+    };
+  }),
 }));
 
 window.alert = vi.fn();
@@ -25,7 +29,9 @@ window.fetch = vi.fn();
 // Mock Audio
 // アプリ側は `new Audio(url)` のコンストラクタ引数でsrcを渡すため(後からの代入はしない)、
 // コンストラクタ引数を受け取ったらsrcセッターと同じ処理を実行する。
-window.Audio = vi.fn().mockImplementation((url) => {
+// vitest v4はvi.fn()のモック実装をnewで呼び出す場合、アロー関数を許容しない
+// （アロー関数は元々コンストラクタ不可というJS仕様どおりの挙動）ため、通常の関数式を使う
+window.Audio = vi.fn().mockImplementation(function (url) {
   const audio = {
     play: vi.fn().mockResolvedValue(),
     pause: vi.fn(),
@@ -1589,7 +1595,8 @@ describe('App', () => {
     // このテストは「再生中に停止ボタンを押す」挙動を検証するため、通常のモックのように
     // 即座にonendedを発火させず、再生が継続している状態（ユーザーが停止ボタンを押す
     // 前に音声が終わってしまわない状態）を維持できるAudioモックに差し替える
-    window.Audio = vi.fn().mockImplementation((url) => {
+    // vitest v4はvi.fn()のモック実装をnewで呼び出す場合、アロー関数を許容しないため通常の関数式を使う
+    window.Audio = vi.fn().mockImplementation(function (url) {
       const audio = {
         play: vi.fn().mockResolvedValue(),
         pause: pauseMock,
@@ -1639,7 +1646,8 @@ describe('App', () => {
     // カード1のイントロ音の再生中に停止ボタンを確実に捕まえられるよう、
     // 通常のテスト用モック（onendedを即座に自動発火させる）とは異なり、
     // onendedを意図的に発火させないモックに一時的に差し替える。
-    window.Audio = vi.fn().mockImplementation((url) => {
+    // vitest v4はvi.fn()のモック実装をnewで呼び出す場合、アロー関数を許容しないため通常の関数式を使う
+    window.Audio = vi.fn().mockImplementation(function (url) {
       const audio = {
         play: vi.fn().mockResolvedValue(),
         pause: pauseMock,
