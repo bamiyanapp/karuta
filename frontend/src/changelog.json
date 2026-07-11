@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.17.3",
+    "version": "1.17.4",
     "date": "2026/07/11",
+    "body": "### Bug Fixes\n\n* **backend:** Renovateが再度serverlessをv4へ更新しないようにする ([#379](https://github.com/bamiyanapp/karuta/issues/379)) ([5f77862](https://github.com/bamiyanapp/karuta/commit/5f778627e8060f29f39c2a0e043692bd95d1a786)), closes [#378](https://github.com/bamiyanapp/karuta/issues/378)"
+  },
+  {
+    "version": "1.17.3",
+    "date": "2026/07/11 10:08",
     "body": "### Bug Fixes\n\n* **backend:** serverlessパッケージ自体をサインイン不要なv3系に固定する ([#376](https://github.com/bamiyanapp/karuta/issues/376)) ([c34f877](https://github.com/bamiyanapp/karuta/commit/c34f877a2e829345004ca7dbeb619ccf20e521d7)), closes [#371](https://github.com/bamiyanapp/karuta/issues/371)"
   },
   {
