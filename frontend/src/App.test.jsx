@@ -658,6 +658,52 @@ describe('App', () => {
     expect(document.querySelector('.efuda-card-category')).toHaveTextContent('Cat1');
   });
 
+  it('switches the efuda print view to show the back side (category and level) (issue #363)', async () => {
+    const phrases = [
+      { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' },
+      { id: 'p1', category: 'Cat1', kana: 'い', phrase: '読み札テキスト1', answer: '回答1', level: '-' },
+    ];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札テキスト0')).toBeInTheDocument();
+    });
+
+    // 表面ではレベルの数字は表示されない
+    expect(document.querySelector('.efuda-card-back')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+
+    // 裏面では表面の内容（読み札・回答）が消え、種別とレベルが中央に表示される
+    expect(screen.queryByText('読み札テキスト0')).not.toBeInTheDocument();
+    expect(screen.queryByText('回答1')).not.toBeInTheDocument();
+    const backCards = document.querySelectorAll('.efuda-card-back');
+    expect(backCards).toHaveLength(2);
+    expect(backCards[0].querySelector('.efuda-card-back-category')).toHaveTextContent('Cat1');
+    expect(backCards[0].querySelector('.efuda-card-back-level')).toHaveTextContent('3');
+    // レベル未設定（"-"）のカードには数字を表示しない
+    expect(backCards[1].querySelector('.efuda-card-back-level')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '表面' }));
+    expect(screen.getByText('読み札テキスト0')).toBeInTheDocument();
+    expect(document.querySelector('.efuda-card-back')).not.toBeInTheDocument();
+  });
+
   it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
       id: `p${i}`,
@@ -703,7 +749,7 @@ describe('App', () => {
     const jsPdfInstance = jsPDF.mock.results[0].value;
     expect(jsPdfInstance.addPage).toHaveBeenCalledTimes(1); // 2ページ目の追加分のみ
     expect(jsPdfInstance.addImage).toHaveBeenCalledTimes(2);
-    expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札.pdf');
+    expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札_表面.pdf');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
