@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/bamiyanapp/karuta/compare/v1.16.0...v1.17.0) (2026-07-11)
+
+
+### Features
+
+* **print:** 絵札印刷画面に裏面印刷を追加する ([#370](https://github.com/bamiyanapp/karuta/issues/370)) ([57010e6](https://github.com/bamiyanapp/karuta/commit/57010e61d4f4a0ba31a2605e790cc69da60b1f71))
+
 # [1.16.0](https://github.com/bamiyanapp/karuta/compare/v1.15.0...v1.16.0) (2026-07-11)
 
 
