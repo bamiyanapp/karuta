@@ -33,35 +33,23 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm ci
-      - name: Build
-        working-directory: frontend
-        run: npm run build
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: frontend/dist
       - name: 🚀 Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+        id: deploy
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@main
+        with:
+          working-directory: frontend
+          node-version: 24
+          artifact-path: frontend/dist
       - name: Show GitHub Pages URL
         run: |
-          echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "Pages URL: ${{ steps.deploy.outputs.page-url }}"
 
   deploy-backend:
     needs: release
