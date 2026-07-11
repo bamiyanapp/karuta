@@ -8,6 +8,9 @@ const A4_HEIGHT_MM = 297;
 
 function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // 表面（読み札の内容）と裏面（種別・レベル）は用紙を裏返して2回に分けて印刷する運用を想定し、
+  // 同じページ構成をどちらの内容で描画するかだけをこのstateで切り替える
+  const [printSide, setPrintSide] = useState("front");
 
   const downloadPdf = async () => {
     setIsGeneratingPdf(true);
@@ -42,7 +45,8 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
         pdf.addImage(imageData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
       }
 
-      pdf.save(`${categoryLabel || "karuta"}_絵札.pdf`);
+      const sideLabel = printSide === "back" ? "裏面" : "表面";
+      pdf.save(`${categoryLabel || "karuta"}_絵札_${sideLabel}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("PDFの生成に失敗しました。");
@@ -71,8 +75,25 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
             <p className="text-muted small mb-3">
               用紙（顔料インク用）: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51677" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
               用紙（インクジェット用）: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51604" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
-              印刷ダイアログで「用紙サイズ: A4」「余白: なし」「拡大縮小: 実際のサイズ(100%)」「ヘッダーとフッター: オフ」に設定してください。
+              印刷ダイアログで「用紙サイズ: A4」「余白: なし」「拡大縮小: 実際のサイズ(100%)」「ヘッダーとフッター: オフ」に設定してください。<br />
+              両面印刷する場合は、表面を印刷した用紙をそのまま裏返してセットし、裏面を印刷してください。
             </p>
+            <div className="btn-group mb-3" role="group" aria-label="印刷する面の切り替え">
+              <button
+                type="button"
+                onClick={() => setPrintSide("front")}
+                className={`btn btn-outline-dark ${printSide === "front" ? "active" : ""}`}
+              >
+                表面
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrintSide("back")}
+                className={`btn btn-outline-dark ${printSide === "back" ? "active" : ""}`}
+              >
+                裏面
+              </button>
+            </div>
             <div className="d-flex gap-3 justify-content-center flex-wrap">
               <button onClick={() => window.print()} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-karuta">
                 印刷する
@@ -91,13 +112,18 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                     const p = page.items[slotIndex];
                     return (
                       <div className="efuda-card" key={slotIndex}>
-                        {p && (
+                        {p && (printSide === "back" ? (
+                          <div className="efuda-card-back">
+                            <div className="efuda-card-back-category">{p.category}</div>
+                            {p.level !== "-" && <div className="efuda-card-back-level">{p.level}</div>}
+                          </div>
+                        ) : (
                           <>
                             <p className="no-print text-muted small efuda-card-category">{p.category}</p>
                             <div className="efuda-card-kana">{p.kana}</div>
                             <div className="efuda-card-text">{getEfudaText(p)}</div>
                           </>
-                        )}
+                        ))}
                       </div>
                     );
                   })}
