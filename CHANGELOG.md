@@ -1,3 +1,10 @@
+## [1.17.3](https://github.com/bamiyanapp/karuta/compare/v1.17.2...v1.17.3) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** serverlessパッケージ自体をサインイン不要なv3系に固定する ([#376](https://github.com/bamiyanapp/karuta/issues/376)) ([c34f877](https://github.com/bamiyanapp/karuta/commit/c34f877a2e829345004ca7dbeb619ccf20e521d7)), closes [#371](https://github.com/bamiyanapp/karuta/issues/371)
+
 ## [1.17.2](https://github.com/bamiyanapp/karuta/compare/v1.17.1...v1.17.2) (2026-07-11)
 
 

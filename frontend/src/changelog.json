@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.17.2",
+    "version": "1.17.3",
     "date": "2026/07/11",
+    "body": "### Bug Fixes\n\n* **backend:** serverlessパッケージ自体をサインイン不要なv3系に固定する ([#376](https://github.com/bamiyanapp/karuta/issues/376)) ([c34f877](https://github.com/bamiyanapp/karuta/commit/c34f877a2e829345004ca7dbeb619ccf20e521d7)), closes [#371](https://github.com/bamiyanapp/karuta/issues/371)"
+  },
+  {
+    "version": "1.17.2",
+    "date": "2026/07/11 09:58",
     "body": "### Bug Fixes\n\n* **backend:** frameworkVersionの指定形式をバージョン解決エラーから修正する ([#374](https://github.com/bamiyanapp/karuta/issues/374)) ([ac0c7ae](https://github.com/bamiyanapp/karuta/commit/ac0c7ae47bbef96f37170ae671ab446b005290f5))"
   },
   {
