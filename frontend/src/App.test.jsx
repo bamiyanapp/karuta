@@ -1052,6 +1052,10 @@ describe('App', () => {
   it('shows the voice selector only for Japanese, updates the setting, and includes voiceId in the phrase request (issue #217)', async () => {
     // 直前のテストがlocalStorageにlang='en'を残す場合があるため、日本語から始まることを明示する
     localStorage.setItem('lang', 'ja');
+    // このテスト自身がリトライされた場合（vitestのretry設定）、末尾のremoveItem('voiceId')が
+    // 実行される前に前回の試行が失敗しているとKazuhaが残り、既定値Mizukiを検証する箇所が
+    // 汚染された状態から始まってしまうため、テスト開始時点で明示的にクリアする
+    localStorage.removeItem('voiceId');
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
