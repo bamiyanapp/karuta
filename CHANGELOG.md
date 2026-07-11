@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/bamiyanapp/karuta/compare/v1.18.0...v1.18.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札印刷プレビューが狭い画面で左側フレームアウトする問題を修正する ([#389](https://github.com/bamiyanapp/karuta/issues/389)) ([4aa45d6](https://github.com/bamiyanapp/karuta/commit/4aa45d6c3d77310d0a2844e4087bc3e177e6315b)), closes [#387](https://github.com/bamiyanapp/karuta/issues/387)
+
 # [1.18.0](https://github.com/bamiyanapp/karuta/compare/v1.17.4...v1.18.0) (2026-07-11)
 
 

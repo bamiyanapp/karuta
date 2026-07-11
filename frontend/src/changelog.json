@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.18.1",
+    "date": "2026/07/02 12:22",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札印刷プレビューが狭い画面で左側フレームアウトする問題を修正する ([#389](https://github.com/bamiyanapp/karuta/issues/389)) ([4aa45d6](https://github.com/bamiyanapp/karuta/commit/4aa45d6c3d77310d0a2844e4087bc3e177e6315b)), closes [#387](https://github.com/bamiyanapp/karuta/issues/387)"
+  },
+  {
     "version": "1.18.0",
-    "date": "2026/07/02 12:03",
+    "date": "2026/07/11 21:59",
     "body": "### Features\n\n* **voice:** 音声認識で回答を判定する機能を追加する ([#386](https://github.com/bamiyanapp/karuta/issues/386)) ([e2bb53b](https://github.com/bamiyanapp/karuta/commit/e2bb53b19c910a9d29919918ef3e5b506ba8fe78)), closes [#382](https://github.com/bamiyanapp/karuta/issues/382)"
   },
   {
@@ -161,7 +166,7 @@
   },
   {
     "version": "1.18.0",
-    "date": "2026/07/02 12:03",
+    "date": "2026/07/11 21:59",
     "body": "### Features\n\n* **reading:** 複数種別選択時に読み上げ末尾でかるた種別を読み上げる ([#172](https://github.com/bamiyanapp/karuta/issues/172)) ([c15a729](https://github.com/bamiyanapp/karuta/commit/c15a729879b165e862ca25ac6001b3a5ca8edca4))"
   },
   {
