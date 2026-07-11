@@ -5,7 +5,9 @@ service: karuta-app
 # `npx serverless deploy`が「You must sign in or use a license key」で失敗する。
 # このリポジトリはv4固有の機能（httpApi等）を使用していないため、
 # サインイン不要なv3系に固定してこの問題を回避する。
-frameworkVersion: '3'
+# '3'のようなメジャーバージョンのみの指定は「No version found for 3」でCLIの
+# バージョン解決に失敗したため、実在するv3最終リリースの完全なバージョン番号を指定する。
+frameworkVersion: '3.40.0'
 
 provider:
   name: aws
