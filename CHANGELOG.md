@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/bamiyanapp/karuta/compare/v1.18.1...v1.18.2) (2026-07-11)
+
+
+### Bug Fixes
+
+* **frontend:** PDFダウンロード時に文字サイズが崩れる不具合を修正する ([#393](https://github.com/bamiyanapp/karuta/issues/393)) ([c2bf9ef](https://github.com/bamiyanapp/karuta/commit/c2bf9efc59769a237356c600de12a62a5b650ab5)), closes [#392](https://github.com/bamiyanapp/karuta/issues/392)
+
 ## [1.18.1](https://github.com/bamiyanapp/karuta/compare/v1.18.0...v1.18.1) (2026-07-11)
 
 
