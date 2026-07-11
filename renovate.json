@@ -19,6 +19,11 @@
         "eslint-plugin-react-refresh"
       ],
       "separateMajorMinor": false
+    },
+    {
+      "matchPackageNames": ["serverless"],
+      "allowedVersions": "<4.0.0",
+      "description": "Serverless Framework v4以降はCLI起動時にSaaSへのサインインが必須になりCIでのデプロイが失敗するため、サインイン不要なv3系に固定する"
     }
   ]
 }
