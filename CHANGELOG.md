@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/bamiyanapp/karuta/compare/v1.14.0...v1.15.0) (2026-07-11)
+
+
+### Features
+
+* **print:** 用紙案内にインクジェット用品番を追記する ([#366](https://github.com/bamiyanapp/karuta/issues/366)) ([347a7ad](https://github.com/bamiyanapp/karuta/commit/347a7ad9d7f2fbe780948094e370ada7c776ca84))
+
 # [1.14.0](https://github.com/bamiyanapp/karuta/compare/v1.13.0...v1.14.0) (2026-07-11)
 
 
