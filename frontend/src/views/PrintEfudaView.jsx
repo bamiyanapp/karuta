@@ -69,7 +69,8 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
         <>
           <div className="no-print text-center mb-4">
             <p className="text-muted small mb-3">
-              用紙: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51677" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
+              用紙（顔料インク用）: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51677" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
+              用紙（インクジェット用）: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51604" target="_blank" rel="noopener noreferrer">エーワン マルチカード（マイクロミシン・厚口）A4・10面用</a><br />
               印刷ダイアログで「用紙サイズ: A4」「余白: なし」「拡大縮小: 実際のサイズ(100%)」「ヘッダーとフッター: オフ」に設定してください。
             </p>
             <div className="d-flex gap-3 justify-content-center flex-wrap">

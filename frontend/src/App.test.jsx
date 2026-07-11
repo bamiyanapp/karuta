@@ -640,10 +640,13 @@ describe('App', () => {
       expect(screen.getByText('回答1')).toBeInTheDocument();
     });
 
-    // 用紙情報に商品ページへのリンクが設定されている
-    const paperLink = screen.getByRole('link', { name: /エーワン マルチカード/ });
-    expect(paperLink).toHaveAttribute('href', 'https://www.a-one.co.jp/product/search/detail.php?id=51677');
-    expect(paperLink).toHaveAttribute('target', '_blank');
+    // 用紙情報に顔料インク用・インクジェット用それぞれの商品ページへのリンクが設定されている
+    const paperLinks = screen.getAllByRole('link', { name: /エーワン マルチカード/ });
+    expect(paperLinks).toHaveLength(2);
+    expect(paperLinks[0]).toHaveAttribute('href', 'https://www.a-one.co.jp/product/search/detail.php?id=51677');
+    expect(paperLinks[0]).toHaveAttribute('target', '_blank');
+    expect(paperLinks[1]).toHaveAttribute('href', 'https://www.a-one.co.jp/product/search/detail.php?id=51604');
+    expect(paperLinks[1]).toHaveAttribute('target', '_blank');
 
     // 11枚 → 10面/ページなので2ページ生成される
     expect(document.querySelectorAll('.efuda-page').length).toBe(2);
