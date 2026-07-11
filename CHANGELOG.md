@@ -1,3 +1,10 @@
+## [1.17.4](https://github.com/bamiyanapp/karuta/compare/v1.17.3...v1.17.4) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** Renovateが再度serverlessをv4へ更新しないようにする ([#379](https://github.com/bamiyanapp/karuta/issues/379)) ([5f77862](https://github.com/bamiyanapp/karuta/commit/5f778627e8060f29f39c2a0e043692bd95d1a786)), closes [#378](https://github.com/bamiyanapp/karuta/issues/378)
+
 ## [1.17.3](https://github.com/bamiyanapp/karuta/compare/v1.17.2...v1.17.3) (2026-07-11)
 
 
