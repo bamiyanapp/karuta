@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.19.0",
+    "date": "2026/07/02 12:55",
+    "body": "### Features\n\n* **frontend:** 絵札裏面に和柄背景とメダル風レベルバッジを追加する ([#404](https://github.com/bamiyanapp/karuta/issues/404)) ([e5ccf84](https://github.com/bamiyanapp/karuta/commit/e5ccf84d11ff6830c50e61519cbfc61cd7c234b8))"
+  },
+  {
     "version": "1.18.5",
-    "date": "2026/07/12",
+    "date": "2026/07/12 10:57",
     "body": "### Bug Fixes\n\n* **frontend:** 絵札PDF表面のかるた種別の文字色を黒にする ([#402](https://github.com/bamiyanapp/karuta/issues/402)) ([33243e9](https://github.com/bamiyanapp/karuta/commit/33243e9733f8517a54f796abfef61ee7eed21c65))"
   },
   {
