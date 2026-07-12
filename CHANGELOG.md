@@ -1,3 +1,10 @@
+## [1.20.4](https://github.com/bamiyanapp/karuta/compare/v1.20.3...v1.20.4) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札印刷画面の画面プレビュー（表面）の文字サイズを抑える ([#414](https://github.com/bamiyanapp/karuta/issues/414)) ([7ff6c1e](https://github.com/bamiyanapp/karuta/commit/7ff6c1e6a3fc8f9f4870be9948b636aa80de95e7))
+
 ## [1.20.3](https://github.com/bamiyanapp/karuta/compare/v1.20.2...v1.20.3) (2026-07-12)
 
 
