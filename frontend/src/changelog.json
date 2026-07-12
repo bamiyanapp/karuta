@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.20.2",
+    "version": "1.20.3",
     "date": "2026/07/12",
+    "body": "### Bug Fixes\n\n* **backend:** 「モダンソフトウェア開発かるた」を「モダン開発かるた」に短縮する ([#412](https://github.com/bamiyanapp/karuta/issues/412)) ([0c50c30](https://github.com/bamiyanapp/karuta/commit/0c50c30e46a93ccdafdf9f31066a8a1cbda220d6))"
+  },
+  {
+    "version": "1.20.2",
+    "date": "2026/07/12 13:22",
     "body": "### Bug Fixes\n\n* **frontend:** 裏面の柄と外枠の間の隙間をなくす ([#410](https://github.com/bamiyanapp/karuta/issues/410)) ([a8f2da0](https://github.com/bamiyanapp/karuta/commit/a8f2da0bc300109fea46c0ec7cf3bae00b891795))"
   },
   {
