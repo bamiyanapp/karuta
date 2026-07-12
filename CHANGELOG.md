@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/bamiyanapp/karuta/compare/v1.20.0...v1.20.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** 裏面の和柄をPDFキャプチャ対応の画像方式に変更し、種別単位のランダム選択・二重枠線を修正する ([#408](https://github.com/bamiyanapp/karuta/issues/408)) ([e5b89d3](https://github.com/bamiyanapp/karuta/commit/e5b89d31687b397d9d083632ab557d7af1ea662b))
+
 # [1.20.0](https://github.com/bamiyanapp/karuta/compare/v1.19.0...v1.20.0) (2026-07-12)
 
 
