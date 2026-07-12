@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/bamiyanapp/karuta/compare/v1.18.3...v1.18.4) (2026-07-12)
+
+
+### Bug Fixes
+
+* 絵札PDFダウンロードにかるた種別を表示し、Renovate PRのstale化を防ぐ ([#400](https://github.com/bamiyanapp/karuta/issues/400)) ([663eb24](https://github.com/bamiyanapp/karuta/commit/663eb24edd8c1b96494a5a4027b8667c2d965b84)), closes [#300](https://github.com/bamiyanapp/karuta/issues/300) [#303](https://github.com/bamiyanapp/karuta/issues/303) [#313](https://github.com/bamiyanapp/karuta/issues/313) [#318](https://github.com/bamiyanapp/karuta/issues/318) [#319](https://github.com/bamiyanapp/karuta/issues/319) [#322](https://github.com/bamiyanapp/karuta/issues/322) [#345](https://github.com/bamiyanapp/karuta/issues/345)
+
 ## [1.18.3](https://github.com/bamiyanapp/karuta/compare/v1.18.2...v1.18.3) (2026-07-12)
 
 
