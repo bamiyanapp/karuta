@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.18.3",
+    "date": "2026/07/12",
+    "body": "### Bug Fixes\n\n* **cd:** dev-standards参照をタグ固定([@v1](https://github.com/v1).0.0)に変更する ([#395](https://github.com/bamiyanapp/karuta/issues/395)) ([8053116](https://github.com/bamiyanapp/karuta/commit/805311638ad3d796e9d81dc21d5ccb3907a5e1a5))"
+  },
+  {
     "version": "1.18.2",
-    "date": "2026/07/11",
+    "date": "2026/07/11 23:40",
     "body": "### Bug Fixes\n\n* **frontend:** PDFダウンロード時に文字サイズが崩れる不具合を修正する ([#393](https://github.com/bamiyanapp/karuta/issues/393)) ([c2bf9ef](https://github.com/bamiyanapp/karuta/commit/c2bf9efc59769a237356c600de12a62a5b650ab5)), closes [#392](https://github.com/bamiyanapp/karuta/issues/392)"
   },
   {

@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/bamiyanapp/karuta/compare/v1.18.2...v1.18.3) (2026-07-12)
+
+
+### Bug Fixes
+
+* **cd:** dev-standards参照をタグ固定([@v1](https://github.com/v1).0.0)に変更する ([#395](https://github.com/bamiyanapp/karuta/issues/395)) ([8053116](https://github.com/bamiyanapp/karuta/commit/805311638ad3d796e9d81dc21d5ccb3907a5e1a5))
+
 ## [1.18.2](https://github.com/bamiyanapp/karuta/compare/v1.18.1...v1.18.2) (2026-07-11)
 
 
