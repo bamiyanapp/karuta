@@ -710,7 +710,7 @@ describe('App', () => {
     expect(document.querySelector('.efuda-card-back')).not.toBeInTheDocument();
   });
 
-  it('assigns one of the 5 back-side decorative patterns per card, staying consistent across re-renders (裏面の和柄装飾)', async () => {
+  it('assigns one of the 5 back-side decorative patterns per category, consistently across cards of the same category and re-renders (裏面の和柄装飾)', async () => {
     const phrases = [
       { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' },
       { id: 'p1', category: 'Cat1', kana: 'い', phrase: '読み札テキスト1', answer: '回答1', level: '-' },
@@ -740,17 +740,17 @@ describe('App', () => {
     const firstCardPattern = patternClassOf(backCards[0]);
     const secondCardPattern = patternClassOf(backCards[1]);
 
-    // どちらのカードにも5種類の柄のいずれかが1つ割り当てられている
+    // 同じ種別（Cat1）のカード同士は同じ柄になる
     const validPatterns = ['efuda-pattern-fundou', 'efuda-pattern-shippo', 'efuda-pattern-kikkou', 'efuda-pattern-seigaiha', 'efuda-pattern-tatewaku'];
     expect(validPatterns).toContain(firstCardPattern);
-    expect(validPatterns).toContain(secondCardPattern);
+    expect(secondCardPattern).toBe(firstCardPattern);
 
-    // 表面⇔裏面の切り替え（再描画）を挟んでも、同じカードには同じ柄が割り当てられ続ける
+    // 表面⇔裏面の切り替え（再描画）を挟んでも、柄は変わらない
     fireEvent.click(screen.getByRole('button', { name: '表面' }));
     fireEvent.click(screen.getByRole('button', { name: '裏面' }));
     const backCardsAfterToggle = document.querySelectorAll('.efuda-card-back');
     expect(patternClassOf(backCardsAfterToggle[0])).toBe(firstCardPattern);
-    expect(patternClassOf(backCardsAfterToggle[1])).toBe(secondCardPattern);
+    expect(patternClassOf(backCardsAfterToggle[1])).toBe(firstCardPattern);
   });
 
   it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {

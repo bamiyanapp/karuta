@@ -5,10 +5,10 @@ const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase
 // 裏面カードに敷く和柄（分銅繋ぎ・七宝・亀甲・青海波・立涌）
 const BACK_PATTERNS = ["fundou", "shippo", "kikkou", "seigaiha", "tatewaku"];
 
-// カードごとにランダムに柄を選ぶが、同一カードを再描画（表面/裏面の切り替え等）しても
-// 柄が変わらないよう、種別+idから決定的に選ぶ
+// 種別ごとに柄をランダムに選ぶが、同一種別内では常に同じ柄になるよう
+// （同一カードを再描画しても柄が変わらないよう）種別名から決定的に選ぶ
 const getBackPatternClass = (p) => {
-  const key = `${p.category}-${p.id}`;
+  const key = p.category;
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     hash = (hash * 31 + key.charCodeAt(i)) | 0;
