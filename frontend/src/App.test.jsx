@@ -758,6 +758,54 @@ describe('App', () => {
     expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札_表面.pdf');
   });
 
+  it('keeps the front-side category label visible in the PDF capture while still hiding other no-print elements (かるた種別がPDFに表示されない不具合の修正)', async () => {
+    const phrases = [
+      { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '回答0' },
+    ];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
+    });
+
+    let categoryDisplayDuringCapture;
+    let otherNoPrintDisplayDuringCapture;
+    html2canvas.mockImplementationOnce(async (el, options) => {
+      // 実装のoncloneは実際のクローン文書を受け取るが、テストではモックのためdocument自体を渡して検証する
+      options.onclone(document);
+      categoryDisplayDuringCapture = document.querySelector('.efuda-card-category').style.display;
+      otherNoPrintDisplayDuringCapture = document.querySelector('header.no-print').style.display;
+      return { toDataURL: () => 'data:image/png;base64,dummy' };
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('PDFをダウンロード'));
+    });
+
+    await waitFor(() => {
+      expect(html2canvas).toHaveBeenCalledTimes(1);
+    });
+
+    // かるた種別ラベル（efuda-card-category）は隠さず、それ以外のno-print要素は従来どおり隠す
+    expect(categoryDisplayDuringCapture).toBe('');
+    expect(otherNoPrintDisplayDuringCapture).toBe('none');
+  });
+
   it('forces zoom to 1 on each .efuda-page while capturing, and restores it afterward (issue #392: PDF text rendering breaks when the on-screen preview is zoomed out on narrow viewports)', async () => {
     const phrases = Array.from({ length: 1 }, (_, i) => ({
       id: `p${i}`,

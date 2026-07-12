@@ -38,12 +38,14 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
         for (let i = 0; i < pageElements.length; i++) {
           // scale: 2で解像度を上げ、印刷用途でも文字が粗くならないようにする。
           // no-printは@media printでのみ非表示になる（画面上は表示されたまま）ため、
-          // html2canvasが画面表示状態をそのまま撮影しないよう、cloneした文書側で明示的に隠す
+          // html2canvasが画面表示状態をそのまま撮影しないよう、cloneした文書側で明示的に隠す。
+          // ただしefuda-card-category（表面カードのかるた種別ラベル）は、実物の紙面には印刷しないが
+          // PDFでは種別を確認できるようにしたいという要望のため、隠さず残す
           const canvas = await html2canvas(pageElements[i], {
             scale: 2,
             useCORS: true,
             onclone: (clonedDoc) => {
-              clonedDoc.querySelectorAll(".no-print").forEach((el) => {
+              clonedDoc.querySelectorAll(".no-print:not(.efuda-card-category)").forEach((el) => {
                 el.style.display = "none";
               });
             },
