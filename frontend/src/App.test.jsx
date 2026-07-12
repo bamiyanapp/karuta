@@ -710,6 +710,49 @@ describe('App', () => {
     expect(document.querySelector('.efuda-card-back')).not.toBeInTheDocument();
   });
 
+  it('assigns one of the 5 back-side decorative patterns per card, staying consistent across re-renders (裏面の和柄装飾)', async () => {
+    const phrases = [
+      { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' },
+      { id: 'p1', category: 'Cat1', kana: 'い', phrase: '読み札テキスト1', answer: '回答1', level: '-' },
+    ];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => screen.getByText('読み札テキスト0'));
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+
+    const patternClassOf = (el) => [...el.classList].find((c) => c.startsWith('efuda-pattern-'));
+    const backCards = document.querySelectorAll('.efuda-card-back');
+    const firstCardPattern = patternClassOf(backCards[0]);
+    const secondCardPattern = patternClassOf(backCards[1]);
+
+    // どちらのカードにも5種類の柄のいずれかが1つ割り当てられている
+    const validPatterns = ['efuda-pattern-fundou', 'efuda-pattern-shippo', 'efuda-pattern-kikkou', 'efuda-pattern-seigaiha', 'efuda-pattern-tatewaku'];
+    expect(validPatterns).toContain(firstCardPattern);
+    expect(validPatterns).toContain(secondCardPattern);
+
+    // 表面⇔裏面の切り替え（再描画）を挟んでも、同じカードには同じ柄が割り当てられ続ける
+    fireEvent.click(screen.getByRole('button', { name: '表面' }));
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+    const backCardsAfterToggle = document.querySelectorAll('.efuda-card-back');
+    expect(patternClassOf(backCardsAfterToggle[0])).toBe(firstCardPattern);
+    expect(patternClassOf(backCardsAfterToggle[1])).toBe(secondCardPattern);
+  });
+
   it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
       id: `p${i}`,
