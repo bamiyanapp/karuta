@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.20.0",
+    "date": "2026/07/04 02:49",
+    "body": "### Features\n\n* **frontend:** 絵札裏面の和柄を5種のランダム柄に差し替え、フォントを一回り小さくする ([#406](https://github.com/bamiyanapp/karuta/issues/406)) ([ca47b1e](https://github.com/bamiyanapp/karuta/commit/ca47b1e48f402106f78a2d357784d4220231e3d6))"
+  },
+  {
     "version": "1.19.0",
-    "date": "2026/07/02 12:55",
+    "date": "2026/07/12 11:30",
     "body": "### Features\n\n* **frontend:** 絵札裏面に和柄背景とメダル風レベルバッジを追加する ([#404](https://github.com/bamiyanapp/karuta/issues/404)) ([e5ccf84](https://github.com/bamiyanapp/karuta/commit/e5ccf84d11ff6830c50e61519cbfc61cd7c234b8))"
   },
   {
@@ -181,7 +186,7 @@
   },
   {
     "version": "1.19.0",
-    "date": "2026/07/02 12:55",
+    "date": "2026/07/12 11:30",
     "body": "### Features\n\n* **ui:** OS設定に自動追従するダークモードを追加 ([#176](https://github.com/bamiyanapp/karuta/issues/176)) ([ba5f084](https://github.com/bamiyanapp/karuta/commit/ba5f08473a36d648671d87044f7fa1e0030d608e))"
   },
   {

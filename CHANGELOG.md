@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/bamiyanapp/karuta/compare/v1.19.0...v1.20.0) (2026-07-12)
+
+
+### Features
+
+* **frontend:** 絵札裏面の和柄を5種のランダム柄に差し替え、フォントを一回り小さくする ([#406](https://github.com/bamiyanapp/karuta/issues/406)) ([ca47b1e](https://github.com/bamiyanapp/karuta/commit/ca47b1e48f402106f78a2d357784d4220231e3d6))
+
 # [1.19.0](https://github.com/bamiyanapp/karuta/compare/v1.18.5...v1.19.0) (2026-07-12)
 
 
