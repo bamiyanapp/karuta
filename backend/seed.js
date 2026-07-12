@@ -10,6 +10,13 @@ const docClient = DynamoDBDocumentClient.from(client);
 const CSV_FILE_PATH = path.join(__dirname, "phrases.csv");
 const TABLE_NAME = "karuta-phrases";
 
+// カテゴリ名を変更した際、readCount等の統計をリセットさせず引き継ぐためのリネームマップ。
+// key: 変更後（CSV上の現在の）カテゴリ名, value: 過去に使っていたカテゴリ名の配列
+// （categoryはDynamoDBのキーの一部のため、名前を変えると別レコード扱いになってしまう）
+const CATEGORY_RENAMES = {
+  "モダン開発かるた": ["モダンソフトウェア開発かるた"],
+};
+
 async function seed() {
   try {
     // 1. CSVファイルを読み込んでパース
@@ -44,7 +51,10 @@ async function seed() {
         level = levelRaw;
       }
 
-      const existingItem = existingItemsMap.get(`${category}-${id}`);
+      const existingItem = existingItemsMap.get(`${category}-${id}`)
+        ?? (CATEGORY_RENAMES[category] || [])
+          .map((oldCategory) => existingItemsMap.get(`${oldCategory}-${id}`))
+          .find((item) => item !== undefined);
       const groupRaw = record.group ? record.group.trim() : "";
       const group = groupRaw === "engineer" ? "engineer" : "kids";
 
@@ -92,7 +102,16 @@ async function seed() {
     console.log("Seeding completed successfully (Incremental Sync with statistics).");
   } catch (error) {
     console.error("Seeding failed:", error);
+    throw error;
   }
 }
 
-seed();
+module.exports = { seed };
+
+/* c8 ignore start */
+if (require.main === module) {
+  seed().catch(() => {
+    process.exitCode = 1;
+  });
+}
+/* c8 ignore stop */
