@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.20.1",
+    "date": "2026/07/12",
+    "body": "### Bug Fixes\n\n* **frontend:** 裏面の和柄をPDFキャプチャ対応の画像方式に変更し、種別単位のランダム選択・二重枠線を修正する ([#408](https://github.com/bamiyanapp/karuta/issues/408)) ([e5b89d3](https://github.com/bamiyanapp/karuta/commit/e5b89d31687b397d9d083632ab557d7af1ea662b))"
+  },
+  {
     "version": "1.20.0",
-    "date": "2026/07/04 02:49",
+    "date": "2026/07/12 12:05",
     "body": "### Features\n\n* **frontend:** 絵札裏面の和柄を5種のランダム柄に差し替え、フォントを一回り小さくする ([#406](https://github.com/bamiyanapp/karuta/issues/406)) ([ca47b1e](https://github.com/bamiyanapp/karuta/commit/ca47b1e48f402106f78a2d357784d4220231e3d6))"
   },
   {
@@ -156,7 +161,7 @@
   },
   {
     "version": "1.20.0",
-    "date": "2026/07/04 02:49",
+    "date": "2026/07/12 12:05",
     "body": "### Features\n\n* **game:** ゲーム画面に残り札数・進捗表示を追加 ([#234](https://github.com/bamiyanapp/karuta/issues/234)) ([33618e1](https://github.com/bamiyanapp/karuta/commit/33618e137d18b316198472465098b7e4f5ad9760))"
   },
   {
