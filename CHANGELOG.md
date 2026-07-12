@@ -1,3 +1,10 @@
+## [1.18.5](https://github.com/bamiyanapp/karuta/compare/v1.18.4...v1.18.5) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札PDF表面のかるた種別の文字色を黒にする ([#402](https://github.com/bamiyanapp/karuta/issues/402)) ([33243e9](https://github.com/bamiyanapp/karuta/commit/33243e9733f8517a54f796abfef61ee7eed21c65))
+
 ## [1.18.4](https://github.com/bamiyanapp/karuta/compare/v1.18.3...v1.18.4) (2026-07-12)
 
 
