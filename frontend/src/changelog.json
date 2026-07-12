@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.20.3",
+    "version": "1.20.4",
     "date": "2026/07/12",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札印刷画面の画面プレビュー（表面）の文字サイズを抑える ([#414](https://github.com/bamiyanapp/karuta/issues/414)) ([7ff6c1e](https://github.com/bamiyanapp/karuta/commit/7ff6c1e6a3fc8f9f4870be9948b636aa80de95e7))"
+  },
+  {
+    "version": "1.20.3",
+    "date": "2026/07/12 23:19",
     "body": "### Bug Fixes\n\n* **backend:** 「モダンソフトウェア開発かるた」を「モダン開発かるた」に短縮する ([#412](https://github.com/bamiyanapp/karuta/issues/412)) ([0c50c30](https://github.com/bamiyanapp/karuta/commit/0c50c30e46a93ccdafdf9f31066a8a1cbda220d6))"
   },
   {
