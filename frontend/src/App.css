@@ -400,7 +400,9 @@ button:active:not(:disabled) {
   color: #000;
 }
 
-/* 裏面（種別・レベル）：表面と同じカード枠内に中央揃えで表示する */
+/* 裏面（種別・レベル）：表面と同じカード枠内に中央揃えで表示する。
+   表面はかるた本文で埋まるのに対し裏面は情報量が少なく寂しくなるため、
+   青海波（和柄）の背景と内枠の二重線で装飾している */
 .efuda-card-back {
   display: flex;
   flex-direction: column;
@@ -408,7 +410,17 @@ button:active:not(:disabled) {
   justify-content: center;
   gap: 3mm;
   width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   color: #000;
+  border: 0.6mm solid #e44d26;
+  border-radius: 4mm;
+  background-color: #fff;
+  background-image:
+    radial-gradient(circle at 50% 100%, transparent 20%, #fbe4da 21%, #fbe4da 27%, transparent 28%, transparent 36%, #fbe4da 37%, #fbe4da 43%, transparent 44%),
+    radial-gradient(circle at 0% 50%, transparent 20%, #fbe4da 21%, #fbe4da 27%, transparent 28%, transparent 36%, #fbe4da 37%, #fbe4da 43%, transparent 44%),
+    radial-gradient(circle at 100% 50%, transparent 20%, #fbe4da 21%, #fbe4da 27%, transparent 28%, transparent 36%, #fbe4da 37%, #fbe4da 43%, transparent 44%);
+  background-size: 12mm 12mm;
 }
 
 .efuda-card-back-category {
@@ -416,12 +428,58 @@ button:active:not(:disabled) {
   font-size: 7mm;
   text-align: center;
   word-break: break-word;
+  /* 背景の和柄パターンの上でも文字が読みやすいよう、印章のような白背景の帯を敷く */
+  background: #fff;
+  border: 0.3mm solid #e44d26;
+  border-radius: 2mm;
+  padding: 1.5mm 4mm;
+  max-width: 80mm;
 }
 
+/* レベルは1〜100の広い範囲や「上級」「初級」等の文字列も取りうる（星の数では表現できない）ため、
+   数値・文字列どちらでもそのまま収まるメダル風の円形バッジで装飾する */
 .efuda-card-back-level {
+  position: relative;
+  width: 22mm;
+  height: 22mm;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.2mm solid #e44d26;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1mm;
   font-weight: bold;
-  font-size: 10mm;
+  font-size: 6mm;
   color: #e44d26;
+  margin-bottom: 3mm;
+}
+
+/* メダルのリボン（垂れ帯）をCSSの三角形手法で表現する */
+.efuda-card-back-level::before,
+.efuda-card-back-level::after {
+  content: "";
+  position: absolute;
+  top: 95%;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 4mm 2.2mm 0 2.2mm;
+}
+
+.efuda-card-back-level::before {
+  left: 20%;
+  border-color: #e44d26 transparent transparent transparent;
+  transform: rotate(8deg);
+  transform-origin: top center;
+}
+
+.efuda-card-back-level::after {
+  left: 60%;
+  border-color: #c23d1a transparent transparent transparent;
+  transform: rotate(-8deg);
+  transform-origin: top center;
 }
 
 @media print {
