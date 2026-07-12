@@ -136,7 +136,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                           </div>
                         ) : (
                           <>
-                            <p className="no-print text-muted small efuda-card-category">{p.category}</p>
+                            <p className="no-print small efuda-card-category">{p.category}</p>
                             <div className="efuda-card-kana">{p.kana}</div>
                             <div className="efuda-card-text">{getEfudaText(p)}</div>
                           </>

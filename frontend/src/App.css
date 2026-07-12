@@ -396,6 +396,8 @@ button:active:not(:disabled) {
   right: 3mm;
   margin: 0;
   font-size: 9px;
+  /* カードは常に白背景の紙面を模すため、text-mutedの薄灰色ではなくPDF出力でも視認できる黒固定にする */
+  color: #000;
 }
 
 /* 裏面（種別・レベル）：表面と同じカード枠内に中央揃えで表示する */
