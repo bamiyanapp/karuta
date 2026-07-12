@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/bamiyanapp/karuta/compare/v1.20.1...v1.20.2) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** 裏面の柄と外枠の間の隙間をなくす ([#410](https://github.com/bamiyanapp/karuta/issues/410)) ([a8f2da0](https://github.com/bamiyanapp/karuta/commit/a8f2da0bc300109fea46c0ec7cf3bae00b891795))
+
 ## [1.20.1](https://github.com/bamiyanapp/karuta/compare/v1.20.0...v1.20.1) (2026-07-12)
 
 
