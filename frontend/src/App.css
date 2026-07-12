@@ -405,13 +405,16 @@ button:active:not(:disabled) {
    和柄の背景で装飾している（枠線は.efuda-cardの外枠のみとし、二重にならないようにする）。
    柄そのものは.efuda-pattern-*でカードごとに切り替える */
 .efuda-card-back {
+  /* .efuda-cardのpadding（表面のかな circle/文字を枠から離すためのもの）に食い込んで
+     枠線いっぱいまで柄を敷けるよう、position: absoluteで親のborder-box全体を覆う。
+     角の丸みは親の overflow: hidden によってクリップされる */
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3mm;
-  width: 100%;
-  height: 100%;
   box-sizing: border-box;
   color: #000;
   background-color: #fff;
