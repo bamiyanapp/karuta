@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/bamiyanapp/karuta/compare/v1.18.5...v1.19.0) (2026-07-12)
+
+
+### Features
+
+* **frontend:** 絵札裏面に和柄背景とメダル風レベルバッジを追加する ([#404](https://github.com/bamiyanapp/karuta/issues/404)) ([e5ccf84](https://github.com/bamiyanapp/karuta/commit/e5ccf84d11ff6830c50e61519cbfc61cd7c234b8))
+
 ## [1.18.5](https://github.com/bamiyanapp/karuta/compare/v1.18.4...v1.18.5) (2026-07-12)
 
 
