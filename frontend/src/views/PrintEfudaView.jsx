@@ -2,6 +2,21 @@ import { useState } from "react";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
+// 裏面カードに敷く和柄（分銅繋ぎ・七宝・亀甲・青海波・立涌）
+const BACK_PATTERNS = ["fundou", "shippo", "kikkou", "seigaiha", "tatewaku"];
+
+// カードごとにランダムに柄を選ぶが、同一カードを再描画（表面/裏面の切り替え等）しても
+// 柄が変わらないよう、種別+idから決定的に選ぶ
+const getBackPatternClass = (p) => {
+  const key = `${p.category}-${p.id}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0;
+  }
+  const index = Math.abs(hash) % BACK_PATTERNS.length;
+  return `efuda-pattern-${BACK_PATTERNS[index]}`;
+};
+
 // A4サイズ（mm）。efuda-pageのCSS上の実寸と一致させる
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
@@ -130,7 +145,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                     return (
                       <div className="efuda-card" key={slotIndex}>
                         {p && (printSide === "back" ? (
-                          <div className="efuda-card-back">
+                          <div className={`efuda-card-back ${getBackPatternClass(p)}`}>
                             <div className="efuda-card-back-category">{p.category}</div>
                             {p.level !== "-" && <div className="efuda-card-back-level">{p.level}</div>}
                           </div>
