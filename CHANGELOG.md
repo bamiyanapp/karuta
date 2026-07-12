@@ -1,3 +1,10 @@
+## [1.20.3](https://github.com/bamiyanapp/karuta/compare/v1.20.2...v1.20.3) (2026-07-12)
+
+
+### Bug Fixes
+
+* **backend:** 「モダンソフトウェア開発かるた」を「モダン開発かるた」に短縮する ([#412](https://github.com/bamiyanapp/karuta/issues/412)) ([0c50c30](https://github.com/bamiyanapp/karuta/commit/0c50c30e46a93ccdafdf9f31066a8a1cbda220d6))
+
 ## [1.20.2](https://github.com/bamiyanapp/karuta/compare/v1.20.1...v1.20.2) (2026-07-12)
 
 
