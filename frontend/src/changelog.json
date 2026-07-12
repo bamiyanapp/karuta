@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.18.4",
+    "version": "1.18.5",
     "date": "2026/07/12",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札PDF表面のかるた種別の文字色を黒にする ([#402](https://github.com/bamiyanapp/karuta/issues/402)) ([33243e9](https://github.com/bamiyanapp/karuta/commit/33243e9733f8517a54f796abfef61ee7eed21c65))"
+  },
+  {
+    "version": "1.18.4",
+    "date": "2026/07/12 09:30",
     "body": "### Bug Fixes\n\n* 絵札PDFダウンロードにかるた種別を表示し、Renovate PRのstale化を防ぐ ([#400](https://github.com/bamiyanapp/karuta/issues/400)) ([663eb24](https://github.com/bamiyanapp/karuta/commit/663eb24edd8c1b96494a5a4027b8667c2d965b84)), closes [#300](https://github.com/bamiyanapp/karuta/issues/300) [#303](https://github.com/bamiyanapp/karuta/issues/303) [#313](https://github.com/bamiyanapp/karuta/issues/313) [#318](https://github.com/bamiyanapp/karuta/issues/318) [#319](https://github.com/bamiyanapp/karuta/issues/319) [#322](https://github.com/bamiyanapp/karuta/issues/322) [#345](https://github.com/bamiyanapp/karuta/issues/345)"
   },
   {
