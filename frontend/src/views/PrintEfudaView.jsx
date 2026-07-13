@@ -151,7 +151,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
               </button>
             </div>
             <div className="d-flex gap-3 justify-content-center flex-wrap">
-              <button onClick={() => window.print()} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-karuta">
+              <button onClick={() => window.print()} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-karuta efuda-print-button">
                 印刷する
               </button>
               <button onClick={downloadPdf} disabled={isGeneratingPdf} className="btn btn-lg px-5 py-2 fw-bold rounded-pill shadow btn-outline-dark">
