@@ -552,9 +552,10 @@ button:active:not(:disabled) {
   }
 
   .efuda-print-area {
-    position: fixed;
-    top: 0;
-    left: 0;
+    /* position: fixedだと複数ページ分の内容が印刷時にページネーションされず
+       1ページ目しか出力されない不具合があったため、通常のフロー配置に戻す。
+       .efuda-page-scalerは印刷時にA4実寸へリセットされ、コンテナ幅と一致するため
+       align-items: centerのままでも中央寄せの見た目には影響しない */
     gap: 0;
   }
 
