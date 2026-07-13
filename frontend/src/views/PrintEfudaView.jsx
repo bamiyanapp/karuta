@@ -147,7 +147,12 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                           {p && (printSide === "back" ? (
                             <div className={`efuda-card-back ${getBackPatternClass(p)}`}>
                               <div className="efuda-card-back-category">{p.category}</div>
-                              {p.level !== "-" && <div className="efuda-card-back-level">{p.level}</div>}
+                              {p.level !== "-" && (
+                                <div className="efuda-card-back-level">
+                                  🏅
+                                  <span className="efuda-card-back-level-number">{p.level}</span>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <>
