@@ -387,14 +387,20 @@ button:active:not(:disabled) {
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 6mm;
+  /* font-sizeだけはmmではなくpx（mm相当を96dpiで換算した値）で指定する。
+     .efuda-pageのzoomによる画面プレビューの縮小は、mm等の絶対単位で指定した
+     font-sizeには正しく追従しない端末があり、枠は縮小されるのに文字だけ
+     実寸のまま残ってしまう（狭い画面での画面プレビューでのみ発生。
+     印刷・PDF出力はzoom:1の実寸表示のため影響しない） */
+  font-size: 22.68px; /* 6mm */
   color: #e44d26;
   background: white;
 }
 
 .efuda-card-text {
   font-weight: bold;
-  font-size: 8mm;
+  /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
+  font-size: 30.24px; /* 8mm */
   text-align: center;
   line-height: 1.3;
   word-break: break-word;
@@ -434,7 +440,8 @@ button:active:not(:disabled) {
 
 .efuda-card-back-category {
   font-weight: bold;
-  font-size: 6mm;
+  /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
+  font-size: 22.68px; /* 6mm */
   text-align: center;
   word-break: break-word;
   /* 背景の和柄パターンの上でも文字が読みやすいよう、印章のような白背景の帯を敷く */
@@ -499,7 +506,8 @@ button:active:not(:disabled) {
   justify-content: center;
   padding: 0 1mm;
   font-weight: bold;
-  font-size: 5mm;
+  /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
+  font-size: 18.9px; /* 5mm */
   color: #e44d26;
   margin-bottom: 3mm;
 }
