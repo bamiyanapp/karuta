@@ -1,3 +1,10 @@
+## [1.22.5](https://github.com/bamiyanapp/karuta/compare/v1.22.4...v1.22.5) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札裏面の種別バッジの枠線を柄の色に統一する ([#439](https://github.com/bamiyanapp/karuta/issues/439)) ([efed10c](https://github.com/bamiyanapp/karuta/commit/efed10c5c6c71578275983eb1189024a4ed2c855))
+
 ## [1.22.4](https://github.com/bamiyanapp/karuta/compare/v1.22.3...v1.22.4) (2026-07-13)
 
 
