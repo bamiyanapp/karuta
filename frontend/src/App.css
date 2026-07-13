@@ -336,6 +336,12 @@ button:active:not(:disabled) {
      広いビューポートでも0.6を上限とする（画面プレビューはA4実寸そのままだと
      文字が大きすぎて見づらいため）。印刷・PDF出力は実寸のまま変わらない */
   zoom: min(1, calc(100vw / 210mm), 0.6);
+  /* スマートフォンのブラウザ（Mobile Safari/Chrome）は、狭い画面で読みやすくする
+     ためzoom等による縮小とは無関係に文字サイズを自動的に拡大する
+     （text size adjust / font boosting）ことがあり、これがzoomによる縮小を
+     打ち消して文字だけ大きいまま残る原因になり得るため、無効化しておく */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .efuda-grid {
