@@ -326,26 +326,28 @@ button:active:not(:disabled) {
   gap: 24px;
 }
 
+/* .efuda-pageは常にA4実寸（210mm×297mm）のまま保ち、画面プレビューでの縮小は
+   .efuda-page-scaler（幅・高さを縮小率ぶん縮めた実要素）× transform: scaleの
+   組み合わせで行う。zoomプロパティは、ボックスのレイアウトサイズは縮小される一方、
+   実機の一部ブラウザ（Mobile Safari等）ではmm/px問わずfont-sizeの描画に縮小が
+   反映されず文字だけ実寸のまま残る不具合を確認したため採用していない。
+   transformは文字を含めた描画全体を確実に縮小できるが、レイアウト上の占有サイズは
+   変えないため、占有サイズの調整は外側の.efuda-page-scalerで行う */
+.efuda-page-scaler {
+  --efuda-scale: min(1, calc(100vw / 210mm), 0.6);
+  width: calc(210mm * var(--efuda-scale));
+  height: calc(297mm * var(--efuda-scale));
+  overflow: hidden;
+}
+
 .efuda-page {
   position: relative;
   width: 210mm;
   height: 297mm;
   background: white;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-  /* ビューポート幅がA4実寸（210mm）に満たない場合、画面プレビューでは縮小して
-     全体を表示する。zoomは（transformと異なり）子要素のmm単位レイアウトを
-     保ったままレンダリングサイズごと縮小でき、親のflexコンテナも縮小後の
-     サイズを基準にレイアウトし直すため、中央寄せでも左側が画面外へ
-     はみ出さない。印刷時（@media print）はA4実寸に戻す。
-     広いビューポートでも0.6を上限とする（画面プレビューはA4実寸そのままだと
-     文字が大きすぎて見づらいため）。印刷・PDF出力は実寸のまま変わらない */
-  zoom: min(1, calc(100vw / 210mm), 0.6);
-  /* スマートフォンのブラウザ（Mobile Safari/Chrome）は、狭い画面で読みやすくする
-     ためzoom等による縮小とは無関係に文字サイズを自動的に拡大する
-     （text size adjust / font boosting）ことがあり、これがzoomによる縮小を
-     打ち消して文字だけ大きいまま残る原因になり得るため、無効化しておく */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  transform: scale(var(--efuda-scale));
+  transform-origin: top left;
 }
 
 .efuda-grid {
@@ -556,11 +558,18 @@ button:active:not(:disabled) {
     gap: 0;
   }
 
+  /* 画面プレビュー用の縮小（.efuda-page-scalerのサイズ・.efuda-pageのtransform）を
+     印刷時は無効化し、A4実寸のまま出力する */
+  .efuda-page-scaler {
+    width: 210mm;
+    height: 297mm;
+    overflow: visible;
+  }
+
   .efuda-page {
     box-shadow: none;
     page-break-after: always;
-    /* 画面プレビュー用の縮小（zoom）を印刷時は無効化し、A4実寸のまま出力する */
-    zoom: 1;
+    transform: none;
   }
 
   .efuda-page:last-child {
