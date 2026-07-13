@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/bamiyanapp/karuta/compare/v1.20.8...v1.21.0) (2026-07-13)
+
+
+### Features
+
+* **frontend:** 絵札裏面のレベルバッジをコイン風デザインに変更する ([#427](https://github.com/bamiyanapp/karuta/issues/427)) ([a920774](https://github.com/bamiyanapp/karuta/commit/a9207742faea088aba936aa875db740dc6088f5d))
+
 ## [1.20.8](https://github.com/bamiyanapp/karuta/compare/v1.20.7...v1.20.8) (2026-07-13)
 
 
