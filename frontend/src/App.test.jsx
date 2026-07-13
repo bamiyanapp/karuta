@@ -1000,8 +1000,8 @@ describe('App', () => {
           ok: true,
           json: async () => ({
             categories: [
-              { name: 'Cat1', group: 'engineer', count: 150 },
-              { name: 'Cat2', group: 'engineer', count: 150 },
+              { name: 'Cat1', group: 'engineer', count: 75 },
+              { name: 'Cat2', group: 'engineer', count: 75 },
               { name: 'Cat3', group: 'engineer', count: 10 },
             ],
           }),
@@ -1022,14 +1022,14 @@ describe('App', () => {
       expect(screen.getByRole('button', { name: /Cat3/ })).toBeInTheDocument();
     });
 
-    // Cat1(150) + Cat2(150) = 300枚でちょうど上限。選択自体は許可される
+    // Cat1(75) + Cat2(75) = 150枚でちょうど上限。選択自体は許可される
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
     expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/選択中の合計: 300枚/)).toBeInTheDocument();
+    expect(screen.getByText(/選択中の合計: 150枚/)).toBeInTheDocument();
 
-    // これ以上追加すると上限(300枚)を超えるため、Cat3は選択不可になる
+    // これ以上追加すると上限(150枚)を超えるため、Cat3は選択不可になる
     const cat3Button = screen.getByRole('button', { name: /Cat3/ });
     expect(cat3Button).toBeDisabled();
     fireEvent.click(cat3Button);

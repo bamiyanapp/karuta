@@ -89,6 +89,11 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
             pdf.addPage();
           }
           pdf.addImage(imageData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+
+          // 大量ページ印刷時（issue #PDF出力エラー）にcanvasの描画バッファが
+          // 累積してメモリを圧迫しないよう、使い終えたcanvasは都度サイズを0にして明示的に解放する
+          canvas.width = 0;
+          canvas.height = 0;
         }
       } finally {
         pageElements.forEach((el) => {
