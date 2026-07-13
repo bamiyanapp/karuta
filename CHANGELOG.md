@@ -1,3 +1,10 @@
+## [1.22.6](https://github.com/bamiyanapp/karuta/compare/v1.22.5...v1.22.6) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 印刷ボタンで1ページ目しか印刷されない不具合と、PDF出力エラーの再発を修正する ([#447](https://github.com/bamiyanapp/karuta/issues/447)) ([6adc852](https://github.com/bamiyanapp/karuta/commit/6adc852978c7baee3a4c4ec830a1273c0e94820f)), closes [#442](https://github.com/bamiyanapp/karuta/issues/442) [#443](https://github.com/bamiyanapp/karuta/issues/443) [#442](https://github.com/bamiyanapp/karuta/issues/442) [#443](https://github.com/bamiyanapp/karuta/issues/443)
+
 ## [1.22.5](https://github.com/bamiyanapp/karuta/compare/v1.22.4...v1.22.5) (2026-07-13)
 
 
