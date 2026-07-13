@@ -849,7 +849,7 @@ describe('App', () => {
     expect(otherNoPrintDisplayDuringCapture).toBe('none');
   });
 
-  it('forces zoom to 1 on each .efuda-page while capturing, and restores it afterward (issue #392: PDF text rendering breaks when the on-screen preview is zoomed out on narrow viewports)', async () => {
+  it('disables the transform scale on each .efuda-page while capturing, and restores it afterward (issue #392/#421: PDF text rendering breaks when the on-screen preview is scaled down on narrow viewports)', async () => {
     const phrases = Array.from({ length: 1 }, (_, i) => ({
       id: `p${i}`,
       category: 'Cat1',
@@ -881,13 +881,14 @@ describe('App', () => {
       expect(document.querySelectorAll('.efuda-page').length).toBe(1);
     });
 
-    // 画面プレビュー用のzoom（狭い画面での縮小表示、issue #387）が既に適用されている状態を模す
+    // 画面プレビュー用のtransform: scale()（狭い画面での縮小表示、issue #387/#421）が
+    // 既に適用されている状態を模す
     const pageEl = document.querySelector('.efuda-page');
-    pageEl.style.zoom = '0.5';
+    pageEl.style.transform = 'scale(0.5)';
 
-    let zoomDuringCapture;
+    let transformDuringCapture;
     html2canvas.mockImplementationOnce(async (el) => {
-      zoomDuringCapture = el.style.zoom;
+      transformDuringCapture = el.style.transform;
       return { toDataURL: () => 'data:image/png;base64,dummy' };
     });
 
@@ -899,8 +900,8 @@ describe('App', () => {
       expect(html2canvas).toHaveBeenCalledTimes(1);
     });
 
-    expect(zoomDuringCapture).toBe('1');
-    expect(pageEl.style.zoom).toBe('');
+    expect(transformDuringCapture).toBe('none');
+    expect(pageEl.style.transform).toBe('');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {

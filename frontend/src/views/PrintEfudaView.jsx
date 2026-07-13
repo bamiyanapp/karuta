@@ -40,13 +40,12 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
       const pageElements = document.querySelectorAll(".efuda-print-area .efuda-page");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-      // .efuda-pageは狭い画面での画面プレビュー用にzoomで縮小表示している（issue #387）ことがある。
-      // html2canvasはzoomによる縮小後の外枠サイズは正しく捉える一方、内部のmm単位のフォントサイズは
-      // 縮小前のまま描画してしまい、文字が枠からはみ出して崩れる。そのためキャプチャ中だけ
-      // zoomを1に固定し、「印刷する」（window.print()、@media printでzoom:1）と同じ実寸で
+      // .efuda-pageは狭い画面での画面プレビュー用にtransform: scale()で縮小表示している
+      // （issue #387、#421）ことがある。キャプチャ中だけtransformを無効化し、
+      // 「印刷する」（window.print()、@media printでtransform: none）と同じ実寸で
       // 撮影されるようにする
       pageElements.forEach((el) => {
-        el.style.zoom = "1";
+        el.style.transform = "none";
       });
 
       try {
@@ -73,7 +72,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
         }
       } finally {
         pageElements.forEach((el) => {
-          el.style.zoom = "";
+          el.style.transform = "";
         });
       }
 
@@ -138,27 +137,29 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
 
           <div className="efuda-print-area">
             {efudaPages.map((page, pageIndex) => (
-              <div className="efuda-page" key={pageIndex}>
-                <div className="efuda-grid">
-                  {Array.from({ length: efudaPerPage }).map((_, slotIndex) => {
-                    const p = page.items[slotIndex];
-                    return (
-                      <div className="efuda-card" key={slotIndex}>
-                        {p && (printSide === "back" ? (
-                          <div className={`efuda-card-back ${getBackPatternClass(p)}`}>
-                            <div className="efuda-card-back-category">{p.category}</div>
-                            {p.level !== "-" && <div className="efuda-card-back-level">{p.level}</div>}
-                          </div>
-                        ) : (
-                          <>
-                            <p className="no-print small efuda-card-category">{p.category}</p>
-                            <div className="efuda-card-kana">{p.kana}</div>
-                            <div className="efuda-card-text">{getEfudaText(p)}</div>
-                          </>
-                        ))}
-                      </div>
-                    );
-                  })}
+              <div className="efuda-page-scaler" key={pageIndex}>
+                <div className="efuda-page">
+                  <div className="efuda-grid">
+                    {Array.from({ length: efudaPerPage }).map((_, slotIndex) => {
+                      const p = page.items[slotIndex];
+                      return (
+                        <div className="efuda-card" key={slotIndex}>
+                          {p && (printSide === "back" ? (
+                            <div className={`efuda-card-back ${getBackPatternClass(p)}`}>
+                              <div className="efuda-card-back-category">{p.category}</div>
+                              {p.level !== "-" && <div className="efuda-card-back-level">{p.level}</div>}
+                            </div>
+                          ) : (
+                            <>
+                              <p className="no-print small efuda-card-category">{p.category}</p>
+                              <div className="efuda-card-kana">{p.kana}</div>
+                              <div className="efuda-card-text">{getEfudaText(p)}</div>
+                            </>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
