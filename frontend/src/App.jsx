@@ -21,6 +21,11 @@ const PLAYERS_STORAGE_KEY = "players";
 const SCORES_STORAGE_KEY = "scoresByCategory";
 const MAX_PLAYERS = 6;
 
+// 絵札印刷時に選択できる合計読み札数の上限。html2canvasでのPDF生成はページ数に
+// 比例して時間・メモリを消費するため、選択中の種別の合計枚数がこれを超える分の
+// 種別選択自体をブロックし、PDF出力の失敗を未然に防ぐ（1ページ10枚 → 最大30ページ）
+const MAX_EFUDA_PRINT_CARDS = 300;
+
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
   if (sortOrder === "easy") {
@@ -130,6 +135,15 @@ function App() {
     if (division !== "kids" && division !== "engineer") return [];
     return categories.filter(cat => cat.group === division);
   }, [categories, division]);
+
+  // 印刷対象の合計枚数（PDF出力の上限バリデーション用）。countが未設定の
+  // カテゴリ（古いAPIレスポンス等）は0枚として扱い、上限チェックに影響させない
+  const draftCardCount = useMemo(() => {
+    return draftCategories.reduce((total, name) => {
+      const cat = categories.find(c => c.name === name);
+      return total + (cat?.count || 0);
+    }, 0);
+  }, [draftCategories, categories]);
 
   // 答えのデータがある（＝市販品でなくオリジナルの）かるたは所持確認が不要なため、
   // 選択中のかるたのうち実際に所持確認が必要なものだけを抽出する
@@ -962,9 +976,20 @@ function App() {
       setView("game");
       return;
     }
-    setDraftCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
+    setDraftCategories(prev => {
+      if (prev.includes(cat)) return prev.filter(c => c !== cat);
+      // 追加後の合計枚数が上限を超える場合は選択自体をブロックする
+      // （PDF出力が破綻しない範囲に選択可能な種別を制限するバリデーション）
+      const catInfo = categories.find(c => c.name === cat);
+      const currentCount = prev.reduce((total, name) => {
+        const info = categories.find(c => c.name === name);
+        return total + (info?.count || 0);
+      }, 0);
+      if (currentCount + (catInfo?.count || 0) > MAX_EFUDA_PRINT_CARDS) {
+        return prev;
+      }
+      return [...prev, cat];
+    });
   };
 
   const handleDecideClick = () => {
@@ -1115,20 +1140,33 @@ function App() {
             ) : categoriesForDivision.length === 0 ? (
               <div className="text-muted p-3">このかるたはまだありません。</div>
             ) : (
-              categoriesForDivision.map(cat => (
-                <button
-                  key={cat.name}
-                  onClick={() => toggleDraftCategory(cat.name)}
-                  className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${draftCategories.includes(cat.name) ? 'selected' : ''}`}
-                  aria-pressed={draftCategories.includes(cat.name)}
-                >
-                  {draftCategories.includes(cat.name) ? '✓ ' : ''}{cat.name}
-                </button>
-              ))
+              categoriesForDivision.map(cat => {
+                const isSelected = draftCategories.includes(cat.name);
+                // 選択済みの解除は常に可能。未選択のものだけ、追加すると上限を超える場合に無効化する
+                const wouldExceedCap = !isSelected && draftCardCount + (cat.count || 0) > MAX_EFUDA_PRINT_CARDS;
+                return (
+                  <button
+                    key={cat.name}
+                    onClick={() => toggleDraftCategory(cat.name)}
+                    disabled={wouldExceedCap}
+                    title={wouldExceedCap ? `印刷できる上限（${MAX_EFUDA_PRINT_CARDS}枚）を超えるため選択できません` : undefined}
+                    className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${isSelected ? 'selected' : ''}`}
+                    aria-pressed={isSelected}
+                  >
+                    {isSelected ? '✓ ' : ''}{cat.name}
+                  </button>
+                );
+              })
             )}
           </div>
           {division === "engineer" && categoriesForDivision.length > 0 && (
             <div className="text-center mt-4">
+              {draftCardCount > 0 && (
+                <p className="text-muted small mb-2">
+                  選択中の合計: {draftCardCount}枚 / 印刷可能な上限: {MAX_EFUDA_PRINT_CARDS}枚
+                  {draftCardCount >= MAX_EFUDA_PRINT_CARDS && "（上限に達しました）"}
+                </p>
+              )}
               <button
                 onClick={handleDecideClick}
                 disabled={draftCategories.length === 0}

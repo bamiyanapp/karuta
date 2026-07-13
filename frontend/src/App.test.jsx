@@ -753,6 +753,54 @@ describe('App', () => {
     expect(patternClassOf(backCardsAfterToggle[1])).toBe(firstCardPattern);
   });
 
+  it('assigns a different back-side pattern to each selected category when multiple categories are printed together (issue #柄の重複)', async () => {
+    const categoryNames = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5'];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: categoryNames.map((name) => ({ name, group: 'engineer' })) }) };
+      }
+      for (const name of categoryNames) {
+        if (url.includes(`category=${name}`)) {
+          return { ok: true, json: async () => ({ phrases: [{ id: `${name}-p0`, category: name, kana: 'あ', phrase: `${name}テキスト`, answer: '-' }] }) };
+        }
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      categoryNames.forEach((name) => {
+        expect(screen.getByRole('button', { name: new RegExp(name) })).toBeInTheDocument();
+      });
+    });
+
+    categoryNames.forEach((name) => {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }));
+    });
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => screen.getByText('Cat5テキスト'));
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+
+    const patternClassOf = (el) => [...el.classList].find((c) => c.startsWith('efuda-pattern-'));
+    const backCards = document.querySelectorAll('.efuda-card-back');
+    expect(backCards).toHaveLength(5);
+    const patterns = [...backCards].map(patternClassOf);
+
+    // 5種別以下なら柄の種類数(5)以内に収まるため、必ずすべて異なる柄になる
+    expect(new Set(patterns).size).toBe(5);
+  });
+
   it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
       id: `p${i}`,
@@ -943,6 +991,50 @@ describe('App', () => {
       expect(screen.getByText('Cat1テキスト')).toBeInTheDocument();
       expect(screen.getByText('Cat2テキスト')).toBeInTheDocument();
     });
+  });
+
+  it('blocks selecting a category that would push the total printable cards over the limit (issue #PDF出力エラー)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'Cat1', group: 'engineer', count: 150 },
+              { name: 'Cat2', group: 'engineer', count: 150 },
+              { name: 'Cat3', group: 'engineer', count: 10 },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat3/ })).toBeInTheDocument();
+    });
+
+    // Cat1(150) + Cat2(150) = 300枚でちょうど上限。選択自体は許可される
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/選択中の合計: 300枚/)).toBeInTheDocument();
+
+    // これ以上追加すると上限(300枚)を超えるため、Cat3は選択不可になる
+    const cat3Button = screen.getByRole('button', { name: /Cat3/ });
+    expect(cat3Button).toBeDisabled();
+    fireEvent.click(cat3Button);
+    expect(cat3Button).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText(/決定/)).toHaveTextContent('決定（2件選択中）');
   });
 
   it('fills a page across the category boundary instead of leaving trailing blanks', async () => {
