@@ -530,10 +530,12 @@ exports.getCategories = async (event) => {
         categoryMap.set(name, {
           group: item.group === "engineer" ? "engineer" : "kids",
           allHaveAnswer: hasAnswer,
+          count: 1,
         });
       } else {
         const info = categoryMap.get(name);
         info.allHaveAnswer = info.allHaveAnswer && hasAnswer;
+        info.count += 1;
       }
     });
 
@@ -541,9 +543,10 @@ exports.getCategories = async (event) => {
       name,
       group: info.group,
       requiresPossessionCheck: !info.allHaveAnswer,
+      count: info.count,
     }));
     if (categories.length === 0) {
-      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true }];
+      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0 }];
     }
 
     return {

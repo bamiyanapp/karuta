@@ -993,6 +993,50 @@ describe('App', () => {
     });
   });
 
+  it('blocks selecting a category that would push the total printable cards over the limit (issue #PDF出力エラー)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'Cat1', group: 'engineer', count: 150 },
+              { name: 'Cat2', group: 'engineer', count: 150 },
+              { name: 'Cat3', group: 'engineer', count: 10 },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat3/ })).toBeInTheDocument();
+    });
+
+    // Cat1(150) + Cat2(150) = 300枚でちょうど上限。選択自体は許可される
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+    expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/選択中の合計: 300枚/)).toBeInTheDocument();
+
+    // これ以上追加すると上限(300枚)を超えるため、Cat3は選択不可になる
+    const cat3Button = screen.getByRole('button', { name: /Cat3/ });
+    expect(cat3Button).toBeDisabled();
+    fireEvent.click(cat3Button);
+    expect(cat3Button).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText(/決定/)).toHaveTextContent('決定（2件選択中）');
+  });
+
   it('fills a page across the category boundary instead of leaving trailing blanks', async () => {
     const cat1Phrases = Array.from({ length: 7 }, (_, i) => ({
       id: `a${i}`,
