@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/bamiyanapp/karuta/compare/v1.21.0...v1.22.0) (2026-07-13)
+
+
+### Features
+
+* **frontend:** 絵札裏面のレベルバッジを🏅絵文字＋オーバーラップ数値表示に変更する ([#429](https://github.com/bamiyanapp/karuta/issues/429)) ([4bbfaa1](https://github.com/bamiyanapp/karuta/commit/4bbfaa11bfc1159d51f41baad5b0e4ffea484970))
+
 # [1.21.0](https://github.com/bamiyanapp/karuta/compare/v1.20.8...v1.21.0) (2026-07-13)
 
 

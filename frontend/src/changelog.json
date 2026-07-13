@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.22.0",
+    "date": "2026/07/04 03:08",
+    "body": "### Features\n\n* **frontend:** 絵札裏面のレベルバッジを🏅絵文字＋オーバーラップ数値表示に変更する ([#429](https://github.com/bamiyanapp/karuta/issues/429)) ([4bbfaa1](https://github.com/bamiyanapp/karuta/commit/4bbfaa11bfc1159d51f41baad5b0e4ffea484970))"
+  },
+  {
     "version": "1.21.0",
-    "date": "2026/07/04 03:02",
+    "date": "2026/07/13 12:00",
     "body": "### Features\n\n* **frontend:** 絵札裏面のレベルバッジをコイン風デザインに変更する ([#427](https://github.com/bamiyanapp/karuta/issues/427)) ([a920774](https://github.com/bamiyanapp/karuta/commit/a9207742faea088aba936aa875db740dc6088f5d))"
   },
   {
@@ -196,7 +201,7 @@
   },
   {
     "version": "1.21.0",
-    "date": "2026/07/04 03:02",
+    "date": "2026/07/13 12:00",
     "body": "### Features\n\n* **category:** こども向け選択をワンタップで読み上げ画面へ遷移 ([#237](https://github.com/bamiyanapp/karuta/issues/237)) ([be53413](https://github.com/bamiyanapp/karuta/commit/be53413d91d9054c75080441611d95f19fae2dfa))"
   },
   {
