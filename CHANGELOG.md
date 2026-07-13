@@ -1,3 +1,10 @@
+## [1.22.7](https://github.com/bamiyanapp/karuta/compare/v1.22.6...v1.22.7) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** スマートフォンでは絵札の印刷ボタンを表示しないようにする ([#449](https://github.com/bamiyanapp/karuta/issues/449)) ([2c3dbc3](https://github.com/bamiyanapp/karuta/commit/2c3dbc36dc1a49a4bed88102afda348dec84b54f))
+
 ## [1.22.6](https://github.com/bamiyanapp/karuta/compare/v1.22.5...v1.22.6) (2026-07-13)
 
 
