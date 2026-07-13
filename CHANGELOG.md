@@ -1,3 +1,10 @@
+## [1.20.6](https://github.com/bamiyanapp/karuta/compare/v1.20.5...v1.20.6) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** ゲーム画面の読み札で、かな丸・レベル表示の文字サイズも画面幅に応じて縮小する ([#419](https://github.com/bamiyanapp/karuta/issues/419)) ([7f02a58](https://github.com/bamiyanapp/karuta/commit/7f02a58849a4b75da32ddef1307ba98c4959f5be))
+
 ## [1.20.5](https://github.com/bamiyanapp/karuta/compare/v1.20.4...v1.20.5) (2026-07-13)
 
 

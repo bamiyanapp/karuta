@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.20.5",
+    "version": "1.20.6",
     "date": "2026/07/13",
+    "body": "### Bug Fixes\n\n* **frontend:** ゲーム画面の読み札で、かな丸・レベル表示の文字サイズも画面幅に応じて縮小する ([#419](https://github.com/bamiyanapp/karuta/issues/419)) ([7f02a58](https://github.com/bamiyanapp/karuta/commit/7f02a58849a4b75da32ddef1307ba98c4959f5be))"
+  },
+  {
+    "version": "1.20.5",
+    "date": "2026/07/13 00:13",
     "body": "### Bug Fixes\n\n* **frontend:** スマートフォンでの文字自動拡大を無効化する ([#416](https://github.com/bamiyanapp/karuta/issues/416)) ([2bb24c7](https://github.com/bamiyanapp/karuta/commit/2bb24c785d7ad3d319cfebf91cbb240cb9c9b74b))"
   },
   {
