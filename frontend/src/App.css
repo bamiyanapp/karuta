@@ -326,6 +326,16 @@ button:active:not(:disabled) {
   gap: 24px;
 }
 
+/* スマートフォン（タッチ操作かつ画面幅が狭い端末）はOS標準の印刷ダイアログで
+   余白をなしに設定できないことが多く、A4実寸で作った絵札のレイアウトが崩れる。
+   この端末では「印刷する」ボタン（window.print()）を出さず、余白を持たない
+   PDFファイルとして生成できる「PDFをダウンロード」の利用に誘導する */
+@media (max-width: 600px) and (pointer: coarse) {
+  .efuda-print-button {
+    display: none;
+  }
+}
+
 /* .efuda-pageは常にA4実寸（210mm×297mm）のまま保ち、画面プレビューでの縮小は
    .efuda-page-scaler（幅・高さを縮小率ぶん縮めた実要素）× transform: scaleの
    組み合わせで行う。zoomプロパティは、ボックスのレイアウトサイズは縮小される一方、
