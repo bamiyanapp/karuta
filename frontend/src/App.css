@@ -405,7 +405,15 @@ button:active:not(:disabled) {
   font-size: 30.24px; /* 8mm */
   text-align: center;
   line-height: 1.3;
-  word-break: break-word;
+  /* word-break: break-wordは日本語の文字間どこでも改行しうるため、
+     「とけてきた」のような一続きの単語の途中で折り返され読みにくくなっていた。
+     keep-allで単語（スペース区切りの塊）の途中では改行しないようにしつつ、
+     overflow-wrap: anywhereを保険にして、スペースのない1語（英単語等）が
+     枠に収まらない場合のみ強制的に折り返すようにする（overflow-wrap:
+     break-wordはkeep-allと組み合わせると強制折り返しが効かず、枠から
+     はみ出すことを確認したため、より確実なanywhereを使う） */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   /* カードは常に白背景の紙面を模すため、ダークモードのbody文字色（薄灰色）を継承させず黒固定にする */
   color: #000;
 }
