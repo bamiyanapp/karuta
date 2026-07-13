@@ -1,3 +1,10 @@
+## [1.22.4](https://github.com/bamiyanapp/karuta/compare/v1.22.3...v1.22.4) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 複数種別選択時に絵札裏面の柄が重複しないようにする ([#437](https://github.com/bamiyanapp/karuta/issues/437)) ([687636b](https://github.com/bamiyanapp/karuta/commit/687636b60b378d5b7753fa7b818116cfb2ef183a))
+
 ## [1.22.3](https://github.com/bamiyanapp/karuta/compare/v1.22.2...v1.22.3) (2026-07-13)
 
 
