@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/bamiyanapp/karuta/compare/v1.22.1...v1.22.2) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札裏面のレベル数値をさらに下へ・フォントを大きくする ([#433](https://github.com/bamiyanapp/karuta/issues/433)) ([c3f0764](https://github.com/bamiyanapp/karuta/commit/c3f07646486cd081a6dae2444559c9128075f904))
+
 ## [1.22.1](https://github.com/bamiyanapp/karuta/compare/v1.22.0...v1.22.1) (2026-07-13)
 
 

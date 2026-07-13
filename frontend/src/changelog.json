@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.22.1",
+    "version": "1.22.2",
     "date": "2026/07/13",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札裏面のレベル数値をさらに下へ・フォントを大きくする ([#433](https://github.com/bamiyanapp/karuta/issues/433)) ([c3f0764](https://github.com/bamiyanapp/karuta/commit/c3f07646486cd081a6dae2444559c9128075f904))"
+  },
+  {
+    "version": "1.22.1",
+    "date": "2026/07/13 12:38",
     "body": "### Bug Fixes\n\n* **frontend:** 絵札裏面のレベル数値をメダルの円中央寄りに大きく表示する ([#431](https://github.com/bamiyanapp/karuta/issues/431)) ([3e993b0](https://github.com/bamiyanapp/karuta/commit/3e993b0450a47afe902313d5ac1e8babf088142c))"
   },
   {
