@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/bamiyanapp/karuta/compare/v1.22.0...v1.22.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札裏面のレベル数値をメダルの円中央寄りに大きく表示する ([#431](https://github.com/bamiyanapp/karuta/issues/431)) ([3e993b0](https://github.com/bamiyanapp/karuta/commit/3e993b0450a47afe902313d5ac1e8babf088142c))
+
 # [1.22.0](https://github.com/bamiyanapp/karuta/compare/v1.21.0...v1.22.0) (2026-07-13)
 
 
