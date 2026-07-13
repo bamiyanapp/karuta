@@ -753,6 +753,54 @@ describe('App', () => {
     expect(patternClassOf(backCardsAfterToggle[1])).toBe(firstCardPattern);
   });
 
+  it('assigns a different back-side pattern to each selected category when multiple categories are printed together (issue #柄の重複)', async () => {
+    const categoryNames = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5'];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: categoryNames.map((name) => ({ name, group: 'engineer' })) }) };
+      }
+      for (const name of categoryNames) {
+        if (url.includes(`category=${name}`)) {
+          return { ok: true, json: async () => ({ phrases: [{ id: `${name}-p0`, category: name, kana: 'あ', phrase: `${name}テキスト`, answer: '-' }] }) };
+        }
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      categoryNames.forEach((name) => {
+        expect(screen.getByRole('button', { name: new RegExp(name) })).toBeInTheDocument();
+      });
+    });
+
+    categoryNames.forEach((name) => {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }));
+    });
+    fireEvent.click(screen.getByText(/決定/));
+    fireEvent.click(screen.getByText('はい'));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => screen.getByText('Cat5テキスト'));
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+
+    const patternClassOf = (el) => [...el.classList].find((c) => c.startsWith('efuda-pattern-'));
+    const backCards = document.querySelectorAll('.efuda-card-back');
+    expect(backCards).toHaveLength(5);
+    const patterns = [...backCards].map(patternClassOf);
+
+    // 5種別以下なら柄の種類数(5)以内に収まるため、必ずすべて異なる柄になる
+    expect(new Set(patterns).size).toBe(5);
+  });
+
   it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
     const phrases = Array.from({ length: 11 }, (_, i) => ({
       id: `p${i}`,
