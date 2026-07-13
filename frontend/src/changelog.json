@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.20.6",
+    "version": "1.20.7",
     "date": "2026/07/13",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札印刷画面の文字サイズをpx指定にし、画面プレビューの縮小に確実に追従させる ([#421](https://github.com/bamiyanapp/karuta/issues/421)) ([8ac7b69](https://github.com/bamiyanapp/karuta/commit/8ac7b69619c4f47b1f74fce7ebb0aff84e74e90c))"
+  },
+  {
+    "version": "1.20.6",
+    "date": "2026/07/13 09:55",
     "body": "### Bug Fixes\n\n* **frontend:** ゲーム画面の読み札で、かな丸・レベル表示の文字サイズも画面幅に応じて縮小する ([#419](https://github.com/bamiyanapp/karuta/issues/419)) ([7f02a58](https://github.com/bamiyanapp/karuta/commit/7f02a58849a4b75da32ddef1307ba98c4959f5be))"
   },
   {

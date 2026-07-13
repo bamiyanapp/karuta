@@ -1,3 +1,10 @@
+## [1.20.7](https://github.com/bamiyanapp/karuta/compare/v1.20.6...v1.20.7) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札印刷画面の文字サイズをpx指定にし、画面プレビューの縮小に確実に追従させる ([#421](https://github.com/bamiyanapp/karuta/issues/421)) ([8ac7b69](https://github.com/bamiyanapp/karuta/commit/8ac7b69619c4f47b1f74fce7ebb0aff84e74e90c))
+
 ## [1.20.6](https://github.com/bamiyanapp/karuta/compare/v1.20.5...v1.20.6) (2026-07-13)
 
 
