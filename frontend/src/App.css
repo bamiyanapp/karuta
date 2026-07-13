@@ -507,12 +507,12 @@ button:active:not(:disabled) {
 
 .efuda-card-back-level-number {
   position: absolute;
-  top: 70%;
+  top: 75%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: bold;
   /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
-  font-size: 21px;
+  font-size: 23px;
   line-height: 1.1;
   text-align: center;
   color: #fff;
