@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.22.2",
+    "version": "1.22.3",
     "date": "2026/07/13",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札表面の読み札テキストが単語の途中で改行されるのを防ぐ ([#435](https://github.com/bamiyanapp/karuta/issues/435)) ([59894cd](https://github.com/bamiyanapp/karuta/commit/59894cdd143a0575d6ca94682aa7d1c5ae36bd8d))"
+  },
+  {
+    "version": "1.22.2",
+    "date": "2026/07/13 12:47",
     "body": "### Bug Fixes\n\n* **frontend:** 絵札裏面のレベル数値をさらに下へ・フォントを大きくする ([#433](https://github.com/bamiyanapp/karuta/issues/433)) ([c3f0764](https://github.com/bamiyanapp/karuta/commit/c3f07646486cd081a6dae2444559c9128075f904))"
   },
   {
