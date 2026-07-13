@@ -1,3 +1,10 @@
+## [1.20.5](https://github.com/bamiyanapp/karuta/compare/v1.20.4...v1.20.5) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** スマートフォンでの文字自動拡大を無効化する ([#416](https://github.com/bamiyanapp/karuta/issues/416)) ([2bb24c7](https://github.com/bamiyanapp/karuta/commit/2bb24c785d7ad3d319cfebf91cbb240cb9c9b74b))
+
 ## [1.20.4](https://github.com/bamiyanapp/karuta/compare/v1.20.3...v1.20.4) (2026-07-12)
 
 
