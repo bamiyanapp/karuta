@@ -1,3 +1,10 @@
+## [1.22.3](https://github.com/bamiyanapp/karuta/compare/v1.22.2...v1.22.3) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札表面の読み札テキストが単語の途中で改行されるのを防ぐ ([#435](https://github.com/bamiyanapp/karuta/issues/435)) ([59894cd](https://github.com/bamiyanapp/karuta/commit/59894cdd143a0575d6ca94682aa7d1c5ae36bd8d))
+
 ## [1.22.2](https://github.com/bamiyanapp/karuta/compare/v1.22.1...v1.22.2) (2026-07-13)
 
 
