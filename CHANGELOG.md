@@ -1,3 +1,10 @@
+## [1.20.8](https://github.com/bamiyanapp/karuta/compare/v1.20.7...v1.20.8) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札印刷画面の画面プレビュー縮小をzoomからtransform: scale()方式に変更する ([#423](https://github.com/bamiyanapp/karuta/issues/423)) ([e65a373](https://github.com/bamiyanapp/karuta/commit/e65a37348f9c69bc3ff86e7b3409d837568dc4ec)), closes [#414](https://github.com/bamiyanapp/karuta/issues/414) [#416](https://github.com/bamiyanapp/karuta/issues/416)
+
 ## [1.20.7](https://github.com/bamiyanapp/karuta/compare/v1.20.6...v1.20.7) (2026-07-13)
 
 
