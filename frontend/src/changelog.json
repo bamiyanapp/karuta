@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.22.8",
+    "version": "1.22.9",
     "date": "2026/07/14",
+    "body": "### Bug Fixes\n\n* **frontend:** 両面印刷時に裏面が表面と左右反転した位置になるようにする ([#455](https://github.com/bamiyanapp/karuta/issues/455)) ([2440366](https://github.com/bamiyanapp/karuta/commit/2440366e1e65081f2c58d2fefaa4b79be493fbd8))"
+  },
+  {
+    "version": "1.22.8",
+    "date": "2026/07/14 09:29",
     "body": "### Bug Fixes\n\n* **frontend:** 絵札の種別カラーを表裏・枠線を含めて統一する ([#453](https://github.com/bamiyanapp/karuta/issues/453)) ([7053828](https://github.com/bamiyanapp/karuta/commit/7053828dc257ca00c73366613ccea6d47ebcecbe)), closes [#e44d26](https://github.com/bamiyanapp/karuta/issues/e44d26)"
   },
   {
