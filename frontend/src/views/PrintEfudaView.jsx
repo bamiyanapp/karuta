@@ -17,6 +17,9 @@ const getPreferredPatternIndex = (category) => {
 
 // 今回印刷対象になっている種別一覧に対し、柄が重複しないよう1つずつ割り当てる
 // （種別数が5以下なら必ず異なる柄になる。6種別以上は柄の種類数を超えるため一部重複する）
+// マップの値は柄の名前（"fundou"等）そのもの。表面・裏面どちらでも同じ名前から
+// efuda-color-*（枠線・かな circle等の色）とefuda-pattern-*（裏面の柄背景）の
+// 両方のクラス名を導出することで、表裏で同じ色になるようにしている
 const buildBackPatternMap = (categories) => {
   const uniqueCategories = [...new Set(categories)].sort();
   const usedIndices = new Set();
@@ -27,7 +30,7 @@ const buildBackPatternMap = (categories) => {
       index = (index + 1) % BACK_PATTERNS.length;
     }
     usedIndices.add(index);
-    map.set(category, `efuda-pattern-${BACK_PATTERNS[index]}`);
+    map.set(category, BACK_PATTERNS[index]);
   }
   return map;
 };
@@ -167,10 +170,11 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                   <div className="efuda-grid">
                     {Array.from({ length: efudaPerPage }).map((_, slotIndex) => {
                       const p = page.items[slotIndex];
+                      const patternName = p && backPatternMap.get(p.category);
                       return (
-                        <div className="efuda-card" key={slotIndex}>
+                        <div className={`efuda-card ${patternName ? `efuda-color-${patternName}` : ""}`} key={slotIndex}>
                           {p && (printSide === "back" ? (
-                            <div className={`efuda-card-back ${backPatternMap.get(p.category)}`}>
+                            <div className={`efuda-card-back efuda-pattern-${patternName}`}>
                               <div className="efuda-card-back-category">{p.category}</div>
                               {p.level !== "-" && (
                                 <div className="efuda-card-back-level">

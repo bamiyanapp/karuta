@@ -753,6 +753,44 @@ describe('App', () => {
     expect(patternClassOf(backCardsAfterToggle[1])).toBe(firstCardPattern);
   });
 
+  it('uses the same color (including the border) for a category on both the front and back sides (表裏の色統一)', async () => {
+    const phrases = [
+      { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' },
+    ];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    // 表面：外枠(.efuda-card)にefuda-color-*が付き、裏面の柄名と対応した色クラスになっている
+    await waitFor(() => screen.getByText('読み札テキスト0'));
+    const colorClassOf = (el) => [...el.classList].find((c) => c.startsWith('efuda-color-'));
+    const frontCard = document.querySelector('.efuda-card');
+    const frontColorClass = colorClassOf(frontCard);
+    expect(frontColorClass).toMatch(/^efuda-color-(fundou|shippo|kikkou|seigaiha|tatewaku)$/);
+
+    // 裏面：同じ.efuda-card要素の柄名（efuda-pattern-*）が、表面のefuda-color-*と同じ名前を指す
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+    const backCard = document.querySelector('.efuda-card');
+    const patternName = [...backCard.querySelector('.efuda-card-back').classList]
+      .find((c) => c.startsWith('efuda-pattern-'))
+      .replace('efuda-pattern-', '');
+    expect(colorClassOf(backCard)).toBe(`efuda-color-${patternName}`);
+    expect(frontColorClass).toBe(`efuda-color-${patternName}`);
+  });
+
   it('assigns a different back-side pattern to each selected category when multiple categories are printed together (issue #柄の重複)', async () => {
     const categoryNames = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5'];
 
