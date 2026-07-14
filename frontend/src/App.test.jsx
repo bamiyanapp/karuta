@@ -698,16 +698,52 @@ describe('App', () => {
     // 裏面では表面の内容（読み札・回答）が消え、種別とレベルが中央に表示される
     expect(screen.queryByText('読み札テキスト0')).not.toBeInTheDocument();
     expect(screen.queryByText('回答1')).not.toBeInTheDocument();
+    // 両面印刷（用紙を裏返してセットする運用）に合わせ、裏面は行内で左右が入れ替わって
+    // 描画される（表面で1枚目=左, 2枚目=右 だったものが、裏面では1枚目=右, 2枚目=左になる）
     const backCards = document.querySelectorAll('.efuda-card-back');
     expect(backCards).toHaveLength(2);
     expect(backCards[0].querySelector('.efuda-card-back-category')).toHaveTextContent('Cat1');
-    expect(backCards[0].querySelector('.efuda-card-back-level')).toHaveTextContent('3');
-    // レベル未設定（"-"）のカードには数字を表示しない
-    expect(backCards[1].querySelector('.efuda-card-back-level')).not.toBeInTheDocument();
+    // レベル未設定（"-"）のカードには数字を表示しない（左右入れ替わり、1枚目の位置に2枚目のデータが来る）
+    expect(backCards[0].querySelector('.efuda-card-back-level')).not.toBeInTheDocument();
+    expect(backCards[1].querySelector('.efuda-card-back-level')).toHaveTextContent('3');
 
     fireEvent.click(screen.getByRole('button', { name: '表面' }));
     expect(screen.getByText('読み札テキスト0')).toBeInTheDocument();
     expect(document.querySelector('.efuda-card-back')).not.toBeInTheDocument();
+  });
+
+  it('mirrors each row left-right on the back side so it lines up after flipping the sheet for double-sided printing (両面印刷時の裏面位置ずれ)', async () => {
+    const phrases = Array.from({ length: 10 }, (_, i) => ({
+      id: `p${i}`, category: 'Cat1', kana: 'あ', phrase: `読み札${i}`, answer: '-', level: String(i),
+    }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    // 表面はグリッドの並び順どおり（2列×5行）: 読み札0, 読み札1, 読み札2, ...
+    await waitFor(() => screen.getByText('読み札0'));
+    const frontTexts = [...document.querySelectorAll('.efuda-card-text')].map((el) => el.textContent);
+    expect(frontTexts).toEqual(['読み札0', '読み札1', '読み札2', '読み札3', '読み札4', '読み札5', '読み札6', '読み札7', '読み札8', '読み札9']);
+
+    fireEvent.click(screen.getByRole('button', { name: '裏面' }));
+
+    // 用紙を裏返してセットする運用に合わせ、裏面は行ごとに左右が入れ替わって描画される。
+    // 表面で1枚目(左)・2枚目(右)だった行は、裏面では2枚目(左)・1枚目(右)になる
+    const backLevels = [...document.querySelectorAll('.efuda-card-back-level-number')].map((el) => el.textContent);
+    expect(backLevels).toEqual(['1', '0', '3', '2', '5', '4', '7', '6', '9', '8']);
   });
 
   it('assigns one of the 5 back-side decorative patterns per category, consistently across cards of the same category and re-renders (裏面の和柄装飾)', async () => {
@@ -781,10 +817,14 @@ describe('App', () => {
     const frontColorClass = colorClassOf(frontCard);
     expect(frontColorClass).toMatch(/^efuda-color-(fundou|shippo|kikkou|seigaiha|tatewaku)$/);
 
-    // 裏面：同じ.efuda-card要素の柄名（efuda-pattern-*）が、表面のefuda-color-*と同じ名前を指す
+    // 裏面：同じ.efuda-card要素の柄名（efuda-pattern-*）が、表面のefuda-color-*と同じ名前を指す。
+    // 裏面は両面印刷の運用（用紙を裏返してセット）に合わせて行内で左右が入れ替わって描画される
+    // ため、1枚しかない場合は表面で1枚目（左）だった内容が裏面では2枚目（右）の位置に来る。
+    // そのため.efuda-card-back（実際に内容が入っている方）から辿って対応する外枠要素を取得する
     fireEvent.click(screen.getByRole('button', { name: '裏面' }));
-    const backCard = document.querySelector('.efuda-card');
-    const patternName = [...backCard.querySelector('.efuda-card-back').classList]
+    const backCardBack = document.querySelector('.efuda-card-back');
+    const backCard = backCardBack.parentElement;
+    const patternName = [...backCardBack.classList]
       .find((c) => c.startsWith('efuda-pattern-'))
       .replace('efuda-pattern-', '');
     expect(colorClassOf(backCard)).toBe(`efuda-color-${patternName}`);
