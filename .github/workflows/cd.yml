@@ -62,7 +62,7 @@ jobs:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'npm'
