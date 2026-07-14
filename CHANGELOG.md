@@ -1,3 +1,10 @@
+## [1.22.8](https://github.com/bamiyanapp/karuta/compare/v1.22.7...v1.22.8) (2026-07-14)
+
+
+### Bug Fixes
+
+* **frontend:** 絵札の種別カラーを表裏・枠線を含めて統一する ([#453](https://github.com/bamiyanapp/karuta/issues/453)) ([7053828](https://github.com/bamiyanapp/karuta/commit/7053828dc257ca00c73366613ccea6d47ebcecbe)), closes [#e44d26](https://github.com/bamiyanapp/karuta/issues/e44d26)
+
 ## [1.22.7](https://github.com/bamiyanapp/karuta/compare/v1.22.6...v1.22.7) (2026-07-13)
 
 
