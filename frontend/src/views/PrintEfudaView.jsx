@@ -39,6 +39,23 @@ const buildBackPatternMap = (categories) => {
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 
+// .efuda-gridの列数（App.cssのgrid-template-columns: 91mm 91mmと一致させる）
+const EFUDA_GRID_COLUMNS = 2;
+
+// 両面印刷は「表面を印刷した用紙をそのまま裏返してセットし、裏面を印刷する」運用
+// （縦の中心線を軸に用紙を裏返す）を想定している。そのため、用紙上の同じ物理的な
+// マス目に表面・裏面が重なるようにするには、裏面では各行内の列の並びを左右反転
+// させる必要がある（表面で左列にあった札は、用紙を裏返すと右列の位置に来るため）。
+// slotIndexは常に「用紙上の物理的なマス目」を表し、printSideが"back"のときだけ、
+// そのマス目に対応する表面側の元のインデックス（=読み札データの取り出し位置）を
+// 行内で左右反転させて求める
+const resolvePhraseIndex = (slotIndex, printSide) => {
+  if (printSide !== "back") return slotIndex;
+  const row = Math.floor(slotIndex / EFUDA_GRID_COLUMNS);
+  const col = slotIndex % EFUDA_GRID_COLUMNS;
+  return row * EFUDA_GRID_COLUMNS + (EFUDA_GRID_COLUMNS - 1 - col);
+};
+
 function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   // 表面（読み札の内容）と裏面（種別・レベル）は用紙を裏返して2回に分けて印刷する運用を想定し、
@@ -169,7 +186,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
                 <div className="efuda-page">
                   <div className="efuda-grid">
                     {Array.from({ length: efudaPerPage }).map((_, slotIndex) => {
-                      const p = page.items[slotIndex];
+                      const p = page.items[resolvePhraseIndex(slotIndex, printSide)];
                       const patternName = p && backPatternMap.get(p.category);
                       return (
                         <div className={`efuda-card ${patternName ? `efuda-color-${patternName}` : ""}`} key={slotIndex}>
