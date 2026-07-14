@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/bamiyanapp/karuta/compare/v1.22.9...v1.23.0) (2026-07-14)
+
+
+### Features
+
+* 絵札PDF生成をバックエンド（ヘッドレスChromium）に移行する ([#458](https://github.com/bamiyanapp/karuta/issues/458)) ([7e5fa4e](https://github.com/bamiyanapp/karuta/commit/7e5fa4e47efd30a207353996ade74e0ac9c60889))
+
 ## [1.22.9](https://github.com/bamiyanapp/karuta/compare/v1.22.8...v1.22.9) (2026-07-14)
 
 
