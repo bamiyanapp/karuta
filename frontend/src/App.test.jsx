@@ -1,25 +1,6 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-
-// PDFダウンロード機能（issue #199）のテスト用。html2canvas/jsPDFはjsdom環境で
-// 実際のcanvas描画・PDFバイナリ生成をサポートしないため、呼び出しの発生と引数のみを検証する
-vi.mock('html2canvas', () => ({
-  default: vi.fn().mockResolvedValue({ toDataURL: () => 'data:image/png;base64,dummy' }),
-}));
-vi.mock('jspdf', () => ({
-  // アプリ側は `new jsPDF(...)` で呼び出すため、vitest v4ではアロー関数を
-  // モック実装に使えない（アロー関数は元々コンストラクタ不可というJS仕様どおりの挙動）
-  default: vi.fn().mockImplementation(function () {
-    return {
-      addPage: vi.fn(),
-      addImage: vi.fn(),
-      save: vi.fn(),
-    };
-  }),
-}));
 
 window.alert = vi.fn();
 
@@ -879,18 +860,24 @@ describe('App', () => {
     expect(new Set(patterns).size).toBe(5);
   });
 
-  it('downloads a PDF of the printed efuda pages, hiding no-print elements in the capture (issue #199)', async () => {
-    const phrases = Array.from({ length: 11 }, (_, i) => ({
-      id: `p${i}`,
-      category: 'Cat1',
-      kana: 'あ',
-      phrase: `読み札テキスト${i}`,
-      answer: `回答${i}`,
-    }));
+  it('starts PDF generation on the backend, polls until done, and navigates to the resulting download URL (バックエンドPDF生成)', async () => {
+    const phrases = [{ id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-' }];
+    let statusCallCount = 0;
+    let generateRequestBody = null;
 
-    fetch.mockImplementation(async (url) => {
+    fetch.mockImplementation(async (url, options) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      if (url.includes('/generate-efuda-pdf-status')) {
+        statusCallCount += 1;
+        // 1回目はまだ生成中、2回目で完了を返す（ポーリングが継続することを検証する）
+        if (statusCallCount < 2) return { ok: true, json: async () => ({ status: 'IN_PROGRESS' }) };
+        return { ok: true, json: async () => ({ status: 'DONE', url: 'https://example.com/signed-download.pdf' }) };
+      }
+      if (url.includes('/generate-efuda-pdf')) {
+        generateRequestBody = JSON.parse(options.body);
+        return { ok: true, json: async () => ({ jobId: 'job-1' }) };
+      }
       return { ok: false };
     });
 
@@ -904,34 +891,101 @@ describe('App', () => {
     await waitFor(() => screen.getByText('絵札を印刷する'));
     fireEvent.click(screen.getByText('絵札を印刷する'));
 
-    await waitFor(() => {
-      // 11枚 → 10面/ページなので2ページ生成される
-      expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+    await waitFor(() => screen.getByText('読み札テキスト0'));
+
+    // window.location.hrefへの代入はjsdomでは実際のナビゲーションとして
+    // 反映されない（"Not implemented: navigation"となり値が更新されない）ため、
+    // window.locationを一時的に差し替えて代入先を検証する。他のテストに影響が
+    // 残らないよう、必ず元のオブジェクトに戻す
+    const originalLocation = window.location;
+    delete window.location;
+    window.location = { href: originalLocation.href };
+    try {
+      fireEvent.click(screen.getByText('PDFをダウンロード'));
+
+      await waitFor(() => {
+        expect(generateRequestBody).toEqual({ categoryParam: 'Cat1', side: 'front' });
+      });
+      await waitFor(() => {
+        expect(screen.getByText('PDF生成中...')).toBeInTheDocument();
+      });
+
+      // ポーリング間隔(3秒)を挟んで2回目の問い合わせで完了するまで待つ
+      await waitFor(
+        () => {
+          expect(window.location.href).toBe('https://example.com/signed-download.pdf');
+        },
+        { timeout: 10000 }
+      );
+      expect(statusCallCount).toBeGreaterThanOrEqual(2);
+    } finally {
+      delete window.location;
+      window.location = originalLocation;
+    }
+  }, 15000);
+
+  it('shows an alert when the backend PDF generation job fails (バックエンドPDF生成の失敗)', async () => {
+    const phrases = [{ id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-' }];
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      if (url.includes('/generate-efuda-pdf-status')) {
+        return { ok: true, json: async () => ({ status: 'FAILED', message: '生成に失敗しました' }) };
+      }
+      if (url.includes('/generate-efuda-pdf')) {
+        return { ok: true, json: async () => ({ jobId: 'job-1' }) };
+      }
+      return { ok: false };
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('PDFをダウンロード'));
+      render(<App />);
     });
 
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => screen.getByText('読み札テキスト0'));
+
+    fireEvent.click(screen.getByText('PDFをダウンロード'));
+
+    await waitFor(
+      () => {
+        expect(window.alert).toHaveBeenCalledWith('PDFの生成に失敗しました。');
+      },
+      { timeout: 10000 }
+    );
+  }, 15000);
+
+  it('initializes printSide from the ?side URL query param, for headless server-side rendering (renderEfudaPdfWorkerのディープリンク対応)', async () => {
+    window.history.pushState({}, '', '/?view=print-efuda&category=Cat1&side=back');
+
+    const phrases = [{ id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' }];
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    // 表面のクリック操作を経由せず、初回描画から裏面（種別・レベル）が表示される
     await waitFor(() => {
-      expect(html2canvas).toHaveBeenCalledTimes(2);
+      expect(document.querySelector('.efuda-card-back')).toBeInTheDocument();
     });
-
-    // no-printの要素（画面上は表示されているカテゴリラベル等）を撮影対象から隠す指定になっている
-    const captureOptions = html2canvas.mock.calls[0][1];
-    expect(typeof captureOptions.onclone).toBe('function');
-
-    const jsPdfInstance = jsPDF.mock.results[0].value;
-    expect(jsPdfInstance.addPage).toHaveBeenCalledTimes(1); // 2ページ目の追加分のみ
-    expect(jsPdfInstance.addImage).toHaveBeenCalledTimes(2);
-    expect(jsPdfInstance.save).toHaveBeenCalledWith('Cat1_絵札_表面.pdf');
+    expect(screen.getByRole('button', { name: '裏面' })).toHaveClass('active');
   });
 
-  it('keeps the front-side category label visible in the PDF capture while still hiding other no-print elements (かるた種別がPDFに表示されない不具合の修正)', async () => {
-    const phrases = [
-      { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '回答0' },
-    ];
+  it('adds the efuda-pdf-export class when ?pdfExport=1 is present, for server-side PDF capture (efuda-card-categoryをPDFにのみ表示するためのマーカー)', async () => {
+    window.history.pushState({}, '', '/?view=print-efuda&category=Cat1&pdfExport=1');
 
+    const phrases = [{ id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-' }];
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
@@ -942,92 +996,8 @@ describe('App', () => {
       render(<App />);
     });
 
-    fireEvent.click(await screen.findByText('こども向け'));
-    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-
-    await waitFor(() => screen.getByText('絵札を印刷する'));
-    fireEvent.click(screen.getByText('絵札を印刷する'));
-
-    await waitFor(() => {
-      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
-    });
-
-    let categoryDisplayDuringCapture;
-    let otherNoPrintDisplayDuringCapture;
-    html2canvas.mockImplementationOnce(async (el, options) => {
-      // 実装のoncloneは実際のクローン文書を受け取るが、テストではモックのためdocument自体を渡して検証する
-      options.onclone(document);
-      categoryDisplayDuringCapture = document.querySelector('.efuda-card-category').style.display;
-      otherNoPrintDisplayDuringCapture = document.querySelector('header.no-print').style.display;
-      return { toDataURL: () => 'data:image/png;base64,dummy' };
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('PDFをダウンロード'));
-    });
-
-    await waitFor(() => {
-      expect(html2canvas).toHaveBeenCalledTimes(1);
-    });
-
-    // かるた種別ラベル（efuda-card-category）は隠さず、それ以外のno-print要素は従来どおり隠す
-    expect(categoryDisplayDuringCapture).toBe('');
-    expect(otherNoPrintDisplayDuringCapture).toBe('none');
-  });
-
-  it('disables the transform scale on each .efuda-page while capturing, and restores it afterward (issue #392/#421: PDF text rendering breaks when the on-screen preview is scaled down on narrow viewports)', async () => {
-    const phrases = Array.from({ length: 1 }, (_, i) => ({
-      id: `p${i}`,
-      category: 'Cat1',
-      kana: 'あ',
-      phrase: `読み札テキスト${i}`,
-      answer: `回答${i}`,
-      level: '3',
-      averageTime: 0,
-      averageDifficulty: 0,
-    }));
-
-    fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
-      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases }) };
-      return { ok: false };
-    });
-
-    await act(async () => {
-      render(<App />);
-    });
-
-    fireEvent.click(await screen.findByText('こども向け'));
-    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-
-    await waitFor(() => screen.getByText('絵札を印刷する'));
-    fireEvent.click(screen.getByText('絵札を印刷する'));
-
-    await waitFor(() => {
-      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
-    });
-
-    // 画面プレビュー用のtransform: scale()（狭い画面での縮小表示、issue #387/#421）が
-    // 既に適用されている状態を模す
-    const pageEl = document.querySelector('.efuda-page');
-    pageEl.style.transform = 'scale(0.5)';
-
-    let transformDuringCapture;
-    html2canvas.mockImplementationOnce(async (el) => {
-      transformDuringCapture = el.style.transform;
-      return { toDataURL: () => 'data:image/png;base64,dummy' };
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('PDFをダウンロード'));
-    });
-
-    await waitFor(() => {
-      expect(html2canvas).toHaveBeenCalledTimes(1);
-    });
-
-    expect(transformDuringCapture).toBe('none');
-    expect(pageEl.style.transform).toBe('');
+    await waitFor(() => screen.getByText('読み札テキスト0'));
+    expect(document.querySelector('.efuda-print-area')).toHaveClass('efuda-pdf-export');
   });
 
   it('packs printed efuda cards across categories onto the same page without breaking per category', async () => {
@@ -1078,8 +1048,8 @@ describe('App', () => {
           ok: true,
           json: async () => ({
             categories: [
-              { name: 'Cat1', group: 'engineer', count: 75 },
-              { name: 'Cat2', group: 'engineer', count: 75 },
+              { name: 'Cat1', group: 'engineer', count: 250 },
+              { name: 'Cat2', group: 'engineer', count: 250 },
               { name: 'Cat3', group: 'engineer', count: 10 },
             ],
           }),
@@ -1100,14 +1070,14 @@ describe('App', () => {
       expect(screen.getByRole('button', { name: /Cat3/ })).toBeInTheDocument();
     });
 
-    // Cat1(75) + Cat2(75) = 150枚でちょうど上限。選択自体は許可される
+    // Cat1(250) + Cat2(250) = 500枚でちょうど上限。選択自体は許可される
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
     expect(screen.getByRole('button', { name: /Cat1/ })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /Cat2/ })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/選択中の合計: 150枚/)).toBeInTheDocument();
+    expect(screen.getByText(/選択中の合計: 500枚/)).toBeInTheDocument();
 
-    // これ以上追加すると上限(150枚)を超えるため、Cat3は選択不可になる
+    // これ以上追加すると上限(500枚)を超えるため、Cat3は選択不可になる
     const cat3Button = screen.getByRole('button', { name: /Cat3/ });
     expect(cat3Button).toBeDisabled();
     fireEvent.click(cat3Button);

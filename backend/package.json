@@ -22,12 +22,15 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.958.0",
+    "@aws-sdk/client-lambda": "^3.1087.0",
     "@aws-sdk/client-polly": "^3.958.0",
     "@aws-sdk/client-s3": "^3.958.0",
     "@aws-sdk/client-transcribe": "^3.958.0",
     "@aws-sdk/lib-dynamodb": "^3.958.0",
     "@aws-sdk/polly-request-presigner": "^3.958.0",
     "@aws-sdk/s3-request-presigner": "^3.958.0",
-    "csv-parse": "^7.0.0"
+    "@sparticuz/chromium": "^149.0.0",
+    "csv-parse": "^7.0.0",
+    "puppeteer-core": "^25.3.0"
   }
 }

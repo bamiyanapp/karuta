@@ -1,5 +1,17 @@
 service: karuta-app
 
+# 絵札PDF生成ワーカー（@sparticuz/chromium・puppeteer-core）はrenderEfudaPdfWorker
+# でしか使わない重量級の依存（Chromiumバイナリ圧縮後約50-70MB）のため、全関数で1つの
+# zipを共有するデフォルトのパッケージングのままだと、無関係な関数（getPhrase等）の
+# コールドスタートまで悪化させてしまう。individually: trueで関数ごとに個別zipを作り、
+# 下のpatternsで一旦全関数から重量級依存を除外したうえで、renderEfudaPdfWorker関数側の
+# package.patternsで自分だけ再度含める（後段の定義が優先される.gitignore的な仕組み）
+package:
+  individually: true
+  patterns:
+    - "!node_modules/@sparticuz/**"
+    - "!node_modules/puppeteer-core/**"
+
 provider:
   name: aws
   runtime: nodejs20.x
@@ -9,6 +21,7 @@ provider:
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
     POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
     VOICE_AUDIO_BUCKET_NAME: ${self:custom.voiceAudioBucketName}-${aws:accountId} # 追加
+    EFUDA_PDF_BUCKET_NAME: ${self:custom.efudaPdfBucketName}-${aws:accountId} # 追加（絵札PDFのサーバーサイド生成）
   iam:
     role:
       statements:
@@ -37,12 +50,22 @@ provider:
             - transcribe:StartTranscriptionJob
             - transcribe:GetTranscriptionJob
           Resource: "*"
+        - Effect: Allow # 追加（絵札PDFのサーバーサイド生成: generateEfudaPdfからrenderEfudaPdfWorkerを非同期起動する）
+          Action:
+            - lambda:InvokeFunction
+          Resource: !GetAtt RenderEfudaPdfWorkerLambdaFunction.Arn
+        - Effect: Allow # 追加（絵札PDFのサーバーサイド生成: renderEfudaPdfWorkerがPDF/エラーマーカーを書き込み、getEfudaPdfStatusが署名付きURLを発行する）
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource: !Sub "${EfudaPdfBucket.Arn}/*"
 
 custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
   voiceAudioBucketName: karuta-voice-audio # 追加。バケット名はグローバルに一意である必要があるためアカウントIDを付与する
+  efudaPdfBucketName: karuta-efuda-pdf # 追加（絵札PDFのサーバーサイド生成）。バケット名はグローバルに一意である必要があるためアカウントIDを付与する
   allowedOrigins:
     - https://bamiyanapp.github.io
     - http://localhost:5173 # npm run dev（Vite開発サーバー）
@@ -121,6 +144,36 @@ functions:
           method: get
           cors:
             origins: ${self:custom.allowedOrigins}
+  generateEfudaPdf: # 追加（絵札PDFのサーバーサイド生成）。PDF生成ジョブを開始しjobIdを即返す
+    handler: efudaPdfHandler.generateEfudaPdf
+    environment:
+      RENDER_WORKER_FUNCTION_NAME: !GetAtt RenderEfudaPdfWorkerLambdaFunction.Arn
+    events:
+      - http:
+          path: generate-efuda-pdf
+          method: post
+          cors:
+            origins: ${self:custom.allowedOrigins}
+  renderEfudaPdfWorker: # 追加（絵札PDFのサーバーサイド生成）。generateEfudaPdfからの非同期Invokeでのみ呼ばれ、
+    # API Gatewayには公開しない（httpイベントなし）。Chromium起動＋大量ページ描画は
+    # API Gatewayの29秒タイムアウトを超えうるため、同期のHTTPルートでは完結させない
+    handler: efudaPdfHandler.renderEfudaPdfWorker
+    memorySize: 3008
+    timeout: 300
+    ephemeralStorageSize: 1024 # @sparticuz/chromiumが/tmpに展開する分の余裕を持たせる
+    maximumRetryAttempts: 0 # 失敗時の自動リトライ（既定で最大2回）を無効化。S3のエラーマーカーとの状態不整合を防ぐ
+    package:
+      patterns:
+        - "node_modules/@sparticuz/**"
+        - "node_modules/puppeteer-core/**"
+  getEfudaPdfStatus: # 追加（絵札PDFのサーバーサイド生成）。ジョブの完了をS3上のオブジェクトの有無から都度判定する
+    handler: efudaPdfHandler.getEfudaPdfStatus
+    events:
+      - http:
+          path: generate-efuda-pdf-status
+          method: get
+          cors:
+            origins: ${self:custom.allowedOrigins}
 
 resources:
   Resources:
@@ -182,5 +235,19 @@ resources:
         LifecycleConfiguration: # 録音・認識結果は判定後不要になるため、取り違え時の保持コスト・情報漏洩リスクを抑えるべく短期間で自動削除する
           Rules:
             - Id: ExpireVoiceRecognitionObjects
+              Status: Enabled
+              ExpirationInDays: 1
+    EfudaPdfBucket: # 追加（絵札PDFのサーバーサイド生成）
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.efudaPdfBucketName}-${aws:accountId}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration: # 生成済みPDF・エラーマーカーはダウンロード用の一時ファイルのため、短期間で自動削除する
+          Rules:
+            - Id: ExpireEfudaPdfObjects
               Status: Enabled
               ExpirationInDays: 1

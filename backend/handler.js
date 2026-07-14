@@ -24,6 +24,10 @@ function resolveAllowedOrigin(event) {
   return ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
 }
 
+// efudaPdfHandler.js（絵札PDFのサーバーサイド生成）から再利用するため公開する
+exports.docClient = docClient;
+exports.resolveAllowedOrigin = resolveAllowedOrigin;
+
 function escapeSsml(text) {
   return String(text)
     .replace(/&/g, "&amp;")
@@ -782,3 +786,5 @@ async function streamToBuffer(stream) {
     stream.on("end", () => resolve(Buffer.concat(chunks)));
   });
 }
+
+exports.streamToBuffer = streamToBuffer;

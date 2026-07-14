@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
+import { API_BASE_URL } from "./config";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
@@ -12,21 +13,18 @@ import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "https://akmnirkx3m.execute-api.ap-northeast-1.amazonaws.com/dev";
-
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
 const SCORES_STORAGE_KEY = "scoresByCategory";
 const MAX_PLAYERS = 6;
 
-// 絵札印刷時に選択できる合計読み札数の上限。html2canvasでのPDF生成はページ数に
-// 比例して時間・メモリを消費するため、選択中の種別の合計枚数がこれを超える分の
-// 種別選択自体をブロックし、PDF出力の失敗を未然に防ぐ（1ページ10枚 → 最大15ページ）。
-// 従来は300枚を上限としていたが、実際には280枚程度でもPDF出力に失敗する報告が
-// あったため、十分な安全マージンを取って150枚に引き下げた
-const MAX_EFUDA_PRINT_CARDS = 150;
+// 絵札印刷時に選択できる合計読み札数の上限。PDF生成はバックエンド（renderEfudaPdfWorker、
+// ヘッドレスChromiumのpage.pdf()）で行うため、クライアント端末のメモリには依存しなくなった。
+// ただし無制限にすると認証なしのAPIに巨大なジョブを投げ放題になってしまうため、
+// バックエンド側（backend/efudaPdfHandler.jsのMAX_EFUDA_PRINT_CARDS_SERVER）と
+// 同じ値の上限を維持する。こちらは選択UI自体をブロックする一次防御、
+// バックエンド側はURL直叩き等を弾く二次防御
+const MAX_EFUDA_PRINT_CARDS = 500;
 
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
