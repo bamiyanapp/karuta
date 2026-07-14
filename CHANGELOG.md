@@ -1,3 +1,10 @@
+## [1.22.9](https://github.com/bamiyanapp/karuta/compare/v1.22.8...v1.22.9) (2026-07-14)
+
+
+### Bug Fixes
+
+* **frontend:** 両面印刷時に裏面が表面と左右反転した位置になるようにする ([#455](https://github.com/bamiyanapp/karuta/issues/455)) ([2440366](https://github.com/bamiyanapp/karuta/commit/2440366e1e65081f2c58d2fefaa4b79be493fbd8))
+
 ## [1.22.8](https://github.com/bamiyanapp/karuta/compare/v1.22.7...v1.22.8) (2026-07-14)
 
 
