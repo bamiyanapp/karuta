@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { API_BASE_URL } from "../config";
+import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
@@ -35,9 +37,9 @@ const buildBackPatternMap = (categories) => {
   return map;
 };
 
-// A4サイズ（mm）。efuda-pageのCSS上の実寸と一致させる
-const A4_WIDTH_MM = 210;
-const A4_HEIGHT_MM = 297;
+// PDF生成ジョブのポーリング間隔・最大試行回数（3秒×80回=最大4分でタイムアウトとみなす）
+const PDF_POLL_INTERVAL_MS = 3000;
+const MAX_PDF_POLL_ATTEMPTS = 80;
 
 // .efuda-gridの列数（App.cssのgrid-template-columns: 91mm 91mmと一致させる）
 const EFUDA_GRID_COLUMNS = 2;
@@ -59,8 +61,15 @@ const resolvePhraseIndex = (slotIndex, printSide) => {
 function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   // 表面（読み札の内容）と裏面（種別・レベル）は用紙を裏返して2回に分けて印刷する運用を想定し、
-  // 同じページ構成をどちらの内容で描画するかだけをこのstateで切り替える
-  const [printSide, setPrintSide] = useState("front");
+  // 同じページ構成をどちらの内容で描画するかだけをこのstateで切り替える。
+  // バックエンドのrenderEfudaPdfWorkerがヘッドレスブラウザでこの画面をディープリンク
+  // （?side=back）から直接開けるよう、URLクエリがあればその値を初期値にする
+  const [printSide, setPrintSide] = useState(
+    () => (new URLSearchParams(window.location.search).get("side") === "back" ? "back" : "front")
+  );
+  // サーバーサイドPDF生成（?pdfExport=1、renderEfudaPdfWorkerが付与する）のときだけ、
+  // 印刷用CSSの中でefuda-card-categoryを例外的に表示する（App.cssの.efuda-pdf-export参照）
+  const isPdfExport = new URLSearchParams(window.location.search).get("pdfExport") === "1";
 
   const backPatternMap = useMemo(
     () => buildBackPatternMap(allPhrasesForCategory.map((p) => p.category)),
@@ -70,59 +79,43 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
   const downloadPdf = async () => {
     setIsGeneratingPdf(true);
     try {
-      // ゲーム画面など大多数のユーザーには不要な重量級ライブラリのため、
-      // メインバンドルには含めずダウンロード実行時にのみ読み込む
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-
-      const pageElements = document.querySelectorAll(".efuda-print-area .efuda-page");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      // .efuda-pageは狭い画面での画面プレビュー用にtransform: scale()で縮小表示している
-      // （issue #387、#421）ことがある。キャプチャ中だけtransformを無効化し、
-      // 「印刷する」（window.print()、@media printでtransform: none）と同じ実寸で
-      // 撮影されるようにする
-      pageElements.forEach((el) => {
-        el.style.transform = "none";
+      const categoryParam = serializeCategoriesParam(selectedCategories);
+      const startResponse = await fetch(`${API_BASE_URL}/generate-efuda-pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryParam, side: printSide }),
       });
+      if (!startResponse.ok) {
+        const errorBody = await startResponse.json().catch(() => null);
+        throw new Error(errorBody?.message || "PDF生成の開始に失敗しました。");
+      }
+      const { jobId } = await startResponse.json();
 
-      try {
-        for (let i = 0; i < pageElements.length; i++) {
-          // scale: 2で解像度を上げ、印刷用途でも文字が粗くならないようにする。
-          // no-printは@media printでのみ非表示になる（画面上は表示されたまま）ため、
-          // html2canvasが画面表示状態をそのまま撮影しないよう、cloneした文書側で明示的に隠す。
-          // ただしefuda-card-category（表面カードのかるた種別ラベル）は、実物の紙面には印刷しないが
-          // PDFでは種別を確認できるようにしたいという要望のため、隠さず残す
-          const canvas = await html2canvas(pageElements[i], {
-            scale: 2,
-            useCORS: true,
-            onclone: (clonedDoc) => {
-              clonedDoc.querySelectorAll(".no-print:not(.efuda-card-category)").forEach((el) => {
-                el.style.display = "none";
-              });
-            },
-          });
-          const imageData = canvas.toDataURL("image/png");
-          if (i > 0) {
-            pdf.addPage();
-          }
-          pdf.addImage(imageData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+      let downloadUrl = null;
+      for (let attempt = 0; attempt < MAX_PDF_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, PDF_POLL_INTERVAL_MS));
 
-          // 大量ページ印刷時（issue #PDF出力エラー）にcanvasの描画バッファが
-          // 累積してメモリを圧迫しないよう、使い終えたcanvasは都度サイズを0にして明示的に解放する
-          canvas.width = 0;
-          canvas.height = 0;
+        const statusResponse = await fetch(
+          `${API_BASE_URL}/generate-efuda-pdf-status?jobId=${encodeURIComponent(jobId)}` +
+          `&categoryLabel=${encodeURIComponent(categoryLabel || "karuta")}&side=${printSide}`
+        );
+        const statusBody = await statusResponse.json();
+
+        if (statusBody.status === "DONE") {
+          downloadUrl = statusBody.url;
+          break;
         }
-      } finally {
-        pageElements.forEach((el) => {
-          el.style.transform = "";
-        });
+        if (statusBody.status === "FAILED") {
+          throw new Error(statusBody.message || "PDFの生成に失敗しました。");
+        }
+        // IN_PROGRESSの場合はポーリングを継続する
       }
 
-      const sideLabel = printSide === "back" ? "裏面" : "表面";
-      pdf.save(`${categoryLabel || "karuta"}_絵札_${sideLabel}.pdf`);
+      if (!downloadUrl) {
+        throw new Error("PDFの生成がタイムアウトしました。時間をおいて再度お試しください。");
+      }
+
+      window.location.href = downloadUrl;
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("PDFの生成に失敗しました。");
@@ -180,7 +173,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
             </div>
           </div>
 
-          <div className="efuda-print-area">
+          <div className={`efuda-print-area ${isPdfExport ? "efuda-pdf-export" : ""}`}>
             {efudaPages.map((page, pageIndex) => (
               <div className="efuda-page-scaler" key={pageIndex}>
                 <div className="efuda-page">

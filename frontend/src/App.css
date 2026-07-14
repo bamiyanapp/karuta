@@ -610,6 +610,14 @@ button:active:not(:disabled) {
     page-break-after: auto;
   }
 
+  /* サーバーサイドPDF生成（renderEfudaPdfWorkerのpage.pdf()、印刷用CSSがそのまま
+     適用される）時のみ、既存のクライアント生成（html2canvas）版と同じ挙動
+     （実物の紙面には印刷しないが、PDFでは種別を確認できる）を再現するため、
+     .efuda-pdf-export配下でだけno-printを上書きしてefuda-card-categoryを表示する */
+  .efuda-pdf-export .efuda-card-category {
+    display: block !important;
+  }
+
   @page {
     size: A4;
     margin: 0;
