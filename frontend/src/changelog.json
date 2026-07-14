@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.23.1",
+    "date": "2026/07/14",
+    "body": "### Bug Fixes\n\n* **deps:** update dependency puppeteer-core to v25 ([#463](https://github.com/bamiyanapp/karuta/issues/463)) ([8f12bdb](https://github.com/bamiyanapp/karuta/commit/8f12bdb258165a1b848cdf144fe65ab6e9b5104b))"
+  },
+  {
     "version": "1.23.0",
-    "date": "2026/07/04 03:17",
+    "date": "2026/07/14 23:34",
     "body": "### Features\n\n* 絵札PDF生成をバックエンド（ヘッドレスChromium）に移行する ([#458](https://github.com/bamiyanapp/karuta/issues/458)) ([7e5fa4e](https://github.com/bamiyanapp/karuta/commit/7e5fa4e47efd30a207353996ade74e0ac9c60889))"
   },
   {
@@ -241,7 +246,7 @@
   },
   {
     "version": "1.23.0",
-    "date": "2026/07/04 03:17",
+    "date": "2026/07/14 23:34",
     "body": "### Features\n\n* **history:** 読み上げ履歴をsessionStorageに永続化 ([#241](https://github.com/bamiyanapp/karuta/issues/241)) ([e48a146](https://github.com/bamiyanapp/karuta/commit/e48a146182b752a10d3d24b8fa81e50f38ac8831))"
   },
   {

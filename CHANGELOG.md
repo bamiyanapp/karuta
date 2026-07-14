@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/bamiyanapp/karuta/compare/v1.23.0...v1.23.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency puppeteer-core to v25 ([#463](https://github.com/bamiyanapp/karuta/issues/463)) ([8f12bdb](https://github.com/bamiyanapp/karuta/commit/8f12bdb258165a1b848cdf144fe65ab6e9b5104b))
+
 # [1.23.0](https://github.com/bamiyanapp/karuta/compare/v1.22.9...v1.23.0) (2026-07-14)
 
 
