@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.22.8",
+    "date": "2026/07/14",
+    "body": "### Bug Fixes\n\n* **frontend:** 絵札の種別カラーを表裏・枠線を含めて統一する ([#453](https://github.com/bamiyanapp/karuta/issues/453)) ([7053828](https://github.com/bamiyanapp/karuta/commit/7053828dc257ca00c73366613ccea6d47ebcecbe)), closes [#e44d26](https://github.com/bamiyanapp/karuta/issues/e44d26)"
+  },
+  {
     "version": "1.22.7",
-    "date": "2026/07/13",
+    "date": "2026/07/13 21:46",
     "body": "### Bug Fixes\n\n* **frontend:** スマートフォンでは絵札の印刷ボタンを表示しないようにする ([#449](https://github.com/bamiyanapp/karuta/issues/449)) ([2c3dbc3](https://github.com/bamiyanapp/karuta/commit/2c3dbc36dc1a49a4bed88102afda348dec84b54f))"
   },
   {
