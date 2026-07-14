@@ -44,6 +44,11 @@ const { generateEfudaPdf, renderEfudaPdfWorker, getEfudaPdfStatus } = await impo
 process.env.TABLE_NAME = 'TestTable';
 process.env.EFUDA_PDF_BUCKET_NAME = 'test-efuda-pdf-bucket';
 process.env.RENDER_WORKER_FUNCTION_NAME = 'arn:aws:lambda:ap-northeast-1:123456789012:function:renderEfudaPdfWorker';
+// getSignedUrlはSigV4署名の計算にAWS認証情報を必要とする（実際に外部へ通信はしない）。
+// CI環境にはAWS認証情報が設定されていないため、ダミーの値を明示的に与えないと
+// 「Could not load credentials」で例外になってしまう
+process.env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || 'test-access-key-id';
+process.env.AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || 'test-secret-access-key';
 
 describe('generateEfudaPdf', () => {
   beforeEach(() => {
