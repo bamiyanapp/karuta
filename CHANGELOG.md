@@ -1,3 +1,10 @@
+## [1.23.2](https://github.com/bamiyanapp/karuta/compare/v1.23.1...v1.23.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* **backend:** CloudFormationの循環依存でbackendデプロイが失敗するのを修正する ([#465](https://github.com/bamiyanapp/karuta/issues/465)) ([2b6ed07](https://github.com/bamiyanapp/karuta/commit/2b6ed073a46ab3b2e201f796c9946050a01443e3)), closes [#463](https://github.com/bamiyanapp/karuta/issues/463)
+
 ## [1.23.1](https://github.com/bamiyanapp/karuta/compare/v1.23.0...v1.23.1) (2026-07-14)
 
 
