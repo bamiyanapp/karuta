@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.23.2",
+    "date": "2026/07/15",
+    "body": "### Bug Fixes\n\n* **backend:** CloudFormationの循環依存でbackendデプロイが失敗するのを修正する ([#465](https://github.com/bamiyanapp/karuta/issues/465)) ([2b6ed07](https://github.com/bamiyanapp/karuta/commit/2b6ed073a46ab3b2e201f796c9946050a01443e3)), closes [#463](https://github.com/bamiyanapp/karuta/issues/463)"
+  },
+  {
     "version": "1.23.1",
-    "date": "2026/07/14",
+    "date": "2026/07/14 23:38",
     "body": "### Bug Fixes\n\n* **deps:** update dependency puppeteer-core to v25 ([#463](https://github.com/bamiyanapp/karuta/issues/463)) ([8f12bdb](https://github.com/bamiyanapp/karuta/commit/8f12bdb258165a1b848cdf144fe65ab6e9b5104b))"
   },
   {
