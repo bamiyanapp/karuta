@@ -31,6 +31,6 @@
     "@aws-sdk/s3-request-presigner": "^3.958.0",
     "@sparticuz/chromium": "^149.0.0",
     "csv-parse": "^7.0.0",
-    "puppeteer-core": "^25.0.0"
+    "puppeteer-core": "^24.43.1"
   }
 }
