@@ -54,9 +54,8 @@ provider:
           Action:
             - lambda:InvokeFunction
           Resource: !GetAtt RenderEfudaPdfWorkerLambdaFunction.Arn
-        - Effect: Allow # 追加（絵札PDFのサーバーサイド生成: renderEfudaPdfWorkerがPDF/エラーマーカーを書き込み、getEfudaPdfStatusが署名付きURLを発行する）
+        - Effect: Allow # 追加（絵札PDFのサーバーサイド生成: getEfudaPdfStatusが署名付きURLを発行するためGetObject/HeadObjectを要する）
           Action:
-            - s3:PutObject
             - s3:GetObject
           Resource: !Sub "${EfudaPdfBucket.Arn}/*"
 
@@ -158,6 +157,12 @@ functions:
     # API Gatewayには公開しない（httpイベントなし）。Chromium起動＋大量ページ描画は
     # API Gatewayの29秒タイムアウトを超えうるため、同期のHTTPルートでは完結させない
     handler: efudaPdfHandler.renderEfudaPdfWorker
+    # 全関数共通の共有ロール(provider.iam.role)ではなく専用ロールを使う。共有ロールの
+    # ポリシーがこの関数自身のArn（!GetAtt RenderEfudaPdfWorkerLambdaFunction.Arn、
+    # generateEfudaPdfのlambda:InvokeFunction用）を参照しているため、この関数が
+    # 共有ロールを使うと「ロール→自分自身の関数→ロール」という循環依存になり
+    # CloudFormationのデプロイが失敗する（実際に発生した不具合）
+    role: RenderEfudaPdfWorkerRole
     memorySize: 3008
     timeout: 300
     ephemeralStorageSize: 1024 # @sparticuz/chromiumが/tmpに展開する分の余裕を持たせる
@@ -251,3 +256,26 @@ resources:
             - Id: ExpireEfudaPdfObjects
               Status: Enabled
               ExpirationInDays: 1
+    RenderEfudaPdfWorkerRole: # 追加（絵札PDFのサーバーサイド生成）。renderEfudaPdfWorker関数専用のロール
+      # （provider.iam.roleの共有ロールを使うと、共有ロールのポリシーがこの関数自身のArnを
+      # 参照する形になり循環依存でデプロイが失敗するため、専用ロールに分離している）
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        Policies:
+          - PolicyName: RenderEfudaPdfWorkerS3Access
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource: !Sub "${EfudaPdfBucket.Arn}/*"
