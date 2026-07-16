@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/bamiyanapp/karuta/compare/v1.32.0...v1.33.0) (2026-07-16)
+
+
+### Features
+
+* **ui:** 参加者登録UIを確定モーダルから読み札画面の任意ボタンへ移動する ([#520](https://github.com/bamiyanapp/karuta/issues/520)) ([1b32b33](https://github.com/bamiyanapp/karuta/commit/1b32b33dcc9c68ac3e636723963ba7d9d99469e4)), closes [#518](https://github.com/bamiyanapp/karuta/issues/518)
+
 # [1.32.0](https://github.com/bamiyanapp/karuta/compare/v1.31.0...v1.32.0) (2026-07-16)
 
 
