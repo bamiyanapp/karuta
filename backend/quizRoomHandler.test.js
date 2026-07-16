@@ -95,6 +95,22 @@ describe('listQuizRooms', () => {
     expect(JSON.stringify(body)).not.toContain('secret-hash');
   });
 
+  it('returns only the latest 5 rooms even when more are open (issue #500)', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: Array.from({ length: 8 }, (_, i) => ({
+        roomId: `ROOM0${i}`,
+        createdAt: i,
+        state: {},
+      })),
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(body.rooms).toHaveLength(5);
+    expect(body.rooms.map((r) => r.roomId)).toEqual(['ROOM07', 'ROOM06', 'ROOM05', 'ROOM04', 'ROOM03']);
+  });
+
   it('excludes rooms whose ttl has already passed via the filter expression', async () => {
     ddbMock.on(ScanCommand).resolves({ Items: [] });
 

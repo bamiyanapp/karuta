@@ -15,6 +15,7 @@ const ROOM_CODE_LENGTH = 6;
 const MAX_CREATE_ROOM_ATTEMPTS = 5; // ルームコード衝突時の再採番の上限
 const MAX_STATE_JSON_LENGTH = 8000; // 状態データの肥大化・課金濫用を防ぐ上限
 const MAX_NAME_LENGTH = 20; // 早押し機能（issue #510）: 参加者名の肥大化・表示崩れを防ぐ上限
+const MAX_OPEN_ROOMS_DISPLAYED = 5; // トップページの一覧が無制限に肥大化しないための上限（issue #500）
 
 function generateRoomCode() {
   let code = "";
@@ -105,7 +106,8 @@ exports.listQuizRooms = async (event) => {
         createdAt: item.createdAt,
         category: item.state?.content?.category || null,
       }))
-      .sort((a, b) => b.createdAt - a.createdAt);
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, MAX_OPEN_ROOMS_DISPLAYED);
 
     return {
       statusCode: 200,
