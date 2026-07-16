@@ -1,3 +1,10 @@
+## [1.30.2](https://github.com/bamiyanapp/karuta/compare/v1.30.1...v1.30.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 参加者側の「音声を有効にする」ボタンを廃止し、自動再生の解錠で対応する ([#508](https://github.com/bamiyanapp/karuta/issues/508)) ([a0cd206](https://github.com/bamiyanapp/karuta/commit/a0cd206b270d125f1c1781f84ade834badef3c23))
+
 ## [1.30.1](https://github.com/bamiyanapp/karuta/compare/v1.30.0...v1.30.1) (2026-07-16)
 
 
