@@ -21,6 +21,8 @@ provider:
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
     POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
     EFUDA_PDF_BUCKET_NAME: ${self:custom.efudaPdfBucketName}-${aws:accountId} # 追加（絵札PDFのサーバーサイド生成）
+    QUIZ_ROOMS_TABLE_NAME: ${self:custom.quizRoomsTableName} # 追加（クイズ大会モード）
+    QUIZ_ROOM_CONNECTIONS_TABLE_NAME: ${self:custom.quizRoomConnectionsTableName} # 追加（クイズ大会モード）
   iam:
     role:
       statements:
@@ -47,12 +49,38 @@ provider:
           Action:
             - s3:GetObject
           Resource: !Sub "${EfudaPdfBucket.Arn}/*"
+        - Effect: Allow # 追加（クイズ大会モード: ルーム・接続情報の読み書き）
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+          Resource:
+            - !GetAtt QuizRoomsTable.Arn
+        - Effect: Allow # 追加（クイズ大会モード: 接続情報の読み書き・ルーム単位の一覧取得）
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+          Resource:
+            - !GetAtt QuizRoomConnectionsTable.Arn
+            - !Sub "${QuizRoomConnectionsTable.Arn}/index/*"
+        - Effect: Allow # 追加（クイズ大会モード: WebSocket接続への状態ブロードキャスト）
+          # api-id/stageをワイルドカードにしているのはAWS公式ドキュメントで案内されている定型パターン。
+          # Serverless Frameworkが自動生成するWebSocket APIの論理ID（未確定・デプロイ時に決まる）を
+          # !Subで直接参照する方式は、名前を誤ると循環参照等でデプロイ自体が壊れるリスクがあるため
+          # 採用しない（このAWSアカウントは本サービス専用でほかにWebSocket APIを持たない前提）
+          Action:
+            - execute-api:ManageConnections
+          Resource: "arn:aws:execute-api:${aws:region}:${aws:accountId}:*/*/POST/@connections/*"
 
 custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
   efudaPdfBucketName: karuta-efuda-pdf # 追加（絵札PDFのサーバーサイド生成）。バケット名はグローバルに一意である必要があるためアカウントIDを付与する
+  quizRoomsTableName: karuta-quiz-rooms # 追加（クイズ大会モード）
+  quizRoomConnectionsTableName: karuta-quiz-room-connections # 追加（クイズ大会モード）
   allowedOrigins:
     - https://bamiyanapp.github.io
     - http://localhost:5173 # npm run dev（Vite開発サーバー）
@@ -151,6 +179,34 @@ functions:
           method: get
           cors:
             origins: ${self:custom.allowedOrigins}
+  createQuizRoom: # 追加（クイズ大会モード）。管理者用ルームを新規作成し、ルームIDと管理者トークンを返す
+    handler: quizRoomHandler.createQuizRoom
+    events:
+      - http:
+          path: quiz-room
+          method: post
+          cors:
+            origins: ${self:custom.allowedOrigins}
+  connectQuizRoom: # 追加（クイズ大会モード）。WebSocket接続時にroomId/adminTokenから役割を判定する
+    handler: quizRoomHandler.connectQuizRoom
+    events:
+      - websocket:
+          route: $connect
+  disconnectQuizRoom: # 追加（クイズ大会モード）
+    handler: quizRoomHandler.disconnectQuizRoom
+    events:
+      - websocket:
+          route: $disconnect
+  syncQuizRoom: # 追加（クイズ大会モード）。接続直後にクライアントから呼ばれ、現在の状態を1件返す
+    handler: quizRoomHandler.syncQuizRoom
+    events:
+      - websocket:
+          route: sync
+  updateQuizRoomState: # 追加（クイズ大会モード）。管理者のみ状態を更新でき、ルーム内全接続へブロードキャストする
+    handler: quizRoomHandler.updateQuizRoomState
+    events:
+      - websocket:
+          route: updateState
 
 resources:
   Resources:
@@ -214,6 +270,43 @@ resources:
             - Id: ExpireEfudaPdfObjects
               Status: Enabled
               ExpirationInDays: 1
+    QuizRoomsTable: # 追加（クイズ大会モード）。roomId→管理者トークンのハッシュ・現在の状態を保持する
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.quizRoomsTableName}
+        AttributeDefinitions:
+          - AttributeName: roomId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: roomId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification: # 無人ルームが際限なく残らないよう、一定期間後に自動削除する
+          AttributeName: ttl
+          Enabled: true
+    QuizRoomConnectionsTable: # 追加（クイズ大会モード）。connectionId→roomId・役割（admin/participant）を保持する
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.quizRoomConnectionsTableName}
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: roomId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes: # 状態更新時、ルーム内の全接続へブロードキャストするために必要
+          - IndexName: roomId-index
+            KeySchema:
+              - AttributeName: roomId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification: # $disconnectが確実に呼ばれない異常切断時の保険として自動削除する
+          AttributeName: ttl
+          Enabled: true
     RenderEfudaPdfWorkerRole: # 追加（絵札PDFのサーバーサイド生成）。renderEfudaPdfWorker関数専用のロール
       # （provider.iam.roleの共有ロールを使うと、共有ロールのポリシーがこの関数自身のArnを
       # 参照する形になり循環依存でデプロイが失敗するため、専用ロールに分離している）

@@ -21,6 +21,7 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.958.0",
     "@aws-sdk/client-dynamodb": "^3.958.0",
     "@aws-sdk/client-lambda": "^3.1087.0",
     "@aws-sdk/client-polly": "^3.958.0",
