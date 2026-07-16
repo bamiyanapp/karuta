@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/bamiyanapp/karuta/compare/v1.29.0...v1.30.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** 参加者側の音声を常時オンにし、管理者の読み上げ設定に合わせる ([#504](https://github.com/bamiyanapp/karuta/issues/504)) ([866150e](https://github.com/bamiyanapp/karuta/commit/866150ecdbf067ae33d72071168b4c3aa95fe4ac))
+
 # [1.29.0](https://github.com/bamiyanapp/karuta/compare/v1.28.0...v1.29.0) (2026-07-16)
 
 
