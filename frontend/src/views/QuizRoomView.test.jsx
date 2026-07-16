@@ -20,14 +20,33 @@ function emitState(state) {
   });
 }
 
+window.fetch = vi.fn();
+
+const audioInstances = [];
+let audioPlayImpl = () => Promise.resolve();
+
+// App.test.jsxと同様の理由でアロー関数ではなく通常の関数式を使う（newで呼び出すため）
+window.Audio = vi.fn().mockImplementation(function (src) {
+  this.src = src;
+  this.play = vi.fn(() => audioPlayImpl());
+  this.pause = vi.fn();
+  audioInstances.push(this);
+});
+
 beforeEach(() => {
   onStateCallbacks.length = 0;
   mockConnectionStatus = 'connected';
+  fetch.mockReset();
+  audioInstances.length = 0;
+  audioPlayImpl = () => Promise.resolve();
+  localStorage.clear();
 });
 
 afterEach(() => {
   window.history.pushState({}, '', '/');
-  vi.restoreAllMocks();
+  // restoreAllMocksだとwindow.Audio/window.fetchに設定したmockImplementationも
+  // 消えてしまう（モック自体は一度きりの生成のため）ので、呼び出し履歴だけを消すclearを使う
+  vi.clearAllMocks();
 });
 
 describe('QuizRoomView', () => {
@@ -94,5 +113,103 @@ describe('QuizRoomView', () => {
     fireEvent.click(screen.getByText('← 戻る'));
 
     expect(setView).toHaveBeenCalledWith('game');
+  });
+
+  it('fetches and plays audio for a broadcast phrase using the participant\'s own local playback settings (issue #490)', async () => {
+    localStorage.setItem('repeatCount', '3');
+    localStorage.setItem('speechRate', '70%');
+    localStorage.setItem('voiceId', 'Takumi');
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }),
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const requestedUrl = fetch.mock.calls[0][0];
+    expect(requestedUrl).toContain('id=p1');
+    expect(requestedUrl).toContain('category=Cat1');
+    expect(requestedUrl).toContain('repeatCount=3');
+    expect(requestedUrl).toContain('voiceId=Takumi');
+    expect(requestedUrl).toContain('announceCategory=false');
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
+    expect(audioInstances[0].play).toHaveBeenCalled();
+  });
+
+  it('stops the still-playing previous phrase audio when the next phrase arrives, to avoid overlapping playback', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(audioInstances).toHaveLength(1);
+
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(audioInstances).toHaveLength(2);
+    expect(audioInstances[0].pause).toHaveBeenCalled();
+  });
+
+  it('does not fetch or play audio for a broadcast phrase while muted', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    expect(screen.getByText('🔊 音声ON')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('🔊 音声ON'));
+    expect(screen.getByText('🔇 音声OFF')).toBeInTheDocument();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(audioInstances).toHaveLength(0);
+  });
+
+  it('shows a retry button when playback is blocked (autoplay policy), and lets the participant retry with a tap', async () => {
+    audioPlayImpl = () => Promise.reject(new Error('NotAllowedError'));
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+    const retryButton = await screen.findByText('🔊 タップして音声を有効にする');
+    expect(audioInstances).toHaveLength(1);
+
+    audioPlayImpl = () => Promise.resolve();
+    fireEvent.click(retryButton);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(audioInstances).toHaveLength(2);
+    expect(audioInstances[1].src).toBe('data:audio/mp3;base64,DUMMY');
+    expect(screen.queryByText('🔊 タップして音声を有効にする')).not.toBeInTheDocument();
   });
 });

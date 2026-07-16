@@ -897,7 +897,9 @@ function App() {
       const p = displayContent.content;
       broadcastQuizRoomState({
         type: "phrase",
-        content: { category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer },
+        // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
+        // 同じ札の音声を取得・再生できるようにするため
+        content: { id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer },
       });
     } else if (displayContent.type === "result" && displayContent.content) {
       const r = displayContent.content;
