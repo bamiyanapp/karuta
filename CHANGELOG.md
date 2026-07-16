@@ -1,3 +1,10 @@
+## [1.34.2](https://github.com/bamiyanapp/karuta/compare/v1.34.1...v1.34.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** トップページに戻るたび開設中ルーム一覧を再取得する ([#535](https://github.com/bamiyanapp/karuta/issues/535)) ([302f893](https://github.com/bamiyanapp/karuta/commit/302f8931d0f93597b5c5f0f4cb63f4eabeb1378e)), closes [#531](https://github.com/bamiyanapp/karuta/issues/531)
+
 ## [1.34.1](https://github.com/bamiyanapp/karuta/compare/v1.34.0...v1.34.1) (2026-07-16)
 
 
