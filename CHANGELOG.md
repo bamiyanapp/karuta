@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/bamiyanapp/karuta/compare/v1.33.2...v1.34.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** 早押し機能にポイント制を追加する ([#527](https://github.com/bamiyanapp/karuta/issues/527)) ([54da304](https://github.com/bamiyanapp/karuta/commit/54da304004967ee3e0fe8186212a67cdda08ceeb)), closes [#519](https://github.com/bamiyanapp/karuta/issues/519)
+
 ## [1.33.2](https://github.com/bamiyanapp/karuta/compare/v1.33.1...v1.33.2) (2026-07-16)
 
 
