@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.26.1",
+    "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 接続確立前後のbroadcastStateが失われないようにする ([#483](https://github.com/bamiyanapp/karuta/issues/483)) ([b567386](https://github.com/bamiyanapp/karuta/commit/b5673865d519988fa20e621b55cb61b1ff593190))"
+  },
+  {
     "version": "1.26.0",
-    "date": "2026/07/04 06:05",
+    "date": "2026/07/16 02:14",
     "body": "### Features\n\n* **quiz-room:** 通常のゲーム画面を流用し、招待URL・コピー機能を追加する ([#481](https://github.com/bamiyanapp/karuta/issues/481)) ([a174046](https://github.com/bamiyanapp/karuta/commit/a174046ccf4f512f2b508b1234a9fa1e097b8e0c))"
   },
   {
@@ -256,7 +261,7 @@
   },
   {
     "version": "1.26.0",
-    "date": "2026/07/04 06:05",
+    "date": "2026/07/16 02:14",
     "body": "### Features\n\n* **auto-advance:** 自動読み上げモード（ハンズフリー進行）を追加 ([#247](https://github.com/bamiyanapp/karuta/issues/247)) ([a2b0ee5](https://github.com/bamiyanapp/karuta/commit/a2b0ee565f35d40b22ebc72595acbcdc28ecd495))"
   },
   {
