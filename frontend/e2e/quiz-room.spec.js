@@ -46,3 +46,89 @@ test('admin creates a quiz room and a participant sees the same card update in r
   await adminContext.close();
   await participantContext.close();
 });
+
+// issue #559: 管理者・回答者（早押しした本人）・未回答参加者（早押ししていない他の参加者）の
+// 3ロールを同時に登場させ、正誤判定（issue #546）後にロールごとに画面の見え方が異なることを
+// 確認する。あわせて参加者一覧（issue #545）が管理者・参加者双方に反映されることも検証する。
+// 要所ではtestInfo.attach()でスクリーンショットをHTMLレポートへ添付し、CIログだけで
+// 挙動確認が完結するようにする（打鍵による再現確認の負担を下げる）
+test('admin judges a buzz, and the responder vs. other participants end up in different states (issue #545, #546)', async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+
+  await adminPage.goto('/');
+  await adminPage.getByText('こども向け').click();
+  await adminPage.getByRole('button', { name: /おばけかるた/ }).click();
+  const nextButton = adminPage.getByRole('button', { name: '次の札' });
+  await expect(nextButton).toBeVisible();
+
+  await adminPage.getByText('クイズ大会のルームを作成する').click();
+  const roomInfoLink = adminPage.getByText('ルーム情報を表示（クイズ大会モード）');
+  await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
+  await roomInfoLink.click();
+  const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
+
+  // 回答者役（このラウンドで実際に早押しする本人）
+  const responderContext = await browser.newContext();
+  const responderPage = await responderContext.newPage();
+  await responderPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
+  await responderPage.getByPlaceholder('お名前').fill('たろう');
+  await responderPage.getByText('決定').click();
+  await expect(responderPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
+
+  // 未回答参加者役（早押しせず様子を見る側）
+  const otherContext = await browser.newContext();
+  const otherPage = await otherContext.newPage();
+  await otherPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
+  await otherPage.getByPlaceholder('お名前').fill('はなこ');
+  await otherPage.getByText('決定').click();
+  await expect(otherPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
+
+  // 参加者一覧（issue #545）: 管理者画面に両参加者が反映される
+  await expect(adminPage.getByText('たろう: 0pt')).toBeVisible({ timeout: 15000 });
+  await expect(adminPage.getByText('はなこ: 0pt')).toBeVisible();
+
+  await nextButton.click();
+  await expect(adminPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+  await expect(responderPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 15000 });
+  await expect(otherPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 15000 });
+
+  // 回答者が早押しする
+  await responderPage.getByRole('button', { name: '回答する' }).click();
+
+  // 管理者に判定モーダルが自動表示される（issue #546）
+  await expect(adminPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
+  await testInfo.attach('admin-judgment-modal', { body: await adminPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+
+  // 回答者本人・未回答参加者のどちらの画面にも回答者名が表示され、早押しボタンは無くなる
+  await expect(responderPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
+  await expect(otherPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
+  await expect(otherPage.getByRole('button', { name: '回答する' })).not.toBeVisible();
+
+  // 管理者が不正解と判定する
+  await adminPage.getByRole('button', { name: '不正解', exact: true }).click();
+
+  // 未回答参加者（はなこ）は早押しボタンが復活するが、誤答した本人（たろう）は
+  // このラウンド中は復活しない（issue #546）
+  await expect(otherPage.getByRole('button', { name: '回答する' })).toBeVisible({ timeout: 15000 });
+  await expect(responderPage.getByRole('button', { name: '回答する' })).not.toBeVisible();
+  await testInfo.attach('other-participant-can-rebuzz', { body: await otherPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+  await testInfo.attach('responder-excluded-this-round', { body: await responderPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+
+  // 未回答参加者（はなこ）が早押しする
+  await otherPage.getByRole('button', { name: '回答する' }).click();
+  await expect(adminPage.getByText('🔔 はなこ さんが回答しました')).toBeVisible({ timeout: 15000 });
+
+  // 管理者が正解と判定する
+  await adminPage.getByRole('button', { name: '正解', exact: true }).click();
+
+  // ポイントが参加者一覧に反映される（管理者・参加者双方、issue #519, #545）
+  await expect(adminPage.getByText('はなこ: 1pt')).toBeVisible({ timeout: 15000 });
+  await expect(adminPage.getByText('たろう: 0pt')).toBeVisible();
+  await expect(otherPage.getByText('獲得ポイント: 1')).toBeVisible({ timeout: 15000 });
+  await testInfo.attach('admin-after-correct-judgment', { body: await adminPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+
+  await adminContext.close();
+  await responderContext.close();
+  await otherContext.close();
+});

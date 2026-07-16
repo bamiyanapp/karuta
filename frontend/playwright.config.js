@@ -19,6 +19,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
+    // 失敗時のスクリーンショットをHTMLレポートに自動添付し、CIログだけで
+    // 状態確認できるようにする（issue #559）。成功時の要所のスクリーンショットは
+    // 各テスト内でtestInfo.attach()により明示的に添付する
+    screenshot: 'only-on-failure',
     // 環境に応じてPlaywrightバンドルのChromiumダウンロードを避け、
     // 事前インストール済みのバイナリを使う（このリポジトリのCI/開発環境の既定パス）
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH
