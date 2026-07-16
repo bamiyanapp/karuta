@@ -1,3 +1,10 @@
+## [1.34.3](https://github.com/bamiyanapp/karuta/compare/v1.34.2...v1.34.3) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 名前入力画面の間は参加者に読み上げ音声を再生しない ([#537](https://github.com/bamiyanapp/karuta/issues/537)) ([107090d](https://github.com/bamiyanapp/karuta/commit/107090d8a37bdf0600365344b673602d5138446b)), closes [#530](https://github.com/bamiyanapp/karuta/issues/530)
+
 ## [1.34.2](https://github.com/bamiyanapp/karuta/compare/v1.34.1...v1.34.2) (2026-07-16)
 
 
