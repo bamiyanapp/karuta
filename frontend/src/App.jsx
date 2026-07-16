@@ -116,6 +116,8 @@ function App() {
   const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
   const [creatingQuizRoom, setCreatingQuizRoom] = useState(false);
   const [quizRoomCreateError, setQuizRoomCreateError] = useState(null);
+  // トップページ下部に表示する、開設中のクイズ大会ルーム一覧（issue #489）
+  const [openQuizRooms, setOpenQuizRooms] = useState([]);
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -334,6 +336,26 @@ function App() {
     }
     };
     fetchCategories();
+  }, []);
+
+  // クイズ大会モード（issue #489）: トップページ下部に開設中のルーム一覧を表示するため、
+  // WebSocket未設定（機能自体が準備中）の場合は取得を試みない
+  useEffect(() => {
+    if (!WS_BASE_URL) {
+      return;
+    }
+    const fetchOpenQuizRooms = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/quiz-rooms`);
+        const data = await response.json();
+        if (response.ok) {
+          setOpenQuizRooms(data.rooms || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch open quiz rooms:", error);
+      }
+    };
+    fetchOpenQuizRooms();
   }, []);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
@@ -944,6 +966,15 @@ function App() {
     }
   };
 
+  // クイズ大会モード（issue #489）: トップページの一覧から直接、参加者としてルームに入る。
+  // QuizRoomViewはマウント時に一度だけURLの?roomId=を読むため、view切り替えの前にURLへ反映する
+  const joinQuizRoom = (roomId) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("roomId", roomId);
+    window.history.pushState({}, "", `?${params.toString()}`);
+    setView("quiz-room");
+  };
+
   const resetGame = () => {
     setSelectedCategories([]);
     setDraftCategories([]);
@@ -1170,6 +1201,24 @@ function App() {
             クイズ大会に参加する
           </button>
         </div>
+
+        {openQuizRooms.length > 0 && (
+          <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
+            <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
+            <div className="list-group shadow-sm rounded">
+              {openQuizRooms.map((room) => (
+                <button
+                  key={room.roomId}
+                  onClick={() => joinQuizRoom(room.roomId)}
+                  className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
+                >
+                  <span className="fw-bold notranslate">{room.roomId}</span>
+                  <span className="text-muted small">{room.category || "開始前"}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

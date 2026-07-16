@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import crypto from 'crypto';
 import {
   createQuizRoom,
+  listQuizRooms,
   connectQuizRoom,
   disconnectQuizRoom,
   syncQuizRoom,
@@ -65,6 +66,57 @@ describe('createQuizRoom', () => {
   it('handles errors', async () => {
     ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await createQuizRoom({ body: '{}' });
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('listQuizRooms', () => {
+  it('returns open rooms sorted by newest first, without leaking adminTokenHash', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'ROOM01', createdAt: 1000, state: {}, adminTokenHash: 'secret-hash-1' },
+        { roomId: 'ROOM02', createdAt: 3000, state: { type: 'phrase', content: { category: 'Cat1' } }, adminTokenHash: 'secret-hash-2' },
+        { roomId: 'ROOM03', createdAt: 2000, state: { type: 'initial' }, adminTokenHash: 'secret-hash-3' },
+      ],
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.rooms).toEqual([
+      { roomId: 'ROOM02', createdAt: 3000, category: 'Cat1' },
+      { roomId: 'ROOM03', createdAt: 2000, category: null },
+      { roomId: 'ROOM01', createdAt: 1000, category: null },
+    ]);
+    // adminTokenHashが応答に含まれていないことを確認する
+    expect(JSON.stringify(body)).not.toContain('secret-hash');
+  });
+
+  it('excludes rooms whose ttl has already passed via the filter expression', async () => {
+    ddbMock.on(ScanCommand).resolves({ Items: [] });
+
+    const response = await listQuizRooms({});
+
+    expect(response.statusCode).toBe(200);
+    const scanCall = ddbMock.commandCalls(ScanCommand)[0].args[0].input;
+    expect(scanCall.FilterExpression).toBe('#ttl > :now');
+    expect(scanCall.ExpressionAttributeNames).toEqual({ '#state': 'state', '#ttl': 'ttl' });
+  });
+
+  it('returns an empty list when no rooms are open', async () => {
+    ddbMock.on(ScanCommand).resolves({ Items: [] });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.rooms).toEqual([]);
+  });
+
+  it('handles errors', async () => {
+    ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
+    const response = await listQuizRooms({});
     expect(response.statusCode).toBe(500);
   });
 });
