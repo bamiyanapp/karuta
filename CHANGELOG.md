@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/bamiyanapp/karuta/compare/v1.27.1...v1.28.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** トップページに開設中のクイズ大会ルーム一覧を表示する ([#493](https://github.com/bamiyanapp/karuta/issues/493)) ([8e6332b](https://github.com/bamiyanapp/karuta/commit/8e6332b2b7279ff75a7db619f2214781300f8719))
+
 ## [1.27.1](https://github.com/bamiyanapp/karuta/compare/v1.27.0...v1.27.1) (2026-07-16)
 
 
