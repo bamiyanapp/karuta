@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.33.0",
+    "date": "2026/07/16",
+    "body": "### Features\n\n* **ui:** 参加者登録UIを確定モーダルから読み札画面の任意ボタンへ移動する ([#520](https://github.com/bamiyanapp/karuta/issues/520)) ([1b32b33](https://github.com/bamiyanapp/karuta/commit/1b32b33dcc9c68ac3e636723963ba7d9d99469e4)), closes [#518](https://github.com/bamiyanapp/karuta/issues/518)"
+  },
+  {
     "version": "1.32.0",
-    "date": "2026/07/04 23:40",
+    "date": "2026/07/16 10:51",
     "body": "### Features\n\n* **content:** 新規カテゴリ「法則と効果かるた」を追加する ([#516](https://github.com/bamiyanapp/karuta/issues/516)) ([ee39388](https://github.com/bamiyanapp/karuta/commit/ee393880a67a32cc6966b7339863f429bea4579d))"
   },
   {
