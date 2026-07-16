@@ -2412,6 +2412,72 @@ describe('App', () => {
     });
   }, 40000);
 
+  it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {
+    localStorage.setItem('repeatCount', '2');
+    localStorage.setItem('speechRate', '80%');
+    localStorage.setItem('lang', 'ja');
+    localStorage.setItem('voiceId', 'Mizuki');
+
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    // 読み上げが完了しブロードキャストされるまでの数秒の間に、管理者が声の設定を変更する
+    fireEvent.click(screen.getByText('Takumi'));
+
+    await waitFor(() => {
+      const phraseBroadcast = ws.sent.find((msg) => msg.includes('"type":"phrase"'));
+      expect(phraseBroadcast).toBeDefined();
+    }, { timeout: 20000 });
+
+    const payload = JSON.parse(ws.sent.find((msg) => msg.includes('"type":"phrase"')));
+    // 実際に管理者が聞いている音声はvoiceId変更前に取得したものなので、ブロードキャストも
+    // 変更後のTakumiではなく、取得時点のMizukiのままであるべき
+    expect(payload.state.content.voiceId).toBe('Mizuki');
+  }, 40000);
+
   it('shows the list of open quiz rooms on the top page and lets a participant join directly from it (issue #489)', async () => {
     class MockWebSocket {
       constructor(url) {
