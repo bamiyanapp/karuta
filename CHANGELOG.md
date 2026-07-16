@@ -1,3 +1,10 @@
+# [1.32.0](https://github.com/bamiyanapp/karuta/compare/v1.31.0...v1.32.0) (2026-07-16)
+
+
+### Features
+
+* **content:** 新規カテゴリ「法則と効果かるた」を追加する ([#516](https://github.com/bamiyanapp/karuta/issues/516)) ([ee39388](https://github.com/bamiyanapp/karuta/commit/ee393880a67a32cc6966b7339863f429bea4579d))
+
 # [1.31.0](https://github.com/bamiyanapp/karuta/compare/v1.30.2...v1.31.0) (2026-07-16)
 
 

@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.32.0",
+    "date": "2026/07/04 23:40",
+    "body": "### Features\n\n* **content:** 新規カテゴリ「法則と効果かるた」を追加する ([#516](https://github.com/bamiyanapp/karuta/issues/516)) ([ee39388](https://github.com/bamiyanapp/karuta/commit/ee393880a67a32cc6966b7339863f429bea4579d))"
+  },
+  {
     "version": "1.31.0",
-    "date": "2026/07/04 22:26",
+    "date": "2026/07/16 09:20",
     "body": "### Features\n\n* **quiz-room:** 早押し機能を追加する ([#511](https://github.com/bamiyanapp/karuta/issues/511)) ([863812a](https://github.com/bamiyanapp/karuta/commit/863812a19ed1c5f408c095af0cf0582949b81493))"
   },
   {
