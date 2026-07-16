@@ -1,3 +1,10 @@
+# [1.35.0](https://github.com/bamiyanapp/karuta/compare/v1.34.5...v1.35.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** add admin buzz judgment modal with point award and retry exclusion ([#550](https://github.com/bamiyanapp/karuta/issues/550)) ([81dc809](https://github.com/bamiyanapp/karuta/commit/81dc8098d3d40bf23a0ae5bbe285f6f80f32bcb2)), closes [#546](https://github.com/bamiyanapp/karuta/issues/546)
+
 ## [1.34.5](https://github.com/bamiyanapp/karuta/compare/v1.34.4...v1.34.5) (2026-07-16)
 
 
