@@ -85,4 +85,14 @@ describe('QuizRoomView', () => {
 
     expect(screen.getByText('接続状態: 接続できませんでした')).toBeInTheDocument();
   });
+
+  it('lets a participant leave the room and go back to the normal game view', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    const setView = vi.fn();
+
+    render(<QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />);
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    expect(setView).toHaveBeenCalledWith('game');
+  });
 });
