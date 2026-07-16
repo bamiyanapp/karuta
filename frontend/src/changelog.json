@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.27.0",
+    "date": "2026/07/04 06:40",
+    "body": "### Features\n\n* **e2e:** Playwright E2Eテストを導入し、CIで有効化する ([#487](https://github.com/bamiyanapp/karuta/issues/487)) ([6c668b8](https://github.com/bamiyanapp/karuta/commit/6c668b8edd046844d49998dbfb875a4cbf3cc1f6)), closes [#483](https://github.com/bamiyanapp/karuta/issues/483)"
+  },
+  {
     "version": "1.26.2",
-    "date": "2026/07/16",
+    "date": "2026/07/16 03:00",
     "body": "### Bug Fixes\n\n* **quiz-room:** 参加者側の自己修復ポーリングと動線の見直し ([#485](https://github.com/bamiyanapp/karuta/issues/485)) ([7a61dfe](https://github.com/bamiyanapp/karuta/commit/7a61dfe2a843c74f085bd7e592e9cb2a95f47e38)), closes [#483](https://github.com/bamiyanapp/karuta/issues/483)"
   },
   {

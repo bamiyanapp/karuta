@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/bamiyanapp/karuta/compare/v1.26.2...v1.27.0) (2026-07-16)
+
+
+### Features
+
+* **e2e:** Playwright E2Eテストを導入し、CIで有効化する ([#487](https://github.com/bamiyanapp/karuta/issues/487)) ([6c668b8](https://github.com/bamiyanapp/karuta/commit/6c668b8edd046844d49998dbfb875a4cbf3cc1f6)), closes [#483](https://github.com/bamiyanapp/karuta/issues/483)
+
 ## [1.26.2](https://github.com/bamiyanapp/karuta/compare/v1.26.1...v1.26.2) (2026-07-16)
 
 
