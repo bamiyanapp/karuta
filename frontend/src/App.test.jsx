@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
+import { resetSharedAudioForTests } from './utils/audioUnlock';
 
 window.alert = vi.fn();
 
@@ -17,8 +18,13 @@ window.Audio = vi.fn().mockImplementation(function (url) {
     play: vi.fn().mockResolvedValue(),
     pause: vi.fn(),
     load: vi.fn(),
+    _src: undefined,
+    get src() {
+      return this._src;
+    },
     // Simulate successful loading
     set src(url) {
+      this._src = url;
       setTimeout(() => {
         if (this.oncanplaythrough) this.oncanplaythrough();
         // Simulate audio ending immediately for tests
@@ -41,6 +47,9 @@ describe('App', () => {
     window.history.pushState({}, '', '/');
     // 読み上げ履歴の永続化先（sessionStorage）をテスト間で引き継がないようにする
     sessionStorage.clear();
+    // 共有<audio>要素（issue #514）はモジュールスコープのシングルトンなので、
+    // テスト間で使い回されないようリセットする
+    resetSharedAudioForTests();
   });
 
   it('renders division selection screen initially', async () => {
@@ -2605,11 +2614,13 @@ describe('App', () => {
       constructor(url) {
         this.url = url;
         this.readyState = 0;
+        MockWebSocket.instances.push(this);
       }
       send() {}
       close() {}
     }
     MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
     window.WebSocket = MockWebSocket;
 
     fetch.mockImplementation(async (url) => {
@@ -2625,6 +2636,9 @@ describe('App', () => {
         };
       }
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+      }
       return { ok: false };
     });
 
@@ -2646,12 +2660,32 @@ describe('App', () => {
     fireEvent.click(screen.getByText('決定'));
     expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
 
-    // ブラウザの自動再生ポリシー対策（issue #497）: 一覧からの参加クリックに便乗して
-    // 無音再生による解錠を行っていることを確認する
-    const silentAudioCall = window.Audio.mock.calls.find(
-      ([src]) => typeof src === 'string' && src.startsWith('data:audio/wav')
-    );
-    expect(silentAudioCall).toBeDefined();
+    // ブラウザの自動再生ポリシー対策（issue #497, #514）: 一覧からの参加クリックに便乗して、
+    // 共有<audio>要素（issue #514）に無音再生による解錠を行っていることを確認する
+    const unlockedInstance = window.Audio.mock.results
+      .map((result) => result.value)
+      .find((audio) => typeof audio.src === 'string' && audio.src.startsWith('data:audio/wav'));
+    expect(unlockedInstance).toBeDefined();
+
+    // issue #514: 一覧クリック（App.jsx）で解錠した要素と、参加者画面（QuizRoomView.jsx）が
+    // 実際に札の音声を再生する要素が、同一の（=解錠済みの）要素であることを確認する。
+    // 別々のAudioインスタンスを使っていると、解錠の効果が実際の再生に及ばずSafari等で
+    // ブロックされ続けてしまう
+    const participantWs = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+    await act(async () => {
+      participantWs.onmessage?.({
+        data: JSON.stringify({
+          type: 'state',
+          state: { type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } },
+          role: 'participant',
+        }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
+    expect(window.Audio).toHaveBeenCalledTimes(1);
   });
 
   it('does not show the open-room list section when there are no open quiz rooms', async () => {

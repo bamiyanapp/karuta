@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio } from "../utils/audioUnlock";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -116,8 +116,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // issue #498: 再生設定（repeatCount/speechRate/lang/voiceId/announceCategory）は
   // 参加者自身のlocalStorageではなく、管理者からのブロードキャスト内容（roomState.content）
   // に含まれる値を使い、全員が管理者と同じ内容で聞こえるようにする
+  // issue #514: 音声の再生自体は`playSharedAudio`（frontend/src/utils/audioUnlock.js）で
+  // ユーザー操作により解錠済みの単一<audio>要素を使い回す。fetch完了後の非同期文脈で
+  // 毎回`new Audio(...)`していると、その要素自体はユーザー操作中に一度も再生されておらず、
+  // Safari等では再生がブロックされ続けてしまうため
   const lastPlayedKeyRef = useRef(null);
-  const currentAudioRef = useRef(null);
 
   useEffect(() => {
     if (!wsBaseUrl) {
@@ -155,11 +158,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         if (cancelled || !response.ok || !data.audioData) {
           return;
         }
-        // 前の札の音声がまだ再生中なら、次の札の音声と重なって再生されないよう止める
-        currentAudioRef.current?.pause();
-        const audio = new Audio(data.audioData);
-        currentAudioRef.current = audio;
-        await audio.play();
+        await playSharedAudio(data.audioData);
       } catch (error) {
         console.error("Failed to play quiz room audio:", error);
       }

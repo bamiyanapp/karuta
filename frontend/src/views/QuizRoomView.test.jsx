@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import QuizRoomView from './QuizRoomView';
+import { resetSharedAudioForTests } from '../utils/audioUnlock';
 
 const onStateCallbacks = [];
 const onBuzzCallbacks = [];
@@ -65,6 +66,9 @@ beforeEach(() => {
   audioInstances.length = 0;
   audioPlayImpl = () => Promise.resolve();
   localStorage.clear();
+  // 共有<audio>要素（issue #514）はモジュールスコープのシングルトンなので、
+  // テスト間で使い回されないようリセットする
+  resetSharedAudioForTests();
 });
 
 afterEach(() => {
@@ -286,8 +290,11 @@ describe('QuizRoomView', () => {
     expect(requestedUrl).toContain('announceCategory=false');
   });
 
-  it('stops the still-playing previous phrase audio when the next phrase arrives, to avoid overlapping playback', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+  it('stops the still-playing previous phrase audio when the next phrase arrives, to avoid overlapping playback (issue #514: reuses the same unlocked <audio> element rather than creating a new one)', async () => {
+    fetch.mockImplementation(async (url) => {
+      const audioData = url.includes('id=p2') ? 'data:audio/mp3;base64,DUMMY2' : 'data:audio/mp3;base64,DUMMY1';
+      return { ok: true, json: async () => ({ audioData }) };
+    });
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
@@ -298,6 +305,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
     expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY1');
 
     emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
     await act(async () => {
@@ -305,8 +313,11 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    expect(audioInstances).toHaveLength(2);
+    // 新しいAudioインスタンスを作るのではなく、同じ（ユーザー操作で解錠済みの）要素を
+    // 使い回すことで、非同期文脈からの再生でもSafari等でブロックされないようにしている
+    expect(audioInstances).toHaveLength(1);
     expect(audioInstances[0].pause).toHaveBeenCalled();
+    expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
   });
 
   it('does not show any manual "turn audio on" button, since audio playback is always on by default (issue #497)', () => {
