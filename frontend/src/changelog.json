@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.25.1",
+    "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードのWebSocketエンドポイントを設定する ([#479](https://github.com/bamiyanapp/karuta/issues/479)) ([d4295bc](https://github.com/bamiyanapp/karuta/commit/d4295bc318c1a3efee5b66f7e283b45d214031f7))"
+  },
+  {
     "version": "1.25.0",
-    "date": "2026/07/04 03:38",
+    "date": "2026/07/16 01:31",
     "body": "### Features\n\n* クイズ大会モード（最小構成）を追加する ([#477](https://github.com/bamiyanapp/karuta/issues/477)) ([ed95417](https://github.com/bamiyanapp/karuta/commit/ed9541796ae3058a7eb58763df7ff0a4f2764088))"
   },
   {
@@ -251,7 +256,7 @@
   },
   {
     "version": "1.25.0",
-    "date": "2026/07/04 03:38",
+    "date": "2026/07/16 01:31",
     "body": "### Features\n\n* **reading:** 次の札の音声をプリフェッチして待ち時間を削減 ([#245](https://github.com/bamiyanapp/karuta/issues/245)) ([f80c86d](https://github.com/bamiyanapp/karuta/commit/f80c86d726b846cf83b48666fa7c4a095b306d50))"
   },
   {
