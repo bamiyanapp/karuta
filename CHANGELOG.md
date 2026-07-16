@@ -1,3 +1,10 @@
+## [1.34.1](https://github.com/bamiyanapp/karuta/compare/v1.34.0...v1.34.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **pwa:** 絵札PDF印刷画面を開いている間はオフライン利用可能メッセージを抑制する ([#529](https://github.com/bamiyanapp/karuta/issues/529)) ([90a6ca8](https://github.com/bamiyanapp/karuta/commit/90a6ca89fb15e628ab00b0e94dfe623e2d604154)), closes [#473](https://github.com/bamiyanapp/karuta/issues/473)
+
 # [1.34.0](https://github.com/bamiyanapp/karuta/compare/v1.33.2...v1.34.0) (2026-07-16)
 
 
