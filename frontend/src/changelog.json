@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.30.1",
+    "version": "1.30.2",
     "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 参加者側の「音声を有効にする」ボタンを廃止し、自動再生の解錠で対応する ([#508](https://github.com/bamiyanapp/karuta/issues/508)) ([a0cd206](https://github.com/bamiyanapp/karuta/commit/a0cd206b270d125f1c1781f84ade834badef3c23))"
+  },
+  {
+    "version": "1.30.1",
+    "date": "2026/07/16 07:16",
     "body": "### Bug Fixes\n\n* **quiz-room:** 管理者の設定変更が読み上げ中の音声配信とズレる競合状態を修正する ([#506](https://github.com/bamiyanapp/karuta/issues/506)) ([f0022f8](https://github.com/bamiyanapp/karuta/commit/f0022f8855dcca9ba614442a293ac701d44440c8))"
   },
   {
