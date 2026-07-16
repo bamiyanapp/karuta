@@ -1,3 +1,10 @@
+## [1.33.2](https://github.com/bamiyanapp/karuta/compare/v1.33.1...v1.33.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* **pwa:** PDF生成中はオフライン利用可能メッセージを抑制する ([#524](https://github.com/bamiyanapp/karuta/issues/524)) ([bd0094a](https://github.com/bamiyanapp/karuta/commit/bd0094a0cd28d43d51a2757194388de981a89115)), closes [#473](https://github.com/bamiyanapp/karuta/issues/473)
+
 ## [1.33.1](https://github.com/bamiyanapp/karuta/compare/v1.33.0...v1.33.1) (2026-07-16)
 
 

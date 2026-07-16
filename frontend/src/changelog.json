@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.33.1",
+    "version": "1.33.2",
     "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **pwa:** PDF生成中はオフライン利用可能メッセージを抑制する ([#524](https://github.com/bamiyanapp/karuta/issues/524)) ([bd0094a](https://github.com/bamiyanapp/karuta/commit/bd0094a0cd28d43d51a2757194388de981a89115)), closes [#473](https://github.com/bamiyanapp/karuta/issues/473)"
+  },
+  {
+    "version": "1.33.1",
+    "date": "2026/07/16 11:34",
     "body": "### Bug Fixes\n\n* **quiz-room:** 開設中ルーム一覧を最新5件に制限する ([#522](https://github.com/bamiyanapp/karuta/issues/522)) ([9acf581](https://github.com/bamiyanapp/karuta/commit/9acf5811bda7429d5ba358c79842154301f9206c)), closes [#500](https://github.com/bamiyanapp/karuta/issues/500)"
   },
   {
