@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, WS_BASE_URL } from "./config";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
@@ -11,6 +11,7 @@ import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
+import QuizRoomView from "./views/QuizRoomView";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -1060,6 +1061,10 @@ function App() {
     return <ChangelogView setView={setView} />;
   }
 
+  if (view === "quiz-room") {
+    return <QuizRoomView setView={setView} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} />;
+  }
+
   if (selectedCategories.length === 0 && !division) {
     return (
       <div className="container py-5 mx-auto">
@@ -1095,6 +1100,9 @@ function App() {
           </button>
           <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
             更新履歴を見る
+          </button>
+          <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
+            クイズ大会モード
           </button>
         </div>
       </div>
