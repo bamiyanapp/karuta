@@ -81,6 +81,19 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     setConfirmedName("");
   };
 
+  // 通常のゲーム画面へ戻る（issue #532）。URLに残った?roomId=をそのままにすると、
+  // 次にトップページの汎用的な「クイズ大会に参加する」リンクを押した際、
+  // QuizRoomViewが再マウント時にこの残留したroomIdを読み取ってしまい、
+  // ルームコード入力画面ではなく以前のルームへ入室しようとする画面になってしまう。
+  // そのため離脱時に明示的にクエリから取り除く（他のクエリパラメータは保持する）
+  const goBack = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("roomId");
+    const query = params.toString();
+    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    setView("game");
+  };
+
   const { connectionStatus, setParticipantName, buzz } = useQuizRoomSync({
     wsBaseUrl,
     roomId: joinRoomId,
@@ -195,7 +208,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     return (
       <div className="container py-5 mx-auto text-center">
         <p className="text-muted mb-4">クイズ大会モードは現在準備中です。しばらくお待ちください。</p>
-        <button onClick={() => setView("game")} className="btn btn-outline-dark rounded-pill">← 戻る</button>
+        <button onClick={goBack} className="btn btn-outline-dark rounded-pill">← 戻る</button>
       </div>
     );
   }
@@ -228,7 +241,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
             </button>
           </div>
           <div className="text-center mt-5">
-            <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+            <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
           </div>
         </main>
       </div>
@@ -255,7 +268,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           </div>
         )}
         <div className="mt-5">
-          <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
       </div>
     );
@@ -286,7 +299,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           </button>
         </div>
         <div className="text-center mt-5">
-          <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
       </main>
     </div>

@@ -168,6 +168,36 @@ describe('QuizRoomView', () => {
     expect(setView).toHaveBeenCalledWith('game');
   });
 
+  it('removes the roomId query param when leaving via "戻る", so a later generic join attempt shows the room-code entry screen instead of re-entering the previous room (issue #532)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    const { unmount } = render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    // 名前入力画面（joinRoomIdが設定されている状態）から「戻る」で離脱する
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    expect(new URLSearchParams(window.location.search).has('roomId')).toBe(false);
+
+    // アプリ内遷移を模して再マウントする（App.jsxの「クイズ大会に参加する」リンクは
+    // roomIdを指定せずQuizRoomViewを再マウントする）。残留roomIdが無いため、
+    // 以前のルームへ直接入室する画面ではなくルームコード入力画面が表示されるべき
+    unmount();
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('ルームコード')).toBeInTheDocument();
+  });
+
+  it('preserves other query params when removing roomId on leaving via "戻る"', () => {
+    window.history.pushState({}, '', '?roomId=ABC123&foo=bar');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.has('roomId')).toBe(false);
+    expect(params.get('foo')).toBe('bar');
+  });
+
   it('shows a name entry screen before the participant screen, and does not let the participant confirm an empty name (issue #510)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
