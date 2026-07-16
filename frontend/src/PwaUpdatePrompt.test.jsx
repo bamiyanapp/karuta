@@ -8,6 +8,7 @@ vi.mock("virtual:pwa-register/react", () => ({
 }));
 
 import PwaUpdatePrompt from "./PwaUpdatePrompt.jsx";
+import { setPdfExportInProgress } from "./pdfExportStatus";
 
 describe("PwaUpdatePrompt", () => {
   beforeEach(() => {
@@ -16,6 +17,8 @@ describe("PwaUpdatePrompt", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    // pdfExportStatusはモジュール単位で状態を共有するため、他テストへ漏れないよう戻す
+    setPdfExportInProgress(false);
   });
 
   it("更新が不要な場合は何も表示しない", () => {
@@ -103,6 +106,33 @@ describe("PwaUpdatePrompt", () => {
 
     expect(setOfflineReady).toHaveBeenCalledWith(false);
     vi.useRealTimers();
+  });
+
+  it("PDF生成中はオフライン利用可能でもメッセージを表示しない（issue #473）", () => {
+    setPdfExportInProgress(true);
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [false, vi.fn()],
+      offlineReady: [true, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    const { container } = render(<PwaUpdatePrompt />);
+
+    expect(screen.queryByText("オフラインで利用可能になりました")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("PDF生成が終わればオフライン利用可能メッセージが表示される（issue #473）", () => {
+    setPdfExportInProgress(false);
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [false, vi.fn()],
+      offlineReady: [true, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    expect(screen.getByText("オフラインで利用可能になりました")).toBeInTheDocument();
   });
 
   it("更新が必要な場合（ユーザーの判断を要する）は自動では消えない", () => {
