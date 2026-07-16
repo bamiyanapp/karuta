@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/bamiyanapp/karuta/compare/v1.25.0...v1.25.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会モードのWebSocketエンドポイントを設定する ([#479](https://github.com/bamiyanapp/karuta/issues/479)) ([d4295bc](https://github.com/bamiyanapp/karuta/commit/d4295bc318c1a3efee5b66f7e283b45d214031f7))
+
 # [1.25.0](https://github.com/bamiyanapp/karuta/compare/v1.24.0...v1.25.0) (2026-07-16)
 
 
