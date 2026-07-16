@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { API_BASE_URL } from "../config";
 import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
+import { setPdfExportInProgress, usePdfExportInProgress } from "../pdfExportStatus";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
@@ -59,7 +60,7 @@ const resolvePhraseIndex = (slotIndex, printSide) => {
 };
 
 function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const isGeneratingPdf = usePdfExportInProgress();
   // 表面（読み札の内容）と裏面（種別・レベル）は用紙を裏返して2回に分けて印刷する運用を想定し、
   // 同じページ構成をどちらの内容で描画するかだけをこのstateで切り替える。
   // バックエンドのrenderEfudaPdfWorkerがヘッドレスブラウザでこの画面をディープリンク
@@ -77,7 +78,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
   );
 
   const downloadPdf = async () => {
-    setIsGeneratingPdf(true);
+    setPdfExportInProgress(true);
     try {
       const categoryParam = serializeCategoriesParam(selectedCategories);
       const startResponse = await fetch(`${API_BASE_URL}/generate-efuda-pdf`, {
@@ -120,7 +121,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
       console.error("Error generating PDF:", error);
       alert("PDFの生成に失敗しました。");
     } finally {
-      setIsGeneratingPdf(false);
+      setPdfExportInProgress(false);
     }
   };
 
