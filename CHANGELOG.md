@@ -1,3 +1,10 @@
+# [1.36.0](https://github.com/bamiyanapp/karuta/compare/v1.35.0...v1.36.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** add real-time participant roster for admin and participant screens ([#553](https://github.com/bamiyanapp/karuta/issues/553)) ([2fca8e1](https://github.com/bamiyanapp/karuta/commit/2fca8e1ccd211199731f7029947d416173a86765)), closes [#545](https://github.com/bamiyanapp/karuta/issues/545)
+
 # [1.35.0](https://github.com/bamiyanapp/karuta/compare/v1.34.5...v1.35.0) (2026-07-16)
 
 

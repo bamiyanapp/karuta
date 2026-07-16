@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.35.0",
+    "version": "1.36.0",
     "date": "2026/07/16",
+    "body": "### Features\n\n* **quiz-room:** add real-time participant roster for admin and participant screens ([#553](https://github.com/bamiyanapp/karuta/issues/553)) ([2fca8e1](https://github.com/bamiyanapp/karuta/commit/2fca8e1ccd211199731f7029947d416173a86765)), closes [#545](https://github.com/bamiyanapp/karuta/issues/545)"
+  },
+  {
+    "version": "1.35.0",
+    "date": "2026/07/16 21:51",
     "body": "### Features\n\n* **quiz-room:** add admin buzz judgment modal with point award and retry exclusion ([#550](https://github.com/bamiyanapp/karuta/issues/550)) ([81dc809](https://github.com/bamiyanapp/karuta/commit/81dc8098d3d40bf23a0ae5bbe285f6f80f32bcb2)), closes [#546](https://github.com/bamiyanapp/karuta/issues/546)"
   },
   {
