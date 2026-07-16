@@ -6,12 +6,14 @@ import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
+import { useQuizRoomSync } from "./hooks/useQuizRoomSync";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 import QuizRoomView from "./views/QuizRoomView";
+import QuizRoomInfoPanel from "./components/QuizRoomInfoPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -25,6 +27,11 @@ const MAX_PLAYERS = 6;
 // 同じ値の上限を維持する。こちらは選択UI自体をブロックする一次防御、
 // バックエンド側はURL直叩き等を弾く二次防御
 const MAX_EFUDA_PRINT_CARDS = 500;
+
+// クイズ大会モード（issue #470）でuseQuizRoomSyncにonStateを渡す際の既定値。
+// 管理者側は自身のゲーム状態が唯一の正であり、サーバーから送り返される状態を
+// 使う必要がないため、何もしない関数を安定した参照として渡す
+const noop = () => {};
 
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
@@ -102,6 +109,11 @@ function App() {
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [draftCategories, setDraftCategories] = useState([]);
+
+  // クイズ大会モード（issue #470）: 管理者としてルームを開設した場合のみ設定される。
+  // 参加者側の状態同期・カテゴリ選択・札めくり自体は通常のゲーム画面をそのまま使い、
+  // ここではブロードキャストに必要な最小限の情報（roomId・管理者トークン）のみ保持する
+  const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -842,6 +854,38 @@ function App() {
 
   useWakeLock(view === "game" && selectedCategories.length > 0);
 
+  // クイズ大会モード: quizRoomが設定されている（管理者としてルームを開設した）間だけ接続する
+  const { broadcastState: broadcastQuizRoomState } = useQuizRoomSync({
+    wsBaseUrl: WS_BASE_URL,
+    roomId: quizRoom?.roomId,
+    adminToken: quizRoom?.adminToken,
+    onState: noop,
+  });
+
+  // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
+  // audioData等の重量級フィールドは送らず、表示に必要な項目だけを抜き出す
+  // （サーバー側の状態サイズ上限にも抵触しないようにする）
+  useEffect(() => {
+    if (!quizRoom) {
+      return;
+    }
+    if (displayContent.type === "phrase" && displayContent.content) {
+      const p = displayContent.content;
+      broadcastQuizRoomState({
+        type: "phrase",
+        content: { category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer },
+      });
+    } else if (displayContent.type === "result" && displayContent.content) {
+      const r = displayContent.content;
+      broadcastQuizRoomState({
+        type: "result",
+        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer },
+      });
+    } else {
+      broadcastQuizRoomState({ type: "initial" });
+    }
+  }, [quizRoom, displayContent, broadcastQuizRoomState]);
+
   useEffect(() => {
     if (view === "comments") {
       document.title = "指摘一覧 | かるた読み上げアプリ";
@@ -1062,7 +1106,14 @@ function App() {
   }
 
   if (view === "quiz-room") {
-    return <QuizRoomView setView={setView} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} />;
+    return (
+      <QuizRoomView
+        setView={setView}
+        apiBaseUrl={API_BASE_URL}
+        wsBaseUrl={WS_BASE_URL}
+        onRoomCreated={setQuizRoom}
+      />
+    );
   }
 
   if (selectedCategories.length === 0 && !division) {
@@ -1510,10 +1561,11 @@ function App() {
           </div>
         </section>
       <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
-      <div className="d-flex flex-wrap gap-2 justify-content-center">
+      <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
         <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
+      {quizRoom && <QuizRoomInfoPanel roomId={quizRoom.roomId} />}
     </footer>
     </div>
   );

@@ -2329,4 +2329,72 @@ describe('App', () => {
 
     expect(screen.queryByText('取った人:')).not.toBeInTheDocument();
   }, 40000);
+
+  it('lets an admin open a quiz room, keeps them on the normal game screen, shows the room info panel, and broadcasts phrase changes over the WebSocket (issue #470)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('クイズ大会モード'));
+    fireEvent.click(await screen.findByText('管理者としてルームを開設する'));
+
+    // ルーム作成後、通常のかるた選択画面に戻ってくる（専用の管理者画面は用意しない）
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    const ws = MockWebSocket.instances[0];
+    expect(ws.url).toContain('roomId=ABC123');
+    expect(ws.url).toContain('adminToken=token-1');
+
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const phraseBroadcast = ws.sent.find((msg) => msg.includes('"type":"phrase"'));
+      expect(phraseBroadcast).toBeDefined();
+    }, { timeout: 20000 });
+
+    const payload = JSON.parse(ws.sent.find((msg) => msg.includes('"type":"phrase"')));
+    expect(payload).toEqual({
+      action: 'updateState',
+      state: { type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined } },
+    });
+  }, 40000);
 });
