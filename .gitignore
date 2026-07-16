@@ -1,8 +1,3 @@
-# dev-standards/.gitignore の共通部分をコピーしたもの。
-# .gitignore はGitHub側の制約でシンボリックリンクにできないため、
-# dev-standards/.gitignore を更新した場合は手動で同期すること。
-# プロジェクト固有のignoreエントリは backend/.gitignore 等に追加する。
-
 # Node dependencies
 node_modules/
 npm-debug.log*
@@ -29,7 +24,6 @@ Thumbs.db
 # Environment variables
 .env
 .env.*
-!.env.example
 
 # commit skill が下書きに使う一時ファイル
 commit_msg*.txt
