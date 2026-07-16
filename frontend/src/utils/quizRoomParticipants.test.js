@@ -18,6 +18,22 @@ describe('mergeParticipantsWithPoints', () => {
     ]);
   });
 
+  it('keeps a participant visible with their earned points after they disconnect (points are never cleared by a participant-list update, issue #545)', () => {
+    // 切断イベント（disconnectQuizRoom）はparticipants一覧からのみ名前を外し、
+    // ポイント（points）はjudgeQuizRoomBuzzでの加点時にしか変わらない。
+    // そのため切断後のparticipants一覧に名前が無くても、pointsに記録が
+    // 残っている限りは一覧に表示され続けるべきである
+    const beforeDisconnect = mergeParticipantsWithPoints(['たろう', 'はなこ'], { たろう: 2 });
+    expect(beforeDisconnect.map((p) => p.name)).toContain('たろう');
+
+    // たろうが切断し、participants一覧からは消えたが、pointsはそのまま
+    const afterDisconnect = mergeParticipantsWithPoints(['はなこ'], { たろう: 2 });
+    expect(afterDisconnect).toEqual([
+      { name: 'たろう', points: 2 },
+      { name: 'はなこ', points: 0 },
+    ]);
+  });
+
   it('sorts by points descending, breaking ties by name ascending', () => {
     const result = mergeParticipantsWithPoints(['はなこ', 'たろう', 'じろう'], {});
     expect(result).toEqual([
