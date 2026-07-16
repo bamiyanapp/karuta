@@ -2277,6 +2277,11 @@ describe('App', () => {
     fireEvent.click(screen.getByText(/決定/));
 
     await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+
+    // 参加者登録（issue #518）はカテゴリ確定モーダルではなく、読み札画面のボタンから行う
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('取った人を記録する参加者を登録する'));
 
     const nameInput = screen.getByPlaceholderText('名前を入力');
     fireEvent.change(nameInput, { target: { value: 'たろう' } });
@@ -2287,9 +2292,6 @@ describe('App', () => {
     expect(screen.getByText('たろう')).toBeInTheDocument();
     expect(screen.getByText('はなこ')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('はい'));
-
-    await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
 
     await waitFor(() => {
@@ -2311,6 +2313,59 @@ describe('App', () => {
     const hanakoCard = screen.getByText('はなこ', { selector: 'span.fw-bold' }).parentElement;
     expect(within(hanakoCard).getByText(/0枚/)).toBeInTheDocument();
   }, 50000);
+
+  it('does not show the participant-registration UI in the category confirmation modal (issue #518)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }),
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+
+    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+
+    expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();
+    expect(screen.queryByText('取った人を記録する参加者（任意）')).not.toBeInTheDocument();
+  });
+
+  it('lets the participant-registration panel on the reading screen be toggled open and closed, with the button label reflecting whether anyone is registered yet (issue #518)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', phrase: '読み札1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+    await waitFor(() => screen.getByText('次の札'));
+
+    expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('取った人を記録する参加者を登録する'));
+    expect(screen.getByPlaceholderText('名前を入力')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('名前を入力'), { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('追加'));
+
+    fireEvent.click(screen.getByText('参加者登録を閉じる'));
+    expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();
+
+    // 登録済みの参加者がいる場合、再度開くボタンの文言が変わる
+    expect(screen.getByText('参加者を編集する')).toBeInTheDocument();
+  });
 
   it('does not show player registration or the taken-by buttons in kids mode even if players are already registered', async () => {
     sessionStorage.setItem('players', JSON.stringify(['たろう']));

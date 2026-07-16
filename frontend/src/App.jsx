@@ -105,6 +105,9 @@ function App() {
   const [historyByCategory, setHistoryByCategory] = useSessionStorageState(HISTORY_STORAGE_KEY, {});
   const [players, setPlayers] = useSessionStorageState(PLAYERS_STORAGE_KEY, []);
   const [newPlayerName, setNewPlayerName] = useState("");
+  // 「取った人を記録する」参加者登録は、カテゴリ確定時のモーダルではなく読み札画面の
+  // ボタンから任意に開閉する（issue #518）
+  const [showPlayerRegistration, setShowPlayerRegistration] = useState(false);
   const [scoresByCategory, setScoresByCategory] = useSessionStorageState(SCORES_STORAGE_KEY, {});
   const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
 
@@ -1350,40 +1353,6 @@ function App() {
                       : "ゲームを開始しますか？"}
                   </h3>
 
-                  <div className="mb-4 text-start">
-                    <h4 className="h6 fw-bold mb-2">取った人を記録する参加者（任意）</h4>
-                    {players.length > 0 && (
-                      <div className="d-flex flex-wrap gap-2 mb-2">
-                        {players.map(name => (
-                          <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
-                            {name}
-                            <button
-                              type="button"
-                              onClick={() => removePlayer(name)}
-                              className="btn-close btn-close-white"
-                              style={{ fontSize: "0.6rem" }}
-                              aria-label={`${name}を削除`}
-                            ></button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {players.length < MAX_PLAYERS && (
-                      <div className="d-flex gap-2">
-                        <input
-                          type="text"
-                          value={newPlayerName}
-                          onChange={(e) => setNewPlayerName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
-                          placeholder="名前を入力"
-                          className="form-control"
-                          maxLength={20}
-                        />
-                        <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
-                      </div>
-                    )}
-                  </div>
-
                   <div className="d-flex gap-2 justify-content-center">
                     <button onClick={confirmCategory} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">はい</button>
                     <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">いいえ</button>
@@ -1552,6 +1521,52 @@ function App() {
               {displayContent.type === 'result' && renderResult(displayContent.content)}
               {displayContent.type === 'initial' && renderInitial()}
             </div>
+
+            {division !== "kids" && (
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPlayerRegistration(prev => !prev)}
+                  className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                >
+                  {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する参加者を登録する"}
+                </button>
+                {showPlayerRegistration && (
+                  <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>
+                    {players.length > 0 && (
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        {players.map(name => (
+                          <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
+                            {name}
+                            <button
+                              type="button"
+                              onClick={() => removePlayer(name)}
+                              className="btn-close btn-close-white"
+                              style={{ fontSize: "0.6rem" }}
+                              aria-label={`${name}を削除`}
+                            ></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {players.length < MAX_PLAYERS && (
+                      <div className="d-flex gap-2">
+                        <input
+                          type="text"
+                          value={newPlayerName}
+                          onChange={(e) => setNewPlayerName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
+                          placeholder="名前を入力"
+                          className="form-control"
+                          maxLength={20}
+                        />
+                        <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {displayContent.type === 'phrase' && division !== "kids" && players.length > 0 && (
               <div className="mb-4">
