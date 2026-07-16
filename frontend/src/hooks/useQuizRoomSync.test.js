@@ -165,6 +165,18 @@ describe('useQuizRoomSync', () => {
     expect(onRoundReset).toHaveBeenCalledWith({ excludedName: 'たろう' });
   });
 
+  it('calls onParticipants when a participants message is received (issue #545)', () => {
+    const onParticipants = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onParticipants }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({ type: 'participants', names: ['たろう', 'はなこ'] });
+    });
+
+    expect(onParticipants).toHaveBeenCalledWith(['たろう', 'はなこ']);
+  });
+
   it('judgeBuzz sends judgeBuzz with the correct flag only while the connection is open', () => {
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
 

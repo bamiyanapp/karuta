@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
 import { unlockAudioPlayback, playSharedAudio } from "../utils/audioUnlock";
+import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -76,6 +77,9 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。集計単位はconnectionIdではなく
   // name（早押し機能の実装参照）なので、自分のポイントはpoints[confirmedName]で引く
   const [points, setPoints] = useState({});
+  // 参加者一覧（issue #545）: 名前確定済みの参加者名一覧。管理者側と同様、ポイントと
+  // 統合した1つのリストとして表示する
+  const [participants, setParticipants] = useState([]);
 
   // ポイント制（issue #519）: サーバーは同一ルーム内での名前重複を拒否する。拒否された
   // 場合は名前入力画面に戻し、別の名前を選び直してもらう
@@ -117,6 +121,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     onPoints: setPoints,
     onNameError: handleNameError,
     onRoundReset: handleRoundReset,
+    onParticipants: setParticipants,
   });
 
   // 早押し結果表示のリセット判定（issue #510）。ラウンドを表す値（buzzRoundKey）を
@@ -278,6 +283,23 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
         <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
         {renderParticipantContent(roomState)}
+        {(() => {
+          // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
+          // 1つのリストに統合して表示する（管理者画面と同じ並び順）
+          const participantList = mergeParticipantsWithPoints(participants, points);
+          return participantList.length > 0 && (
+            <div className="mx-auto mt-4 text-start" style={{ maxWidth: "320px" }}>
+              <p className="text-muted small mb-2">参加者一覧</p>
+              <div className="d-flex flex-wrap gap-2 justify-content-center">
+                {participantList.map(({ name, points: pt }) => (
+                  <div key={name} className="bg-white rounded-3 shadow-sm px-3 py-2">
+                    <span className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</span>: {pt}pt
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         {buzzedBy ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答しました</p>
         ) : roomState?.type === "phrase" && !excludedThisRound && (

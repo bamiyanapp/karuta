@@ -32,6 +32,9 @@ beforeEach(() => {
   ddbMock.reset();
   managementApiMock.reset();
   vi.spyOn(console, 'error').mockImplementation(() => {});
+  // 参加者一覧（issue #545）: syncQuizRoom等は無条件でQueryCommandを叩くようになったため、
+  // 個々のテストで参加者一覧の内容を検証しない限りは空配列を既定値としておく
+  ddbMock.on(QueryCommand).resolves({ Items: [] });
 });
 
 describe('createQuizRoom', () => {
@@ -209,14 +212,44 @@ describe('connectQuizRoom', () => {
 
 describe('disconnectQuizRoom', () => {
   it('deletes the connection record', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
     ddbMock.on(DeleteCommand).resolves({});
     const response = await disconnectQuizRoom(wsEvent({ connectionId: 'conn-1' }));
     expect(response.statusCode).toBe(200);
     expect(ddbMock.commandCalls(DeleteCommand)[0].args[0].input.Key).toEqual({ connectionId: 'conn-1' });
   });
 
+  it('does not broadcast when the disconnected connection had no room (e.g. already gone)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    ddbMock.on(DeleteCommand).resolves({});
+    await disconnectQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(0);
+  });
+
+  it('broadcasts the updated participant list (excluding the departed participant) to the remaining connections (issue #545)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
+    ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-2', roomId: 'ROOM01', role: 'participant', name: 'はなこ' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await disconnectQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    expect(response.statusCode).toBe(200);
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(2);
+    const targets = postCalls.map((call) => call.args[0].input.ConnectionId).sort();
+    expect(targets).toEqual(['conn-2', 'conn-admin']);
+    const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
+    expect(payload).toEqual({ type: 'participants', names: ['はなこ'] });
+  });
+
   it('handles errors', async () => {
-    ddbMock.on(DeleteCommand).rejects(new Error('DynamoDB error'));
+    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await disconnectQuizRoom(wsEvent());
     expect(response.statusCode).toBe(500);
   });
@@ -265,7 +298,7 @@ describe('syncQuizRoom', () => {
 
     expect(response.statusCode).toBe(200);
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
-    expect(postCalls).toHaveLength(2);
+    expect(postCalls).toHaveLength(3);
     const buzzPayload = JSON.parse(Buffer.from(postCalls[1].args[0].input.Data).toString('utf-8'));
     expect(buzzPayload).toEqual({ type: 'buzz', name: 'たろう', connectionId: 'conn-2' });
   });
@@ -281,7 +314,7 @@ describe('syncQuizRoom', () => {
 
     await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
 
-    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(1);
+    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(2);
   });
 
   it('also sends the current point standings to a reconnecting/late-joining participant (issue #519)', async () => {
@@ -296,7 +329,7 @@ describe('syncQuizRoom', () => {
     await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
 
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
-    expect(postCalls).toHaveLength(2);
+    expect(postCalls).toHaveLength(3);
     const pointsPayload = JSON.parse(Buffer.from(postCalls[1].args[0].input.Data).toString('utf-8'));
     expect(pointsPayload).toEqual({ type: 'points', points: { たろう: 2, はなこ: 1 } });
   });
@@ -312,7 +345,33 @@ describe('syncQuizRoom', () => {
 
     await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
 
-    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(1);
+    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(2);
+  });
+
+  it('sends the current participant list to a reconnecting/late-joining connection (issue #545)', async () => {
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRoomConnections' }).resolves({
+      Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' },
+    });
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRooms' }).resolves({
+      Item: { roomId: 'ROOM01', state: { type: 'phrase', content: { id: 'p1' } } },
+    });
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' },
+        { connectionId: 'conn-2', roomId: 'ROOM01', role: 'participant', name: 'はなこ' },
+        { connectionId: 'conn-3', roomId: 'ROOM01', role: 'participant' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    const participantsPayload = JSON.parse(
+      Buffer.from(postCalls[postCalls.length - 1].args[0].input.Data).toString('utf-8')
+    );
+    expect(participantsPayload).toEqual({ type: 'participants', names: ['たろう', 'はなこ'] });
   });
 
   it('handles errors', async () => {
@@ -509,8 +568,9 @@ describe('updateQuizRoomState', () => {
 describe('setQuizRoomName', () => {
   it('saves a trimmed name on the connection record', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
-    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'conn-1', roomId: 'ROOM01' }] });
+    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' }] });
     ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
 
     const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: '  たろう  ' } }));
 
@@ -522,13 +582,37 @@ describe('setQuizRoomName', () => {
 
   it('truncates names longer than the configured limit', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
-    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'conn-1', roomId: 'ROOM01' }] });
+    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' }] });
     ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
 
     await setQuizRoomName(wsEvent({ body: { name: 'x'.repeat(50) } }));
 
     const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
     expect(updateCall.ExpressionAttributeValues[':name']).toHaveLength(20);
+  });
+
+  it('broadcasts the updated participant list (including the newly-named connection) to every connection in the room (issue #545)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' },
+        { connectionId: 'conn-2', roomId: 'ROOM01', role: 'participant', name: 'はなこ' },
+      ],
+    });
+    ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: 'たろう' } }));
+
+    expect(response.statusCode).toBe(200);
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(3);
+    const targets = postCalls.map((call) => call.args[0].input.ConnectionId).sort();
+    expect(targets).toEqual(['conn-1', 'conn-2', 'conn-admin']);
+    const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
+    expect(payload).toEqual({ type: 'participants', names: ['たろう', 'はなこ'] });
   });
 
   it('rejects an empty (or whitespace-only) name', async () => {
@@ -569,9 +653,10 @@ describe('setQuizRoomName', () => {
   it('allows re-saving the same name for the same connection (not a duplicate of itself)', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
     ddbMock.on(QueryCommand).resolves({
-      Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', name: 'たろう' }],
+      Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' }],
     });
     ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
 
     const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: 'たろう' } }));
 

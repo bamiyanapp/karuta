@@ -2721,10 +2721,67 @@ describe('App', () => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'points', points: { はなこ: 1, たろう: 3 } }) });
     });
 
-    expect(screen.getByText('参加者ごとのポイント')).toBeInTheDocument();
+    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
     // たろう(3pt)がはなこ(1pt)より先（降順）に表示される
     expect(points).toEqual(['たろう: 3pt', 'はなこ: 1pt']);
+  }, 40000);
+
+  it('shows participants who have not scored yet as 0pt in the same list once a "participants" message arrives (issue #545)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'participants', names: ['たろう', 'はなこ', 'じろう'] }) });
+      ws.onmessage?.({ data: JSON.stringify({ type: 'points', points: { たろう: 3 } }) });
+    });
+
+    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
+    const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
+    // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
+    expect(points).toEqual(['たろう: 3pt', 'じろう: 0pt', 'はなこ: 0pt']);
   }, 40000);
 
   it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {
