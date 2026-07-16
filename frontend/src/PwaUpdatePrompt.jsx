@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { usePdfExportInProgress } from "./pdfExportStatus";
+import { useIsPrintScreenActive } from "./pdfExportStatus";
 import "./PwaUpdatePrompt.css";
 
 // オフライン利用可能通知は操作を要求しない情報表示のため、この時間が経てば自動的に消す。
@@ -20,9 +20,10 @@ function PwaUpdatePrompt() {
   const offlineReady = sw?.offlineReady?.[0] || false;
   const setOfflineReady = sw?.offlineReady?.[1] || noop;
   const updateServiceWorker = sw?.updateServiceWorker || noop;
-  // PDF出力（generate-efuda-pdf）はバックエンドAPIへの通信が必須でオフラインでは
-  // 動作しないため、生成中に「オフラインで利用可能になりました」を出すと誤解を招く（issue #473）
-  const isPdfExportInProgress = usePdfExportInProgress();
+  // 絵札PDF印刷画面（PrintEfudaView）はバックエンドAPIへの通信が必須でオフラインでは
+  // 動作しないため、この画面を開いている間に「オフラインで利用可能になりました」を
+  // 出すと誤解を招く（issue #473）
+  const isPrintScreenActive = useIsPrintScreenActive();
 
   const close = () => {
     setOfflineReady(false);
@@ -59,7 +60,7 @@ function PwaUpdatePrompt() {
     );
   }
 
-  if (offlineReady && !isPdfExportInProgress) {
+  if (offlineReady && !isPrintScreenActive) {
     return (
       <div className="pwa-update-prompt" role="alert">
         <span>オフラインで利用可能になりました</span>

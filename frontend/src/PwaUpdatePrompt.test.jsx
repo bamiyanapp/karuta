@@ -8,7 +8,7 @@ vi.mock("virtual:pwa-register/react", () => ({
 }));
 
 import PwaUpdatePrompt from "./PwaUpdatePrompt.jsx";
-import { setPdfExportInProgress } from "./pdfExportStatus";
+import { setPrintScreenActive } from "./pdfExportStatus";
 
 describe("PwaUpdatePrompt", () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe("PwaUpdatePrompt", () => {
   afterEach(() => {
     vi.useRealTimers();
     // pdfExportStatusはモジュール単位で状態を共有するため、他テストへ漏れないよう戻す
-    setPdfExportInProgress(false);
+    setPrintScreenActive(false);
   });
 
   it("更新が不要な場合は何も表示しない", () => {
@@ -108,8 +108,8 @@ describe("PwaUpdatePrompt", () => {
     vi.useRealTimers();
   });
 
-  it("PDF生成中はオフライン利用可能でもメッセージを表示しない（issue #473）", () => {
-    setPdfExportInProgress(true);
+  it("絵札PDF印刷画面を開いている間はオフライン利用可能でもメッセージを表示しない（issue #473）", () => {
+    setPrintScreenActive(true);
     useRegisterSWMock.mockReturnValue({
       needRefresh: [false, vi.fn()],
       offlineReady: [true, vi.fn()],
@@ -122,8 +122,8 @@ describe("PwaUpdatePrompt", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("PDF生成が終わればオフライン利用可能メッセージが表示される（issue #473）", () => {
-    setPdfExportInProgress(false);
+  it("絵札PDF印刷画面を開いていなければオフライン利用可能メッセージが表示される（issue #473）", () => {
+    setPrintScreenActive(false);
     useRegisterSWMock.mockReturnValue({
       needRefresh: [false, vi.fn()],
       offlineReady: [true, vi.fn()],
