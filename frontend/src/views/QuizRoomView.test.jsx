@@ -5,14 +5,18 @@ import { resetSharedAudioForTests } from '../utils/audioUnlock';
 
 const onStateCallbacks = [];
 const onBuzzCallbacks = [];
+const onPointsCallbacks = [];
+const onNameErrorCallbacks = [];
 let mockConnectionStatus = 'connected';
 const setParticipantNameMock = vi.fn();
 const buzzMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
-  useQuizRoomSync: ({ onState, onBuzz }) => {
+  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError }) => {
     onStateCallbacks.push(onState);
     onBuzzCallbacks.push(onBuzz);
+    onPointsCallbacks.push(onPoints);
+    onNameErrorCallbacks.push(onNameError);
     return {
       connectionStatus: mockConnectionStatus,
       broadcastState: vi.fn(),
@@ -33,6 +37,18 @@ function emitState(state) {
 function emitBuzz(buzz) {
   act(() => {
     onBuzzCallbacks[onBuzzCallbacks.length - 1]?.(buzz);
+  });
+}
+
+function emitPoints(points) {
+  act(() => {
+    onPointsCallbacks[onPointsCallbacks.length - 1]?.(points);
+  });
+}
+
+function emitNameError(message) {
+  act(() => {
+    onNameErrorCallbacks[onNameErrorCallbacks.length - 1]?.(message);
   });
 }
 
@@ -59,6 +75,8 @@ window.Audio = vi.fn().mockImplementation(function (src) {
 beforeEach(() => {
   onStateCallbacks.length = 0;
   onBuzzCallbacks.length = 0;
+  onPointsCallbacks.length = 0;
+  onNameErrorCallbacks.length = 0;
   mockConnectionStatus = 'connected';
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
@@ -182,6 +200,30 @@ describe('QuizRoomView', () => {
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
     expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
     expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+  });
+
+  it('shows the participant their own accumulated points as "points" messages arrive, keyed by their confirmed name (issue #519)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    expect(screen.getByText('獲得ポイント: 0')).toBeInTheDocument();
+
+    emitPoints({ はなこ: 2, たろう: 5 });
+    expect(screen.getByText('獲得ポイント: 2')).toBeInTheDocument();
+  });
+
+  it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+    expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+
+    emitNameError('その名前は既に使われています。別の名前を入力してください。');
+
+    expect(screen.getByText('その名前は既に使われています。別の名前を入力してください。')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('お名前')).toBeInTheDocument();
   });
 
   it('keeps showing the responder during the result screen, but resets it once a new (different) phrase is broadcast', () => {

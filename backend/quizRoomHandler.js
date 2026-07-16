@@ -247,6 +247,14 @@ exports.syncQuizRoom = async (event) => {
       });
     }
 
+    // ポイント制（issue #519）: 再接続・遅れて参加した端末にも現在の集計を伝える
+    if (room.Item.points) {
+      await postToConnection(managementApi, connectionId, {
+        type: "points",
+        points: room.Item.points,
+      });
+    }
+
     return { statusCode: 200, body: "" };
   } catch (error) {
     console.error(error);
@@ -275,18 +283,52 @@ exports.updateQuizRoomState = async (event) => {
     }
 
     const { roomId } = connection.Item;
+
+    const room = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+    }));
+
+    // 読み上げ設定の変更等で、ラウンドが進んだわけではなく同じ札のphraseが
+    // 再ブロードキャストされることがある（App.jsxのbroadcast effect参照）。
+    // このケースを新しいラウンドの開始と誤認すると、早押し結果を巻き戻す前に
+    // ポイントを加点してしまったり、まだ判定が済んでいない早押し記録を
+    // 消してしまったりするため、直前の状態と札のidを比較して区別する
+    const isSamePhraseRebroadcast = newState.type === "phrase"
+      && room.Item?.state?.type === "phrase"
+      && room.Item?.state?.content?.id === newState.content?.id;
+
+    // 早押しポイント制（issue #519）: 次の札（type="phrase"、かつラウンドが実際に
+    // 進んだ場合）に進むタイミングで、直前のラウンドで早押しが記録されていれば
+    // その人に1ポイント加点する。"initial"へ戻す場合（ゲームのリセット等）は
+    // お手つき等の可能性を否定できないため加点しない
+    let updatedPoints = null;
+    if (newState.type === "phrase" && !isSamePhraseRebroadcast) {
+      const buzzedName = room.Item?.buzz?.name;
+      if (buzzedName) {
+        updatedPoints = { ...(room.Item.points || {}) };
+        updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
+      }
+    }
+
     // 早押し機能（issue #510）: 新しい札（次の問題）や、ゲームのリセット等で"initial"に
-    // 戻った場合は、前のラウンドの早押し結果をリセットする。result表示中だけは次の札が
-    // 出るまで回答者を表示し続けたいため、typeが"result"のときだけリセットしない
-    const resetBuzz = newState.type !== "result" ? " REMOVE buzz" : "";
+    // 戻った場合は、前のラウンドの早押し結果をリセットする。result表示中や、同じ札の
+    // 再ブロードキャスト中は、まだそのラウンドの早押し結果を確定させたくないためリセットしない
+    const resetBuzz = newState.type !== "result" && !isSamePhraseRebroadcast ? " REMOVE buzz" : "";
+    const updatePointsExpr = updatedPoints ? ", #points = :points" : "";
     await docClient.send(new UpdateCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
-      UpdateExpression: `SET #state = :state, #ttl = :ttl${resetBuzz}`,
-      ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
+      UpdateExpression: `SET #state = :state, #ttl = :ttl${updatePointsExpr}${resetBuzz}`,
+      ExpressionAttributeNames: {
+        "#state": "state",
+        "#ttl": "ttl",
+        ...(updatedPoints ? { "#points": "points" } : {}),
+      },
       ExpressionAttributeValues: {
         ":state": newState,
         ":ttl": Math.floor(Date.now() / 1000) + ROOM_TTL_SECONDS,
+        ...(updatedPoints ? { ":points": updatedPoints } : {}),
       },
     }));
 
@@ -306,6 +348,15 @@ exports.updateQuizRoomState = async (event) => {
       }))
     );
 
+    if (updatedPoints) {
+      await Promise.allSettled(
+        (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
+          type: "points",
+          points: updatedPoints,
+        }))
+      );
+    }
+
     return { statusCode: 200, body: "" };
   } catch (error) {
     console.error(error);
@@ -322,6 +373,36 @@ exports.setQuizRoomName = async (event) => {
     const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME_LENGTH) : "";
     if (!name) {
       return { statusCode: 400, body: "Invalid name" };
+    }
+
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
+    if (!connection.Item) {
+      // 接続情報が既に無い（切断済み等）。名前の保存自体は無意味なので何もしない
+      return { statusCode: 200, body: "" };
+    }
+
+    // ポイント制（issue #519）はnameを集計キーにするため、同一ルーム内で名前が
+    // 重複すると他人のポイントと混ざってしまう。参加時点で重複を禁止する
+    const { roomId } = connection.Item;
+    const connections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": roomId },
+    }));
+    const isDuplicate = (connections.Items || []).some(
+      (conn) => conn.connectionId !== connectionId && conn.name === name
+    );
+    if (isDuplicate) {
+      const managementApi = buildManagementApiClient(event);
+      await postToConnection(managementApi, connectionId, {
+        type: "nameError",
+        message: "その名前は既に使われています。別の名前を入力してください。",
+      });
+      return { statusCode: 200, body: "" };
     }
 
     await docClient.send(new UpdateCommand({

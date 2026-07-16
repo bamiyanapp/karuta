@@ -127,6 +127,9 @@ function App() {
   // QuizRoomView.jsxのbuzzRoundKeyと同じ考え方で、resultの間はリセットしない）
   const [quizRoomBuzzedBy, setQuizRoomBuzzedBy] = useState(null);
   const [quizRoomBuzzRoundKey, setQuizRoomBuzzRoundKey] = useState(null);
+  // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
+  // ポイントを一覧表示する
+  const [quizRoomPoints, setQuizRoomPoints] = useState({});
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -902,6 +905,7 @@ function App() {
     adminToken: quizRoom?.adminToken,
     onState: noop,
     onBuzz: setQuizRoomBuzzedBy,
+    onPoints: setQuizRoomPoints,
   });
 
   // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
@@ -1693,6 +1697,20 @@ function App() {
           <QuizRoomInfoPanel roomId={quizRoom.roomId} />
           {quizRoomBuzzedBy && (
             <p className="fw-bold text-dark">🔔 {quizRoomBuzzedBy.name} さんが回答しました</p>
+          )}
+          {Object.keys(quizRoomPoints).length > 0 && (
+            <div className="mx-auto mt-3 text-start" style={{ maxWidth: "320px" }}>
+              <p className="text-muted small mb-2">参加者ごとのポイント</p>
+              <div className="d-flex flex-wrap gap-2 justify-content-center">
+                {Object.entries(quizRoomPoints)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([name, point]) => (
+                    <div key={name} className="bg-white rounded-3 shadow-sm px-3 py-2">
+                      <span className="fw-bold notranslate">{name}</span>: {point}pt
+                    </div>
+                  ))}
+              </div>
+            </div>
           )}
         </div>
       ) : (
