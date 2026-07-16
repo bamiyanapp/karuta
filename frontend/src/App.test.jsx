@@ -2814,6 +2814,28 @@ describe('App', () => {
     expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
   });
 
+  it('does not log an error when the quiz-rooms endpoint responds with a non-JSON-bearing failure (e.g. no response body at all)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    fetch.mockImplementation(async (url) => {
+      // レスポンスがok:falseのみで、jsonメソッドを持たないケース（例えば502等で
+      // ボディがJSONではない場合）を模す。response.okを確認する前にresponse.json()を
+      // 呼んでいると、ここで"response.json is not a function"が投げられてしまう
+      if (url.includes('/quiz-rooms')) return { ok: false };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('かるた読み上げアプリ');
+    const quizRoomsErrors = consoleErrorSpy.mock.calls.filter(
+      (call) => typeof call[0] === 'string' && call[0].includes('Failed to fetch open quiz rooms')
+    );
+    expect(quizRoomsErrors).toHaveLength(0);
+  });
+
   it('re-fetches the open quiz room list every time the top page is shown again, not just on first mount (issue #531)', async () => {
     class MockWebSocket {
       constructor(url) {
