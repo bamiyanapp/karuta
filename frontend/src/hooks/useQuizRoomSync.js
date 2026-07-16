@@ -17,7 +17,9 @@ const SYNC_POLL_INTERVAL_MS = 5000;
 // {type:"nameError", message}が返るのでonNameErrorを呼ぶ
 // 早押し正誤判定（issue #546）: 管理者はjudgeBuzzで正誤を送信できる。不正解と判定
 // されたときはサーバーから{type:"roundReset", excludedName}が返るのでonRoundResetを呼ぶ
-export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError, onRoundReset }) {
+// 参加者一覧（issue #545）: サーバーから{type:"participants", names}（名前確定済みの
+// 参加者名一覧）を受け取るたびonParticipantsを呼ぶ
+export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants }) {
   const [internalStatus, setInternalStatus] = useState("idle"); // connecting|connected|error（idleはwsBaseUrl/roomId未設定時に導出する）
   const connectionStatus = (!wsBaseUrl || !roomId) ? "idle" : internalStatus;
   const wsRef = useRef(null);
@@ -26,6 +28,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   const onPointsRef = useRef(onPoints);
   const onNameErrorRef = useRef(onNameError);
   const onRoundResetRef = useRef(onRoundReset);
+  const onParticipantsRef = useRef(onParticipants);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
@@ -57,6 +60,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   useEffect(() => {
     onRoundResetRef.current = onRoundReset;
   }, [onRoundReset]);
+
+  useEffect(() => {
+    onParticipantsRef.current = onParticipants;
+  }, [onParticipants]);
 
   useEffect(() => {
     if (!wsBaseUrl || !roomId) {
@@ -110,6 +117,8 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
             onNameErrorRef.current?.(data.message);
           } else if (data?.type === "roundReset") {
             onRoundResetRef.current?.({ excludedName: data.excludedName });
+          } else if (data?.type === "participants") {
+            onParticipantsRef.current?.(data.names);
           }
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);

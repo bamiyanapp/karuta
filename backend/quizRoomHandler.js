@@ -172,10 +172,39 @@ exports.connectQuizRoom = async (event) => {
 // WebSocket $disconnect
 exports.disconnectQuizRoom = async (event) => {
   try {
+    const connectionId = event.requestContext.connectionId;
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
     await docClient.send(new DeleteCommand({
       TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId: event.requestContext.connectionId },
+      Key: { connectionId },
     }));
+
+    // 参加者一覧（issue #545）: 切断は参加者一覧からも即座に消す。残りの接続へ
+    // 更新後の一覧をブロードキャストする（削除済みなので自分自身は含まれない）
+    if (connection.Item?.roomId) {
+      const { roomId } = connection.Item;
+      const connections = await docClient.send(new QueryCommand({
+        TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+        IndexName: "roomId-index",
+        KeyConditionExpression: "roomId = :roomId",
+        ExpressionAttributeValues: { ":roomId": roomId },
+      }));
+      const remaining = connections.Items || [];
+      const participantNames = remaining
+        .filter((conn) => conn.role === "participant" && conn.name)
+        .map((conn) => conn.name);
+      const managementApi = buildManagementApiClient(event);
+      await Promise.allSettled(
+        remaining.map((conn) => postToConnection(managementApi, conn.connectionId, {
+          type: "participants",
+          names: participantNames,
+        }))
+      );
+    }
+
     return { statusCode: 200, body: "Disconnected" };
   } catch (error) {
     console.error(error);
@@ -254,6 +283,21 @@ exports.syncQuizRoom = async (event) => {
         points: room.Item.points,
       });
     }
+
+    // 参加者一覧（issue #545）: 再接続・遅れて参加した端末にも現在の参加者一覧を伝える
+    const roomConnections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": connection.Item.roomId },
+    }));
+    const participantNames = (roomConnections.Items || [])
+      .filter((conn) => conn.role === "participant" && conn.name)
+      .map((conn) => conn.name);
+    await postToConnection(managementApi, connectionId, {
+      type: "participants",
+      names: participantNames,
+    });
 
     return { statusCode: 200, body: "" };
   } catch (error) {
@@ -467,6 +511,21 @@ exports.setQuizRoomName = async (event) => {
       ExpressionAttributeValues: { ":name": name },
       ConditionExpression: "attribute_exists(connectionId)",
     }));
+
+    // 参加者一覧（issue #545）: 名前が確定したら、ルーム内の全接続（管理者含む）へ
+    // 更新後の参加者一覧をブロードキャストする。connections.Itemsは名前確定前に
+    // 取得したものなので、呼び出し元自身の分だけ新しい名前で上書きする
+    const managementApi = buildManagementApiClient(event);
+    const participantNames = (connections.Items || [])
+      .filter((conn) => conn.role === "participant")
+      .map((conn) => (conn.connectionId === connectionId ? name : conn.name))
+      .filter(Boolean);
+    await Promise.allSettled(
+      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
+        type: "participants",
+        names: participantNames,
+      }))
+    );
 
     return { statusCode: 200, body: "" };
   } catch (error) {

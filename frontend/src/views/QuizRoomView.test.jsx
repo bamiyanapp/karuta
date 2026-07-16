@@ -8,17 +8,19 @@ const onBuzzCallbacks = [];
 const onPointsCallbacks = [];
 const onNameErrorCallbacks = [];
 const onRoundResetCallbacks = [];
+const onParticipantsCallbacks = [];
 let mockConnectionStatus = 'connected';
 const setParticipantNameMock = vi.fn();
 const buzzMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
-  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset }) => {
+  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants }) => {
     onStateCallbacks.push(onState);
     onBuzzCallbacks.push(onBuzz);
     onPointsCallbacks.push(onPoints);
     onNameErrorCallbacks.push(onNameError);
     onRoundResetCallbacks.push(onRoundReset);
+    onParticipantsCallbacks.push(onParticipants);
     return {
       connectionStatus: mockConnectionStatus,
       broadcastState: vi.fn(),
@@ -60,6 +62,12 @@ function emitRoundReset(payload) {
   });
 }
 
+function emitParticipants(names) {
+  act(() => {
+    onParticipantsCallbacks[onParticipantsCallbacks.length - 1]?.(names);
+  });
+}
+
 // 早押し機能（issue #510）: 参加者画面は名前入力を先に確定させないと通常画面へ進まないため、
 // 名前を関係しないテストではこのヘルパーで確定させておく
 function confirmName(name = 'たろう') {
@@ -86,6 +94,7 @@ beforeEach(() => {
   onPointsCallbacks.length = 0;
   onNameErrorCallbacks.length = 0;
   onRoundResetCallbacks.length = 0;
+  onParticipantsCallbacks.length = 0;
   mockConnectionStatus = 'connected';
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
@@ -301,6 +310,22 @@ describe('QuizRoomView', () => {
 
     emitPoints({ はなこ: 2, たろう: 5 });
     expect(screen.getByText('獲得ポイント: 2')).toBeInTheDocument();
+  });
+
+  it('shows a combined participant list (including 0pt participants), highlighting the confirmed participant\'s own name (issue #545)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitParticipants(['はなこ', 'たろう', 'じろう']);
+    emitPoints({ たろう: 5 });
+
+    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
+    const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
+    expect(points).toEqual(['たろう: 5pt', 'じろう: 0pt', 'はなこ: 0pt']);
+
+    const ownEntry = screen.getByText('はなこ', { selector: 'span.fw-bold' });
+    expect(ownEntry).toBeInTheDocument();
   });
 
   it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {

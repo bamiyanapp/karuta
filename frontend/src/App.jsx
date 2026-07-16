@@ -7,6 +7,7 @@ import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useQuizRoomSync } from "./hooks/useQuizRoomSync";
+import { mergeParticipantsWithPoints } from "./utils/quizRoomParticipants";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
@@ -130,6 +131,9 @@ function App() {
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
   // ポイントを一覧表示する
   const [quizRoomPoints, setQuizRoomPoints] = useState({});
+  // 参加者一覧（issue #545）: 名前確定済みの参加者名一覧。ポイントと統合して
+  // 「参加者名（0pt含む全員）」の1つのリストとして表示する
+  const [quizRoomParticipants, setQuizRoomParticipants] = useState([]);
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -910,6 +914,7 @@ function App() {
     onState: noop,
     onBuzz: setQuizRoomBuzzedBy,
     onPoints: setQuizRoomPoints,
+    onParticipants: setQuizRoomParticipants,
   });
 
   // 早押し正誤判定（issue #546）: 「正解」「不正解」を選んだら判定結果をサーバーへ
@@ -1722,20 +1727,23 @@ function App() {
               </div>
             </div>
           )}
-          {Object.keys(quizRoomPoints).length > 0 && (
-            <div className="mx-auto mt-3 text-start" style={{ maxWidth: "320px" }}>
-              <p className="text-muted small mb-2">参加者ごとのポイント</p>
-              <div className="d-flex flex-wrap gap-2 justify-content-center">
-                {Object.entries(quizRoomPoints)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([name, point]) => (
+          {(() => {
+            // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
+            // 1つのリストに統合して表示する
+            const participantList = mergeParticipantsWithPoints(quizRoomParticipants, quizRoomPoints);
+            return participantList.length > 0 && (
+              <div className="mx-auto mt-3 text-start" style={{ maxWidth: "320px" }}>
+                <p className="text-muted small mb-2">参加者一覧</p>
+                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                  {participantList.map(({ name, points }) => (
                     <div key={name} className="bg-white rounded-3 shadow-sm px-3 py-2">
-                      <span className="fw-bold notranslate">{name}</span>: {point}pt
+                      <span className="fw-bold notranslate">{name}</span>: {points}pt
                     </div>
                   ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       ) : (
         <div className="mb-4">
