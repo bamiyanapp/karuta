@@ -115,10 +115,12 @@ describe('QuizRoomView', () => {
     expect(setView).toHaveBeenCalledWith('game');
   });
 
-  it('fetches and plays audio for a broadcast phrase using the participant\'s own local playback settings (issue #490)', async () => {
-    localStorage.setItem('repeatCount', '3');
-    localStorage.setItem('speechRate', '70%');
-    localStorage.setItem('voiceId', 'Takumi');
+  it('fetches and plays audio for a broadcast phrase using the settings broadcast by the admin, not the participant\'s own local settings (issue #490, #498)', async () => {
+    // 参加者自身のローカル設定は無視され、管理者からブロードキャストされた設定が使われることを
+    // 確認するため、参加者側のlocalStorageにはあえて異なる値を入れておく
+    localStorage.setItem('repeatCount', '1');
+    localStorage.setItem('speechRate', '100%');
+    localStorage.setItem('voiceId', 'Kazuha');
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }),
@@ -127,7 +129,13 @@ describe('QuizRoomView', () => {
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
-    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+    emitState({
+      type: 'phrase',
+      content: {
+        id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3',
+        repeatCount: 3, speechRate: '70%', lang: 'ja', voiceId: 'Takumi', announceCategory: true,
+      },
+    });
 
     await act(async () => {
       await Promise.resolve();
@@ -139,11 +147,33 @@ describe('QuizRoomView', () => {
     expect(requestedUrl).toContain('id=p1');
     expect(requestedUrl).toContain('category=Cat1');
     expect(requestedUrl).toContain('repeatCount=3');
+    expect(requestedUrl).toContain('speechRate=70%25');
     expect(requestedUrl).toContain('voiceId=Takumi');
-    expect(requestedUrl).toContain('announceCategory=false');
+    expect(requestedUrl).toContain('announceCategory=true');
     expect(audioInstances).toHaveLength(1);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
     expect(audioInstances[0].play).toHaveBeenCalled();
+  });
+
+  it('falls back to sensible defaults when the broadcast phrase content has no playback settings', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const requestedUrl = fetch.mock.calls[0][0];
+    expect(requestedUrl).toContain('repeatCount=2');
+    expect(requestedUrl).toContain('speechRate=80%25');
+    expect(requestedUrl).toContain('lang=ja');
+    expect(requestedUrl).toContain('voiceId=Mizuki');
+    expect(requestedUrl).toContain('announceCategory=false');
   });
 
   it('stops the still-playing previous phrase audio when the next phrase arrives, to avoid overlapping playback', async () => {
@@ -169,24 +199,13 @@ describe('QuizRoomView', () => {
     expect(audioInstances[0].pause).toHaveBeenCalled();
   });
 
-  it('does not fetch or play audio for a broadcast phrase while muted', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+  it('does not show any manual "turn audio on" button, since audio playback is always on by default (issue #497)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
-    expect(screen.getByText('🔊 音声ON')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('🔊 音声ON'));
-    expect(screen.getByText('🔇 音声OFF')).toBeInTheDocument();
-
-    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(fetch).not.toHaveBeenCalled();
-    expect(audioInstances).toHaveLength(0);
+    expect(screen.queryByText('🔊 音声ON')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔇 音声OFF')).not.toBeInTheDocument();
   });
 
   it('shows a retry button when playback is blocked (autoplay policy), and lets the participant retry with a tap', async () => {

@@ -2331,6 +2331,13 @@ describe('App', () => {
   }, 40000);
 
   it('lets an admin open a quiz room, keeps them on the normal game screen, shows the room info panel, and broadcasts phrase changes over the WebSocket (issue #470)', async () => {
+    // 読み上げ設定はlocalStorageに永続化されており、他のテストの実行順序に
+    // 左右されないよう、ブロードキャスト内容として期待する値を明示的に固定する
+    localStorage.setItem('repeatCount', '2');
+    localStorage.setItem('speechRate', '80%');
+    localStorage.setItem('lang', 'ja');
+    localStorage.setItem('voiceId', 'Mizuki');
+
     class MockWebSocket {
       constructor(url) {
         this.url = url;
@@ -2395,7 +2402,13 @@ describe('App', () => {
     const payload = JSON.parse(ws.sent.find((msg) => msg.includes('"type":"phrase"')));
     expect(payload).toEqual({
       action: 'updateState',
-      state: { type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined } },
+      state: {
+        type: 'phrase',
+        content: {
+          id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined,
+          repeatCount: 2, speechRate: '80%', lang: 'ja', voiceId: 'Mizuki', announceCategory: false,
+        },
+      },
     });
   }, 40000);
 

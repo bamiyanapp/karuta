@@ -897,9 +897,14 @@ function App() {
       const p = displayContent.content;
       broadcastQuizRoomState({
         type: "phrase",
-        // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
-        // 同じ札の音声を取得・再生できるようにするため
-        content: { id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer },
+        content: {
+          // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
+          // 同じ札の音声を取得・再生できるようにするため
+          id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer,
+          // 読み上げ設定（issue #498）: 参加者自身のローカル設定ではなく、管理者と
+          // 同じ内容で聞こえるよう、管理者側の設定値をそのまま一緒に配信する
+          repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection,
+        },
       });
     } else if (displayContent.type === "result" && displayContent.content) {
       const r = displayContent.content;
@@ -910,7 +915,7 @@ function App() {
     } else {
       broadcastQuizRoomState({ type: "initial" });
     }
-  }, [quizRoom, displayContent, broadcastQuizRoomState]);
+  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   useEffect(() => {
     if (view === "comments") {
