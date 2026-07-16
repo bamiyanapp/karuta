@@ -32,6 +32,16 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.js',
+    // e2e/はPlaywright専用のテストファイル（別ランナー・別コマンドで実行する）のため、
+    // vitestの既定の*.spec.jsマッチから除外する（他はvitestの既定exclude一覧を維持）
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      './e2e/**',
+    ],
     // setupTests.js で waitFor 系のデフォルトタイムアウトを底上げしているため、
     // 個別に timeout を指定していないテストが vitest 側の既定値(5000ms)で
     // 先に打ち切られないよう、テスト自体のタイムアウトも合わせて底上げする。

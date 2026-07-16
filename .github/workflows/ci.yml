@@ -18,5 +18,6 @@ jobs:
     with:
       frontend_dir: frontend
       backend_dir: backend
+      enable_e2e_test: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
