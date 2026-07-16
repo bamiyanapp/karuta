@@ -14,6 +14,7 @@ const ROOM_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const ROOM_CODE_LENGTH = 6;
 const MAX_CREATE_ROOM_ATTEMPTS = 5; // ルームコード衝突時の再採番の上限
 const MAX_STATE_JSON_LENGTH = 8000; // 状態データの肥大化・課金濫用を防ぐ上限
+const MAX_NAME_LENGTH = 20; // 早押し機能（issue #510）: 参加者名の肥大化・表示崩れを防ぐ上限
 
 function generateRoomCode() {
   let code = "";
@@ -234,6 +235,16 @@ exports.syncQuizRoom = async (event) => {
       role: connection.Item.role,
     });
 
+    // 早押し機能（issue #510）: 再接続・遅れて参加した端末でも、現在のラウンドで
+    // 既に誰かが早押し済みであることが分かるようにする
+    if (room.Item.buzz) {
+      await postToConnection(managementApi, connectionId, {
+        type: "buzz",
+        name: room.Item.buzz.name,
+        connectionId: room.Item.buzz.connectionId,
+      });
+    }
+
     return { statusCode: 200, body: "" };
   } catch (error) {
     console.error(error);
@@ -262,10 +273,14 @@ exports.updateQuizRoomState = async (event) => {
     }
 
     const { roomId } = connection.Item;
+    // 早押し機能（issue #510）: 新しい札（次の問題）や、ゲームのリセット等で"initial"に
+    // 戻った場合は、前のラウンドの早押し結果をリセットする。result表示中だけは次の札が
+    // 出るまで回答者を表示し続けたいため、typeが"result"のときだけリセットしない
+    const resetBuzz = newState.type !== "result" ? " REMOVE buzz" : "";
     await docClient.send(new UpdateCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
-      UpdateExpression: "SET #state = :state, #ttl = :ttl",
+      UpdateExpression: `SET #state = :state, #ttl = :ttl${resetBuzz}`,
       ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
       ExpressionAttributeValues: {
         ":state": newState,
@@ -286,6 +301,97 @@ exports.updateQuizRoomState = async (event) => {
         type: "state",
         state: newState,
         role: conn.role,
+      }))
+    );
+
+    return { statusCode: 200, body: "" };
+  } catch (error) {
+    console.error(error);
+    return { statusCode: 500, body: "Internal Server Error" };
+  }
+};
+
+// WebSocketカスタムルート"setName"（早押し機能、issue #510）。参加者（管理者含む、
+// ただし実際に使うのは参加者のみ）が自分の表示名を接続情報へ保存する
+exports.setQuizRoomName = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const body = JSON.parse(event.body || "{}");
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME_LENGTH) : "";
+    if (!name) {
+      return { statusCode: 400, body: "Invalid name" };
+    }
+
+    await docClient.send(new UpdateCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+      UpdateExpression: "SET #name = :name",
+      ExpressionAttributeNames: { "#name": "name" },
+      ExpressionAttributeValues: { ":name": name },
+      ConditionExpression: "attribute_exists(connectionId)",
+    }));
+
+    return { statusCode: 200, body: "" };
+  } catch (error) {
+    if (error.name === "ConditionalCheckFailedException") {
+      // 接続情報が既に無い（切断済み等）。名前の保存自体は無意味なので何もしない
+      return { statusCode: 200, body: "" };
+    }
+    console.error(error);
+    return { statusCode: 500, body: "Internal Server Error" };
+  }
+};
+
+// WebSocketカスタムルート"buzz"（早押し機能、issue #510）。参加者のみが押せる。
+// 同一ラウンド内で最初の1件だけを条件付き書き込みで確定させ、ルーム内の全接続へ
+// 回答者名をブロードキャストする（早押し結果のリセットはupdateQuizRoomState側で行う）
+exports.buzzQuizRoom = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
+    if (!connection.Item || connection.Item.role !== "participant") {
+      return { statusCode: 403, body: "Forbidden" };
+    }
+
+    const { roomId, name } = connection.Item;
+    const buzz = {
+      connectionId,
+      name: name || "名無しさん",
+      buzzedAt: Date.now(),
+    };
+
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+        Key: { roomId },
+        UpdateExpression: "SET buzz = :buzz",
+        ConditionExpression: "attribute_not_exists(buzz)",
+        ExpressionAttributeValues: { ":buzz": buzz },
+      }));
+    } catch (error) {
+      if (error.name === "ConditionalCheckFailedException") {
+        // 既に他の参加者が先に押している。早押しの結果は変えず、何もしない
+        return { statusCode: 200, body: "" };
+      }
+      throw error;
+    }
+
+    const connections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": roomId },
+    }));
+
+    const managementApi = buildManagementApiClient(event);
+    await Promise.allSettled(
+      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
+        type: "buzz",
+        name: buzz.name,
+        connectionId: buzz.connectionId,
       }))
     );
 

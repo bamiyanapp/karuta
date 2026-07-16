@@ -2412,6 +2412,128 @@ describe('App', () => {
     });
   }, 40000);
 
+  it('shows the responder\'s name to the admin when a participant buzzes in, and resets it once the next card is shown (issue #510)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+    }, { timeout: 20000 });
+  }, 40000);
+
+  it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    // 同じ札を表示したまま設定を変える（再ブロードキャストが発生するが、ラウンドは
+    // 変わっていないので回答者表示は消えてはならない）
+    fireEvent.click(screen.getByText('はやい'));
+
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+  }, 40000);
+
   it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {
     localStorage.setItem('repeatCount', '2');
     localStorage.setItem('speechRate', '80%');
@@ -2519,6 +2641,9 @@ describe('App', () => {
     fireEvent.click(screen.getByText('ABC123'));
 
     expect(await screen.findByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+    // 早押し機能（issue #510）: 参加者はまず名前を入力してから通常の参加者画面へ進む
+    fireEvent.change(screen.getByPlaceholderText('お名前'), { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('決定'));
     expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
 
     // ブラウザの自動再生ポリシー対策（issue #497）: 一覧からの参加クリックに便乗して

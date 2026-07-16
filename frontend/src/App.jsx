@@ -119,6 +119,11 @@ function App() {
   const [quizRoomCreateError, setQuizRoomCreateError] = useState(null);
   // トップページ下部に表示する、開設中のクイズ大会ルーム一覧（issue #489）
   const [openQuizRooms, setOpenQuizRooms] = useState([]);
+  // 早押し機能（issue #510）: 現在のラウンドで最初に回答した参加者名。次の札が
+  // 出題されたらリセットする（下記のブロードキャストeffect内。quizRoomBuzzRoundKeyは
+  // QuizRoomView.jsxのbuzzRoundKeyと同じ考え方で、resultの間はリセットしない）
+  const [quizRoomBuzzedBy, setQuizRoomBuzzedBy] = useState(null);
+  const [quizRoomBuzzRoundKey, setQuizRoomBuzzRoundKey] = useState(null);
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -893,6 +898,7 @@ function App() {
     roomId: quizRoom?.roomId,
     adminToken: quizRoom?.adminToken,
     onState: noop,
+    onBuzz: setQuizRoomBuzzedBy,
   });
 
   // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
@@ -910,6 +916,15 @@ function App() {
       // 実際に聞いている音声」とズレるため
       const settings = displayContent.playbackSettings
         ?? { repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection };
+      // 早押し機能（issue #510）: 新しい札が出題されたら、前のラウンドの回答者表示を
+      // リセットする（サーバー側もこの同じタイミングで早押し状態をリセットしている）。
+      // ラウンドキーで判定するのは、設定変更等で同じ札が再ブロードキャストされた際に
+      // 既に記録済みの回答者表示を誤って消さないようにするため
+      const roundKey = `${p.category}:${p.id}`;
+      if (roundKey !== quizRoomBuzzRoundKey) {
+        setQuizRoomBuzzRoundKey(roundKey);
+        setQuizRoomBuzzedBy(null);
+      }
       broadcastQuizRoomState({
         type: "phrase",
         content: {
@@ -927,9 +942,15 @@ function App() {
         content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer },
       });
     } else {
+      // 早押し機能（issue #510）: ゲームのリセット等で"initial"に戻った場合は、
+      // 古い回答者情報が次のラウンドへ持ち越されないようリセットする
+      if (quizRoomBuzzRoundKey !== null) {
+        setQuizRoomBuzzRoundKey(null);
+        setQuizRoomBuzzedBy(null);
+      }
       broadcastQuizRoomState({ type: "initial" });
     }
-  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, quizRoomBuzzRoundKey]);
 
   useEffect(() => {
     if (view === "comments") {
@@ -1653,7 +1674,12 @@ function App() {
         <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
       {quizRoom ? (
-        <QuizRoomInfoPanel roomId={quizRoom.roomId} />
+        <div className="mb-4">
+          <QuizRoomInfoPanel roomId={quizRoom.roomId} />
+          {quizRoomBuzzedBy && (
+            <p className="fw-bold text-dark">🔔 {quizRoomBuzzedBy.name} さんが回答しました</p>
+          )}
+        </div>
       ) : (
         <div className="mb-4">
           <button

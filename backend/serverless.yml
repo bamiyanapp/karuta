@@ -57,10 +57,12 @@ provider:
             - dynamodb:Scan
           Resource:
             - !GetAtt QuizRoomsTable.Arn
-        - Effect: Allow # 追加（クイズ大会モード: 接続情報の読み書き・ルーム単位の一覧取得）
+        - Effect: Allow # 追加（クイズ大会モード: 接続情報の読み書き・ルーム単位の一覧取得。
+          # UpdateItemは早押し機能issue #510のsetQuizRoomName（参加者名の保存）で使用）
           Action:
             - dynamodb:GetItem
             - dynamodb:PutItem
+            - dynamodb:UpdateItem
             - dynamodb:DeleteItem
             - dynamodb:Query
           Resource:
@@ -216,6 +218,16 @@ functions:
     events:
       - websocket:
           route: updateState
+  setQuizRoomName: # 追加（早押し機能、issue #510）。参加者が自分の表示名を接続情報へ保存する
+    handler: quizRoomHandler.setQuizRoomName
+    events:
+      - websocket:
+          route: setName
+  buzzQuizRoom: # 追加（早押し機能、issue #510）。参加者の早押しを最初の1件だけ確定し、全接続へブロードキャストする
+    handler: quizRoomHandler.buzzQuizRoom
+    events:
+      - websocket:
+          route: buzz
 
 resources:
   Resources:

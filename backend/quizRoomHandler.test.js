@@ -10,6 +10,8 @@ import {
   disconnectQuizRoom,
   syncQuizRoom,
   updateQuizRoomState,
+  setQuizRoomName,
+  buzzQuizRoom,
 } from './quizRoomHandler';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -229,6 +231,42 @@ describe('syncQuizRoom', () => {
     expect(payload).toEqual({ type: 'state', state: { type: 'phrase', phrase: { id: 'p1' } }, role: 'participant' });
   });
 
+  it('also sends the current buzz status to a reconnecting/late-joining participant when someone has already buzzed this round (issue #510)', async () => {
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRoomConnections' }).resolves({
+      Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' },
+    });
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRooms' }).resolves({
+      Item: {
+        roomId: 'ROOM01',
+        state: { type: 'phrase', content: { id: 'p1' } },
+        buzz: { connectionId: 'conn-2', name: 'たろう', buzzedAt: 1000 },
+      },
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    expect(response.statusCode).toBe(200);
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(2);
+    const buzzPayload = JSON.parse(Buffer.from(postCalls[1].args[0].input.Data).toString('utf-8'));
+    expect(buzzPayload).toEqual({ type: 'buzz', name: 'たろう', connectionId: 'conn-2' });
+  });
+
+  it('does not send a buzz message when no one has buzzed this round', async () => {
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRoomConnections' }).resolves({
+      Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' },
+    });
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRooms' }).resolves({
+      Item: { roomId: 'ROOM01', state: { type: 'phrase', content: { id: 'p1' } } },
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(1);
+  });
+
   it('handles errors', async () => {
     ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await syncQuizRoom(wsEvent());
@@ -288,6 +326,42 @@ describe('updateQuizRoomState', () => {
     expect(payload.state).toEqual(newState);
   });
 
+  it('resets (removes) the buzz field when broadcasting a new phrase, so the next round starts unbuzzed (issue #510)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' } });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    const newState = { type: 'phrase', phrase: { id: 'p2', category: 'Cat1' } };
+    await updateQuizRoomState(wsEvent({ connectionId: 'conn-admin', body: { state: newState } }));
+
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.UpdateExpression).toContain('REMOVE buzz');
+  });
+
+  it('does not reset the buzz field when broadcasting a result (so the responder stays visible during the result screen)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' } });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    const newState = { type: 'result', content: { time: 1.2 } };
+    await updateQuizRoomState(wsEvent({ connectionId: 'conn-admin', body: { state: newState } }));
+
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.UpdateExpression).not.toContain('REMOVE buzz');
+  });
+
+  it('resets the buzz field when broadcasting back to the initial/idle state (e.g. the admin resets the game), so stale buzz info does not leak into the next round', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' } });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    const newState = { type: 'initial' };
+    await updateQuizRoomState(wsEvent({ connectionId: 'conn-admin', body: { state: newState } }));
+
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.UpdateExpression).toContain('REMOVE buzz');
+  });
+
   it('removes a stale connection record when broadcasting hits a GoneException, without failing the whole update', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' } });
     ddbMock.on(UpdateCommand).resolves({});
@@ -306,6 +380,123 @@ describe('updateQuizRoomState', () => {
   it('handles unexpected errors', async () => {
     ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await updateQuizRoomState(wsEvent({ body: { state: { type: 'phrase' } } }));
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('setQuizRoomName', () => {
+  it('saves a trimmed name on the connection record', async () => {
+    ddbMock.on(UpdateCommand).resolves({});
+
+    const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: '  たろう  ' } }));
+
+    expect(response.statusCode).toBe(200);
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.Key).toEqual({ connectionId: 'conn-1' });
+    expect(updateCall.ExpressionAttributeValues[':name']).toBe('たろう');
+  });
+
+  it('truncates names longer than the configured limit', async () => {
+    ddbMock.on(UpdateCommand).resolves({});
+
+    await setQuizRoomName(wsEvent({ body: { name: 'x'.repeat(50) } }));
+
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.ExpressionAttributeValues[':name']).toHaveLength(20);
+  });
+
+  it('rejects an empty (or whitespace-only) name', async () => {
+    const response = await setQuizRoomName(wsEvent({ body: { name: '   ' } }));
+    expect(response.statusCode).toBe(400);
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+  });
+
+  it('silently no-ops when the connection record no longer exists (e.g. already disconnected)', async () => {
+    ddbMock.on(UpdateCommand).rejects(Object.assign(new Error('cond failed'), { name: 'ConditionalCheckFailedException' }));
+
+    const response = await setQuizRoomName(wsEvent({ body: { name: 'たろう' } }));
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('handles unexpected errors', async () => {
+    ddbMock.on(UpdateCommand).rejects(new Error('DynamoDB error'));
+    const response = await setQuizRoomName(wsEvent({ body: { name: 'たろう' } }));
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('buzzQuizRoom', () => {
+  it('rejects when the caller is not a participant (e.g. the admin)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' } });
+    const response = await buzzQuizRoom(wsEvent({ connectionId: 'conn-admin' }));
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('rejects when the connection record is missing', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    const response = await buzzQuizRoom(wsEvent());
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('records the first buzz and broadcasts the responder name to every connection in the room', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-participant', roomId: 'ROOM01', role: 'participant', name: 'たろう' },
+    });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-participant', roomId: 'ROOM01', role: 'participant' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await buzzQuizRoom(wsEvent({ connectionId: 'conn-participant' }));
+
+    expect(response.statusCode).toBe(200);
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.Key).toEqual({ roomId: 'ROOM01' });
+    expect(updateCall.ConditionExpression).toBe('attribute_not_exists(buzz)');
+    expect(updateCall.ExpressionAttributeValues[':buzz']).toMatchObject({
+      connectionId: 'conn-participant',
+      name: 'たろう',
+    });
+
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(2);
+    const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
+    expect(payload).toEqual({ type: 'buzz', name: 'たろう', connectionId: 'conn-participant' });
+  });
+
+  it('falls back to a default label when the participant never set a name', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-participant', roomId: 'ROOM01', role: 'participant' },
+    });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    await buzzQuizRoom(wsEvent({ connectionId: 'conn-participant' }));
+
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.ExpressionAttributeValues[':buzz'].name).toBe('名無しさん');
+  });
+
+  it('silently no-ops (does not broadcast) when someone has already buzzed this round', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-participant', roomId: 'ROOM01', role: 'participant', name: 'はなこ' },
+    });
+    ddbMock.on(UpdateCommand).rejects(Object.assign(new Error('cond failed'), { name: 'ConditionalCheckFailedException' }));
+
+    const response = await buzzQuizRoom(wsEvent({ connectionId: 'conn-participant' }));
+
+    expect(response.statusCode).toBe(200);
+    expect(managementApiMock.commandCalls(PostToConnectionCommand)).toHaveLength(0);
+  });
+
+  it('handles unexpected errors', async () => {
+    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    const response = await buzzQuizRoom(wsEvent());
     expect(response.statusCode).toBe(500);
   });
 });

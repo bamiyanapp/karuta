@@ -3,12 +3,21 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import QuizRoomView from './QuizRoomView';
 
 const onStateCallbacks = [];
+const onBuzzCallbacks = [];
 let mockConnectionStatus = 'connected';
+const setParticipantNameMock = vi.fn();
+const buzzMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
-  useQuizRoomSync: ({ onState }) => {
+  useQuizRoomSync: ({ onState, onBuzz }) => {
     onStateCallbacks.push(onState);
-    return { connectionStatus: mockConnectionStatus, broadcastState: vi.fn() };
+    onBuzzCallbacks.push(onBuzz);
+    return {
+      connectionStatus: mockConnectionStatus,
+      broadcastState: vi.fn(),
+      setParticipantName: setParticipantNameMock,
+      buzz: buzzMock,
+    };
   },
 }));
 
@@ -18,6 +27,19 @@ function emitState(state) {
   act(() => {
     onStateCallbacks[onStateCallbacks.length - 1]?.(state);
   });
+}
+
+function emitBuzz(buzz) {
+  act(() => {
+    onBuzzCallbacks[onBuzzCallbacks.length - 1]?.(buzz);
+  });
+}
+
+// 早押し機能（issue #510）: 参加者画面は名前入力を先に確定させないと通常画面へ進まないため、
+// 名前を関係しないテストではこのヘルパーで確定させておく
+function confirmName(name = 'たろう') {
+  fireEvent.change(screen.getByPlaceholderText('お名前'), { target: { value: name } });
+  fireEvent.click(screen.getByText('決定'));
 }
 
 window.fetch = vi.fn();
@@ -35,7 +57,10 @@ window.Audio = vi.fn().mockImplementation(function (src) {
 
 beforeEach(() => {
   onStateCallbacks.length = 0;
+  onBuzzCallbacks.length = 0;
   mockConnectionStatus = 'connected';
+  setParticipantNameMock.mockClear();
+  buzzMock.mockClear();
   fetch.mockReset();
   audioInstances.length = 0;
   audioPlayImpl = () => Promise.resolve();
@@ -55,21 +80,25 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('クイズ大会モードは現在準備中です。しばらくお待ちください。')).toBeInTheDocument();
   });
 
-  it('lets a participant join via a manually entered room code', () => {
+  it('lets a participant join via a manually entered room code, after confirming a name', () => {
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
     expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('ルームコード'), { target: { value: 'xyz789' } });
     fireEvent.click(screen.getByText('参加する'));
 
+    confirmName('たろう');
+
     expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
     expect(screen.getByText('ルーム: XYZ789')).toBeInTheDocument();
+    expect(setParticipantNameMock).toHaveBeenCalledWith('たろう');
   });
 
   it('renders the participant view from a ?roomId= deep link and updates as state is broadcast', () => {
     window.history.pushState({}, '', '?view=quiz-room&roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
     expect(screen.getByText('ホストの操作を待っています...')).toBeInTheDocument();
@@ -90,6 +119,7 @@ describe('QuizRoomView', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     emitState({});
 
@@ -101,6 +131,7 @@ describe('QuizRoomView', () => {
     mockConnectionStatus = 'error';
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     expect(screen.getByText('接続状態: 接続できませんでした')).toBeInTheDocument();
   });
@@ -113,6 +144,85 @@ describe('QuizRoomView', () => {
     fireEvent.click(screen.getByText('← 戻る'));
 
     expect(setView).toHaveBeenCalledWith('game');
+  });
+
+  it('shows a name entry screen before the participant screen, and does not let the participant confirm an empty name (issue #510)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    expect(screen.getByText('早押し対決で使うお名前を入力してください')).toBeInTheDocument();
+    expect(screen.queryByText('クイズ大会モード（参加者）', { selector: 'h1' })).toBeInTheDocument();
+    expect(screen.queryByText('ルーム:', { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByText('決定')).toBeDisabled();
+
+    fireEvent.change(screen.getByPlaceholderText('お名前'), { target: { value: '   ' } });
+    expect(screen.getByText('決定')).toBeDisabled();
+
+    confirmName('はなこ');
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+    expect(setParticipantNameMock).toHaveBeenCalledWith('はなこ');
+  });
+
+  it('lets a participant buzz in while a phrase is being read, and shows the responder\'s name once someone has buzzed (issue #510)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    expect(screen.getByText('回答する')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('回答する'));
+    expect(buzzMock).toHaveBeenCalled();
+
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+  });
+
+  it('keeps showing the responder during the result screen, but resets it once a new (different) phrase is broadcast', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1' } });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+    expect(screen.getByText('回答する')).toBeInTheDocument();
+  });
+
+  it('resets the responder display when the room goes back to the initial/idle state (e.g. the admin resets the game), not just when a new phrase is broadcast', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    emitState({ type: 'initial' });
+    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+  });
+
+  it('does not clear an already-recorded responder when the same phrase is re-broadcast (e.g. the admin changed a setting mid-round)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3', speechRate: '80%' } });
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+
+    // 同じ札（id/categoryが同一）が設定変更等で再ブロードキャストされても、
+    // 既に記録済みの回答者表示を誤って消してはならない
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3', speechRate: '100%' } });
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
   });
 
   it('fetches and plays audio for a broadcast phrase using the settings broadcast by the admin, not the participant\'s own local settings (issue #490, #498)', async () => {
