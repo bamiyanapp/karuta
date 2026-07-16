@@ -2380,6 +2380,55 @@ describe('App', () => {
     expect(screen.getByText('参加者を編集する')).toBeInTheDocument();
   });
 
+  it('places the player-registration button next to the quiz-room button, and hides it once a quiz room has been created (issue #549)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', phrase: '読み札1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+    await waitFor(() => screen.getByText('次の札'));
+
+    // クイズ大会ルーム作成前は、参加者登録ボタンがルーム作成ボタンと並んで表示される
+    expect(screen.getByText('取った人を記録する参加者を登録する')).toBeInTheDocument();
+    expect(screen.getByText('クイズ大会のルームを作成する')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    // ルーム作成後は参加者登録ボタン自体が非表示になる
+    expect(screen.queryByText('取った人を記録する参加者を登録する')).not.toBeInTheDocument();
+    expect(screen.queryByText('参加者を編集する')).not.toBeInTheDocument();
+  });
+
   it('does not show player registration or the taken-by buttons in kids mode even if players are already registered', async () => {
     sessionStorage.setItem('players', JSON.stringify(['たろう']));
 
