@@ -1379,9 +1379,7 @@ describe('App', () => {
     // 自動で次への設定はデフォルトでオフで、間隔ボタンは表示されない
     expect(screen.queryByText('10秒')).not.toBeInTheDocument();
 
-    // 「音声で判定」にも同じ表記のオン/オフボタンがあるため、getAllByTextの先頭
-    // （自動で次への設定）を明示的に選ぶ
-    fireEvent.click(screen.getAllByText('オン')[0]);
+    fireEvent.click(screen.getByText('オン'));
     expect(localStorage.getItem('autoAdvance')).toBe('true');
 
     fireEvent.click(await screen.findByText('20秒'));

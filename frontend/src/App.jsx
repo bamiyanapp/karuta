@@ -6,7 +6,6 @@ import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
-import { useVoiceAnswerRecognition } from "./hooks/useVoiceAnswerRecognition";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
@@ -90,7 +89,6 @@ function App() {
   const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
   const [autoAdvance, setAutoAdvance] = useLocalStorageState("autoAdvance", false, (v) => v === "true");
   const [autoAdvanceInterval, setAutoAdvanceInterval] = useLocalStorageState("autoAdvanceInterval", 10, (v) => parseInt(v, 10));
-  const [voiceJudgeEnabled, setVoiceJudgeEnabled] = useLocalStorageState("voiceJudgeEnabled", false, (v) => v === "true");
   const [themeSetting, setThemeSetting] = useLocalStorageState("theme", "system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -843,22 +841,6 @@ function App() {
 
   useWakeLock(view === "game" && selectedCategories.length > 0);
 
-  // 実験的機能（issue #382）: 読み上げ後の発話を録音し、AWS Transcribeでの認識結果が
-  // 正解と一致した場合に手動クリックと同じplayKaruta()を呼んで次の札へ進める。
-  // 誤認識・タイムアウト時は何もしない（従来通り手動での「次の札」操作にフォールバックする）。
-  const { status: voiceRecognitionStatus } = useVoiceAnswerRecognition({
-    listening: voiceJudgeEnabled && displayContent.type === "phrase" && !isReading && !loading && !isAllRead,
-    phraseId: currentPhrase?.id,
-    category: currentPhrase?.category,
-    apiBaseUrl: API_BASE_URL,
-    lang,
-    onResult: (result) => {
-      if (result.isCorrect) {
-        playKaruta();
-      }
-    },
-  });
-
   useEffect(() => {
     if (view === "comments") {
       document.title = "指摘一覧 | かるた読み上げアプリ";
@@ -1516,23 +1498,6 @@ function App() {
                 <button onClick={() => setAutoAdvanceInterval(20)} className={`btn ${autoAdvanceInterval === 20 ? 'btn-dark' : 'btn-outline-dark'}`}>20秒</button>
                 <button onClick={() => setAutoAdvanceInterval(30)} className={`btn ${autoAdvanceInterval === 30 ? 'btn-dark' : 'btn-outline-dark'}`}>30秒</button>
               </div>
-            )}
-          </div>
-          <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap mt-3">
-            <span className="fw-bold text-dark small">音声で判定（実験的機能）:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setVoiceJudgeEnabled(false)} className={`btn ${!voiceJudgeEnabled ? 'btn-dark' : 'btn-outline-dark'}`}>オフ</button>
-              <button onClick={() => setVoiceJudgeEnabled(true)} className={`btn ${voiceJudgeEnabled ? 'btn-dark' : 'btn-outline-dark'}`}>オン</button>
-            </div>
-            {voiceJudgeEnabled && voiceRecognitionStatus !== "idle" && voiceRecognitionStatus !== "unsupported" && (
-              <span className="text-muted small">
-                {voiceRecognitionStatus === "recording" && "聞き取り中..."}
-                {voiceRecognitionStatus === "uploading" && "送信中..."}
-                {voiceRecognitionStatus === "processing" && "認識中..."}
-              </span>
-            )}
-            {voiceJudgeEnabled && voiceRecognitionStatus === "unsupported" && (
-              <span className="text-muted small">この端末・ブラウザでは利用できません</span>
             )}
           </div>
         </section>
