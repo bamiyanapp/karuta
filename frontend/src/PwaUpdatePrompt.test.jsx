@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const useRegisterSWMock = vi.fn();
 
@@ -12,6 +12,10 @@ import PwaUpdatePrompt from "./PwaUpdatePrompt.jsx";
 describe("PwaUpdatePrompt", () => {
   beforeEach(() => {
     useRegisterSWMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("更新が不要な場合は何も表示しない", () => {
@@ -79,5 +83,44 @@ describe("PwaUpdatePrompt", () => {
     fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
 
     expect(setOfflineReady).toHaveBeenCalledWith(false);
+  });
+
+  it("オフライン利用可能な場合、position: fixedで下部の他の要素のクリックを塞ぎ続けないよう、5秒後に自動で消える", () => {
+    vi.useFakeTimers();
+    const setOfflineReady = vi.fn();
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [false, vi.fn()],
+      offlineReady: [true, setOfflineReady],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    expect(setOfflineReady).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(setOfflineReady).toHaveBeenCalledWith(false);
+    vi.useRealTimers();
+  });
+
+  it("更新が必要な場合（ユーザーの判断を要する）は自動では消えない", () => {
+    vi.useFakeTimers();
+    const setNeedRefresh = vi.fn();
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [true, setNeedRefresh],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    act(() => {
+      vi.advanceTimersByTime(60000);
+    });
+
+    expect(setNeedRefresh).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });
