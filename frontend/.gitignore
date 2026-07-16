@@ -28,3 +28,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ルートの.gitignore（dev-standardsとの同期対象、issue #461）で.env.*を
+# ignoreしているが、.env.exampleは実際の値を含まないテンプレートのため
+# 追跡対象にする
+!.env.example
