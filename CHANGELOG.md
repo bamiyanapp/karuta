@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/bamiyanapp/karuta/compare/v1.30.0...v1.30.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 管理者の設定変更が読み上げ中の音声配信とズレる競合状態を修正する ([#506](https://github.com/bamiyanapp/karuta/issues/506)) ([f0022f8](https://github.com/bamiyanapp/karuta/commit/f0022f8855dcca9ba614442a293ac701d44440c8))
+
 # [1.30.0](https://github.com/bamiyanapp/karuta/compare/v1.29.0...v1.30.0) (2026-07-16)
 
 
