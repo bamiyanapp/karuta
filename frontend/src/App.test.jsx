@@ -2398,4 +2398,63 @@ describe('App', () => {
       state: { type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined } },
     });
   }, 40000);
+
+  it('shows the list of open quiz rooms on the top page and lets a participant join directly from it (issue #489)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+      }
+      send() {}
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        return {
+          ok: true,
+          json: async () => ({
+            rooms: [
+              { roomId: 'ABC123', createdAt: 2, category: 'Cat1' },
+              { roomId: 'DEF456', createdAt: 1, category: null },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    expect(await screen.findByText('開設中のクイズ大会ルーム')).toBeInTheDocument();
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+    expect(screen.getByText('Cat1')).toBeInTheDocument();
+    expect(screen.getByText('DEF456')).toBeInTheDocument();
+    expect(screen.getByText('開始前')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('ABC123'));
+
+    expect(await screen.findByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+  });
+
+  it('does not show the open-room list section when there are no open quiz rooms', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) return { ok: true, json: async () => ({ rooms: [] }) };
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('かるた読み上げアプリ');
+    expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
+  });
 });

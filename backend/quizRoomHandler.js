@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { docClient, resolveAllowedOrigin } = require("./handler");
 
@@ -70,6 +70,46 @@ exports.createQuizRoom = async (event) => {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ roomId, adminToken }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+    };
+  }
+};
+
+// GET /quiz-rooms（REST API、issue #489）。開設中（TTLで失効していない）のルームを
+// 一覧で返す。トップページから、参加者がルームコードを知らなくても一覧から直接参加できる
+// ようにするための機能。管理者トークンのハッシュ等、参加者に不要な情報は返さない
+exports.listQuizRooms = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const result = await docClient.send(new ScanCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      ProjectionExpression: "roomId, createdAt, #state, #ttl",
+      ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
+      // TTLによる実際の削除には失効後最大48時間程度のラグが生じ得るため、
+      // 削除待ちの失効済みルームを一覧から明示的に除外する
+      FilterExpression: "#ttl > :now",
+      ExpressionAttributeValues: { ":now": now },
+    }));
+
+    const rooms = (result.Items || [])
+      .map((item) => ({
+        roomId: item.roomId,
+        createdAt: item.createdAt,
+        category: item.state?.content?.category || null,
+      }))
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    return {
+      statusCode: 200,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ rooms }),
     };
   } catch (error) {
     console.error(error);
