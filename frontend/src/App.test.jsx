@@ -2395,7 +2395,7 @@ describe('App', () => {
     const payload = JSON.parse(ws.sent.find((msg) => msg.includes('"type":"phrase"')));
     expect(payload).toEqual({
       action: 'updateState',
-      state: { type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined } },
+      state: { type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: undefined } },
     });
   }, 40000);
 

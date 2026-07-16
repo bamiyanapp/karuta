@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
+import { useLocalStorageState } from "../hooks/useLocalStorageState";
+import { API_BASE_URL } from "../config";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -65,6 +67,77 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     onState: setRoomState,
   });
 
+  // issue #490: 音声同期再生は明示的にスコープ外だった（管理者端末でのみ再生）ため、
+  // 参加者側は通知（roomState）を受けて自分自身で/get-phraseを呼び直し、取得した
+  // 音声を再生する。同じ設定であれば/get-phrase側のPollyキャッシュがヒットするため、
+  // 参加者が増えてもPollyの合成コストは増えない
+  const [audioEnabled, setAudioEnabled] = useLocalStorageState(
+    "quizRoomAudioEnabled", true, (v) => v === "true", (v) => String(v)
+  );
+  const [playbackBlocked, setPlaybackBlocked] = useState(false);
+  const [repeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
+  const [speechRate] = useLocalStorageState("speechRate", "80%");
+  const [lang] = useLocalStorageState("lang", "ja");
+  const [voiceId] = useLocalStorageState("voiceId", "Mizuki");
+  const lastPlayedKeyRef = useRef(null);
+  const lastAudioDataRef = useRef(null);
+  const currentAudioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioEnabled || roomState?.type !== "phrase" || !roomState.content?.id) {
+      return;
+    }
+    const { id, category } = roomState.content;
+    const key = `${category}:${id}`;
+    if (lastPlayedKeyRef.current === key) {
+      return;
+    }
+    lastPlayedKeyRef.current = key;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const apiUrl = `${API_BASE_URL}/get-phrase?id=${id}&category=${encodeURIComponent(category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=false`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        if (cancelled || !response.ok || !data.audioData) {
+          return;
+        }
+        lastAudioDataRef.current = data.audioData;
+        // 前の札の音声がまだ再生中なら、次の札の音声と重なって再生されないよう止める
+        currentAudioRef.current?.pause();
+        const audio = new Audio(data.audioData);
+        currentAudioRef.current = audio;
+        await audio.play();
+        if (!cancelled) {
+          setPlaybackBlocked(false);
+        }
+      } catch (error) {
+        console.error("Failed to play quiz room audio:", error);
+        if (!cancelled) {
+          setPlaybackBlocked(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [roomState, audioEnabled, repeatCount, speechRate, lang, voiceId]);
+
+  // 自動再生がブラウザにブロックされた場合（ユーザー操作を伴わない再生）の救済策。
+  // 直近取得済みの音声データをこのクリック操作（ユーザー操作）を起点に再生し直す
+  const retryPlayback = () => {
+    if (!lastAudioDataRef.current) {
+      return;
+    }
+    const audio = new Audio(lastAudioDataRef.current);
+    currentAudioRef.current = audio;
+    audio.play()
+      .then(() => setPlaybackBlocked(false))
+      .catch(() => setPlaybackBlocked(true));
+  };
+
   if (!wsBaseUrl) {
     return (
       <div className="container py-5 mx-auto text-center">
@@ -81,7 +154,20 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
-        <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
+        <p className="text-muted small mb-3">
+          接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}
+          <button
+            onClick={() => setAudioEnabled((v) => !v)}
+            className="btn btn-sm btn-link text-muted text-decoration-none py-0"
+          >
+            {audioEnabled ? "🔊 音声ON" : "🔇 音声OFF"}
+          </button>
+        </p>
+        {playbackBlocked && audioEnabled && (
+          <button onClick={retryPlayback} className="btn btn-sm btn-outline-dark rounded-pill mb-3">
+            🔊 タップして音声を有効にする
+          </button>
+        )}
         {renderParticipantContent(roomState)}
         <div className="mt-5">
           <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
