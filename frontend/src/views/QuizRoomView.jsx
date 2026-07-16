@@ -70,6 +70,9 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   const [nameError, setNameError] = useState(null);
   const [buzzedBy, setBuzzedBy] = useState(null);
   const [lastBuzzRoundKey, setLastBuzzRoundKey] = useState(null);
+  // 早押し正誤判定（issue #546）: 不正解と判定された場合、そのラウンド中は
+  // 自分だけ早押しボタンを再表示しない
+  const [excludedThisRound, setExcludedThisRound] = useState(false);
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。集計単位はconnectionIdではなく
   // name（早押し機能の実装参照）なので、自分のポイントはpoints[confirmedName]で引く
   const [points, setPoints] = useState({});
@@ -94,6 +97,18 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     setView("game");
   };
 
+  // 早押し正誤判定（issue #546）: 不正解と判定されると、サーバーはbuzzを
+  // リセットして{type:"roundReset", excludedName}を返す。除外されたのが
+  // 自分自身であれば早押しボタンを再表示せず、それ以外の参加者なら
+  // buzzedByをクリアして再度早押しできるようにする
+  const handleRoundReset = ({ excludedName }) => {
+    if (excludedName === confirmedName) {
+      setExcludedThisRound(true);
+    } else {
+      setBuzzedBy(null);
+    }
+  };
+
   const { connectionStatus, setParticipantName, buzz } = useQuizRoomSync({
     wsBaseUrl,
     roomId: joinRoomId,
@@ -101,6 +116,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     onBuzz: setBuzzedBy,
     onPoints: setPoints,
     onNameError: handleNameError,
+    onRoundReset: handleRoundReset,
   });
 
   // 早押し結果表示のリセット判定（issue #510）。ラウンドを表す値（buzzRoundKey）を
@@ -120,6 +136,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   if (currentBuzzRoundKey !== lastBuzzRoundKey) {
     setLastBuzzRoundKey(currentBuzzRoundKey);
     setBuzzedBy(null);
+    setExcludedThisRound(false);
   }
 
   const handleConfirmName = () => {
@@ -189,8 +206,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
       try {
         const apiUrl = `${API_BASE_URL}/get-phrase?id=${id}&category=${encodeURIComponent(category)}&repeatCount=${repeatCount ?? 2}&speechRate=${encodeURIComponent(speechRate ?? "80%")}&lang=${lang ?? "ja"}&voiceId=${encodeURIComponent(voiceId ?? "Mizuki")}&announceCategory=${!!announceCategory}`;
         const response = await fetch(apiUrl);
+        if (cancelled || !response.ok) {
+          return;
+        }
         const data = await response.json();
-        if (cancelled || !response.ok || !data.audioData) {
+        if (cancelled || !data.audioData) {
           return;
         }
         await playSharedAudio(data.audioData);
@@ -260,7 +280,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         {renderParticipantContent(roomState)}
         {buzzedBy ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答しました</p>
-        ) : roomState?.type === "phrase" && (
+        ) : roomState?.type === "phrase" && !excludedThisRound && (
           <div className="mt-4">
             <button onClick={buzz} className="btn btn-danger btn-lg rounded-pill px-5">
               回答する

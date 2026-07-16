@@ -7,16 +7,18 @@ const onStateCallbacks = [];
 const onBuzzCallbacks = [];
 const onPointsCallbacks = [];
 const onNameErrorCallbacks = [];
+const onRoundResetCallbacks = [];
 let mockConnectionStatus = 'connected';
 const setParticipantNameMock = vi.fn();
 const buzzMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
-  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError }) => {
+  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset }) => {
     onStateCallbacks.push(onState);
     onBuzzCallbacks.push(onBuzz);
     onPointsCallbacks.push(onPoints);
     onNameErrorCallbacks.push(onNameError);
+    onRoundResetCallbacks.push(onRoundReset);
     return {
       connectionStatus: mockConnectionStatus,
       broadcastState: vi.fn(),
@@ -52,6 +54,12 @@ function emitNameError(message) {
   });
 }
 
+function emitRoundReset(payload) {
+  act(() => {
+    onRoundResetCallbacks[onRoundResetCallbacks.length - 1]?.(payload);
+  });
+}
+
 // 早押し機能（issue #510）: 参加者画面は名前入力を先に確定させないと通常画面へ進まないため、
 // 名前を関係しないテストではこのヘルパーで確定させておく
 function confirmName(name = 'たろう') {
@@ -77,6 +85,7 @@ beforeEach(() => {
   onBuzzCallbacks.length = 0;
   onPointsCallbacks.length = 0;
   onNameErrorCallbacks.length = 0;
+  onRoundResetCallbacks.length = 0;
   mockConnectionStatus = 'connected';
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
@@ -235,6 +244,52 @@ describe('QuizRoomView', () => {
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
     expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
     expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+  });
+
+  it('lets other participants buzz in again after a roundReset (incorrect judgment), but not the participant who was judged incorrect (issue #546)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    fireEvent.click(screen.getByText('回答する'));
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+
+    emitRoundReset({ excludedName: 'はなこ' });
+
+    // 不正解と判定された本人は、そのラウンド中は早押しボタンが再表示されない
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+  });
+
+  it('shows the buzz button again for a participant not excluded after a roundReset (issue #546)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitBuzz({ name: 'たろう', connectionId: 'conn-2' });
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+
+    emitRoundReset({ excludedName: 'たろう' });
+
+    expect(screen.getByText('回答する')).toBeInTheDocument();
+  });
+
+  it('re-allows buzzing once a genuinely new round starts, even for a participant excluded in the previous round (issue #546)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    fireEvent.click(screen.getByText('回答する'));
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    emitRoundReset({ excludedName: 'はなこ' });
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+
+    expect(screen.getByText('回答する')).toBeInTheDocument();
   });
 
   it('shows the participant their own accumulated points as "points" messages arrive, keyed by their confirmed name (issue #519)', () => {

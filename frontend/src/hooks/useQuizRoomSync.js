@@ -15,7 +15,9 @@ const SYNC_POLL_INTERVAL_MS = 5000;
 // ポイント制（issue #519）: サーバーから{type:"points", points}（名前→累計ポイントの
 // マップ）を受け取るたびonPointsを呼ぶ。名前が同一ルーム内で重複していた場合は
 // {type:"nameError", message}が返るのでonNameErrorを呼ぶ
-export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError }) {
+// 早押し正誤判定（issue #546）: 管理者はjudgeBuzzで正誤を送信できる。不正解と判定
+// されたときはサーバーから{type:"roundReset", excludedName}が返るのでonRoundResetを呼ぶ
+export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError, onRoundReset }) {
   const [internalStatus, setInternalStatus] = useState("idle"); // connecting|connected|error（idleはwsBaseUrl/roomId未設定時に導出する）
   const connectionStatus = (!wsBaseUrl || !roomId) ? "idle" : internalStatus;
   const wsRef = useRef(null);
@@ -23,6 +25,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   const onBuzzRef = useRef(onBuzz);
   const onPointsRef = useRef(onPoints);
   const onNameErrorRef = useRef(onNameError);
+  const onRoundResetRef = useRef(onRoundReset);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
@@ -50,6 +53,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   useEffect(() => {
     onNameErrorRef.current = onNameError;
   }, [onNameError]);
+
+  useEffect(() => {
+    onRoundResetRef.current = onRoundReset;
+  }, [onRoundReset]);
 
   useEffect(() => {
     if (!wsBaseUrl || !roomId) {
@@ -101,6 +108,8 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
             onPointsRef.current?.(data.points);
           } else if (data?.type === "nameError") {
             onNameErrorRef.current?.(data.message);
+          } else if (data?.type === "roundReset") {
+            onRoundResetRef.current?.({ excludedName: data.excludedName });
           }
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);
@@ -165,5 +174,12 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
     }
   }, []);
 
-  return { connectionStatus, broadcastState, setParticipantName, buzz };
+  // 早押し正誤判定（issue #546）: 管理者が早押しの正誤を判定してサーバーへ送信する
+  const judgeBuzz = useCallback((correct) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: "judgeBuzz", correct }));
+    }
+  }, []);
+
+  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz };
 }

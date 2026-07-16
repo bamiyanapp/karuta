@@ -903,7 +903,7 @@ function App() {
   useWakeLock(view === "game" && selectedCategories.length > 0);
 
   // クイズ大会モード: quizRoomが設定されている（管理者としてルームを開設した）間だけ接続する
-  const { broadcastState: broadcastQuizRoomState } = useQuizRoomSync({
+  const { broadcastState: broadcastQuizRoomState, judgeBuzz } = useQuizRoomSync({
     wsBaseUrl: WS_BASE_URL,
     roomId: quizRoom?.roomId,
     adminToken: quizRoom?.adminToken,
@@ -911,6 +911,14 @@ function App() {
     onBuzz: setQuizRoomBuzzedBy,
     onPoints: setQuizRoomPoints,
   });
+
+  // 早押し正誤判定（issue #546）: 「正解」「不正解」を選んだら判定結果をサーバーへ
+  // 送信し、モーダルはローカルで即座に閉じる（roundResetのブロードキャストは
+  // 参加者側の早押しボタン復活・除外に使われる）
+  const judgeQuizRoomBuzz = (correct) => {
+    judgeBuzz(correct);
+    setQuizRoomBuzzedBy(null);
+  };
 
   // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
   // audioData等の重量級フィールドは送らず、表示に必要な項目だけを抜き出す
@@ -1700,7 +1708,19 @@ function App() {
         <div className="mb-4">
           <QuizRoomInfoPanel roomId={quizRoom.roomId} />
           {quizRoomBuzzedBy && (
-            <p className="fw-bold text-dark">🔔 {quizRoomBuzzedBy.name} さんが回答しました</p>
+            <div className="modal fade show d-block modal-overlay" tabIndex="-1">
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content rounded-4 border-0 shadow">
+                  <div className="modal-body p-5 text-center">
+                    <h3 className="h5 mb-4 fw-bold">🔔 {quizRoomBuzzedBy.name} さんが回答しました</h3>
+                    <div className="d-flex gap-2 justify-content-center">
+                      <button onClick={() => judgeQuizRoomBuzz(true)} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">正解</button>
+                      <button onClick={() => judgeQuizRoomBuzz(false)} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">不正解</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           {Object.keys(quizRoomPoints).length > 0 && (
             <div className="mx-auto mt-3 text-start" style={{ maxWidth: "320px" }}>

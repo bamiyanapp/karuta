@@ -153,6 +153,36 @@ describe('useQuizRoomSync', () => {
     expect(onNameError).toHaveBeenCalledWith('その名前は既に使われています。');
   });
 
+  it('calls onRoundReset when a roundReset message is received (issue #546)', () => {
+    const onRoundReset = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onRoundReset }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({ type: 'roundReset', excludedName: 'たろう' });
+    });
+
+    expect(onRoundReset).toHaveBeenCalledWith({ excludedName: 'たろう' });
+  });
+
+  it('judgeBuzz sends judgeBuzz with the correct flag only while the connection is open', () => {
+    const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      result.current.judgeBuzz(true);
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([]);
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+    });
+    act(() => {
+      result.current.judgeBuzz(false);
+    });
+
+    expect(MockWebSocket.instances[0].sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
+  });
+
   it('setParticipantName sends setName only while the connection is open, and resends it once the socket opens if called earlier', () => {
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
 
