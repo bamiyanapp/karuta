@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.26.1",
+    "version": "1.26.2",
     "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 参加者側の自己修復ポーリングと動線の見直し ([#485](https://github.com/bamiyanapp/karuta/issues/485)) ([7a61dfe](https://github.com/bamiyanapp/karuta/commit/7a61dfe2a843c74f085bd7e592e9cb2a95f47e38)), closes [#483](https://github.com/bamiyanapp/karuta/issues/483)"
+  },
+  {
+    "version": "1.26.1",
+    "date": "2026/07/16 02:32",
     "body": "### Bug Fixes\n\n* **quiz-room:** 接続確立前後のbroadcastStateが失われないようにする ([#483](https://github.com/bamiyanapp/karuta/issues/483)) ([b567386](https://github.com/bamiyanapp/karuta/commit/b5673865d519988fa20e621b55cb61b1ff593190))"
   },
   {
