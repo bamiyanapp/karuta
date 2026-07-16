@@ -114,6 +114,8 @@ function App() {
   // 参加者側の状態同期・カテゴリ選択・札めくり自体は通常のゲーム画面をそのまま使い、
   // ここではブロードキャストに必要な最小限の情報（roomId・管理者トークン）のみ保持する
   const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
+  const [creatingQuizRoom, setCreatingQuizRoom] = useState(false);
+  const [quizRoomCreateError, setQuizRoomCreateError] = useState(null);
 
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
@@ -923,6 +925,25 @@ function App() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
+  // クイズ大会モード（issue #470）: 通常のかるた読み上げ画面のフッターから直接ルームを作成する
+  const createQuizRoom = async () => {
+    setCreatingQuizRoom(true);
+    setQuizRoomCreateError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz-room`, { method: "POST" });
+      if (!response.ok) {
+        throw new Error("ルームの作成に失敗しました");
+      }
+      const data = await response.json();
+      setQuizRoom({ roomId: data.roomId, adminToken: data.adminToken });
+    } catch (error) {
+      console.error("Failed to create quiz room:", error);
+      setQuizRoomCreateError("ルームの作成に失敗しました。もう一度お試しください。");
+    } finally {
+      setCreatingQuizRoom(false);
+    }
+  };
+
   const resetGame = () => {
     setSelectedCategories([]);
     setDraftCategories([]);
@@ -1106,14 +1127,7 @@ function App() {
   }
 
   if (view === "quiz-room") {
-    return (
-      <QuizRoomView
-        setView={setView}
-        apiBaseUrl={API_BASE_URL}
-        wsBaseUrl={WS_BASE_URL}
-        onRoomCreated={setQuizRoom}
-      />
-    );
+    return <QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />;
   }
 
   if (selectedCategories.length === 0 && !division) {
@@ -1153,7 +1167,7 @@ function App() {
             更新履歴を見る
           </button>
           <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
-            クイズ大会モード
+            クイズ大会に参加する
           </button>
         </div>
       </div>
@@ -1565,7 +1579,21 @@ function App() {
         <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
         <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
-      {quizRoom && <QuizRoomInfoPanel roomId={quizRoom.roomId} />}
+      {quizRoom ? (
+        <QuizRoomInfoPanel roomId={quizRoom.roomId} />
+      ) : (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={createQuizRoom}
+            disabled={creatingQuizRoom}
+            className="btn btn-link text-decoration-none"
+          >
+            {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
+          </button>
+          {quizRoomCreateError && <p className="text-danger small">{quizRoomCreateError}</p>}
+        </div>
+      )}
     </footer>
     </div>
   );

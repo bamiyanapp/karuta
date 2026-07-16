@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const RECONNECT_DELAY_MS = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5; // 際限ない再接続ループを防ぐための上限
+// プッシュ通知（updateStateのブロードキャスト）が何らかの理由で届かなかった場合に備え、
+// 一定間隔でsyncを再要求し自己修復させる保険（本来はプッシュのみで完結するはずだが、
+// 個別のブロードキャスト送信が届かないケースを完全には排除できないため）
+const SYNC_POLL_INTERVAL_MS = 5000;
 
 // クイズ大会モード（issue #470）のWebSocket接続を管理する。adminTokenを渡すと管理者として、
 // 渡さなければ参加者（閲覧専用）として接続する。サーバーから状態（{type:"state", state, role}）を
@@ -14,6 +18,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
+  const pollTimerRef = useRef(null);
   // broadcastStateに渡された直近の状態。接続確立前（初回接続のLambdaコールド
   // スタート・WSハンドシェイク中）やその後の再接続中にbroadcastStateが呼ばれると、
   // それまではreadyState !== OPENのため送信が黙って失われ、参加者側の画面が
@@ -53,6 +58,11 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
         if (pendingStateRef.current !== null) {
           ws.send(JSON.stringify({ action: "updateState", state: pendingStateRef.current }));
         }
+        pollTimerRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ action: "sync" }));
+          }
+        }, SYNC_POLL_INTERVAL_MS);
       };
 
       ws.onmessage = (event) => {
@@ -71,6 +81,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
       };
 
       ws.onclose = () => {
+        if (pollTimerRef.current) {
+          clearInterval(pollTimerRef.current);
+          pollTimerRef.current = null;
+        }
         if (closedByCleanupRef.current) {
           return;
         }
@@ -90,6 +104,9 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
       closedByCleanupRef.current = true;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
       }
       wsRef.current?.close();
     };
