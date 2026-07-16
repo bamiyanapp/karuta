@@ -1,3 +1,10 @@
+## [1.33.1](https://github.com/bamiyanapp/karuta/compare/v1.33.0...v1.33.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 開設中ルーム一覧を最新5件に制限する ([#522](https://github.com/bamiyanapp/karuta/issues/522)) ([9acf581](https://github.com/bamiyanapp/karuta/commit/9acf5811bda7429d5ba358c79842154301f9206c)), closes [#500](https://github.com/bamiyanapp/karuta/issues/500)
+
 # [1.33.0](https://github.com/bamiyanapp/karuta/compare/v1.32.0...v1.33.0) (2026-07-16)
 
 

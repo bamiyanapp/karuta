@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.33.0",
+    "version": "1.33.1",
     "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 開設中ルーム一覧を最新5件に制限する ([#522](https://github.com/bamiyanapp/karuta/issues/522)) ([9acf581](https://github.com/bamiyanapp/karuta/commit/9acf5811bda7429d5ba358c79842154301f9206c)), closes [#500](https://github.com/bamiyanapp/karuta/issues/500)"
+  },
+  {
+    "version": "1.33.0",
+    "date": "2026/07/16 11:26",
     "body": "### Features\n\n* **ui:** 参加者登録UIを確定モーダルから読み札画面の任意ボタンへ移動する ([#520](https://github.com/bamiyanapp/karuta/issues/520)) ([1b32b33](https://github.com/bamiyanapp/karuta/commit/1b32b33dcc9c68ac3e636723963ba7d9d99469e4)), closes [#518](https://github.com/bamiyanapp/karuta/issues/518)"
   },
   {
