@@ -1543,52 +1543,6 @@ function App() {
               {displayContent.type === 'initial' && renderInitial()}
             </div>
 
-            {division !== "kids" && (
-              <div className="mb-4">
-                <button
-                  type="button"
-                  onClick={() => setShowPlayerRegistration(prev => !prev)}
-                  className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-                >
-                  {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する参加者を登録する"}
-                </button>
-                {showPlayerRegistration && (
-                  <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>
-                    {players.length > 0 && (
-                      <div className="d-flex flex-wrap gap-2 mb-2">
-                        {players.map(name => (
-                          <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
-                            {name}
-                            <button
-                              type="button"
-                              onClick={() => removePlayer(name)}
-                              className="btn-close btn-close-white"
-                              style={{ fontSize: "0.6rem" }}
-                              aria-label={`${name}を削除`}
-                            ></button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {players.length < MAX_PLAYERS && (
-                      <div className="d-flex gap-2">
-                        <input
-                          type="text"
-                          value={newPlayerName}
-                          onChange={(e) => setNewPlayerName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
-                          placeholder="名前を入力"
-                          className="form-control"
-                          maxLength={20}
-                        />
-                        <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
             {displayContent.type === 'phrase' && division !== "kids" && players.length > 0 && (
               <div className="mb-4">
                 <div className="text-muted small mb-2">取った人:</div>
@@ -1746,16 +1700,63 @@ function App() {
           })()}
         </div>
       ) : (
-        <div className="mb-4">
-          <button
-            type="button"
-            onClick={createQuizRoom}
-            disabled={creatingQuizRoom}
-            className="btn btn-outline-dark px-4 rounded-pill"
-          >
-            {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
-          </button>
-          {quizRoomCreateError && <p className="text-danger small">{quizRoomCreateError}</p>}
+        <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">
+          <div>
+            <button
+              type="button"
+              onClick={createQuizRoom}
+              disabled={creatingQuizRoom}
+              className="btn btn-outline-dark px-4 rounded-pill"
+            >
+              {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
+            </button>
+            {quizRoomCreateError && <p className="text-danger small">{quizRoomCreateError}</p>}
+          </div>
+          {division !== "kids" && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowPlayerRegistration(prev => !prev)}
+                className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+              >
+                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する参加者を登録する"}
+              </button>
+              {showPlayerRegistration && (
+                <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>
+                  {players.length > 0 && (
+                    <div className="d-flex flex-wrap gap-2 mb-2">
+                      {players.map(name => (
+                        <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
+                          {name}
+                          <button
+                            type="button"
+                            onClick={() => removePlayer(name)}
+                            className="btn-close btn-close-white"
+                            style={{ fontSize: "0.6rem" }}
+                            aria-label={`${name}を削除`}
+                          ></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {players.length < MAX_PLAYERS && (
+                    <div className="d-flex gap-2">
+                      <input
+                        type="text"
+                        value={newPlayerName}
+                        onChange={(e) => setNewPlayerName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
+                        placeholder="名前を入力"
+                        className="form-control"
+                        maxLength={20}
+                      />
+                      <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </footer>
