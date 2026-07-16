@@ -284,6 +284,7 @@ describe('QuizRoomView', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     emitState({
       type: 'phrase',
@@ -316,6 +317,7 @@ describe('QuizRoomView', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
 
@@ -340,6 +342,7 @@ describe('QuizRoomView', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
     await act(async () => {
@@ -362,6 +365,49 @@ describe('QuizRoomView', () => {
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
   });
 
+  it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    // まだ名前を確定していない（名前入力画面のまま）
+    expect(screen.getByPlaceholderText('お名前')).toBeInTheDocument();
+
+    // 入室時点で既にホストが札を読み上げ中だったケース
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(audioInstances).toHaveLength(0);
+
+    // 名前を確定しても、確定前から進行中だった同じラウンドの音声が遡って
+    // 再生されることはない（「次の札」からの再生という要望どおりの挙動）。
+    // 「決定」ボタンのクリック自体が共有<audio>要素の解錠（issue #497/#514）を
+    // 引き起こすため、audioInstancesは1件になるが、フレーズの取得（fetch）は
+    // 行われておらず、再生される音声も無音の解錠用データのままであることを確認する
+    confirmName();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+
+    // 名前確定後に届いた次の札からは通常どおり再生される（同じ共有要素のsrcが
+    // 差し替わる。issue #514）
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
+  });
+
   it('does not show any manual "turn audio on" button, since audio playback is always on by default (issue #497)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
@@ -377,6 +423,7 @@ describe('QuizRoomView', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
 

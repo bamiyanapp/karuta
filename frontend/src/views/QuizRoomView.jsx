@@ -163,6 +163,14 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     }
     lastPlayedKeyRef.current = key;
 
+    // 名前入力画面（confirmedName未確定）の間は再生しない（issue #530）。
+    // 上のlastPlayedKeyRef更新は先に行っているため、名前確定後にこの同じ
+    // ラウンドが再度この画面に届いても、遡って再生されることはない
+    // （要望どおり「入室後、次の札へ切り替わったタイミング」からの再生になる）
+    if (!confirmedName) {
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       try {
@@ -181,7 +189,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     return () => {
       cancelled = true;
     };
-  }, [roomState]);
+  }, [roomState, confirmedName]);
 
   if (!wsBaseUrl) {
     return (
