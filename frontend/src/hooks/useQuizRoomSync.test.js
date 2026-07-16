@@ -191,6 +191,46 @@ describe('useQuizRoomSync', () => {
     ]);
   });
 
+  it('periodically re-requests sync while connected, as a fallback in case a broadcast is missed', () => {
+    vi.useFakeTimers();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([JSON.stringify({ action: 'sync' })]);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([
+      JSON.stringify({ action: 'sync' }),
+      JSON.stringify({ action: 'sync' }),
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(MockWebSocket.instances[0].sent).toHaveLength(3);
+  });
+
+  it('stops polling once the connection closes', () => {
+    vi.useFakeTimers();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerClose();
+    });
+    const sentAtClose = MockWebSocket.instances[0].sent.length;
+
+    act(() => {
+      vi.advanceTimersByTime(20000);
+    });
+    // 再接続タイマー（3秒後）は動くが、閉じた古い接続へのポーリング送信は増えない
+    expect(MockWebSocket.instances[0].sent).toHaveLength(sentAtClose);
+  });
+
   it('reconnects after a close and gives up after the retry limit', async () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));

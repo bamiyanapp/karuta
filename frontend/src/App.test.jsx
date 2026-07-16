@@ -2363,13 +2363,14 @@ describe('App', () => {
       render(<App />);
     });
 
-    fireEvent.click(await screen.findByText('クイズ大会モード'));
-    fireEvent.click(await screen.findByText('管理者としてルームを開設する'));
-
-    // ルーム作成後、通常のかるた選択画面に戻ってくる（専用の管理者画面は用意しない）
+    // クイズ大会モードの入口はトップページから削除済み。管理者は通常のかるた
+    // 読み上げ画面まで進み、そのフッターからルームを作成する
     fireEvent.click(await screen.findByText('こども向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
     await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
 
     expect(MockWebSocket.instances).toHaveLength(1);
     const ws = MockWebSocket.instances[0];

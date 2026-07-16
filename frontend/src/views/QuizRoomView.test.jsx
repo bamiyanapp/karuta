@@ -12,7 +12,6 @@ vi.mock('../hooks/useQuizRoomSync', () => ({
   },
 }));
 
-const API_BASE_URL = 'https://api.example.com';
 const WS_BASE_URL = 'wss://ws.example.com';
 
 function emitState(state) {
@@ -24,8 +23,6 @@ function emitState(state) {
 beforeEach(() => {
   onStateCallbacks.length = 0;
   mockConnectionStatus = 'connected';
-  window.fetch = vi.fn();
-  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -35,38 +32,14 @@ afterEach(() => {
 
 describe('QuizRoomView', () => {
   it('shows a preparing message and no room UI when wsBaseUrl is not configured', () => {
-    render(<QuizRoomView setView={vi.fn()} apiBaseUrl={API_BASE_URL} wsBaseUrl={null} onRoomCreated={vi.fn()} />);
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={null} />);
     expect(screen.getByText('クイズ大会モードは現在準備中です。しばらくお待ちください。')).toBeInTheDocument();
   });
 
-  it('creates a room, hands roomId/adminToken up to the parent, and switches to the normal game view', async () => {
-    window.fetch.mockResolvedValue({ ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) });
-    const onRoomCreated = vi.fn();
-    const setView = vi.fn();
-
-    render(<QuizRoomView setView={setView} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} onRoomCreated={onRoomCreated} />);
-    fireEvent.click(screen.getByText('管理者としてルームを開設する'));
-
-    await vi.waitFor(() => expect(onRoomCreated).toHaveBeenCalledWith({ roomId: 'ABC123', adminToken: 'token-1' }));
-    expect(setView).toHaveBeenCalledWith('game');
-  });
-
-  it('shows a create-room error and does not transition when creation fails', async () => {
-    window.fetch.mockResolvedValue({ ok: false });
-    const onRoomCreated = vi.fn();
-    const setView = vi.fn();
-
-    render(<QuizRoomView setView={setView} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} onRoomCreated={onRoomCreated} />);
-    fireEvent.click(screen.getByText('管理者としてルームを開設する'));
-
-    expect(await screen.findByText('ルームの作成に失敗しました。もう一度お試しください。')).toBeInTheDocument();
-    expect(onRoomCreated).not.toHaveBeenCalled();
-    expect(setView).not.toHaveBeenCalled();
-  });
-
   it('lets a participant join via a manually entered room code', () => {
-    render(<QuizRoomView setView={vi.fn()} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} onRoomCreated={vi.fn()} />);
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
+    expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('ルームコード'), { target: { value: 'xyz789' } });
     fireEvent.click(screen.getByText('参加する'));
 
@@ -77,7 +50,7 @@ describe('QuizRoomView', () => {
   it('renders the participant view from a ?roomId= deep link and updates as state is broadcast', () => {
     window.history.pushState({}, '', '?view=quiz-room&roomId=ABC123');
 
-    render(<QuizRoomView setView={vi.fn()} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} onRoomCreated={vi.fn()} />);
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
     expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
     expect(screen.getByText('ホストの操作を待っています...')).toBeInTheDocument();
@@ -94,11 +67,21 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('答え1')).toBeInTheDocument();
   });
 
+  it('treats an unrecognized or empty room state (e.g. right after room creation, before any card is shown) as "waiting" rather than a blank screen', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    emitState({});
+
+    expect(screen.getByText('ホストの操作を待っています...')).toBeInTheDocument();
+  });
+
   it('shows the connection status label to the participant', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     mockConnectionStatus = 'error';
 
-    render(<QuizRoomView setView={vi.fn()} apiBaseUrl={API_BASE_URL} wsBaseUrl={WS_BASE_URL} onRoomCreated={vi.fn()} />);
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
     expect(screen.getByText('接続状態: 接続できませんでした')).toBeInTheDocument();
   });
