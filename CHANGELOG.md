@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/bamiyanapp/karuta/compare/v1.23.2...v1.24.0) (2026-07-16)
+
+
+### Features
+
+* **voice:** 試験的な音声認識機能を撤去する ([#475](https://github.com/bamiyanapp/karuta/issues/475)) ([ae5142b](https://github.com/bamiyanapp/karuta/commit/ae5142b1cc6a362ca9f3f81d9b0a59e6d1a456f7))
+
 ## [1.23.2](https://github.com/bamiyanapp/karuta/compare/v1.23.1...v1.23.2) (2026-07-15)
 
 

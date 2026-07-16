@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.24.0",
+    "date": "2026/07/04 03:27",
+    "body": "### Features\n\n* **voice:** 試験的な音声認識機能を撤去する ([#475](https://github.com/bamiyanapp/karuta/issues/475)) ([ae5142b](https://github.com/bamiyanapp/karuta/commit/ae5142b1cc6a362ca9f3f81d9b0a59e6d1a456f7))"
+  },
+  {
     "version": "1.23.2",
-    "date": "2026/07/15",
+    "date": "2026/07/15 06:14",
     "body": "### Bug Fixes\n\n* **backend:** CloudFormationの循環依存でbackendデプロイが失敗するのを修正する ([#465](https://github.com/bamiyanapp/karuta/issues/465)) ([2b6ed07](https://github.com/bamiyanapp/karuta/commit/2b6ed073a46ab3b2e201f796c9946050a01443e3)), closes [#463](https://github.com/bamiyanapp/karuta/issues/463)"
   },
   {
