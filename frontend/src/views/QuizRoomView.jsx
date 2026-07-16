@@ -83,6 +83,9 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         </header>
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
         {renderParticipantContent(roomState)}
+        <div className="mt-5">
+          <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+        </div>
       </div>
     );
   }
