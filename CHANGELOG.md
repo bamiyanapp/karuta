@@ -1,3 +1,10 @@
+## [1.34.4](https://github.com/bamiyanapp/karuta/compare/v1.34.3...v1.34.4) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 「戻る」で離脱時にURLの?roomId=を除去する ([#539](https://github.com/bamiyanapp/karuta/issues/539)) ([cb07fac](https://github.com/bamiyanapp/karuta/commit/cb07fac27dfb9b065e2c2161509d64d7b3148f26)), closes [#532](https://github.com/bamiyanapp/karuta/issues/532)
+
 ## [1.34.3](https://github.com/bamiyanapp/karuta/compare/v1.34.2...v1.34.3) (2026-07-16)
 
 
