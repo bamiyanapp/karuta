@@ -208,7 +208,7 @@ describe('QuizRoomView', () => {
     expect(screen.queryByText('🔇 音声OFF')).not.toBeInTheDocument();
   });
 
-  it('shows a retry button when playback is blocked (autoplay policy), and lets the participant retry with a tap', async () => {
+  it('does not show a "tap to enable audio" button even when playback is blocked by the autoplay policy (issue #497)', async () => {
     audioPlayImpl = () => Promise.reject(new Error('NotAllowedError'));
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
     window.history.pushState({}, '', '?roomId=ABC123');
@@ -217,18 +217,35 @@ describe('QuizRoomView', () => {
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
 
-    const retryButton = await screen.findByText('🔊 タップして音声を有効にする');
-    expect(audioInstances).toHaveLength(1);
-
-    audioPlayImpl = () => Promise.resolve();
-    fireEvent.click(retryButton);
-
     await act(async () => {
+      await Promise.resolve();
       await Promise.resolve();
     });
 
-    expect(audioInstances).toHaveLength(2);
-    expect(audioInstances[1].src).toBe('data:audio/mp3;base64,DUMMY');
+    expect(audioInstances).toHaveLength(1);
     expect(screen.queryByText('🔊 タップして音声を有効にする')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔊 音声ON')).not.toBeInTheDocument();
+  });
+
+  it('unlocks audio playback (plays a silent clip) the first time the participant clicks or taps anywhere on the screen, as a fallback for deep-link visitors with no join click', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    expect(audioInstances).toHaveLength(0);
+
+    fireEvent.click(document.body);
+
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].play).toHaveBeenCalled();
+  });
+
+  it('unlocks audio playback when a participant joins via the manually entered room code button', () => {
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    fireEvent.change(screen.getByPlaceholderText('ルームコード'), { target: { value: 'xyz789' } });
+    fireEvent.click(screen.getByText('参加する'));
+
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].play).toHaveBeenCalled();
   });
 });

@@ -13,6 +13,7 @@ import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 import QuizRoomView from "./views/QuizRoomView";
+import { unlockAudioPlayback } from "./utils/audioUnlock";
 import QuizRoomInfoPanel from "./components/QuizRoomInfoPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
@@ -989,6 +990,9 @@ function App() {
   // クイズ大会モード（issue #489）: トップページの一覧から直接、参加者としてルームに入る。
   // QuizRoomViewはマウント時に一度だけURLの?roomId=を読むため、view切り替えの前にURLへ反映する
   const joinQuizRoom = (roomId) => {
+    // ブラウザの自動再生ポリシー対策（issue #497）: この参加操作（クリック）に
+    // 便乗して無音再生しておき、参加後の自動再生が通りやすくする
+    unlockAudioPlayback();
     const params = new URLSearchParams(window.location.search);
     params.set("roomId", roomId);
     window.history.pushState({}, "", `?${params.toString()}`);

@@ -2520,6 +2520,13 @@ describe('App', () => {
 
     expect(await screen.findByText('クイズ大会モード（参加者）')).toBeInTheDocument();
     expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+
+    // ブラウザの自動再生ポリシー対策（issue #497）: 一覧からの参加クリックに便乗して
+    // 無音再生による解錠を行っていることを確認する
+    const silentAudioCall = window.Audio.mock.calls.find(
+      ([src]) => typeof src === 'string' && src.startsWith('data:audio/wav')
+    );
+    expect(silentAudioCall).toBeDefined();
   });
 
   it('does not show the open-room list section when there are no open quiz rooms', async () => {

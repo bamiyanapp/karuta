@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
+import { unlockAudioPlayback } from "../utils/audioUnlock";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -70,15 +71,31 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // 参加者側は通知（roomState）を受けて自分自身で/get-phraseを呼び直し、取得した
   // 音声を再生する。同じ設定であれば/get-phrase側のPollyキャッシュがヒットするため、
   // 参加者が増えてもPollyの合成コストは増えない。
-  // issue #497: ミュート操作は設けず常にオンとする（ブラウザの自動再生ポリシーで
-  // 再生自体がブロックされた場合の救済策としてのretryPlaybackのみ用意する）。
+  // issue #497: ボタン操作は設けず常にオンとする。ブラウザの自動再生ポリシー対策として、
+  // トップページのルーム一覧クリック（App.jsxのjoinQuizRoom）での解錠に加え、
+  // この画面自体が開かれた後の最初のクリック/タップでも解錠する（下記useEffect。
+  // 招待URLからの直接アクセス等、参加操作のクリックを経ない場合の保険）
   // issue #498: 再生設定（repeatCount/speechRate/lang/voiceId/announceCategory）は
   // 参加者自身のlocalStorageではなく、管理者からのブロードキャスト内容（roomState.content）
   // に含まれる値を使い、全員が管理者と同じ内容で聞こえるようにする
-  const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const lastPlayedKeyRef = useRef(null);
-  const lastAudioDataRef = useRef(null);
   const currentAudioRef = useRef(null);
+
+  useEffect(() => {
+    if (!wsBaseUrl) {
+      return undefined;
+    }
+    // ルームへの参加操作以外（招待URLからの直接アクセス等）で、ユーザー操作を伴う
+    // 参加ボタンのクリックを経ずに画面が開かれた場合の保険。画面内の最初のクリック/
+    // タップで解錠しておくことで、その後の自動再生（次の札の通知）が通りやすくなる
+    const handleFirstInteraction = () => unlockAudioPlayback();
+    document.addEventListener("click", handleFirstInteraction, { once: true });
+    document.addEventListener("touchstart", handleFirstInteraction, { once: true });
+    return () => {
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("touchstart", handleFirstInteraction);
+    };
+  }, [wsBaseUrl]);
 
   useEffect(() => {
     if (roomState?.type !== "phrase" || !roomState.content?.id) {
@@ -100,20 +117,13 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         if (cancelled || !response.ok || !data.audioData) {
           return;
         }
-        lastAudioDataRef.current = data.audioData;
         // 前の札の音声がまだ再生中なら、次の札の音声と重なって再生されないよう止める
         currentAudioRef.current?.pause();
         const audio = new Audio(data.audioData);
         currentAudioRef.current = audio;
         await audio.play();
-        if (!cancelled) {
-          setPlaybackBlocked(false);
-        }
       } catch (error) {
         console.error("Failed to play quiz room audio:", error);
-        if (!cancelled) {
-          setPlaybackBlocked(true);
-        }
       }
     })();
 
@@ -121,19 +131,6 @@ function QuizRoomView({ setView, wsBaseUrl }) {
       cancelled = true;
     };
   }, [roomState]);
-
-  // 自動再生がブラウザにブロックされた場合（ユーザー操作を伴わない再生）の救済策。
-  // 直近取得済みの音声データをこのクリック操作（ユーザー操作）を起点に再生し直す
-  const retryPlayback = () => {
-    if (!lastAudioDataRef.current) {
-      return;
-    }
-    const audio = new Audio(lastAudioDataRef.current);
-    currentAudioRef.current = audio;
-    audio.play()
-      .then(() => setPlaybackBlocked(false))
-      .catch(() => setPlaybackBlocked(true));
-  };
 
   if (!wsBaseUrl) {
     return (
@@ -152,11 +149,6 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
-        {playbackBlocked && (
-          <button onClick={retryPlayback} className="btn btn-sm btn-outline-dark rounded-pill mb-3">
-            🔊 タップして音声を有効にする
-          </button>
-        )}
         {renderParticipantContent(roomState)}
         <div className="mt-5">
           <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
