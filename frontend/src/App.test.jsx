@@ -53,9 +53,9 @@ describe('App', () => {
   });
 
   it('renders division selection screen initially', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ categories: [] }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
     });
 
     await act(async () => {
@@ -68,7 +68,10 @@ describe('App', () => {
   });
 
   it('shows a get-categories-specific error message when fetching categories fails, instead of the generic submit-failure message', async () => {
-    fetch.mockRejectedValueOnce(new Error('network error'));
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) throw new Error('network error');
+      return { ok: false };
+    });
 
     await act(async () => {
       render(<App />);
@@ -78,14 +81,19 @@ describe('App', () => {
   });
 
   it('shows the matching category list after choosing a division', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        categories: [
-          { name: 'いろはかるた', group: 'kids' },
-          { name: 'テスト用', group: 'kids' },
-        ],
-      }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'いろはかるた', group: 'kids' },
+              { name: 'テスト用', group: 'kids' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
     });
 
     await act(async () => {
@@ -101,14 +109,19 @@ describe('App', () => {
   });
 
   it('only shows categories belonging to the selected division', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        categories: [
-          { name: 'KidsCat', group: 'kids' },
-          { name: 'EngCat', group: 'engineer' },
-        ],
-      }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'KidsCat', group: 'kids' },
+              { name: 'EngCat', group: 'engineer' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
     });
 
     await act(async () => {
@@ -124,11 +137,11 @@ describe('App', () => {
   });
 
   it('shows an empty-state message instead of a dead decide button when a division has no categories', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        categories: [{ name: 'EngCat', group: 'engineer' }],
-      }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [{ name: 'EngCat', group: 'engineer' }] }) };
+      }
+      return { ok: false };
     });
 
     await act(async () => {
@@ -144,9 +157,9 @@ describe('App', () => {
   });
 
   it('keeps the secondary navigation links reachable from the category selection screen', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }),
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      return { ok: false };
     });
 
     await act(async () => {

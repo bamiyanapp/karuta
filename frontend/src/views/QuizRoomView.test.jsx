@@ -81,6 +81,11 @@ beforeEach(() => {
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
   fetch.mockReset();
+  // 個別のテストが/get-phrase等を明示的にモックしなかった場合のデフォルト応答。
+  // 未設定のままだとfetch()がundefinedを返し、レスポンスのプロパティアクセスで
+  // 無用なTypeErrorがログに出てしまう（本番のfetch()はResponseかrejectのいずれかで、
+  // undefinedを返すことはないため、これはテスト側の既定値の問題）
+  fetch.mockResolvedValue({ ok: false });
   audioInstances.length = 0;
   audioPlayImpl = () => Promise.resolve();
   localStorage.clear();
