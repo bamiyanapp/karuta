@@ -27,6 +27,9 @@ test('admin creates a quiz room and a participant sees the same card update in r
   await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
 
   await expect(participantPage.getByText('クイズ大会モード（参加者）')).toBeVisible();
+  // 早押し機能（issue #510）: 参加者はまず名前を入力してから通常の参加者画面へ進む
+  await participantPage.getByPlaceholder('お名前').fill('たろう');
+  await participantPage.getByText('決定').click();
   await expect(participantPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
   await expect(participantPage.getByText('ホストの操作を待っています...')).toBeVisible();
 

@@ -115,6 +115,54 @@ describe('useQuizRoomSync', () => {
     expect(onState).not.toHaveBeenCalled();
   });
 
+  it('calls onBuzz when a buzz message is received, without invoking onState (issue #510)', () => {
+    const onState = vi.fn();
+    const onBuzz = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState, onBuzz }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({ type: 'buzz', name: 'たろう', connectionId: 'conn-2' });
+    });
+
+    expect(onBuzz).toHaveBeenCalledWith({ name: 'たろう', connectionId: 'conn-2' });
+    expect(onState).not.toHaveBeenCalled();
+  });
+
+  it('setParticipantName sends setName only while the connection is open, and resends it once the socket opens if called earlier', () => {
+    const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      result.current.setParticipantName('たろう');
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([]);
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+    });
+
+    expect(MockWebSocket.instances[0].sent).toEqual([
+      JSON.stringify({ action: 'sync' }),
+      JSON.stringify({ action: 'setName', name: 'たろう' }),
+    ]);
+  });
+
+  it('buzz sends the buzz action only while the connection is open', () => {
+    const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      result.current.buzz();
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([]);
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      result.current.buzz();
+    });
+
+    expect(MockWebSocket.instances[0].sent).toContain(JSON.stringify({ action: 'buzz' }));
+  });
+
   it('broadcastState sends updateState only while the connection is open', () => {
     const { result } = renderHook(() => useQuizRoomSync({
       wsBaseUrl: 'wss://example.com/dev',

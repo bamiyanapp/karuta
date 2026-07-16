@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio } from "../utils/audioUnlock";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -14,6 +14,8 @@ const CONNECTION_STATUS_LABEL = {
   connected: "接続済み",
   error: "接続できませんでした",
 };
+
+const MAX_NAME_LENGTH = 20; // backend/quizRoomHandler.jsのMAX_NAME_LENGTHと合わせる（早押し機能、issue #510）
 
 function renderParticipantContent(roomState) {
   // ルーム作成直後（まだ一度もupdateStateが呼ばれていない）は、サーバー側の状態が
@@ -61,11 +63,47 @@ function QuizRoomView({ setView, wsBaseUrl }) {
 
   const [roomState, setRoomState] = useState(null);
 
-  const { connectionStatus } = useQuizRoomSync({
+  // 早押し機能（issue #510）: 参加者名は入室のたびに入力してもらう（永続化しない）。
+  // confirmedNameが空の間は名前入力画面を表示し、決定後にのみ通常の参加者画面へ進む
+  const [confirmedName, setConfirmedName] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
+  const [buzzedBy, setBuzzedBy] = useState(null);
+  const [lastBuzzRoundKey, setLastBuzzRoundKey] = useState(null);
+
+  const { connectionStatus, setParticipantName, buzz } = useQuizRoomSync({
     wsBaseUrl,
     roomId: joinRoomId,
     onState: setRoomState,
+    onBuzz: setBuzzedBy,
   });
+
+  // 早押し結果表示のリセット判定（issue #510）。ラウンドを表す値（buzzRoundKey）を
+  // 状態種別ごとに導出し、前回と異なれば新しいラウンドとみなしてリセットする。
+  // - "phrase": 札ごとの一意キー（同じ札の再ブロードキャスト＝設定変更等では変わらない）
+  // - "result": 直前のラウンドキーを維持する（result表示中も回答者表示を残したいため）
+  // - それ以外（"initial"等）: ラウンドなし（null）とし、管理者がゲームをリセットした
+  //   場合等に、古い回答者情報が次のラウンドへ持ち越されないようにする
+  // レンダー中に前回値と比較して直接更新する、Reactが推奨する「レンダー中のstate調整」
+  // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）
+  let currentBuzzRoundKey = lastBuzzRoundKey;
+  if (roomState?.type === "phrase" && roomState.content?.id) {
+    currentBuzzRoundKey = `${roomState.content.category}:${roomState.content.id}`;
+  } else if (roomState?.type !== "result") {
+    currentBuzzRoundKey = null;
+  }
+  if (currentBuzzRoundKey !== lastBuzzRoundKey) {
+    setLastBuzzRoundKey(currentBuzzRoundKey);
+    setBuzzedBy(null);
+  }
+
+  const handleConfirmName = () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      return;
+    }
+    setConfirmedName(trimmed);
+    setParticipantName(trimmed);
+  };
 
   // issue #490: 音声同期再生は明示的にスコープ外だった（管理者端末でのみ再生）ため、
   // 参加者側は通知（roomState）を受けて自分自身で/get-phraseを呼び直し、取得した
@@ -78,8 +116,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // issue #498: 再生設定（repeatCount/speechRate/lang/voiceId/announceCategory）は
   // 参加者自身のlocalStorageではなく、管理者からのブロードキャスト内容（roomState.content）
   // に含まれる値を使い、全員が管理者と同じ内容で聞こえるようにする
+  // issue #514: 音声の再生自体は`playSharedAudio`（frontend/src/utils/audioUnlock.js）で
+  // ユーザー操作により解錠済みの単一<audio>要素を使い回す。fetch完了後の非同期文脈で
+  // 毎回`new Audio(...)`していると、その要素自体はユーザー操作中に一度も再生されておらず、
+  // Safari等では再生がブロックされ続けてしまうため
   const lastPlayedKeyRef = useRef(null);
-  const currentAudioRef = useRef(null);
 
   useEffect(() => {
     if (!wsBaseUrl) {
@@ -117,11 +158,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         if (cancelled || !response.ok || !data.audioData) {
           return;
         }
-        // 前の札の音声がまだ再生中なら、次の札の音声と重なって再生されないよう止める
-        currentAudioRef.current?.pause();
-        const audio = new Audio(data.audioData);
-        currentAudioRef.current = audio;
-        await audio.play();
+        await playSharedAudio(data.audioData);
       } catch (error) {
         console.error("Failed to play quiz room audio:", error);
       }
@@ -141,6 +178,40 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     );
   }
 
+  if (joinRoomId && !confirmedName) {
+    return (
+      <div className="container py-5 mx-auto text-center">
+        <header className="mb-4">
+          <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
+        </header>
+        <main className="mx-auto text-center" style={{ maxWidth: "360px" }}>
+          <p className="text-muted small mb-2">早押し対決で使うお名前を入力してください</p>
+          <div className="d-flex gap-2 justify-content-center">
+            <input
+              type="text"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              placeholder="お名前"
+              maxLength={MAX_NAME_LENGTH}
+              className="form-control"
+              style={{ maxWidth: "200px" }}
+            />
+            <button
+              onClick={handleConfirmName}
+              disabled={!nameDraft.trim()}
+              className="btn btn-outline-dark rounded-pill"
+            >
+              決定
+            </button>
+          </div>
+          <div className="text-center mt-5">
+            <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (joinRoomId) {
     return (
       <div className="container py-5 mx-auto text-center">
@@ -150,6 +221,15 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         </header>
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
         {renderParticipantContent(roomState)}
+        {buzzedBy ? (
+          <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答しました</p>
+        ) : roomState?.type === "phrase" && (
+          <div className="mt-4">
+            <button onClick={buzz} className="btn btn-danger btn-lg rounded-pill px-5">
+              回答する
+            </button>
+          </div>
+        )}
         <div className="mt-5">
           <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>

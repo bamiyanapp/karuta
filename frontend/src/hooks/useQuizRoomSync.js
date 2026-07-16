@@ -9,12 +9,15 @@ const SYNC_POLL_INTERVAL_MS = 5000;
 
 // クイズ大会モード（issue #470）のWebSocket接続を管理する。adminTokenを渡すと管理者として、
 // 渡さなければ参加者（閲覧専用）として接続する。サーバーから状態（{type:"state", state, role}）を
-// 受け取るたびonStateを呼ぶ。管理者はbroadcastStateで新しい状態を送信できる
-export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
+// 受け取るたびonStateを呼ぶ。管理者はbroadcastStateで新しい状態を送信できる。
+// 早押し機能（issue #510）: サーバーから{type:"buzz", name, connectionId}を受け取るたび
+// onBuzzを呼ぶ。参加者はsetParticipantNameで表示名を、buzzで早押しを送信できる
+export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz }) {
   const [internalStatus, setInternalStatus] = useState("idle"); // connecting|connected|error（idleはwsBaseUrl/roomId未設定時に導出する）
   const connectionStatus = (!wsBaseUrl || !roomId) ? "idle" : internalStatus;
   const wsRef = useRef(null);
   const onStateRef = useRef(onState);
+  const onBuzzRef = useRef(onBuzz);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
@@ -24,10 +27,16 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
   // それまではreadyState !== OPENのため送信が黙って失われ、参加者側の画面が
   // 永久に更新されない不具合があった。openのたびにこの値を送り直すことで解消する
   const pendingStateRef = useRef(null);
+  // setParticipantNameも同様に、接続確立前に呼ばれた場合に備えて再送する（issue #510）
+  const pendingNameRef = useRef(null);
 
   useEffect(() => {
     onStateRef.current = onState;
   }, [onState]);
+
+  useEffect(() => {
+    onBuzzRef.current = onBuzz;
+  }, [onBuzz]);
 
   useEffect(() => {
     if (!wsBaseUrl || !roomId) {
@@ -58,6 +67,9 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
         if (pendingStateRef.current !== null) {
           ws.send(JSON.stringify({ action: "updateState", state: pendingStateRef.current }));
         }
+        if (pendingNameRef.current !== null) {
+          ws.send(JSON.stringify({ action: "setName", name: pendingNameRef.current }));
+        }
         pollTimerRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ action: "sync" }));
@@ -70,6 +82,8 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
           const data = JSON.parse(event.data);
           if (data?.type === "state") {
             onStateRef.current?.(data.state, data.role);
+          } else if (data?.type === "buzz") {
+            onBuzzRef.current?.({ name: data.name, connectionId: data.connectionId });
           }
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);
@@ -119,5 +133,20 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
     }
   }, []);
 
-  return { connectionStatus, broadcastState };
+  // 早押し機能（issue #510）: 参加者が自分の表示名をサーバーへ保存する
+  const setParticipantName = useCallback((name) => {
+    pendingNameRef.current = name;
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: "setName", name }));
+    }
+  }, []);
+
+  // 早押し機能（issue #510）: 参加者が早押しボタンを押したことをサーバーへ送信する
+  const buzz = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: "buzz" }));
+    }
+  }, []);
+
+  return { connectionStatus, broadcastState, setParticipantName, buzz };
 }
