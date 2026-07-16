@@ -291,44 +291,31 @@ exports.updateQuizRoomState = async (event) => {
 
     // 読み上げ設定の変更等で、ラウンドが進んだわけではなく同じ札のphraseが
     // 再ブロードキャストされることがある（App.jsxのbroadcast effect参照）。
-    // このケースを新しいラウンドの開始と誤認すると、早押し結果を巻き戻す前に
-    // ポイントを加点してしまったり、まだ判定が済んでいない早押し記録を
-    // 消してしまったりするため、直前の状態と札のidを比較して区別する
+    // このケースを新しいラウンドの開始と誤認すると、まだ判定が済んでいない
+    // 早押し記録を消してしまうため、直前の状態と札のidを比較して区別する
     const isSamePhraseRebroadcast = newState.type === "phrase"
       && room.Item?.state?.type === "phrase"
       && room.Item?.state?.content?.id === newState.content?.id;
 
-    // 早押しポイント制（issue #519）: 次の札（type="phrase"、かつラウンドが実際に
-    // 進んだ場合）に進むタイミングで、直前のラウンドで早押しが記録されていれば
-    // その人に1ポイント加点する。"initial"へ戻す場合（ゲームのリセット等）は
-    // お手つき等の可能性を否定できないため加点しない
-    let updatedPoints = null;
-    if (newState.type === "phrase" && !isSamePhraseRebroadcast) {
-      const buzzedName = room.Item?.buzz?.name;
-      if (buzzedName) {
-        updatedPoints = { ...(room.Item.points || {}) };
-        updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
-      }
-    }
-
-    // 早押し機能（issue #510）: 新しい札（次の問題）や、ゲームのリセット等で"initial"に
-    // 戻った場合は、前のラウンドの早押し結果をリセットする。result表示中や、同じ札の
-    // 再ブロードキャスト中は、まだそのラウンドの早押し結果を確定させたくないためリセットしない
-    const resetBuzz = newState.type !== "result" && !isSamePhraseRebroadcast ? " REMOVE buzz" : "";
-    const updatePointsExpr = updatedPoints ? ", #points = :points" : "";
+    // 早押し正誤判定（issue #546）: ポイント付与は管理者の正誤判定
+    // （judgeQuizRoomBuzz）でのみ行う。「次の札」へ進んだ時点でまだ判定されて
+    // いない早押しがあっても加点しない（未判定は無効試行として扱う）。
+    // 新しい札（次の問題）や、ゲームのリセット等で"initial"に戻った場合は、
+    // 前のラウンドの早押し・除外状態をリセットする。result表示中や、同じ札の
+    // 再ブロードキャスト中は、まだそのラウンドの判定を確定させたくないため
+    // リセットしない
+    const resetRound = newState.type !== "result" && !isSamePhraseRebroadcast;
+    const updateExpression = resetRound
+      ? "SET #state = :state, #ttl = :ttl REMOVE buzz, excludedNames"
+      : "SET #state = :state, #ttl = :ttl";
     await docClient.send(new UpdateCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
-      UpdateExpression: `SET #state = :state, #ttl = :ttl${updatePointsExpr}${resetBuzz}`,
-      ExpressionAttributeNames: {
-        "#state": "state",
-        "#ttl": "ttl",
-        ...(updatedPoints ? { "#points": "points" } : {}),
-      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
       ExpressionAttributeValues: {
         ":state": newState,
         ":ttl": Math.floor(Date.now() / 1000) + ROOM_TTL_SECONDS,
-        ...(updatedPoints ? { ":points": updatedPoints } : {}),
       },
     }));
 
@@ -348,11 +335,78 @@ exports.updateQuizRoomState = async (event) => {
       }))
     );
 
-    if (updatedPoints) {
+    return { statusCode: 200, body: "" };
+  } catch (error) {
+    console.error(error);
+    return { statusCode: 500, body: "Internal Server Error" };
+  }
+};
+
+// WebSocketカスタムルート"judgeBuzz"（issue #546）。管理者のみが早押しの正誤を
+// 判定できる。正解の場合はその参加者に1ポイント加点し、buzz/excludedNamesを
+// リセットする（次のラウンドまで早押しは確定済みのまま据え置かれる）。
+// 不正解の場合はbuzzのみリセットして他の参加者が再度早押しできるようにしつつ、
+// 誤答した本人は今ラウンドの早押し対象から除外し、ルーム内の全接続へ
+// ラウンドリセットを通知する
+exports.judgeQuizRoomBuzz = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
+    if (!connection.Item || connection.Item.role !== "admin") {
+      return { statusCode: 403, body: "Forbidden" };
+    }
+
+    const body = JSON.parse(event.body || "{}");
+    const correct = body.correct === true;
+    const { roomId } = connection.Item;
+
+    const room = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+    }));
+    const buzzedName = room.Item?.buzz?.name;
+    if (!buzzedName) {
+      // 判定対象の早押しが既に無い（タイミングのズレ等）。何もしない
+      return { statusCode: 200, body: "" };
+    }
+
+    const connections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": roomId },
+    }));
+    const managementApi = buildManagementApiClient(event);
+
+    if (correct) {
+      const updatedPoints = { ...(room.Item.points || {}) };
+      updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
+      await docClient.send(new UpdateCommand({
+        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+        Key: { roomId },
+        UpdateExpression: "SET points = :points REMOVE buzz, excludedNames",
+        ExpressionAttributeValues: { ":points": updatedPoints },
+      }));
       await Promise.allSettled(
         (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
           type: "points",
           points: updatedPoints,
+        }))
+      );
+    } else {
+      await docClient.send(new UpdateCommand({
+        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+        Key: { roomId },
+        UpdateExpression: "REMOVE buzz ADD excludedNames :names",
+        ExpressionAttributeValues: { ":names": new Set([buzzedName]) },
+      }));
+      await Promise.allSettled(
+        (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
+          type: "roundReset",
+          excludedName: buzzedName,
         }))
       );
     }
@@ -427,7 +481,9 @@ exports.setQuizRoomName = async (event) => {
 
 // WebSocketカスタムルート"buzz"（早押し機能、issue #510）。参加者のみが押せる。
 // 同一ラウンド内で最初の1件だけを条件付き書き込みで確定させ、ルーム内の全接続へ
-// 回答者名をブロードキャストする（早押し結果のリセットはupdateQuizRoomState側で行う）
+// 回答者名をブロードキャストする（早押し結果のリセットはupdateQuizRoomState側で行う）。
+// 正誤判定（issue #546）で不正解と判定された参加者は、そのラウンド中は
+// 再度早押しできない（excludedNamesに含まれる名前を条件付き書き込みで弾く）
 exports.buzzQuizRoom = async (event) => {
   try {
     const connectionId = event.requestContext.connectionId;
@@ -451,12 +507,13 @@ exports.buzzQuizRoom = async (event) => {
         TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
         Key: { roomId },
         UpdateExpression: "SET buzz = :buzz",
-        ConditionExpression: "attribute_not_exists(buzz)",
-        ExpressionAttributeValues: { ":buzz": buzz },
+        ConditionExpression: "attribute_not_exists(buzz) AND (attribute_not_exists(excludedNames) OR NOT contains(excludedNames, :name))",
+        ExpressionAttributeValues: { ":buzz": buzz, ":name": buzz.name },
       }));
     } catch (error) {
       if (error.name === "ConditionalCheckFailedException") {
-        // 既に他の参加者が先に押している。早押しの結果は変えず、何もしない
+        // 既に他の参加者が先に押している、またはこのラウンドで不正解判定済みで
+        // 除外されている。いずれも早押しの結果は変えず、何もしない
         return { statusCode: 200, body: "" };
       }
       throw error;

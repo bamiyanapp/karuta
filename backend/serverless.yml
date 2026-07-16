@@ -228,6 +228,11 @@ functions:
     events:
       - websocket:
           route: buzz
+  judgeQuizRoomBuzz: # 追加（早押し正誤判定、issue #546）。管理者のみ早押しの正誤を判定でき、正解なら加点、不正解なら他の参加者に早押しを再開させる
+    handler: quizRoomHandler.judgeQuizRoomBuzz
+    events:
+      - websocket:
+          route: judgeBuzz
 
 resources:
   Resources:

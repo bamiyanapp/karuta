@@ -2548,6 +2548,66 @@ describe('App', () => {
     }, { timeout: 20000 });
   }, 40000);
 
+  it('shows a judgment modal with 正解/不正解 buttons when a participant buzzes in, and sends the judgment over the WebSocket while closing the modal (issue #546)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('正解')).toBeInTheDocument();
+    expect(screen.getByText('不正解')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('不正解'));
+
+    expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
+    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+  }, 40000);
+
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
     class MockWebSocket {
       constructor(url) {
