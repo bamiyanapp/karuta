@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/bamiyanapp/karuta/compare/v1.24.0...v1.25.0) (2026-07-16)
+
+
+### Features
+
+* クイズ大会モード（最小構成）を追加する ([#477](https://github.com/bamiyanapp/karuta/issues/477)) ([ed95417](https://github.com/bamiyanapp/karuta/commit/ed9541796ae3058a7eb58763df7ff0a4f2764088))
+
 # [1.24.0](https://github.com/bamiyanapp/karuta/compare/v1.23.2...v1.24.0) (2026-07-16)
 
 

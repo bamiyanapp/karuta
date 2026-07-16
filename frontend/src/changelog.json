@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.25.0",
+    "date": "2026/07/04 03:38",
+    "body": "### Features\n\n* クイズ大会モード（最小構成）を追加する ([#477](https://github.com/bamiyanapp/karuta/issues/477)) ([ed95417](https://github.com/bamiyanapp/karuta/commit/ed9541796ae3058a7eb58763df7ff0a4f2764088))"
+  },
+  {
     "version": "1.24.0",
-    "date": "2026/07/04 03:27",
+    "date": "2026/07/16 00:16",
     "body": "### Features\n\n* **voice:** 試験的な音声認識機能を撤去する ([#475](https://github.com/bamiyanapp/karuta/issues/475)) ([ae5142b](https://github.com/bamiyanapp/karuta/commit/ae5142b1cc6a362ca9f3f81d9b0a59e6d1a456f7))"
   },
   {
@@ -251,7 +256,7 @@
   },
   {
     "version": "1.24.0",
-    "date": "2026/07/04 03:27",
+    "date": "2026/07/16 00:16",
     "body": "### Features\n\n* **reading:** 読み上げ中に停止できる機能を追加 ([#243](https://github.com/bamiyanapp/karuta/issues/243)) ([2159ff0](https://github.com/bamiyanapp/karuta/commit/2159ff0d5a25545bf7caafd5471103c55a48f563))"
   },
   {
