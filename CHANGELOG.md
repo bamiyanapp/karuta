@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/bamiyanapp/karuta/compare/v1.26.0...v1.26.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 接続確立前後のbroadcastStateが失われないようにする ([#483](https://github.com/bamiyanapp/karuta/issues/483)) ([b567386](https://github.com/bamiyanapp/karuta/commit/b5673865d519988fa20e621b55cb61b1ff593190))
+
 # [1.26.0](https://github.com/bamiyanapp/karuta/compare/v1.25.1...v1.26.0) (2026-07-16)
 
 
