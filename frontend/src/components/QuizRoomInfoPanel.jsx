@@ -37,7 +37,7 @@ function QuizRoomInfoPanel({ roomId }) {
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className="btn btn-link text-decoration-none"
+        className="btn btn-outline-dark px-4 rounded-pill"
       >
         {expanded ? "ルーム情報を隠す" : "ルーム情報を表示（クイズ大会モード）"}
       </button>

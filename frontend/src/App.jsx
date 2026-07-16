@@ -1628,7 +1628,7 @@ function App() {
       <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
-        <button onClick={resetGame} className="btn btn-outline-secondary px-4 rounded-pill">かるたの種類を選び直す</button>
+        <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
       {quizRoom ? (
         <QuizRoomInfoPanel roomId={quizRoom.roomId} />
@@ -1638,7 +1638,7 @@ function App() {
             type="button"
             onClick={createQuizRoom}
             disabled={creatingQuizRoom}
-            className="btn btn-link text-decoration-none"
+            className="btn btn-outline-dark px-4 rounded-pill"
           >
             {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
           </button>
