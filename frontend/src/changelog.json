@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.29.0",
+    "date": "2026/07/04 07:26",
+    "body": "### Features\n\n* **quiz-room:** 参加者側でも読み上げ音声を再生できるようにする ([#495](https://github.com/bamiyanapp/karuta/issues/495)) ([dcfd304](https://github.com/bamiyanapp/karuta/commit/dcfd304e5dae0aaa5a0f5899cd75e825b539329a))"
+  },
+  {
     "version": "1.28.0",
-    "date": "2026/07/04 07:03",
+    "date": "2026/07/16 05:38",
     "body": "### Features\n\n* **quiz-room:** トップページに開設中のクイズ大会ルーム一覧を表示する ([#493](https://github.com/bamiyanapp/karuta/issues/493)) ([8e6332b](https://github.com/bamiyanapp/karuta/commit/8e6332b2b7279ff75a7db619f2214781300f8719))"
   },
   {
@@ -271,7 +276,7 @@
   },
   {
     "version": "1.28.0",
-    "date": "2026/07/04 07:03",
+    "date": "2026/07/16 05:38",
     "body": "### Features\n\n* **score:** プレイヤー別の取り札スコア記録機能を追加 ([#251](https://github.com/bamiyanapp/karuta/issues/251)) ([627c875](https://github.com/bamiyanapp/karuta/commit/627c875c4f81947375539425cda73478cda58449))"
   },
   {

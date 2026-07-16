@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/bamiyanapp/karuta/compare/v1.28.0...v1.29.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** 参加者側でも読み上げ音声を再生できるようにする ([#495](https://github.com/bamiyanapp/karuta/issues/495)) ([dcfd304](https://github.com/bamiyanapp/karuta/commit/dcfd304e5dae0aaa5a0f5899cd75e825b539329a))
+
 # [1.28.0](https://github.com/bamiyanapp/karuta/compare/v1.27.1...v1.28.0) (2026-07-16)
 
 
