@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.30.1",
+    "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 管理者の設定変更が読み上げ中の音声配信とズレる競合状態を修正する ([#506](https://github.com/bamiyanapp/karuta/issues/506)) ([f0022f8](https://github.com/bamiyanapp/karuta/commit/f0022f8855dcca9ba614442a293ac701d44440c8))"
+  },
+  {
     "version": "1.30.0",
-    "date": "2026/07/04 21:56",
+    "date": "2026/07/16 06:39",
     "body": "### Features\n\n* **quiz-room:** 参加者側の音声を常時オンにし、管理者の読み上げ設定に合わせる ([#504](https://github.com/bamiyanapp/karuta/issues/504)) ([866150e](https://github.com/bamiyanapp/karuta/commit/866150ecdbf067ae33d72071168b4c3aa95fe4ac))"
   },
   {
@@ -251,7 +256,7 @@
   },
   {
     "version": "1.30.0",
-    "date": "2026/07/04 21:56",
+    "date": "2026/07/16 06:39",
     "body": "### Features\n\n* 開発ルールをdev-standardsに共通化しsubmoduleで参照 ([#278](https://github.com/bamiyanapp/karuta/issues/278)) ([7457832](https://github.com/bamiyanapp/karuta/commit/745783203e484df27a3301d478d10aaf762acdb2))"
   },
   {
