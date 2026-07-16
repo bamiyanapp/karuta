@@ -1,3 +1,10 @@
+## [1.26.2](https://github.com/bamiyanapp/karuta/compare/v1.26.1...v1.26.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 参加者側の自己修復ポーリングと動線の見直し ([#485](https://github.com/bamiyanapp/karuta/issues/485)) ([7a61dfe](https://github.com/bamiyanapp/karuta/commit/7a61dfe2a843c74f085bd7e592e9cb2a95f47e38)), closes [#483](https://github.com/bamiyanapp/karuta/issues/483)
+
 ## [1.26.1](https://github.com/bamiyanapp/karuta/compare/v1.26.0...v1.26.1) (2026-07-16)
 
 
