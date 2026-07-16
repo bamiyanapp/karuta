@@ -2813,4 +2813,50 @@ describe('App', () => {
     await screen.findByText('かるた読み上げアプリ');
     expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
   });
+
+  it('re-fetches the open quiz room list every time the top page is shown again, not just on first mount (issue #531)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        MockWebSocket.instances.push(this);
+      }
+      send() {}
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    let quizRoomsCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        quizRoomsCallCount += 1;
+        const rooms = quizRoomsCallCount === 1
+          ? [{ roomId: 'ABC123', createdAt: 1, category: null }]
+          : [{ roomId: 'ABC123', createdAt: 1, category: null }, { roomId: 'NEW999', createdAt: 2, category: null }];
+        return { ok: true, json: async () => ({ rooms }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('ABC123');
+    expect(quizRoomsCallCount).toBe(1);
+    expect(screen.queryByText('NEW999')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('ABC123'));
+    await screen.findByText('クイズ大会モード（参加者）');
+    fireEvent.change(screen.getByPlaceholderText('お名前'), { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('決定'));
+
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    await waitFor(() => expect(quizRoomsCallCount).toBe(2));
+    expect(await screen.findByText('NEW999')).toBeInTheDocument();
+  });
 });

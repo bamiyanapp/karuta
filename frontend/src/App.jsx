@@ -351,9 +351,12 @@ function App() {
   }, []);
 
   // クイズ大会モード（issue #489）: トップページ下部に開設中のルーム一覧を表示するため、
-  // WebSocket未設定（機能自体が準備中）の場合は取得を試みない
+  // WebSocket未設定（機能自体が準備中）の場合は取得を試みない。
+  // 一覧は初回マウント時だけでなく、他画面から戻る等でトップページへ再度遷移した
+  // たびに再取得する（issue #531: 一度取得したきり更新されず古くなる不具合の対応）
+  const isOnTopPage = view === "game" && selectedCategories.length === 0;
   useEffect(() => {
-    if (!WS_BASE_URL) {
+    if (!WS_BASE_URL || !isOnTopPage) {
       return;
     }
     const fetchOpenQuizRooms = async () => {
@@ -368,7 +371,7 @@ function App() {
       }
     };
     fetchOpenQuizRooms();
-  }, []);
+  }, [isOnTopPage]);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
   useEffect(() => {
