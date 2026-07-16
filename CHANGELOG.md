@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/bamiyanapp/karuta/compare/v1.25.1...v1.26.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** 通常のゲーム画面を流用し、招待URL・コピー機能を追加する ([#481](https://github.com/bamiyanapp/karuta/issues/481)) ([a174046](https://github.com/bamiyanapp/karuta/commit/a174046ccf4f512f2b508b1234a9fa1e097b8e0c))
+
 ## [1.25.1](https://github.com/bamiyanapp/karuta/compare/v1.25.0...v1.25.1) (2026-07-16)
 
 
