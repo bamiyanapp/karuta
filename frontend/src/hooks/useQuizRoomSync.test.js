@@ -138,6 +138,59 @@ describe('useQuizRoomSync', () => {
     );
   });
 
+  it('resends the last broadcastState call once the socket opens, even if it was attempted before the connection was ready (regression: participant never saw updates because the admin\'s first broadcast raced ahead of the WebSocket handshake)', () => {
+    const { result } = renderHook(() => useQuizRoomSync({
+      wsBaseUrl: 'wss://example.com/dev',
+      roomId: 'ROOM01',
+      adminToken: 'secret-token',
+      onState: vi.fn(),
+    }));
+
+    // 接続がOPENになる前にbroadcastStateが呼ばれる（Lambdaコールドスタート等で
+    // ハンドシェイクに時間がかかる場合に発生する）
+    act(() => {
+      result.current.broadcastState({ type: 'phrase', phrase: { id: 'p1' } });
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([]);
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+    });
+
+    expect(MockWebSocket.instances[0].sent).toEqual([
+      JSON.stringify({ action: 'sync' }),
+      JSON.stringify({ action: 'updateState', state: { type: 'phrase', phrase: { id: 'p1' } } }),
+    ]);
+  });
+
+  it('resends the last broadcastState call again on reconnect, so participants recover in sync after a dropped connection', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useQuizRoomSync({
+      wsBaseUrl: 'wss://example.com/dev',
+      roomId: 'ROOM01',
+      adminToken: 'secret-token',
+      onState: vi.fn(),
+    }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      result.current.broadcastState({ type: 'phrase', phrase: { id: 'p1' } });
+    });
+
+    act(() => {
+      MockWebSocket.instances[0].triggerClose();
+      vi.advanceTimersByTime(3000);
+    });
+    act(() => {
+      MockWebSocket.instances[1].triggerOpen();
+    });
+
+    expect(MockWebSocket.instances[1].sent).toEqual([
+      JSON.stringify({ action: 'sync' }),
+      JSON.stringify({ action: 'updateState', state: { type: 'phrase', phrase: { id: 'p1' } } }),
+    ]);
+  });
+
   it('reconnects after a close and gives up after the retry limit', async () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));

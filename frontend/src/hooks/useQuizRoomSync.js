@@ -14,6 +14,11 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
+  // broadcastStateに渡された直近の状態。接続確立前（初回接続のLambdaコールド
+  // スタート・WSハンドシェイク中）やその後の再接続中にbroadcastStateが呼ばれると、
+  // それまではreadyState !== OPENのため送信が黙って失われ、参加者側の画面が
+  // 永久に更新されない不具合があった。openのたびにこの値を送り直すことで解消する
+  const pendingStateRef = useRef(null);
 
   useEffect(() => {
     onStateRef.current = onState;
@@ -25,6 +30,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
     }
     closedByCleanupRef.current = false;
     reconnectAttemptsRef.current = 0;
+    pendingStateRef.current = null;
 
     const connect = () => {
       setInternalStatus("connecting");
@@ -42,6 +48,11 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
         reconnectAttemptsRef.current = 0;
         setInternalStatus("connected");
         ws.send(JSON.stringify({ action: "sync" }));
+        // 接続確立前にbroadcastStateが呼ばれていた場合（初回接続のタイミング競合・
+        // 再接続時など）に備え、直近の状態を送り直す
+        if (pendingStateRef.current !== null) {
+          ws.send(JSON.stringify({ action: "updateState", state: pendingStateRef.current }));
+        }
       };
 
       ws.onmessage = (event) => {
@@ -85,6 +96,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState }) {
   }, [wsBaseUrl, roomId, adminToken]);
 
   const broadcastState = useCallback((state) => {
+    pendingStateRef.current = state;
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ action: "updateState", state }));
     }
