@@ -497,7 +497,7 @@ function App() {
       }
 
       setIsReading(true);
-      const { phraseData, audioData } = audioQueue[0];
+      const { phraseData, audioData, playbackSettings } = audioQueue[0];
 
       if (phraseData) {
         setCurrentPhrase(phraseData);
@@ -539,7 +539,7 @@ function App() {
 
         // 3秒待機してからフェードアニメーションを開始
         flipTimeoutRef.current = setTimeout(() => {
-          nextContentRef.current = { type: "phrase", content: phraseData };
+          nextContentRef.current = { type: "phrase", content: phraseData, playbackSettings };
           setIsFadingOut(true);
         }, 3000); // 待機時間
       }
@@ -772,7 +772,15 @@ function App() {
         }
       }
 
-      setAudioQueue(prev => [...prev, { phraseData: data, audioData: data.audioData }]);
+      // クイズ大会モード（issue #498）: このデータの取得に実際に使った設定を音声と一緒に
+      // 保持しておき、後で参加者へブロードキャストする際もこの値を使う。読み上げ開始まで
+      // 数秒の遅延があり、その間に管理者が設定を変更すると、ブロードキャスト時点の最新設定を
+      // 読むと「管理者が実際に聞いている音声」とズレてしまうため
+      setAudioQueue(prev => [...prev, {
+        phraseData: data,
+        audioData: data.audioData,
+        playbackSettings: { repeatCount, speechRate, lang, voiceId, announceCategory },
+      }]);
 
     } catch (error) {
       console.error("Error fetching phrase:", error);
@@ -895,15 +903,20 @@ function App() {
     }
     if (displayContent.type === "phrase" && displayContent.content) {
       const p = displayContent.content;
+      // 読み上げ設定（issue #498）は、ブロードキャスト時点の最新設定ではなく、この札の
+      // 音声を実際に取得した時点の設定（playbackSettings）を使う。読み上げ開始まで数秒の
+      // 遅延があり、その間に管理者が設定を変更すると、最新設定を読んでしまうと「管理者が
+      // 実際に聞いている音声」とズレるため
+      const settings = displayContent.playbackSettings
+        ?? { repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection };
       broadcastQuizRoomState({
         type: "phrase",
         content: {
           // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
           // 同じ札の音声を取得・再生できるようにするため
           id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer,
-          // 読み上げ設定（issue #498）: 参加者自身のローカル設定ではなく、管理者と
-          // 同じ内容で聞こえるよう、管理者側の設定値をそのまま一緒に配信する
-          repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection,
+          repeatCount: settings.repeatCount, speechRate: settings.speechRate, lang: settings.lang,
+          voiceId: settings.voiceId, announceCategory: settings.announceCategory,
         },
       });
     } else if (displayContent.type === "result" && displayContent.content) {
