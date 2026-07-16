@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.34.0",
+    "version": "1.34.1",
     "date": "2026/07/16",
+    "body": "### Bug Fixes\n\n* **pwa:** 絵札PDF印刷画面を開いている間はオフライン利用可能メッセージを抑制する ([#529](https://github.com/bamiyanapp/karuta/issues/529)) ([90a6ca8](https://github.com/bamiyanapp/karuta/commit/90a6ca89fb15e628ab00b0e94dfe623e2d604154)), closes [#473](https://github.com/bamiyanapp/karuta/issues/473)"
+  },
+  {
+    "version": "1.34.0",
+    "date": "2026/07/16 13:25",
     "body": "### Features\n\n* **quiz-room:** 早押し機能にポイント制を追加する ([#527](https://github.com/bamiyanapp/karuta/issues/527)) ([54da304](https://github.com/bamiyanapp/karuta/commit/54da304004967ee3e0fe8186212a67cdda08ceeb)), closes [#519](https://github.com/bamiyanapp/karuta/issues/519)"
   },
   {
