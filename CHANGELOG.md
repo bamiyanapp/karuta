@@ -1,3 +1,10 @@
+## [1.27.1](https://github.com/bamiyanapp/karuta/compare/v1.27.0...v1.27.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 参加者モードに「戻る」ボタンを追加する ([#491](https://github.com/bamiyanapp/karuta/issues/491)) ([015e986](https://github.com/bamiyanapp/karuta/commit/015e986bdd8fb8a8ba2729d27283a9c0641a9699))
+
 # [1.27.0](https://github.com/bamiyanapp/karuta/compare/v1.26.2...v1.27.0) (2026-07-16)
 
 
