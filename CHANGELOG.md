@@ -1,3 +1,10 @@
+# [1.31.0](https://github.com/bamiyanapp/karuta/compare/v1.30.2...v1.31.0) (2026-07-16)
+
+
+### Features
+
+* **quiz-room:** 早押し機能を追加する ([#511](https://github.com/bamiyanapp/karuta/issues/511)) ([863812a](https://github.com/bamiyanapp/karuta/commit/863812a19ed1c5f408c095af0cf0582949b81493))
+
 ## [1.30.2](https://github.com/bamiyanapp/karuta/compare/v1.30.1...v1.30.2) (2026-07-16)
 
 
