@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
-import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { API_BASE_URL } from "../config";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
@@ -70,24 +69,22 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // issue #490: 音声同期再生は明示的にスコープ外だった（管理者端末でのみ再生）ため、
   // 参加者側は通知（roomState）を受けて自分自身で/get-phraseを呼び直し、取得した
   // 音声を再生する。同じ設定であれば/get-phrase側のPollyキャッシュがヒットするため、
-  // 参加者が増えてもPollyの合成コストは増えない
-  const [audioEnabled, setAudioEnabled] = useLocalStorageState(
-    "quizRoomAudioEnabled", true, (v) => v === "true", (v) => String(v)
-  );
+  // 参加者が増えてもPollyの合成コストは増えない。
+  // issue #497: ミュート操作は設けず常にオンとする（ブラウザの自動再生ポリシーで
+  // 再生自体がブロックされた場合の救済策としてのretryPlaybackのみ用意する）。
+  // issue #498: 再生設定（repeatCount/speechRate/lang/voiceId/announceCategory）は
+  // 参加者自身のlocalStorageではなく、管理者からのブロードキャスト内容（roomState.content）
+  // に含まれる値を使い、全員が管理者と同じ内容で聞こえるようにする
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
-  const [repeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
-  const [speechRate] = useLocalStorageState("speechRate", "80%");
-  const [lang] = useLocalStorageState("lang", "ja");
-  const [voiceId] = useLocalStorageState("voiceId", "Mizuki");
   const lastPlayedKeyRef = useRef(null);
   const lastAudioDataRef = useRef(null);
   const currentAudioRef = useRef(null);
 
   useEffect(() => {
-    if (!audioEnabled || roomState?.type !== "phrase" || !roomState.content?.id) {
+    if (roomState?.type !== "phrase" || !roomState.content?.id) {
       return;
     }
-    const { id, category } = roomState.content;
+    const { id, category, repeatCount, speechRate, lang, voiceId, announceCategory } = roomState.content;
     const key = `${category}:${id}`;
     if (lastPlayedKeyRef.current === key) {
       return;
@@ -97,7 +94,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     let cancelled = false;
     (async () => {
       try {
-        const apiUrl = `${API_BASE_URL}/get-phrase?id=${id}&category=${encodeURIComponent(category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=false`;
+        const apiUrl = `${API_BASE_URL}/get-phrase?id=${id}&category=${encodeURIComponent(category)}&repeatCount=${repeatCount ?? 2}&speechRate=${encodeURIComponent(speechRate ?? "80%")}&lang=${lang ?? "ja"}&voiceId=${encodeURIComponent(voiceId ?? "Mizuki")}&announceCategory=${!!announceCategory}`;
         const response = await fetch(apiUrl);
         const data = await response.json();
         if (cancelled || !response.ok || !data.audioData) {
@@ -123,7 +120,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     return () => {
       cancelled = true;
     };
-  }, [roomState, audioEnabled, repeatCount, speechRate, lang, voiceId]);
+  }, [roomState]);
 
   // 自動再生がブラウザにブロックされた場合（ユーザー操作を伴わない再生）の救済策。
   // 直近取得済みの音声データをこのクリック操作（ユーザー操作）を起点に再生し直す
@@ -154,16 +151,8 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
-        <p className="text-muted small mb-3">
-          接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}
-          <button
-            onClick={() => setAudioEnabled((v) => !v)}
-            className="btn btn-sm btn-link text-muted text-decoration-none py-0"
-          >
-            {audioEnabled ? "🔊 音声ON" : "🔇 音声OFF"}
-          </button>
-        </p>
-        {playbackBlocked && audioEnabled && (
+        <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
+        {playbackBlocked && (
           <button onClick={retryPlayback} className="btn btn-sm btn-outline-dark rounded-pill mb-3">
             🔊 タップして音声を有効にする
           </button>
