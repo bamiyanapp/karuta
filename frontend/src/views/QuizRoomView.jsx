@@ -67,14 +67,27 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // confirmedNameが空の間は名前入力画面を表示し、決定後にのみ通常の参加者画面へ進む
   const [confirmedName, setConfirmedName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
+  const [nameError, setNameError] = useState(null);
   const [buzzedBy, setBuzzedBy] = useState(null);
   const [lastBuzzRoundKey, setLastBuzzRoundKey] = useState(null);
+  // ポイント制（issue #519）: 名前→累計ポイントのマップ。集計単位はconnectionIdではなく
+  // name（早押し機能の実装参照）なので、自分のポイントはpoints[confirmedName]で引く
+  const [points, setPoints] = useState({});
+
+  // ポイント制（issue #519）: サーバーは同一ルーム内での名前重複を拒否する。拒否された
+  // 場合は名前入力画面に戻し、別の名前を選び直してもらう
+  const handleNameError = (message) => {
+    setNameError(message);
+    setConfirmedName("");
+  };
 
   const { connectionStatus, setParticipantName, buzz } = useQuizRoomSync({
     wsBaseUrl,
     roomId: joinRoomId,
     onState: setRoomState,
     onBuzz: setBuzzedBy,
+    onPoints: setPoints,
+    onNameError: handleNameError,
   });
 
   // 早押し結果表示のリセット判定（issue #510）。ラウンドを表す値（buzzRoundKey）を
@@ -101,6 +114,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     if (!trimmed) {
       return;
     }
+    setNameError(null);
     setConfirmedName(trimmed);
     setParticipantName(trimmed);
   };
@@ -186,6 +200,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         </header>
         <main className="mx-auto text-center" style={{ maxWidth: "360px" }}>
           <p className="text-muted small mb-2">早押し対決で使うお名前を入力してください</p>
+          {nameError && <p className="text-danger small mb-2">{nameError}</p>}
           <div className="d-flex gap-2 justify-content-center">
             <input
               type="text"
@@ -220,6 +235,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
+        <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
         {renderParticipantContent(roomState)}
         {buzzedBy ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答しました</p>

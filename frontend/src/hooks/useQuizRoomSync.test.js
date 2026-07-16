@@ -129,6 +129,30 @@ describe('useQuizRoomSync', () => {
     expect(onState).not.toHaveBeenCalled();
   });
 
+  it('calls onPoints when a points message is received (issue #519)', () => {
+    const onPoints = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onPoints }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({ type: 'points', points: { たろう: 2, はなこ: 1 } });
+    });
+
+    expect(onPoints).toHaveBeenCalledWith({ たろう: 2, はなこ: 1 });
+  });
+
+  it('calls onNameError when a nameError message is received (issue #519)', () => {
+    const onNameError = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onNameError }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({ type: 'nameError', message: 'その名前は既に使われています。' });
+    });
+
+    expect(onNameError).toHaveBeenCalledWith('その名前は既に使われています。');
+  });
+
   it('setParticipantName sends setName only while the connection is open, and resends it once the socket opens if called earlier', () => {
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
 

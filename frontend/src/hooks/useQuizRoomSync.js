@@ -12,12 +12,17 @@ const SYNC_POLL_INTERVAL_MS = 5000;
 // 受け取るたびonStateを呼ぶ。管理者はbroadcastStateで新しい状態を送信できる。
 // 早押し機能（issue #510）: サーバーから{type:"buzz", name, connectionId}を受け取るたび
 // onBuzzを呼ぶ。参加者はsetParticipantNameで表示名を、buzzで早押しを送信できる
-export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz }) {
+// ポイント制（issue #519）: サーバーから{type:"points", points}（名前→累計ポイントの
+// マップ）を受け取るたびonPointsを呼ぶ。名前が同一ルーム内で重複していた場合は
+// {type:"nameError", message}が返るのでonNameErrorを呼ぶ
+export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError }) {
   const [internalStatus, setInternalStatus] = useState("idle"); // connecting|connected|error（idleはwsBaseUrl/roomId未設定時に導出する）
   const connectionStatus = (!wsBaseUrl || !roomId) ? "idle" : internalStatus;
   const wsRef = useRef(null);
   const onStateRef = useRef(onState);
   const onBuzzRef = useRef(onBuzz);
+  const onPointsRef = useRef(onPoints);
+  const onNameErrorRef = useRef(onNameError);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
@@ -37,6 +42,14 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   useEffect(() => {
     onBuzzRef.current = onBuzz;
   }, [onBuzz]);
+
+  useEffect(() => {
+    onPointsRef.current = onPoints;
+  }, [onPoints]);
+
+  useEffect(() => {
+    onNameErrorRef.current = onNameError;
+  }, [onNameError]);
 
   useEffect(() => {
     if (!wsBaseUrl || !roomId) {
@@ -84,6 +97,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
             onStateRef.current?.(data.state, data.role);
           } else if (data?.type === "buzz") {
             onBuzzRef.current?.({ name: data.name, connectionId: data.connectionId });
+          } else if (data?.type === "points") {
+            onPointsRef.current?.(data.points);
+          } else if (data?.type === "nameError") {
+            onNameErrorRef.current?.(data.message);
           }
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);
