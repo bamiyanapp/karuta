@@ -747,3 +747,81 @@ id,category,level,kana,phrase,phrase_en,answer,group
 2048,モダン開発かるた,-,R,外部知識を検索してからAIが回答を生成する手法。,A technique where AI generates answers after retrieving external knowledge.,RAG,engineer
 2049,モダン開発かるた,-,A,AIが複数の工程を自律的に計画・実行するワークフロー。,A workflow in which AI autonomously plans and executes multiple steps.,Agentic Workflow,engineer
 2050,モダン開発かるた,-,A,設計上の重要な意思決定とその理由を記録する文書。,A document that records an important design decision and its rationale.,ADR,engineer
+2100,法則と効果かるた,79,べ,呼び出す回数によらず、同じ結果になる操作の性質。,A property of an operation that produces the same result no matter how many times it is called.,冪等性,engineer
+2101,法則と効果かるた,60,ぽ,送信するデータには厳格に、受け取るデータには寛容にせよという設計指針。,"Be strict in what you send, and lenient in what you accept.",ポステルの法則,engineer
+2102,法則と効果かるた,23,は,利用者が増えるほど、実装の詳細まで暗黙の仕様になってしまうという法則。,"With enough users, every observable behavior of a system becomes somebody's depended-upon interface.",ハイラムの法則,engineer
+2103,法則と効果かるた,55,り,目に触れる人が多いオープンソースほど、バグは早く見つかり浅くなるという法則。,"Given enough eyeballs, all bugs are shallow.",リーナスの法則,engineer
+2104,法則と効果かるた,14,ざ,組織のプロジェクトはいずれ、メール読み上げソフトを再発明することになるという法則。,Every program attempts to expand until it can read mail.,ザウィンスキーの法則,engineer
+2105,法則と効果かるた,34,め,ネットワークの価値は、利用者数の2乗に比例して大きくなるという法則。,The value of a network is proportional to the square of the number of its users.,メトカーフの法則,engineer
+2106,法則と効果かるた,94,む,半導体の集積度は、およそ2年ごとに倍になるという経験則。,The number of transistors on a chip doubles roughly every two years.,ムーアの法則,engineer
+2107,法則と効果かるた,64,C,分散システムでは、一貫性・可用性・分断耐性の3つを同時には満たせないという定理。,"A distributed system cannot simultaneously guarantee consistency, availability, and partition tolerance.",CAP定理,engineer
+2108,法則と効果かるた,51,け,更新の直後は一時的にずれても、時間が経てば最終的に整合が取れるという考え方。,"A consistency model where replicas converge to the same value over time, if no new updates occur.",結果整合性,engineer
+2109,法則と効果かるた,27,ば,処理が追いつかない受け手が、送り手に流量を抑えるよう伝える仕組み。,A mechanism where a slow consumer signals a fast producer to slow down.,バックプレッシャー,engineer
+2110,法則と効果かるた,21,ゔ,ソフトウェアは使われ続ける限り、複雑さが増していくという経験則。,"Software complexity increases over time, faster than the ability to control it.",ヴィルトの法則,engineer
+2111,法則と効果かるた,70,た,1つのクラスやモジュールが持つ、変更する理由は1つだけであるべきという原則。,A class should have only one reason to change.,単一責務の原則,engineer
+2112,法則と効果かるた,67,か,1つの処理が扱う関心事は1つに絞るべきだという設計思想。,The idea that a program should be divided so that each part addresses a separate concern.,関心の分離,engineer
+2113,法則と効果かるた,83,ぎ,その場しのぎの対応を続けた結果、あとで返済が必要になる開発上の負債。,The implied cost of future rework caused by choosing an easy solution now instead of a better one.,技術的負債,engineer
+2114,法則と効果かるた,26,で,オブジェクトは直接の友達とだけ話し、他人の内部構造を知りすぎるべきではないという原則。,"An object should only talk to its immediate friends, not to strangers.",デメテルの法則,engineer
+2115,法則と効果かるた,31,も,複雑な仕組みを隠す抽象化ほど、どこかで詳細が透けて見えてしまうという法則。,"All non-trivial abstractions are, to some degree, leaky.",漏れ出す抽象化の法則,engineer
+2116,法則と効果かるた,25,ふ,エラーを隠さず、問題が起きたらすぐに処理を止めて知らせる設計方針。,A design approach that immediately reports failure rather than continuing silently.,フェイルファスト,engineer
+2117,法則と効果かるた,57,か,既存のコードを変更せずに、拡張だけで機能を追加できるようにすべきという原則。,"Software entities should be open for extension, but closed for modification.",解放閉鎖の原則,engineer
+2118,法則と効果かるた,22,ぎ,複雑な仕組みは、うまく機能する単純な仕組みを育てて作るしかないという経験則。,A complex system that works is invariably found to have evolved from a simple system that worked.,ギャルの法則,engineer
+2119,法則と効果かるた,99,D,同じ知識やロジックを、コード中に繰り返し書かないようにするという原則。,Don't repeat the same piece of knowledge in more than one place.,DRY,engineer
+2120,法則と効果かるた,97,K,仕組みはできる限り単純に保つべきだという設計の格言。,"Keep it simple, stupid.",KISS,engineer
+2121,法則と効果かるた,88,S,保守しやすいオブジェクト指向設計のための、5つの原則の頭文字。,An acronym for five principles of maintainable object-oriented design.,SOLID,engineer
+2122,法則と効果かるた,49,U,小さな部品を組み合わせ、テキストで連携させるという設計思想。,"Write programs that do one thing well, and work together through text streams.",Unix哲学,engineer
+2123,法則と効果かるた,18,E,正しさと同じくらい、変更のしやすさを重視すべきだという設計指針。,"Prioritize making code easy to change, not just correct.",ETC,engineer
+2124,法則と効果かるた,38,ご,人形に向かって説明しているうちに、自分でバグの原因に気づく手法。,"A method of finding bugs by explaining the code, line by line, to an inanimate object.",ゴムのアヒルデバッグ,engineer
+2125,法則と効果かるた,73,ぶ,人員を追加しても、遅れているプロジェクトはかえって遅れるという法則。,Adding manpower to a late software project makes it later.,ブルックスの法則,engineer
+2126,法則と効果かるた,17,9,作業の9割が終わるのに全体の9割の時間がかかり、残り1割にも同じだけかかるという経験則。,"The first 90 percent of the code takes 90 percent of the time, and the remaining 10 percent takes the other 90 percent.",90対90の法則,engineer
+2127,法則と効果かるた,16,ほ,物事は思ったより時間がかかる、そう分かっていてもという法則。,"It always takes longer than you expect, even when you take this law into account.",ホフスタッターの法則,engineer
+2128,法則と効果かるた,86,Y,今必要ないなら作るな、という開発の原則。,You aren't gonna need it.,YAGNI,engineer
+2129,法則と効果かるた,42,ぷ,本番の設計に入る前に、まず試しに作ってみる簡易な実装。,"A quick, rough implementation built to try out an idea before committing to a full design.",プロトタイプ,engineer
+2130,法則と効果かるた,10,と,要となる機能だけを最初から実際に動く形で貫通させて作る開発手法。,"A thin, working slice through an entire system, built end-to-end early to prove the design.",トレーサーバレット,engineer
+2131,法則と効果かるた,62,さ,利用者やプロセスには、仕事に必要な最小限の権限しか与えないという原則。,Grant only the minimum access needed to perform a task.,最小権限の原則,engineer
+2132,法則と効果かるた,54,ふ,一部が故障しても、安全な状態を保つように設計する考え方。,Designing a system so that it fails in a safe state.,フェイルセーフ,engineer
+2133,法則と効果かるた,48,わ,小さな乱れを放置すると、やがて大きな荒廃を招くという理論。,Visible signs of disorder invite more serious disorder and crime.,割れ窓理論,engineer
+2134,法則と効果かるた,33,ぐ,一部の機能が使えなくても、全体は動き続けるように落とし所を用意する設計。,"A design that allows a system to continue operating, in a reduced way, when part of it fails.",グレースフルデグラデーション,engineer
+2135,法則と効果かるた,20,す,あらゆる創作物の9割はくだらない、という経験則。,Ninety percent of everything is crap.,スタージョンの法則,engineer
+2136,法則と効果かるた,37,ば,その人がいなくなるとプロジェクトが立ち行かなくなる人数の少なさを表す指標。,The number of key people who could disappear before a project stalls.,バス係数,engineer
+2137,法則と効果かるた,71,ぴ,有能な人はやがて、自分の能力の限界にあたる地位まで昇進するという法則。,People rise to their level of incompetence.,ピーターの法則,engineer
+2138,法則と効果かるた,90,こ,システムの構造は、それを作る組織の伝達構造をそのまま映すという法則。,Organizations design systems that mirror their own communication structure.,コンウェイの法則,engineer
+2139,法則と効果かるた,40,ぴ,期待をかけられると、その期待どおりに成果が伸びていく効果。,The phenomenon where higher expectations lead to improved performance.,ピグマリオン効果,engineer
+2140,法則と効果かるた,93,ぱ,成果の8割は、全体のうち2割の原因から生まれるという経験則。,Roughly 80 percent of effects come from 20 percent of causes.,パレートの法則,engineer
+2141,法則と効果かるた,50,M,モレなくダブりなく物事を分類するという考え方の頭文字。,"Mutually exclusive, collectively exhaustive.",MECE,engineer
+2142,法則と効果かるた,53,お,むやみに複雑な説明より、単純な説明を選ぶべきだという指針。,"Among competing explanations, the simplest one should be preferred.",オッカムの剃刀,engineer
+2143,法則と効果かるた,12,ち,使われていない小さな柵でも、理由が分かるまでは壊してはいけないという教え。,Do not remove a fence until you understand why it was put up in the first place.,チェスタトンの柵,engineer
+2144,法則と効果かるた,28,り,物事のとらえ方の枠組みを変え、違う意味づけをし直すこと。,Changing the frame through which a situation is interpreted.,リフレーミング,engineer
+2145,法則と効果かるた,32,ぐ,指標を目標にした瞬間、その指標は良い指標でなくなるという法則。,"When a measure becomes a target, it ceases to be a good measure.",グッドハートの法則,engineer
+2146,法則と効果かるた,11,き,数値目標に圧力がかかるほど、その数値自体が歪められやすくなるという法則。,"The more a quantitative indicator is used for decision-making, the more it will be distorted.",キャンベルの法則,engineer
+2147,法則と効果かるた,7,じ,見えている木の背後にどれだけ木があるかで、森の大きさを見積もれるという経験則。,"A rule of thumb for estimating a large, mostly hidden quantity from the small visible part of it.",ジョシュアツリーの法則,engineer
+2148,法則と効果かるた,95,だ,能力が低い人ほど、自分の能力の低さに気づけないという認知バイアス。,People with low ability at a task overestimate their own competence.,ダニングクルーガー効果,engineer
+2149,法則と効果かるた,92,か,自分の考えに合う情報ばかり集め、反する情報を軽視してしまう偏り。,The tendency to favor information that confirms one's existing beliefs.,確証バイアス,engineer
+2150,法則と効果かるた,82,は,一つの好印象に引きずられて、他の面まで高く評価してしまう効果。,A single positive trait influences the overall impression of a person.,ハロー効果,engineer
+2151,法則と効果かるた,15,さ,意識にのぼらないほど短い刺激が、後の判断に影響を与える効果。,A stimulus presented below the threshold of conscious perception influences later behavior.,サブリミナル効果,engineer
+2152,法則と効果かるた,89,せ,失敗した例が見えないまま、成功した例だけを見て判断してしまう偏り。,"Drawing conclusions only from the survivors of a selection process, while ignoring those that did not survive.",生存者バイアス,engineer
+2153,法則と効果かるた,44,ば,一度気になり始めると、その物事が身の回りのあちこちで目につくようになる現象。,"Once you notice something, you start seeing it everywhere.",バーダーマインホフ現象,engineer
+2154,法則と効果かるた,45,か,禁止されるとかえって、その物事に強く惹かれてしまう心理。,The tendency to desire something more strongly precisely because it is forbidden.,カリギュラ効果,engineer
+2155,法則と効果かるた,65,し,最初に与えられた情報ほど、記憶に残り印象を左右しやすいという効果。,Information presented first has a disproportionate effect on later judgment.,初頭効果,engineer
+2156,法則と効果かるた,68,ざ,何度も接するうちに、対象への好感度が自然と高まっていく効果。,Repeated exposure to something increases one's liking for it.,ザイオンス効果,engineer
+2157,法則と効果かるた,61,か,周りが騒がしくても、自分の名前や関心事だけは聞き取れる現象。,"The ability to focus on a single voice, such as one's own name, amid background noise.",カクテルパーティー効果,engineer
+2158,法則と効果かるた,81,ば,周りが支持しているものほど、自分も支持したくなる心理。,The tendency to do or believe things because many other people do.,バンドワゴン効果,engineer
+2159,法則と効果かるた,75,し,多くの人が選んでいるという事実自体が、正しさの根拠に感じられる心理。,The tendency to assume the actions of others reflect correct behavior.,社会的証明,engineer
+2160,法則と効果かるた,78,あ,最初に見た数字に、その後の判断が引きずられてしまう効果。,An initial piece of information disproportionately influences subsequent judgments.,アンカリング効果,engineer
+2161,法則と効果かるた,98,ま,うまくいってほしくないことほど、実際に起きてしまうという経験則。,Anything that can go wrong will go wrong.,マーフィーの法則,engineer
+2162,法則と効果かるた,59,ふ,使い方を間違えようとしても、簡単には間違えられないような設計。,Designed so that it is difficult to use incorrectly.,フールプルーフ,engineer
+2163,法則と効果かるた,56,お,利用者を無用に驚かせない、予想どおりに振る舞う設計であるべきという原則。,A system should behave in a way that does not surprise its users.,驚き最小の原則,engineer
+2164,法則と効果かるた,43,で,最初から用意された選択肢のままにしておく人が多いという効果。,People tend to stick with the option that is already selected for them.,デフォルト効果,engineer
+2165,法則と効果かるた,47,W,共通化を怠って、同じコードをあちこちに書き広げてしまう状態。,Write everything twice: the opposite of DRY.,WET,engineer
+2166,法則と効果かるた,87,し,既にある解決策を知らずに、一から同じものを作り直してしまうこと。,Creating a basic solution from scratch when an existing solution already exists.,車輪の再発明,engineer
+2167,法則と効果かるた,84,ゆ,少しずつの変化に慣れてしまい、危機に気づかず茹で上がってしまうたとえ話。,"A metaphor for failing to notice a gradual, dangerous change until it is too late.",茹でガエル,engineer
+2168,法則と効果かるた,6,や,本来の目的から逸れ、その前提を整えるための作業に次々と手を取られること。,A chain of small preparatory tasks that leads you further and further from your original goal.,ヤクの毛刈り,engineer
+2169,法則と効果かるた,29,い,何もない所から始めても、協力が集まれば豊かな成果になるという寓話。,A folktale in which a meal made from 'just a stone' grows rich as people are drawn in to contribute.,石のスープ,engineer
+2170,法則と効果かるた,77,ぱ,与えられた期限いっぱいまで、仕事は膨張してしまうという法則。,Work expands so as to fill the time available for its completion.,パーキンソンの法則,engineer
+2171,法則と効果かるた,5,き,斧を研ぐ時間を惜しんで、非効率な作業を続けてしまうというたとえ話。,"A parable about refusing to stop and sharpen the axe, even though it would make the work faster.",木こりのジレンマ,engineer
+2172,法則と効果かるた,39,ぱ,重要な議題より、些細で分かりやすい議題に議論の時間が割かれてしまうという法則。,The amount of discussion is inversely proportional to the importance of the issue.,パーキンソンの凡俗法則,engineer
+2173,法則と効果かるた,66,こ,すでに費やした分がもったいなくて、やめるべき計画をやめられなくなる心理。,"Continuing an endeavor because of previously invested resources, despite new evidence suggesting it is a poor choice.",コンコルド効果,engineer
+2174,法則と効果かるた,36,ふ,小さな頼み事を承諾させてから、本命の大きな頼み事を通しやすくする手法。,"Getting agreement to a small request first, to increase the likelihood of agreement to a larger one later.",フットインザドア効果,engineer
+2175,法則と効果かるた,76,へ,何かをしてもらうと、お返しをしなければと感じてしまう心理。,The social pressure to repay what another person has provided.,返報性の法則,engineer
+2176,法則と効果かるた,72,け,専門家や肩書きのある人の言うことほど、信じやすくなる心理。,The tendency to comply more readily with people perceived as authorities.,権威性の法則,engineer
+2177,法則と効果かるた,9,り,良い面だけでなく悪い面も併せて伝えた方が、かえって信頼されやすいという法則。,Presenting both the pros and cons of something tends to be more persuasive than presenting only the pros.,両面提示の法則,engineer
