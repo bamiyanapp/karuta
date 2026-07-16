@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.28.0",
+    "date": "2026/07/04 07:03",
+    "body": "### Features\n\n* **quiz-room:** トップページに開設中のクイズ大会ルーム一覧を表示する ([#493](https://github.com/bamiyanapp/karuta/issues/493)) ([8e6332b](https://github.com/bamiyanapp/karuta/commit/8e6332b2b7279ff75a7db619f2214781300f8719))"
+  },
+  {
     "version": "1.27.1",
-    "date": "2026/07/16",
+    "date": "2026/07/16 04:07",
     "body": "### Bug Fixes\n\n* **quiz-room:** 参加者モードに「戻る」ボタンを追加する ([#491](https://github.com/bamiyanapp/karuta/issues/491)) ([015e986](https://github.com/bamiyanapp/karuta/commit/015e986bdd8fb8a8ba2729d27283a9c0641a9699))"
   },
   {
