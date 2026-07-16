@@ -1,3 +1,10 @@
+## [1.34.5](https://github.com/bamiyanapp/karuta/compare/v1.34.4...v1.34.5) (2026-07-16)
+
+
+### Bug Fixes
+
+* **app:** fetchOpenQuizRoomsでresponse.okを確認してからjsonを読む ([#542](https://github.com/bamiyanapp/karuta/issues/542)) ([cee750b](https://github.com/bamiyanapp/karuta/commit/cee750b5ae5491971f520b438255b9e3ca945c01))
+
 ## [1.34.4](https://github.com/bamiyanapp/karuta/compare/v1.34.3...v1.34.4) (2026-07-16)
 
 
