@@ -362,10 +362,11 @@ function App() {
     const fetchOpenQuizRooms = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/quiz-rooms`);
-        const data = await response.json();
-        if (response.ok) {
-          setOpenQuizRooms(data.rooms || []);
+        if (!response.ok) {
+          return;
         }
+        const data = await response.json();
+        setOpenQuizRooms(data.rooms || []);
       } catch (error) {
         console.error("Failed to fetch open quiz rooms:", error);
       }
