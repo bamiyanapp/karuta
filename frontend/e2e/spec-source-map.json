@@ -1,0 +1,19 @@
+{
+  "quiz-room.spec.js": [
+    "frontend/src/App.jsx",
+    "frontend/src/views/QuizRoomView.jsx",
+    "frontend/src/views/QuizRoomInfoView.jsx",
+    "frontend/src/hooks/useQuizRoomAdmin.js",
+    "frontend/src/utils/quizRoomParticipants.js",
+    "backend/quizRoomHandler.js"
+  ],
+  "app-flows.spec.js": [
+    "frontend/src/App.jsx",
+    "frontend/src/PwaUpdatePrompt.jsx",
+    "frontend/src/views/AllPhrasesView.jsx",
+    "frontend/src/views/DetailView.jsx",
+    "frontend/src/views/ChangelogView.jsx",
+    "frontend/src/views/CommentsView.jsx",
+    "frontend/src/views/PrintEfudaView.jsx"
+  ]
+}
