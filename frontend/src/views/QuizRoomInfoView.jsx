@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 // クイズ大会モード（issue #470）の管理者向けルーム情報画面（issue #547）。
 // 以前は通常のゲーム画面にインラインで展開する折りたたみパネル
@@ -7,7 +8,7 @@ import QRCode from "qrcode";
 // useQuizRoomSync（WebSocket接続）はApp.jsx側のトップレベルで呼ばれており、
 // view遷移によってApp自体がアンマウントされることはないため、この画面への
 // 遷移中も読み上げ・早押し等のクイズ大会の進行状態は維持される
-function QuizRoomInfoView({ setView, roomId }) {
+function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {} }) {
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -18,6 +19,11 @@ function QuizRoomInfoView({ setView, roomId }) {
       .then(setQrDataUrl)
       .catch((error) => console.error("Failed to generate QR code:", error));
   }, [inviteUrl]);
+
+  // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
+  // 統合して表示する。以前は通常のゲーム画面にインラインで表示していたが、ルーム情報
+  // 画面（この画面）の下部へ移動し、表形式に変更した（issue #587）
+  const participantList = mergeParticipantsWithPoints(quizRoomParticipants, quizRoomPoints);
 
   const copyUrl = async () => {
     try {
@@ -55,6 +61,27 @@ function QuizRoomInfoView({ setView, roomId }) {
           </button>
         </div>
       </div>
+      {participantList.length > 0 && (
+        <div className="mx-auto mt-5 text-start" style={{ maxWidth: "360px" }}>
+          <p className="text-muted small mb-2">参加者一覧</p>
+          <table className="table table-sm table-bordered bg-white mb-0">
+            <thead>
+              <tr>
+                <th scope="col">名前</th>
+                <th scope="col" className="text-end">得点</th>
+              </tr>
+            </thead>
+            <tbody>
+              {participantList.map(({ name, points }) => (
+                <tr key={name}>
+                  <td className="notranslate">{name}</td>
+                  <td className="text-end">{points}pt</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div className="mt-5">
         <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
       </div>

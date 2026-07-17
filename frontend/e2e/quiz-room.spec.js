@@ -114,9 +114,12 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await otherPage.getByText('決定').click();
     await expect(otherPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
 
-    // 参加者一覧（issue #545）: 管理者画面に両参加者が反映される
-    await expect(adminPage.getByText('たろう: 0pt')).toBeVisible({ timeout: 15000 });
-    await expect(adminPage.getByText('はなこ: 0pt')).toBeVisible();
+    // 参加者一覧（issue #545）: 管理者側はルーム情報画面の下部に表形式で反映される（issue #587）
+    await roomInfoLink.click();
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('たろう0pt', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('はなこ0pt');
+    await adminPage.getByText('← 戻る').click();
+    await expect(nextButton).toBeVisible();
 
     await nextButton.click();
     await expect(adminPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
@@ -151,12 +154,14 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
 
     // 管理者が正解と判定する
     await adminPage.getByRole('button', { name: '正解', exact: true }).click();
-
-    // ポイントが参加者一覧に反映される（管理者・参加者双方、issue #519, #545）
-    await expect(adminPage.getByText('はなこ: 1pt')).toBeVisible({ timeout: 15000 });
-    await expect(adminPage.getByText('たろう: 0pt')).toBeVisible();
     await expect(otherPage.getByText('獲得ポイント: 1')).toBeVisible({ timeout: 15000 });
     await captureScreenshot(adminPage, testInfo, 'admin-after-correct-judgment');
+
+    // ポイントが参加者一覧（管理者側、ルーム情報画面、issue #587）に反映される
+    // （参加者側は獲得ポイント表示で確認済み、issue #519, #545）
+    await roomInfoLink.click();
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('はなこ1pt', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('たろう0pt');
   } finally {
     // カバレッジ計測（issue #541）: 失敗時も可能な範囲でカバレッジを収集するため、
     // コンテキストを閉じる前にtry節の成否に関わらず停止・収集する
