@@ -24,4 +24,10 @@ export async function captureScreenshot(page, testInfo, name, caption) {
   if (caption) {
     fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.caption.txt`), caption, 'utf-8');
   }
+  // issue #628: PRの変更と無関係なスクリーンショットをCI側（reusable-ci.yml）で
+  // 折りたたむため、どのスペックファイルが撮影したかを記録する。testInfo.fileは
+  // Playwrightが自動的に持つ絶対パスなのでスペック側の追加対応は不要。CI側は
+  // これとspec-source-map.jsonの宣言、PRの変更ファイル一覧を突き合わせて
+  // 関連の有無を判定する
+  fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.spec.txt`), path.basename(testInfo.file), 'utf-8');
 }
