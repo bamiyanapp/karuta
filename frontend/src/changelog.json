@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.38.0",
+    "version": "1.39.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **e2e:** E2Eスクリーンショットを専用ブランチへ公開し確認しやすくする ([#570](https://github.com/bamiyanapp/karuta/issues/570)) ([46a82ac](https://github.com/bamiyanapp/karuta/commit/46a82ac2f1969261a4e95c52259222e5e118edf9)), closes [peaceiris/actions-#pages](https://github.com/peaceiris/actions-/issues/pages) [#541](https://github.com/bamiyanapp/karuta/issues/541) [#568](https://github.com/bamiyanapp/karuta/issues/568)"
+  },
+  {
+    "version": "1.38.0",
+    "date": "2026/07/17 02:45",
     "body": "### Features\n\n* **e2e:** PlaywrightのJSカバレッジ算出結果をログへ出力する ([#566](https://github.com/bamiyanapp/karuta/issues/566)) ([f0face1](https://github.com/bamiyanapp/karuta/commit/f0face11f57dfc6d2f6c2b61fbfbd79595897107)), closes [#541](https://github.com/bamiyanapp/karuta/issues/541)"
   },
   {

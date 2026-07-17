@@ -1,3 +1,10 @@
+# [1.39.0](https://github.com/bamiyanapp/karuta/compare/v1.38.0...v1.39.0) (2026-07-17)
+
+
+### Features
+
+* **e2e:** E2Eスクリーンショットを専用ブランチへ公開し確認しやすくする ([#570](https://github.com/bamiyanapp/karuta/issues/570)) ([46a82ac](https://github.com/bamiyanapp/karuta/commit/46a82ac2f1969261a4e95c52259222e5e118edf9)), closes [peaceiris/actions-#pages](https://github.com/peaceiris/actions-/issues/pages) [#541](https://github.com/bamiyanapp/karuta/issues/541) [#568](https://github.com/bamiyanapp/karuta/issues/568)
+
 # [1.38.0](https://github.com/bamiyanapp/karuta/compare/v1.37.1...v1.38.0) (2026-07-17)
 
 
