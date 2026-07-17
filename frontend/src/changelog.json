@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.39.1",
+    "version": "1.40.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **quiz-room:** これまでに読み上げた札一覧を開閉式にし、参加者画面にも表示する ([#578](https://github.com/bamiyanapp/karuta/issues/578)) ([908de83](https://github.com/bamiyanapp/karuta/commit/908de838ab7e6918fd5f2f157e3225c65ee0491a)), closes [#state](https://github.com/bamiyanapp/karuta/issues/state) [#548](https://github.com/bamiyanapp/karuta/issues/548)"
+  },
+  {
+    "version": "1.39.1",
+    "date": "2026/07/17 03:14",
     "body": "### Bug Fixes\n\n* **ci:** CI実行一覧でPR時点とpush-to-main時点の実行を判別できるようにする ([#572](https://github.com/bamiyanapp/karuta/issues/572)) ([7a80cd7](https://github.com/bamiyanapp/karuta/commit/7a80cd7452edbbce0162576d862d5050876e66a4)), closes [bamiyanapp/dev-standards#66](https://github.com/bamiyanapp/dev-standards/issues/66) [#558](https://github.com/bamiyanapp/karuta/issues/558)"
   },
   {
