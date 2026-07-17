@@ -1,3 +1,10 @@
+# [1.42.0](https://github.com/bamiyanapp/karuta/compare/v1.41.2...v1.42.0) (2026-07-17)
+
+
+### Features
+
+* **quiz-room:** 参加者一覧をルーム情報画面の下部に表形式で表示する ([#597](https://github.com/bamiyanapp/karuta/issues/597)) ([89fc5e4](https://github.com/bamiyanapp/karuta/commit/89fc5e4d7d8cd56f9f180de20572f9d00ed7cf66)), closes [#587](https://github.com/bamiyanapp/karuta/issues/587)
+
 ## [1.41.2](https://github.com/bamiyanapp/karuta/compare/v1.41.1...v1.41.2) (2026-07-17)
 
 

@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.41.2",
+    "version": "1.42.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **quiz-room:** 参加者一覧をルーム情報画面の下部に表形式で表示する ([#597](https://github.com/bamiyanapp/karuta/issues/597)) ([89fc5e4](https://github.com/bamiyanapp/karuta/commit/89fc5e4d7d8cd56f9f180de20572f9d00ed7cf66)), closes [#587](https://github.com/bamiyanapp/karuta/issues/587)"
+  },
+  {
+    "version": "1.41.2",
+    "date": "2026/07/17 13:39",
     "body": "### Bug Fixes\n\n* **quiz-room:** 早押し判定の正解表示・回答ボタン非活性化・連打対策を修正する ([#595](https://github.com/bamiyanapp/karuta/issues/595)) ([be3dbec](https://github.com/bamiyanapp/karuta/commit/be3dbec65817f85fe818b4d242da98e236e03099)), closes [#586](https://github.com/bamiyanapp/karuta/issues/586) [#588](https://github.com/bamiyanapp/karuta/issues/588) [#589](https://github.com/bamiyanapp/karuta/issues/589) [#590](https://github.com/bamiyanapp/karuta/issues/590)"
   },
   {
