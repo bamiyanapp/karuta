@@ -601,6 +601,8 @@ describe('App', () => {
     }, { timeout: 20000 });
 
     fetch.mockClear();
+    // 「これまでに読み上げた札」一覧はデフォルト非表示のため、まずトグルボタンで開く（issue #548）
+    fireEvent.click(await screen.findByText(/これまでに読み上げた札を表示する/));
     fireEvent.click(await screen.findByText('詳細・報告 →'));
 
     await waitFor(() => {
@@ -1314,6 +1316,9 @@ describe('App', () => {
       expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
     }, { timeout: 20000 });
 
+    // 「これまでに読み上げた札」一覧はデフォルト非表示のため、まずトグルボタンで開く（issue #548）
+    fireEvent.click(await screen.findByText(/これまでに読み上げた札を表示する/));
+
     fireEvent.click(await screen.findByText('詳細・報告 →'));
 
     await waitFor(() => {
@@ -1324,6 +1329,42 @@ describe('App', () => {
     // バックエンドの上限(1000文字)と揃え、送信後に拒否される体験を防ぐ
     const commentTextarea = screen.getByPlaceholderText('例：かなが間違っている、フレーズが違うなど');
     expect(commentTextarea).toHaveAttribute('maxlength', '1000');
+
+    randomSpy.mockRestore();
+  }, 40000);
+
+  it('keeps the reading history collapsed by default and toggles it via a button (issue #548)', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-' }] }) };
+      }
+      if (url.includes('get-phrase')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(await screen.findByText('次の札'));
+
+    await waitFor(() => {
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    // デフォルトでは一覧が閉じている
+    expect(screen.queryByText('これまでに読み上げた札', { selector: 'h2' })).not.toBeInTheDocument();
+    const toggleButton = await screen.findByText('これまでに読み上げた札を表示する（1枚）');
+
+    fireEvent.click(toggleButton);
+    expect(await screen.findByText('これまでに読み上げた札', { selector: 'h2' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('これまでに読み上げた札を閉じる'));
+    expect(screen.queryByText('これまでに読み上げた札', { selector: 'h2' })).not.toBeInTheDocument();
 
     randomSpy.mockRestore();
   }, 40000);
@@ -2026,7 +2067,12 @@ describe('App', () => {
       // （＝停止ボタンがいずれ押せなくなる＝isReadingがfalseに戻る）ことを確認する。
       await waitFor(() => expect(screen.getByRole('button', { name: '停止' })).toBeDisabled(), { timeout: 20000 });
 
-      // カード2が実際に履歴へ記録され、次のカードへ進めることも確認する
+      // カード2が実際に履歴へ記録され、次のカードへ進めることも確認する。
+      // 「これまでに読み上げた札」一覧はデフォルト非表示のため、まずトグルボタンで開く（issue #548）
+      const historyToggle = screen.queryByText(/これまでに読み上げた札を表示する/);
+      if (historyToggle) {
+        fireEvent.click(historyToggle);
+      }
       expect(screen.getAllByText('読み札2').length).toBeGreaterThan(0);
     } finally {
       window.Audio = originalAudio;

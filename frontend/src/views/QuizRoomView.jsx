@@ -63,6 +63,13 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   const [manualRoomId, setManualRoomId] = useState("");
 
   const [roomState, setRoomState] = useState(null);
+  // これまでに読み上げた札の履歴（issue #548）: サーバー側では履歴を保持・配信していない
+  // ため、参加者が受信したphrase状態を自分のローカルstateに積み上げて構築する。この方式は
+  // 途中から参加した参加者には接続後に読まれた分しか履歴に残らないが、サーバー側の変更
+  // （DynamoDBの状態サイズ上限・新規WebSocketメッセージ種別の追加）が不要でシンプルなため
+  // 採用した。デフォルト非表示にし、ボタンを押したときだけ開く（管理者側と同じ挙動）
+  const [phraseHistory, setPhraseHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   // 早押し機能（issue #510）: 参加者名は入室のたびに入力してもらう（永続化しない）。
   // confirmedNameが空の間は名前入力画面を表示し、決定後にのみ通常の参加者画面へ進む
@@ -142,6 +149,12 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     setLastBuzzRoundKey(currentBuzzRoundKey);
     setBuzzedBy(null);
     setExcludedThisRound(false);
+    // これまでに読み上げた札の履歴（issue #548）: 新しいラウンドの札が届いたタイミングで
+    // ローカル履歴に積み上げる（同じ札の再ブロードキャストでは currentBuzzRoundKey が
+    // 変わらないため重複追加されない）
+    if (roomState?.type === "phrase" && roomState.content) {
+      setPhraseHistory(prev => [roomState.content, ...prev]);
+    }
   }
 
   const handleConfirmName = () => {
@@ -307,6 +320,33 @@ function QuizRoomView({ setView, wsBaseUrl }) {
             <button onClick={buzz} className="btn btn-danger btn-lg rounded-pill px-5">
               回答する
             </button>
+          </div>
+        )}
+        {phraseHistory.length > 0 && (
+          <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
+            <button
+              type="button"
+              onClick={() => setShowHistory(prev => !prev)}
+              className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+            >
+              {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${phraseHistory.length}枚）`}
+            </button>
+            {showHistory && (
+              // 管理者側の「詳細・報告 →」リンク（openDetail、DetailViewへの画面遷移を伴う指摘
+              // コメント投稿につながる）はここでは出さず、閲覧専用の簡易表示にとどめる（issue #548）。
+              // クイズ大会モードの参加者は端末を共有していない不特定多数のため、管理者専用機能への
+              // 導線をそのまま公開する必要はないと判断した
+              <div className="text-start mt-3">
+                <div className="list-group shadow-sm rounded">
+                  {phraseHistory.map((p, index) => (
+                    <div key={`${p.category}-${p.id}-${phraseHistory.length - index}`} className="list-group-item d-flex align-items-center">
+                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
+                      <span className="text-dark">{p.phrase}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         <div className="mt-5">

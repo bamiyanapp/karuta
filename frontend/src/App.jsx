@@ -109,6 +109,9 @@ function App() {
   // 「取った人を記録する」参加者登録は、カテゴリ確定時のモーダルではなく読み札画面の
   // ボタンから任意に開閉する（issue #518）
   const [showPlayerRegistration, setShowPlayerRegistration] = useState(false);
+  // 「これまでに読み上げた札」一覧は、件数が増えると画面が長くなるためデフォルト非表示にし、
+  // ボタンを押したときだけ開く（issue #548）
+  const [showHistory, setShowHistory] = useState(false);
   const [scoresByCategory, setScoresByCategory] = useSessionStorageState(SCORES_STORAGE_KEY, {});
   const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
 
@@ -1573,22 +1576,33 @@ function App() {
       </main>
 
       {currentHistory.length > 0 && (
-        <section className="history mx-auto" style={{ maxWidth: "600px" }}>
-          <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
-          <div className="list-group shadow-sm rounded">
-            {currentHistory.map((p, index) => (
-              <button key={`${p.category}-${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id, p.category)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center">
-                  {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
-                  <span className="text-dark">{p.phrase}</span>
-                </div>
-                <div className="d-flex align-items-center">
-                  {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
-                  <span className="text-primary small">詳細・報告 →</span>
-                </div>
-              </button>
-            ))}
-          </div>
+        <section className="history mx-auto text-center" style={{ maxWidth: "600px" }}>
+          <button
+            type="button"
+            onClick={() => setShowHistory(prev => !prev)}
+            className="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3"
+          >
+            {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${currentHistory.length}枚）`}
+          </button>
+          {showHistory && (
+            <div className="text-start">
+              <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
+              <div className="list-group shadow-sm rounded">
+                {currentHistory.map((p, index) => (
+                  <button key={`${p.category}-${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id, p.category)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
+                      <span className="text-dark">{p.phrase}</span>
+                    </div>
+                    <div className="d-flex align-items-center">
+                      {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
+                      <span className="text-primary small">詳細・報告 →</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
