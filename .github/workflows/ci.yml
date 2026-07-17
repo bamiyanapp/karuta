@@ -1,5 +1,7 @@
 name: CI
-run-name: CI ${{ github.event.head_commit.message || github.event.pull_request.title }}
+run-name: >-
+  CI (${{ github.event_name == 'pull_request' && 'PR' || 'push-to-main' }})
+  ${{ github.event.head_commit.message || github.event.pull_request.title }}
 
 on:
   push:
