@@ -1,3 +1,15 @@
+# [1.37.0](https://github.com/bamiyanapp/karuta/compare/v1.36.0...v1.37.0) (2026-07-17)
+
+
+### Bug Fixes
+
+* **deps:** ルート直下のpackage-lock.json同期 + E2Eテストのロール別拡充 ([#557](https://github.com/bamiyanapp/karuta/issues/557)) ([77e4b73](https://github.com/bamiyanapp/karuta/commit/77e4b730bbca0a2771b4d79605a6cffcc456e7e1)), closes [#559](https://github.com/bamiyanapp/karuta/issues/559)
+
+
+### Features
+
+* **quiz-room:** move player-registration button next to the room button ([#556](https://github.com/bamiyanapp/karuta/issues/556)) ([d2eff4d](https://github.com/bamiyanapp/karuta/commit/d2eff4d111e1f0ae43cb330305210027001672ec)), closes [#549](https://github.com/bamiyanapp/karuta/issues/549)
+
 # [1.36.0](https://github.com/bamiyanapp/karuta/compare/v1.35.0...v1.36.0) (2026-07-16)
 
 
