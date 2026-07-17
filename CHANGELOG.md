@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/bamiyanapp/karuta/compare/v1.37.1...v1.38.0) (2026-07-17)
+
+
+### Features
+
+* **e2e:** PlaywrightのJSカバレッジ算出結果をログへ出力する ([#566](https://github.com/bamiyanapp/karuta/issues/566)) ([f0face1](https://github.com/bamiyanapp/karuta/commit/f0face11f57dfc6d2f6c2b61fbfbd79595897107)), closes [#541](https://github.com/bamiyanapp/karuta/issues/541)
+
 ## [1.37.1](https://github.com/bamiyanapp/karuta/compare/v1.37.0...v1.37.1) (2026-07-17)
 
 

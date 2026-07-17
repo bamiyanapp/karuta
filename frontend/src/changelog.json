@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.37.1",
+    "version": "1.38.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **e2e:** PlaywrightのJSカバレッジ算出結果をログへ出力する ([#566](https://github.com/bamiyanapp/karuta/issues/566)) ([f0face1](https://github.com/bamiyanapp/karuta/commit/f0face11f57dfc6d2f6c2b61fbfbd79595897107)), closes [#541](https://github.com/bamiyanapp/karuta/issues/541)"
+  },
+  {
+    "version": "1.37.1",
+    "date": "2026/07/17 01:42",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsの参照バージョンをv1.0.2へ更新する ([#562](https://github.com/bamiyanapp/karuta/issues/562)) ([f9a99b0](https://github.com/bamiyanapp/karuta/commit/f9a99b0ae7f3b18fc47952df8b94e122136ba166)), closes [#556](https://github.com/bamiyanapp/karuta/issues/556)"
   },
   {
