@@ -114,6 +114,9 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [scoresByCategory, setScoresByCategory] = useSessionStorageState(SCORES_STORAGE_KEY, {});
   const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
+  // currentRoundTakenByのレンダー中state調整（下記）で、ラウンド切り替えを検知するための
+  // 直前値の追跡用
+  const [lastPhraseForTakenByReset, setLastPhraseForTakenByReset] = useState(null);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [draftCategories, setDraftCategories] = useState([]);
@@ -219,16 +222,23 @@ function App() {
     return { totalTime, fastest, slowest };
   }, [isAllRead, currentHistory]);
 
-  // 読了時の紙吹雪演出（isAllReadになった時点の1回だけ生成し、以降の再レンダーでは揺れ動かさない）
+  // 読了時の紙吹雪演出（isAllReadになった時点の1回だけ生成し、以降の再レンダーでは揺れ動かさない）。
+  // Math.random()はレンダー中（useMemoのファクトリ関数を含む）に呼び出すと
+  // react-hooks/purityに抵触するため、iから決定的に導出する疑似乱数を使う
+  // （見た目のランダムさだけが目的で、実際の乱雑さの品質は問わない演出のため）
   const confettiPieces = useMemo(() => {
     if (!isAllRead) return [];
     const emojis = ["🎉", "✨", "🎊", "⭐"];
+    const pseudoRandom = (seed) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
     return Array.from({ length: 24 }, (_, i) => ({
       id: i,
       emoji: emojis[i % emojis.length],
-      left: Math.random() * 100,
-      delay: Math.random() * 0.6,
-      duration: 2.2 + Math.random() * 1.2,
+      left: pseudoRandom(i) * 100,
+      delay: pseudoRandom(i + 100) * 0.6,
+      duration: 2.2 + pseudoRandom(i + 200) * 1.2,
     }));
   }, [isAllRead]);
 
@@ -383,12 +393,11 @@ function App() {
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
   useEffect(() => {
-    if (selectedCategories.length === 0) {
-      setAllPhrasesForCategory([]);
-      return;
-    }
-
     const fetchPhrasesList = async () => {
+      if (selectedCategories.length === 0) {
+        setAllPhrasesForCategory([]);
+        return;
+      }
       try {
         const results = await Promise.all(
           selectedCategories.map(async (cat) => {
@@ -412,23 +421,23 @@ function App() {
 
   // 詳細データの取得
   useEffect(() => {
-    if (detailPhraseId) {
-      const fetchDetail = async () => {
-        try {
-          const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
-          const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${isMultiCategorySelection}`);
-          const data = await response.json();
-          if (response.ok) {
-            setDetailPhrase(data);
-          }
-        } catch (error) {
-          console.error("Error fetching phrase detail:", error);
+    const fetchDetail = async () => {
+      if (!detailPhraseId) {
+        setDetailPhrase(null);
+        return;
+      }
+      try {
+        const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
+        const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${isMultiCategorySelection}`);
+        const data = await response.json();
+        if (response.ok) {
+          setDetailPhrase(data);
         }
-      };
-      fetchDetail();
-    } else {
-      setDetailPhrase(null);
-    }
+      } catch (error) {
+        console.error("Error fetching phrase detail:", error);
+      }
+    };
+    fetchDetail();
   }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
@@ -641,55 +650,18 @@ function App() {
     };
   }, [isReading, selectedCategories, allPhrasesForCategory, currentHistory, sortOrder, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
-  // 自動読み上げモード：札の読み上げが完了し「次の札」を待っている状態
-  // （手動なら次の札ボタンを押すタイミング）で一定時間経過したら自動で次へ進む。
-  // このアプリでは「次の札」への1回の操作が、直前の札の結果表示と次の札の
-  // 読み上げ開始を両方まとめて行う設計になっているため、result表示中ではなく
-  // 直前の札のphrase表示中（読み上げ完了後の待機状態）を起点にする。
-  useEffect(() => {
-    if (autoAdvanceTimeoutRef.current) {
-      clearTimeout(autoAdvanceTimeoutRef.current);
-      autoAdvanceTimeoutRef.current = null;
-    }
-
-    if (!autoAdvance || isAllRead || isReading || loading || displayContent.type !== "phrase") {
-      return;
-    }
-
-    autoAdvanceTimeoutRef.current = setTimeout(() => {
-      autoAdvanceTimeoutRef.current = null;
-      playKaruta();
-    }, autoAdvanceInterval * 1000);
-
-    return () => {
-      if (autoAdvanceTimeoutRef.current) {
-        clearTimeout(autoAdvanceTimeoutRef.current);
-        autoAdvanceTimeoutRef.current = null;
+  const playCongratulationAudio = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}`);
+      const data = await response.json();
+      if (response.ok) {
+        await playAudio(data.audioData);
       }
-    };
-    // playKarutaは毎レンダーで再生成される関数であり、選択カテゴリや読み上げ設定
-    // （sortOrder/repeatCount/speechRate/lang等）をクロージャで参照している。
-    // playKaruta自体を依存配列に含めると無関係な再レンダーでもタイマーが
-    // 再設定されてしまうため、代わりにplayKarutaが参照する状態を依存配列に
-    // 列挙する（プリフェッチ用useEffectと同じ考え方）。これにより待機中に
-    // 設定が変わった場合も最新の設定でタイマーが張り直される
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    autoAdvance,
-    autoAdvanceInterval,
-    displayContent,
-    isReading,
-    loading,
-    isAllRead,
-    selectedCategories,
-    allPhrasesForCategory,
-    currentHistory,
-    sortOrder,
-    repeatCount,
-    speechRate,
-    lang,
-    isMultiCategorySelection,
-  ]);
+    } catch {
+      alert("送信に失敗しました。");
+    }
+  };
+
 
   const playKaruta = async () => {
     const targetPhrase = currentPhrase;
@@ -813,6 +785,56 @@ function App() {
     }
   };
 
+  // 自動読み上げモード：札の読み上げが完了し「次の札」を待っている状態
+  // （手動なら次の札ボタンを押すタイミング）で一定時間経過したら自動で次へ進む。
+  // このアプリでは「次の札」への1回の操作が、直前の札の結果表示と次の札の
+  // 読み上げ開始を両方まとめて行う設計になっているため、result表示中ではなく
+  // 直前の札のphrase表示中（読み上げ完了後の待機状態）を起点にする。
+  useEffect(() => {
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+
+    if (!autoAdvance || isAllRead || isReading || loading || displayContent.type !== "phrase") {
+      return;
+    }
+
+    autoAdvanceTimeoutRef.current = setTimeout(() => {
+      autoAdvanceTimeoutRef.current = null;
+      playKaruta();
+    }, autoAdvanceInterval * 1000);
+
+    return () => {
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+    };
+    // playKarutaは毎レンダーで再生成される関数であり、選択カテゴリや読み上げ設定
+    // （sortOrder/repeatCount/speechRate/lang等）をクロージャで参照している。
+    // playKaruta自体を依存配列に含めると無関係な再レンダーでもタイマーが
+    // 再設定されてしまうため、代わりにplayKarutaが参照する状態を依存配列に
+    // 列挙する（プリフェッチ用useEffectと同じ考え方）。これにより待機中に
+    // 設定が変わった場合も最新の設定でタイマーが張り直される
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    autoAdvance,
+    autoAdvanceInterval,
+    displayContent,
+    isReading,
+    loading,
+    isAllRead,
+    selectedCategories,
+    allPhrasesForCategory,
+    currentHistory,
+    sortOrder,
+    repeatCount,
+    speechRate,
+    lang,
+    isMultiCategorySelection,
+  ]);
+
   const repeatPhrase = async () => {
     const target = detailPhrase || currentPhrase;
     if (target && target.audioData) {
@@ -852,18 +874,6 @@ function App() {
     setDisplayContent({ type: "initial" });
     setAudioQueue([]);
     setIsReading(false);
-  };
-
-  const playCongratulationAudio = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}`);
-      const data = await response.json();
-      if (response.ok) {
-        await playAudio(data.audioData);
-      }
-    } catch {
-      alert("送信に失敗しました。");
-    }
   };
 
   const postComment = async (e) => {
@@ -928,6 +938,26 @@ function App() {
     setQuizRoomBuzzedBy(null);
   };
 
+  // 早押し機能（issue #510）: 新しい札が出題されたら、前のラウンドの回答者表示をリセット
+  // する（サーバー側もこの同じタイミングで早押し状態をリセットしている）。ラウンドキーで
+  // 判定するのは、設定変更等で同じ札が再ブロードキャストされた際に既に記録済みの回答者
+  // 表示を誤って消さないようにするため（resultの間はリセットしない）。
+  // レンダー中のstate調整パターン（QuizRoomView.jsxのbuzzRoundKey判定と同じ考え方）で、
+  // 副作用を伴わないstate更新はuseEffectを介さずレンダー中に直接行う
+  // （react-hooks/set-state-in-effect対策）
+  let nextQuizRoomBuzzRoundKey = quizRoomBuzzRoundKey;
+  if (quizRoom) {
+    if (displayContent.type === "phrase" && displayContent.content) {
+      nextQuizRoomBuzzRoundKey = `${displayContent.content.category}:${displayContent.content.id}`;
+    } else if (displayContent.type !== "result") {
+      nextQuizRoomBuzzRoundKey = null;
+    }
+  }
+  if (nextQuizRoomBuzzRoundKey !== quizRoomBuzzRoundKey) {
+    setQuizRoomBuzzRoundKey(nextQuizRoomBuzzRoundKey);
+    setQuizRoomBuzzedBy(null);
+  }
+
   // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
   // audioData等の重量級フィールドは送らず、表示に必要な項目だけを抜き出す
   // （サーバー側の状態サイズ上限にも抵触しないようにする）
@@ -943,15 +973,6 @@ function App() {
       // 実際に聞いている音声」とズレるため
       const settings = displayContent.playbackSettings
         ?? { repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection };
-      // 早押し機能（issue #510）: 新しい札が出題されたら、前のラウンドの回答者表示を
-      // リセットする（サーバー側もこの同じタイミングで早押し状態をリセットしている）。
-      // ラウンドキーで判定するのは、設定変更等で同じ札が再ブロードキャストされた際に
-      // 既に記録済みの回答者表示を誤って消さないようにするため
-      const roundKey = `${p.category}:${p.id}`;
-      if (roundKey !== quizRoomBuzzRoundKey) {
-        setQuizRoomBuzzRoundKey(roundKey);
-        setQuizRoomBuzzedBy(null);
-      }
       broadcastQuizRoomState({
         type: "phrase",
         content: {
@@ -969,15 +990,9 @@ function App() {
         content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer },
       });
     } else {
-      // 早押し機能（issue #510）: ゲームのリセット等で"initial"に戻った場合は、
-      // 古い回答者情報が次のラウンドへ持ち越されないようリセットする
-      if (quizRoomBuzzRoundKey !== null) {
-        setQuizRoomBuzzRoundKey(null);
-        setQuizRoomBuzzedBy(null);
-      }
       broadcastQuizRoomState({ type: "initial" });
     }
-  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, quizRoomBuzzRoundKey]);
+  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   useEffect(() => {
     if (view === "comments") {
@@ -998,10 +1013,12 @@ function App() {
   }, [categoryLabel, detailPhraseId, detailPhrase, view]);
 
   // ラウンドが切り替わったら「取った人」の選択状態をリセットする
-  // （もう一度再生（phraseDataなしのキュー投入）ではcurrentPhraseが変わらないため反応しない）
-  useEffect(() => {
+  // （もう一度再生（phraseDataなしのキュー投入）ではcurrentPhraseが変わらないため反応しない）。
+  // レンダー中のstate調整パターン（react-hooks/set-state-in-effect対策）
+  if (currentPhrase !== lastPhraseForTakenByReset) {
+    setLastPhraseForTakenByReset(currentPhrase);
     setCurrentRoundTakenBy(null);
-  }, [currentPhrase]);
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
