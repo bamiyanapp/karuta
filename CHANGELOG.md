@@ -1,3 +1,10 @@
+# [1.40.0](https://github.com/bamiyanapp/karuta/compare/v1.39.1...v1.40.0) (2026-07-17)
+
+
+### Features
+
+* **quiz-room:** これまでに読み上げた札一覧を開閉式にし、参加者画面にも表示する ([#578](https://github.com/bamiyanapp/karuta/issues/578)) ([908de83](https://github.com/bamiyanapp/karuta/commit/908de838ab7e6918fd5f2f157e3225c65ee0491a)), closes [#state](https://github.com/bamiyanapp/karuta/issues/state) [#548](https://github.com/bamiyanapp/karuta/issues/548)
+
 ## [1.39.1](https://github.com/bamiyanapp/karuta/compare/v1.39.0...v1.39.1) (2026-07-17)
 
 
