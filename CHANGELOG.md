@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/bamiyanapp/karuta/compare/v1.43.0...v1.44.0) (2026-07-17)
+
+
+### Features
+
+* **quiz-room:** 参加者画面の参加者一覧を表形式にし、接続ステータスを表示する ([#629](https://github.com/bamiyanapp/karuta/issues/629)) ([17e5fb0](https://github.com/bamiyanapp/karuta/commit/17e5fb043493ff0c9b20aec153c472e7467c7dc5)), closes [#599](https://github.com/bamiyanapp/karuta/issues/599)
+
 # [1.43.0](https://github.com/bamiyanapp/karuta/compare/v1.42.1...v1.43.0) (2026-07-17)
 
 

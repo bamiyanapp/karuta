@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.43.0",
+    "version": "1.44.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **quiz-room:** 参加者画面の参加者一覧を表形式にし、接続ステータスを表示する ([#629](https://github.com/bamiyanapp/karuta/issues/629)) ([17e5fb0](https://github.com/bamiyanapp/karuta/commit/17e5fb043493ff0c9b20aec153c472e7467c7dc5)), closes [#599](https://github.com/bamiyanapp/karuta/issues/599)"
+  },
+  {
+    "version": "1.43.0",
+    "date": "2026/07/17 21:23",
     "body": "### Features\n\n* **quiz-room:** 早押し正解時に即座に結果画面へ切り替え、参加者に紙吹雪演出を出す ([#625](https://github.com/bamiyanapp/karuta/issues/625)) ([04e7441](https://github.com/bamiyanapp/karuta/commit/04e74413331524c2d0e159e25d5a19b8ee8523b3)), closes [#600](https://github.com/bamiyanapp/karuta/issues/600)"
   },
   {
