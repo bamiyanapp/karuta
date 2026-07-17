@@ -7,7 +7,7 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
 // ルーム作成（管理者側の導線）はここではなく、通常のかるた読み上げ画面の
-// フッターにあるQuizRoomInfoPanel経由で行う（App.jsx参照）
+// フッターのボタン→QuizRoomInfoView（issue #547）経由で行う（App.jsx参照）
 
 const CONNECTION_STATUS_LABEL = {
   idle: "未接続",

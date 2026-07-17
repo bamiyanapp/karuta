@@ -29,6 +29,10 @@ test('admin creates a quiz room and a participant sees the same card update in r
     const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
     expect(roomCode).toMatch(/^[A-Z2-9]{6}$/);
 
+    // ルーム情報表示は別画面への遷移になった（issue #547）。通常のゲーム画面に戻る
+    await adminPage.getByText('← 戻る').click();
+    await expect(nextButton).toBeVisible();
+
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
@@ -89,6 +93,10 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
     await roomInfoLink.click();
     const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
+
+    // ルーム情報表示は別画面への遷移になった（issue #547）。通常のゲーム画面に戻る
+    await adminPage.getByText('← 戻る').click();
+    await expect(nextButton).toBeVisible();
 
     // 回答者役（このラウンドで実際に早押しする本人）
     responderPage = await responderContext.newPage();

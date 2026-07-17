@@ -14,8 +14,8 @@ import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 import QuizRoomView from "./views/QuizRoomView";
+import QuizRoomInfoView from "./views/QuizRoomInfoView";
 import { unlockAudioPlayback } from "./utils/audioUnlock";
-import QuizRoomInfoPanel from "./components/QuizRoomInfoPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -1233,6 +1233,14 @@ function App() {
     return <QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />;
   }
 
+  // ルーム情報（ルームコード・QRコード・招待URL）表示は、以前は通常のゲーム画面内の
+  // インラインパネルだったが、別画面への遷移に変更した（issue #547）。quizRoomが
+  // 未設定（ページリロード等でstateが失われ、URLにこのviewだけが残っている場合）は
+  // 通常のゲーム画面へフォールスルーする
+  if (view === "quiz-room-info" && quizRoom) {
+    return <QuizRoomInfoView setView={setView} roomId={quizRoom.roomId} />;
+  }
+
   if (selectedCategories.length === 0 && !division) {
     return (
       <div className="container py-5 mx-auto">
@@ -1679,7 +1687,13 @@ function App() {
       </div>
       {quizRoom ? (
         <div className="mb-4">
-          <QuizRoomInfoPanel roomId={quizRoom.roomId} />
+          <button
+            type="button"
+            onClick={() => setView("quiz-room-info")}
+            className="btn btn-outline-dark px-4 rounded-pill mb-4"
+          >
+            ルーム情報を表示（クイズ大会モード）
+          </button>
           {quizRoomBuzzedBy && (
             <div className="modal fade show d-block modal-overlay" tabIndex="-1">
               <div className="modal-dialog modal-dialog-centered">

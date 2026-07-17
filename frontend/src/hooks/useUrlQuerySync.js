@@ -3,7 +3,7 @@ import { useEffect } from "react";
 export const parseCategoriesParam = (value) => (value ? value.split(",").filter(Boolean).map(decodeURIComponent) : []);
 export const serializeCategoriesParam = (categories) => categories.map(encodeURIComponent).join(",");
 
-const URL_SYNCED_VIEWS = ["comments", "changelog", "all-phrases", "print-efuda", "quiz-room"];
+const URL_SYNCED_VIEWS = ["comments", "changelog", "all-phrases", "print-efuda", "quiz-room", "quiz-room-info"];
 
 // selectedCategories/division/detailPhraseId/viewをURLクエリパラメータと双方向に同期する。
 // (state→URL、およびブラウザの戻る/進む操作によるURL→stateの両方向)
