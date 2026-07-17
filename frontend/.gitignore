@@ -17,6 +17,11 @@ dist-ssr
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# ユニットテスト（vitest）・E2E（Playwright/monocart-reporter）双方のカバレッジ出力先（issue #541）
+/coverage/
+# E2Eの要所スクリーンショット。CI側（reusable-ci.yml）が公開ブランチへコピーする
+# 前段の一時ファイルで、リポジトリ本体には含めない（issue #568）
+/e2e-screenshots/
 
 # Editor directories and files
 .vscode/*

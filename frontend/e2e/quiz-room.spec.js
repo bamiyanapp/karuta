@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
+import { captureScreenshot } from './screenshot.js';
 
 // クイズ大会モード（issue #470）の管理者→参加者リアルタイム同期を、実際にデプロイ済みの
 // バックエンド（REST API + WebSocket API）に対してブラウザ2つ（別コンテキスト＝別端末相当）で検証する。
@@ -63,8 +64,9 @@ test('admin creates a quiz room and a participant sees the same card update in r
 // issue #559: 管理者・回答者（早押しした本人）・未回答参加者（早押ししていない他の参加者）の
 // 3ロールを同時に登場させ、正誤判定（issue #546）後にロールごとに画面の見え方が異なることを
 // 確認する。あわせて参加者一覧（issue #545）が管理者・参加者双方に反映されることも検証する。
-// 要所ではtestInfo.attach()でスクリーンショットをHTMLレポートへ添付し、CIログだけで
-// 挙動確認が完結するようにする（打鍵による再現確認の負担を下げる）
+// 要所ではcaptureScreenshot()でスクリーンショットをHTMLレポートへ添付しつつ、
+// CI側（reusable-ci.yml）が公開できるファイルとしても書き出す（issue #568）。
+// これによりCIログだけで挙動確認が完結するようにする（打鍵による再現確認の負担を下げる）
 test('admin judges a buzz, and the responder vs. other participants end up in different states (issue #545, #546)', async ({ browser }, testInfo) => {
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
@@ -118,7 +120,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
 
     // 管理者に判定モーダルが自動表示される（issue #546）
     await expect(adminPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
-    await testInfo.attach('admin-judgment-modal', { body: await adminPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await captureScreenshot(adminPage, testInfo, 'admin-judgment-modal');
 
     // 回答者本人・未回答参加者のどちらの画面にも回答者名が表示され、早押しボタンは無くなる
     await expect(responderPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
@@ -132,8 +134,8 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // このラウンド中は復活しない（issue #546）
     await expect(otherPage.getByRole('button', { name: '回答する' })).toBeVisible({ timeout: 15000 });
     await expect(responderPage.getByRole('button', { name: '回答する' })).not.toBeVisible();
-    await testInfo.attach('other-participant-can-rebuzz', { body: await otherPage.screenshot({ fullPage: true }), contentType: 'image/png' });
-    await testInfo.attach('responder-excluded-this-round', { body: await responderPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await captureScreenshot(otherPage, testInfo, 'other-participant-can-rebuzz');
+    await captureScreenshot(responderPage, testInfo, 'responder-excluded-this-round');
 
     // 未回答参加者（はなこ）が早押しする
     await otherPage.getByRole('button', { name: '回答する' }).click();
@@ -146,7 +148,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await expect(adminPage.getByText('はなこ: 1pt')).toBeVisible({ timeout: 15000 });
     await expect(adminPage.getByText('たろう: 0pt')).toBeVisible();
     await expect(otherPage.getByText('獲得ポイント: 1')).toBeVisible({ timeout: 15000 });
-    await testInfo.attach('admin-after-correct-judgment', { body: await adminPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await captureScreenshot(adminPage, testInfo, 'admin-after-correct-judgment');
   } finally {
     // カバレッジ計測（issue #541）: 失敗時も可能な範囲でカバレッジを収集するため、
     // コンテキストを閉じる前にtry節の成否に関わらず停止・収集する
