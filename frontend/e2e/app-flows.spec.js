@@ -46,7 +46,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // 全札一覧画面: 検索・絞り込み・詳細画面への遷移
     await dismissPwaToastIfPresent();
     await page.getByText('全札一覧を見る →').click();
-    await expect(page.getByText('全札一覧')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '全札一覧' })).toBeVisible();
     await page.getByPlaceholder('読み札・読み・答えで検索').fill('ふでこぞう');
     const matchedRow = page.getByRole('row', { name: /ふでこぞう/ });
     await expect(matchedRow).toBeVisible();
@@ -61,7 +61,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await expect(page.getByPlaceholder('例：かなが間違っている、フレーズが違うなど')).toBeVisible();
     await captureScreenshot(page, testInfo, 'detail-view', '詳細画面：かるたの誤りを指摘するフォームが表示された状態');
     await page.getByText('← 戻る').click();
-    await expect(page.getByText('全札一覧')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '全札一覧' })).toBeVisible();
 
     // 全札一覧から戻る（division未選択のままなのでトップ画面に戻る）
     await page.getByText('← 戻る').click();
@@ -70,7 +70,10 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）
     await dismissPwaToastIfPresent();
     await page.getByText('更新履歴を見る').click();
-    await expect(page.getByText('更新履歴')).toBeVisible();
+    // changelog.json本体の各エントリ文中にも「更新履歴」という語が複数回登場するため
+    // （例: 本機能自体の追加を記録したエントリ）、getByTextでは複数要素にマッチして
+    // strict mode violationになる。見出し要素に限定する
+    await expect(page.getByRole('heading', { name: '更新履歴' })).toBeVisible();
     await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面');
     await page.getByText('← 戻る').click();
     await expect(page.getByText('こども向け')).toBeVisible();
@@ -78,7 +81,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // 指摘一覧画面
     await dismissPwaToastIfPresent();
     await page.getByText('指摘された内容を確認する').click();
-    await expect(page.getByText('指摘された内容一覧')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '指摘された内容一覧' })).toBeVisible();
     await captureScreenshot(page, testInfo, 'comments-view', '指摘された内容一覧画面');
 
     // ここから通常の読み上げフロー（カテゴリ選択→読み上げ→結果表示）
