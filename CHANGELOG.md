@@ -1,3 +1,10 @@
+## [1.41.1](https://github.com/bamiyanapp/karuta/compare/v1.41.0...v1.41.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsの参照バージョンをv1.2.3へ更新する ([#591](https://github.com/bamiyanapp/karuta/issues/591)) ([93fb4de](https://github.com/bamiyanapp/karuta/commit/93fb4de22f5d067835606fff948147ddbd833192)), closes [bamiyanapp/karuta#583](https://github.com/bamiyanapp/karuta/issues/583)
+
 # [1.41.0](https://github.com/bamiyanapp/karuta/compare/v1.40.0...v1.41.0) (2026-07-17)
 
 
