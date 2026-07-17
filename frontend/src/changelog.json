@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.40.0",
+    "version": "1.41.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **quiz-room:** 管理者のルーム情報表示をインラインパネルから別画面への遷移に変更する ([#580](https://github.com/bamiyanapp/karuta/issues/580)) ([53b8ee0](https://github.com/bamiyanapp/karuta/commit/53b8ee0e855d46f37179b4880fcb5173e8594e49)), closes [#547](https://github.com/bamiyanapp/karuta/issues/547) [#558](https://github.com/bamiyanapp/karuta/issues/558)"
+  },
+  {
+    "version": "1.40.0",
+    "date": "2026/07/17 11:24",
     "body": "### Features\n\n* **quiz-room:** これまでに読み上げた札一覧を開閉式にし、参加者画面にも表示する ([#578](https://github.com/bamiyanapp/karuta/issues/578)) ([908de83](https://github.com/bamiyanapp/karuta/commit/908de838ab7e6918fd5f2f157e3225c65ee0491a)), closes [#state](https://github.com/bamiyanapp/karuta/issues/state) [#548](https://github.com/bamiyanapp/karuta/issues/548)"
   },
   {
