@@ -27,6 +27,27 @@ describe('QuizRoomInfoView', () => {
     expect(urlInput).toBeInTheDocument();
   });
 
+  it('shows the participant list as a table at the bottom of the screen, sorted by points descending (issue #587)', () => {
+    render(
+      <QuizRoomInfoView
+        setView={vi.fn()}
+        roomId="ABC123"
+        quizRoomParticipants={['たろう', 'はなこ', 'じろう']}
+        quizRoomPoints={{ たろう: 3 }}
+      />
+    );
+
+    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
+    expect(rows).toEqual(['たろう3pt', 'じろう0pt', 'はなこ0pt']);
+  });
+
+  it('does not show the participant list section when there are no participants yet', () => {
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
+    expect(screen.queryByText('参加者一覧')).not.toBeInTheDocument();
+  });
+
   it('lets the admin go back to the normal game screen', () => {
     const setView = vi.fn();
     render(<QuizRoomInfoView setView={setView} roomId="ABC123" />);

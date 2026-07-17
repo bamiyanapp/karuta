@@ -2946,10 +2946,13 @@ describe('App', () => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'points', points: { はなこ: 1, たろう: 3 } }) });
     });
 
+    // 参加者一覧はルーム情報画面（issue #547）の下部に表形式で表示される（issue #587）
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
-    const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がはなこ(1pt)より先（降順）に表示される
-    expect(points).toEqual(['たろう: 3pt', 'はなこ: 1pt']);
+    expect(rows).toEqual(['たろう3pt', 'はなこ1pt']);
   }, 40000);
 
   it('shows participants who have not scored yet as 0pt in the same list once a "participants" message arrives (issue #545)', async () => {
@@ -3003,10 +3006,13 @@ describe('App', () => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'points', points: { たろう: 3 } }) });
     });
 
+    // 参加者一覧はルーム情報画面（issue #547）の下部に表形式で表示される（issue #587）
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
-    const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(points).toEqual(['たろう: 3pt', 'じろう: 0pt', 'はなこ: 0pt']);
+    expect(rows).toEqual(['たろう3pt', 'じろう0pt', 'はなこ0pt']);
   }, 40000);
 
   it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {

@@ -7,7 +7,6 @@ import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useQuizRoomSync } from "./hooks/useQuizRoomSync";
-import { mergeParticipantsWithPoints } from "./utils/quizRoomParticipants";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
@@ -1268,7 +1267,14 @@ function App() {
   // 未設定（ページリロード等でstateが失われ、URLにこのviewだけが残っている場合）は
   // 通常のゲーム画面へフォールスルーする
   if (view === "quiz-room-info" && quizRoom) {
-    return <QuizRoomInfoView setView={setView} roomId={quizRoom.roomId} />;
+    return (
+      <QuizRoomInfoView
+        setView={setView}
+        roomId={quizRoom.roomId}
+        quizRoomParticipants={quizRoomParticipants}
+        quizRoomPoints={quizRoomPoints}
+      />
+    );
   }
 
   if (selectedCategories.length === 0 && !division) {
@@ -1745,23 +1751,6 @@ function App() {
               </div>
             </div>
           )}
-          {(() => {
-            // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
-            // 1つのリストに統合して表示する
-            const participantList = mergeParticipantsWithPoints(quizRoomParticipants, quizRoomPoints);
-            return participantList.length > 0 && (
-              <div className="mx-auto mt-3 text-start" style={{ maxWidth: "320px" }}>
-                <p className="text-muted small mb-2">参加者一覧</p>
-                <div className="d-flex flex-wrap gap-2 justify-content-center">
-                  {participantList.map(({ name, points }) => (
-                    <div key={name} className="bg-white rounded-3 shadow-sm px-3 py-2">
-                      <span className="fw-bold notranslate">{name}</span>: {points}pt
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
         </div>
       ) : (
         <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">
