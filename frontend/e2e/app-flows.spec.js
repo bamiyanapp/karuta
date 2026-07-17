@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
+import { captureScreenshot } from './screenshot.js';
 
 // issue #576対応: E2EのJSカバレッジを引き上げるため、これまでquiz-room.spec.jsの
 // クイズ大会モードでしかカバーできていなかった通常モード（カテゴリ選択→読み上げ→
@@ -33,6 +34,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await page.getByPlaceholder('読み札・読み・答えで検索').fill('ふでこぞう');
     const matchedRow = page.getByRole('row', { name: /ふでこぞう/ });
     await expect(matchedRow).toBeVisible();
+    await captureScreenshot(page, testInfo, 'all-phrases-search-result', '全札一覧画面：検索結果が絞り込まれた状態');
     await matchedRow.click();
 
     // 詳細画面（かるたの誤りを指摘するフォームは表示だけ確認し、実送信はしない
@@ -41,6 +43,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await expect(page.getByText('読み上げる')).toBeVisible();
     await expect(page.getByText('かるたの誤りを指摘する')).toBeVisible();
     await expect(page.getByPlaceholder('例：かなが間違っている、フレーズが違うなど')).toBeVisible();
+    await captureScreenshot(page, testInfo, 'detail-view', '詳細画面：かるたの誤りを指摘するフォームが表示された状態');
     await page.getByText('← 戻る').click();
     await expect(page.getByText('全札一覧')).toBeVisible();
 
@@ -51,12 +54,14 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）
     await page.getByText('更新履歴を見る').click();
     await expect(page.getByText('更新履歴')).toBeVisible();
+    await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面');
     await page.getByText('← 戻る').click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
     // 指摘一覧画面
     await page.getByText('指摘された内容を確認する').click();
     await expect(page.getByText('指摘された内容一覧')).toBeVisible();
+    await captureScreenshot(page, testInfo, 'comments-view', '指摘された内容一覧画面');
 
     // ここから通常の読み上げフロー（カテゴリ選択→読み上げ→結果表示）
     await page.goto('/');
@@ -77,16 +82,19 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await nextButton.click();
     await expect(page.getByText('所要時間')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('読み上げ済み 1 / 全45枚')).toBeVisible();
+    await captureScreenshot(page, testInfo, 'normal-mode-result', '通常モード：結果画面（所要時間・答え表示）');
     await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
 
     // 絵札印刷画面
     await page.getByText('絵札を印刷する').click();
     await expect(page.getByText('おばけかるたの絵札印刷')).toBeVisible();
     await expect(page.locator('.efuda-card-text').first()).toBeVisible();
+    await captureScreenshot(page, testInfo, 'print-efuda-front', '絵札印刷画面：表面表示');
 
     // 裏面表示（種別・レベルのみ、読み札本文は出ない）に切り替える
     await page.getByRole('button', { name: '裏面' }).click();
     await expect(page.locator('.efuda-card-back-category').first()).toBeVisible();
+    await captureScreenshot(page, testInfo, 'print-efuda-back', '絵札印刷画面：裏面表示');
 
     // 印刷ダイアログは開かせず、window.print()が呼ばれたことだけ確認する
     await page.getByText('印刷する', { exact: true }).click();
