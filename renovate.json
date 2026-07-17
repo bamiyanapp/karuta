@@ -25,11 +25,6 @@
       "matchPackageNames": ["serverless"],
       "allowedVersions": "<4.0.0",
       "description": "Serverless Framework v4以降はCLI起動時にSaaSへのサインインが必須になりCIでのデプロイが失敗するため、サインイン不要なv3系に固定する"
-    },
-    {
-      "matchPackageNames": ["puppeteer-core"],
-      "allowedVersions": "<25.0.0",
-      "description": "puppeteer-core@25以降はengines.node >=22.12.0を要求するが、backend/serverless.ymlのLambdaランタイムはnodejs20.xのため、Node 18以上をサポートする24系に固定する（Lambdaランタイムをアップグレードするまでの間）"
     }
   ]
 }
