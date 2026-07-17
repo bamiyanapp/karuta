@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.41.1",
+    "version": "1.41.2",
     "date": "2026/07/17",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 早押し判定の正解表示・回答ボタン非活性化・連打対策を修正する ([#595](https://github.com/bamiyanapp/karuta/issues/595)) ([be3dbec](https://github.com/bamiyanapp/karuta/commit/be3dbec65817f85fe818b4d242da98e236e03099)), closes [#586](https://github.com/bamiyanapp/karuta/issues/586) [#588](https://github.com/bamiyanapp/karuta/issues/588) [#589](https://github.com/bamiyanapp/karuta/issues/589) [#590](https://github.com/bamiyanapp/karuta/issues/590)"
+  },
+  {
+    "version": "1.41.1",
+    "date": "2026/07/17 13:22",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsの参照バージョンをv1.2.3へ更新する ([#591](https://github.com/bamiyanapp/karuta/issues/591)) ([93fb4de](https://github.com/bamiyanapp/karuta/commit/93fb4de22f5d067835606fff948147ddbd833192)), closes [bamiyanapp/karuta#583](https://github.com/bamiyanapp/karuta/issues/583)"
   },
   {
