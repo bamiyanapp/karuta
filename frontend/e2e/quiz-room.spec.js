@@ -131,7 +131,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
 
     // 管理者に判定モーダルが自動表示される（issue #546）
     await expect(adminPage.getByText('🔔 たろう さんが回答中')).toBeVisible({ timeout: 15000 });
-    await captureScreenshot(adminPage, testInfo, 'admin-judgment-modal');
+    await captureScreenshot(adminPage, testInfo, 'admin-judgment-modal', '管理者：早押し判定モーダルが表示された状態');
 
     // 回答者本人・未回答参加者のどちらの画面にも回答者名が表示され、早押しボタンは無くなる
     await expect(responderPage.getByText('🔔 たろう さんが回答中')).toBeVisible({ timeout: 15000 });
@@ -145,8 +145,8 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // このラウンド中は復活しない（issue #546）
     await expect(otherPage.getByRole('button', { name: '回答する' })).toBeVisible({ timeout: 15000 });
     await expect(responderPage.getByRole('button', { name: '回答する' })).not.toBeVisible();
-    await captureScreenshot(otherPage, testInfo, 'other-participant-can-rebuzz');
-    await captureScreenshot(responderPage, testInfo, 'responder-excluded-this-round');
+    await captureScreenshot(otherPage, testInfo, 'other-participant-can-rebuzz', '未回答参加者（はなこ）：不正解判定後も回答ボタンが再表示された状態');
+    await captureScreenshot(responderPage, testInfo, 'responder-excluded-this-round', '誤答した本人（たろう）：このラウンド中は回答ボタンが再表示されない状態');
 
     // 未回答参加者（はなこ）が早押しする
     await otherPage.getByRole('button', { name: '回答する' }).click();
@@ -155,7 +155,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // 管理者が正解と判定する
     await adminPage.getByRole('button', { name: '正解', exact: true }).click();
     await expect(otherPage.getByText('獲得ポイント: 1')).toBeVisible({ timeout: 15000 });
-    await captureScreenshot(adminPage, testInfo, 'admin-after-correct-judgment');
+    await captureScreenshot(adminPage, testInfo, 'admin-after-correct-judgment', '管理者：正解判定後の状態');
 
     // ポイントが参加者一覧（管理者側、ルーム情報画面、issue #587）に反映される
     // （参加者側は獲得ポイント表示で確認済み、issue #519, #545）
