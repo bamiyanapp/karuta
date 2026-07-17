@@ -14,7 +14,7 @@ package:
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   region: ap-northeast-1
   environment:
     TABLE_NAME: ${self:custom.tableName}

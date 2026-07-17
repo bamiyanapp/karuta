@@ -18,6 +18,11 @@
   - 全てのフレーズを読み終えると、お祝いのメッセージが音声で再生されます。
 - **フレーズ一覧**:
   - 登録されているフレーズを一覧で確認できます。
+- **クイズ大会モード**:
+  - 管理者がルームを開設し、ルームコードまたはQRコードで参加者を招待できます。
+  - WebSocketにより、読み札・結果画面が管理者・参加者間でリアルタイムに同期されます（読み上げ音声は参加者の端末でも再生されます）。
+  - 早押しに対応しており、最初に回答した参加者だけが確定し、管理者が正誤を判定します。
+  - 正誤判定に応じてポイントが集計され、参加者一覧とあわせて表示されます。
 
 ## Tech Stack
 
@@ -31,6 +36,8 @@
 | <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Artificial-Intelligence/32/Arch_Amazon-Polly_32.svg" width="20" height="20" /> | **Amazon Polly** | テキストをリアルな音声に変換するクラウドサービス。 |
 | <img src="https://cdn.simpleicons.org/githubactions/2088FF" width="20" height="20" /> | **GitHub Actions** | CI/CD（継続的インテグレーション/継続的デプロイ）を自動化。 |
 | <img src="https://cdn.simpleicons.org/vitest/6E9F18" width="20" height="20" /> | **Vitest** | Viteネイティブで高速なユニットテストフレームワーク。 |
+| <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Networking-Content-Delivery/32/Arch_Amazon-API-Gateway_32.svg" width="20" height="20" /> | **API Gateway (WebSocket)** | クイズ大会モードの読み札・結果・早押し等をリアルタイムに同期するWebSocket API。 |
+| - | **qrcode** | クイズ大会モードの参加用招待URLをQRコード化するJavaScriptライブラリ。 |
 
 ## Architecture
 
@@ -43,12 +50,18 @@ graph TD
     end
 
     subgraph "Backend (AWS)"
-        J[API Gateway] --> K[AWS Lambda];
+        J[API Gateway REST] --> K[AWS Lambda];
         K --> L[DynamoDB];
         K --> M[Polly];
+        K --> N[S3<br/>絵札PDF];
+        N --> O[renderEfudaPdfWorker<br/>Headless Chromium];
+
+        P[API Gateway WebSocket] --> Q[quizRoomHandler];
+        Q --> R[DynamoDB<br/>ルーム・接続];
     end
 
     I --> J;
+    I -->|クイズ大会モード| P;
 ```
 
 ### Screen Transitions
@@ -59,6 +72,7 @@ graph TD
     Z -->|全札一覧| D[全札一覧画面]
     Z -->|指摘一覧| E[指摘一覧画面]
     Z -->|更新履歴| F[更新履歴画面]
+    Z -->|クイズ大会に参加する/開設中ルーム一覧| J[クイズ大会参加者画面]
 
     A -->|戻る| Z
     A -->|カテゴリ選択| B[確認モーダル]
@@ -74,6 +88,7 @@ graph TD
     C -->|読了| H[完了画面]
     C -->|リセット| A
     C -->|絵札を印刷する| I[絵札印刷画面]
+    C -->|クイズ大会のルームを作成する| K[クイズ大会ルーム情報画面<br/>管理者]
     
     D -->|戻る| Z
     D -->|戻る| A
@@ -91,6 +106,10 @@ graph TD
     H -->|再挑戦| C
 
     I -->|戻る| C
+
+    K -->|戻る| C
+
+    J -->|戻る| Z
 ```
 
 ### Backend API (AWS Lambda)
@@ -104,6 +123,24 @@ graph TD
 | recordTime | `/record-time` | POST | 読み上げに対する回答時間と難易度を記録し、統計情報を更新する。 |
 | postComment | `/post-comment` | POST | フレーズに対して新しいコメントを投稿する。 |
 | getComments | `/get-comments` | GET | 全てのコメントを取得し、新着順にソートして返す。 |
+| generateEfudaPdf | `/generate-efuda-pdf` | POST | 絵札印刷用PDFの生成ジョブを非同期で開始する（`renderEfudaPdfWorker`がヘッドレスChromiumでレンダリングし、S3へ保存）。 |
+| getEfudaPdfStatus | `/generate-efuda-pdf-status` | GET | PDF生成ジョブの完了状況をS3上のオブジェクトの有無から確認する。 |
+| createQuizRoom | `/quiz-room` | POST | クイズ大会モードの管理者用ルームを新規作成し、ルームコードと管理者トークンを返す。 |
+| listQuizRooms | `/quiz-rooms` | GET | 開設中（失効していない）のクイズ大会ルームを一覧で返す。 |
+
+### WebSocket API（クイズ大会モード）
+
+読み札・結果画面の同期や早押し判定など、クイズ大会モードのリアルタイム通信はAPI Gateway WebSocket API（`quizRoomHandler.js`）で行う。
+
+| ルート | 関数名 | 説明 |
+| :--- | :--- | :--- |
+| `$connect` | connectQuizRoom | ルームコード・管理者トークンをもとに管理者/参加者としての接続を確立する。 |
+| `$disconnect` | disconnectQuizRoom | 切断を記録し、残りの参加者へ更新後の参加者一覧をブロードキャストする。 |
+| `sync` | syncQuizRoom | 接続直後・再接続時に、現在のルーム状態（札・早押し・ポイント・参加者一覧）を呼び出し元へ返す。 |
+| `updateState` | updateQuizRoomState | 管理者のみ実行可能。表示中の札・結果をルーム内の全接続へブロードキャストする。 |
+| `setName` | setQuizRoomName | 参加者が表示名を登録する（同一ルーム内での名前重複は拒否する）。 |
+| `buzz` | buzzQuizRoom | 参加者の早押しを受け付ける（同一ラウンドで最初の1件のみ確定）。 |
+| `judgeBuzz` | judgeQuizRoomBuzz | 管理者のみ実行可能。早押しの正誤を判定し、正解ならポイントを加算する。 |
 
 ### Database (DynamoDB)
 
@@ -145,6 +182,32 @@ Amazon Polly で生成した音声データのキャッシュ。
 | audioData | String | - | Base64形式の音声データ |
 | createdAt | String | - | 作成日時 (ISO8601) |
 
+#### 4. karuta-quiz-rooms
+クイズ大会モードのルーム情報を格納するテーブル。無人ルームが残り続けないよう、TTLによる自動削除の対象。
+
+| 属性名 | 型 | キー | 説明 |
+| :--- | :--- | :--- | :--- |
+| roomId | String | Partition Key | ルームコード（6文字） |
+| adminTokenHash | String | - | 管理者トークンのハッシュ値（平文はDBに保存しない） |
+| state | Map | - | 現在ブロードキャストされている札・結果等の状態 |
+| buzz | Map | - | 現在のラウンドで最初に早押しした参加者（未判定の間のみ存在） |
+| excludedNames | StringSet | - | 現在のラウンドで不正解と判定され、再度の早押しから除外された参加者名 |
+| points | Map | - | 参加者名 → 累計ポイントのマップ |
+| createdAt | Number | - | 作成日時（UNIXタイムスタンプ） |
+| ttl | Number | - | 有効期限（作成から24時間、TTLで自動削除） |
+
+#### 5. karuta-quiz-room-connections
+クイズ大会モードのWebSocket接続情報を格納するテーブル。`$disconnect`が確実に呼ばれない異常切断時の保険として、こちらもTTLによる自動削除の対象。
+
+| 属性名 | 型 | キー | 説明 |
+| :--- | :--- | :--- | :--- |
+| connectionId | String | Partition Key | WebSocket接続ID |
+| roomId | String | GSI（`roomId-index`） | 接続先のルームコード（ルーム内の全接続へのブロードキャストに使用） |
+| role | String | - | 接続の役割（`admin` / `participant`） |
+| name | String | - | 参加者の表示名（早押し機能で入室時に登録） |
+| connectedAt | Number | - | 接続日時（UNIXタイムスタンプ） |
+| ttl | Number | - | 有効期限（接続から24時間、TTLで自動削除） |
+
 ## CI/CD Pipeline Specification
 
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
@@ -156,9 +219,10 @@ Amazon Polly で生成した音声データのキャッシュ。
 本システムでは、データの保護と可用性向上のため、以下のバックアップ体制をとっています。
 
 - **DynamoDB Point-in-Time Recovery (PITR)**:
-  - すべてのテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`）において PITR を有効化しています。
+  - 永続的なデータを保持するテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`）において PITR を有効化しています。
   - 過去 35 日間の任意の時点にデータを復旧することが可能です。
   - 意図しないデータ削除や更新ミスが発生した際の保険として機能します。
+  - クイズ大会モードのテーブル（`karuta-quiz-rooms`, `karuta-quiz-room-connections`）は、TTLによる自動削除を前提とした一時的なデータのみを保持するため、PITRの対象外としています。
 
 ## かるた情報の追加・更新
 
