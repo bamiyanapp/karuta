@@ -28,6 +28,11 @@ export default defineConfig({
     }),
   ],
   base: "./",
+  // E2EテストのJSカバレッジ算出（issue #541）でビルド成果物（バンドル・minify済み）を
+  // 元のソースファイル単位へマッピングするためにソースマップを出力する
+  build: {
+    sourcemap: true,
+  },
   test: {
     environment: 'jsdom',
     globals: true,

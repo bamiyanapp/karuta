@@ -15,7 +15,29 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['html', { open: 'never' }]] : 'list',
+  reporter: [
+    process.env.CI ? ['html', { open: 'never' }] : ['list'],
+    // JSカバレッジ算出結果のログ出力（issue #541）。frontend/e2e/coverage.jsの
+    // startCoverage/stopCoverageで各ページのカバレッジを収集し、ここで登録した
+    // グローバルレポートへ集約する。console-summaryでコンソールへ要約を出力しつつ、
+    // json-summaryでfrontend/coverage/coverage-summary.jsonへも出力する
+    // （frontend-testジョブのユニットテストカバレッジと同じ形式・パスにすることで、
+    // dev-standardsのcheck-coverage-threshold複合アクションをそのまま再利用できる）
+    ['monocart-reporter', {
+      name: 'karuta E2E Coverage Report',
+      outputFile: './coverage/monocart-report/index.html',
+      coverage: {
+        outputDir: './coverage',
+        // vite buildの出力（バンドル・minify済み）のうち、node_modules等の
+        // ベンダーコードを除いた自アプリのソースだけをカバレッジ集計対象にする。
+        // sourcePathはsourcemap由来の正規化されたパスで、先頭が"src/..."のケースも
+        // あるため、区切り文字の有無に関わらず"src/"にマッチさせる（実機検証で、
+        // 先頭一致を考慮しないと全件除外されることを確認済み）
+        sourceFilter: (sourcePath) => /(^|[/\\])src[/\\]/.test(sourcePath),
+        reports: [['console-summary'], ['json-summary']],
+      },
+    }],
+  ],
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
