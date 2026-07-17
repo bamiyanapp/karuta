@@ -393,6 +393,81 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('答え1')).toBeInTheDocument();
   }, 40000);
 
+  it('reveals the result screen (and stops the elapsed-time measurement) as soon as a buzz is judged correct, instead of waiting for the admin to click 次の札, and broadcasts the winner\'s name (issue #600)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    fireEvent.click(screen.getByText('正解'));
+
+    expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: true }));
+
+    // 「次の札」を一切押していないのに、正解判定だけで管理者の画面も
+    // 結果画面（答え表示）へ切り替わる
+    await waitFor(() => {
+      expect(screen.getByText('所要時間')).toBeInTheDocument();
+      expect(screen.getByText('答え1')).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    // 参加者側へも、正解者名（winner）を含むresultが即座にブロードキャストされる
+    await waitFor(() => {
+      const resultMsg = ws.sent.find((msg) => msg.includes('"action":"updateState"') && msg.includes('"type":"result"'));
+      expect(resultMsg).toBeDefined();
+      expect(JSON.parse(resultMsg).state.content.winner).toBe('はなこ');
+    }, { timeout: 20000 });
+  }, 40000);
+
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
     class MockWebSocket {
       constructor(url) {

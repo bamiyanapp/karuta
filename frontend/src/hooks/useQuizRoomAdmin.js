@@ -24,6 +24,7 @@ export function useQuizRoomAdmin({
   voiceId,
   isMultiCategorySelection,
   setView,
+  revealCurrentResult,
 }) {
   // 管理者としてルームを開設した場合のみ設定される
   const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
@@ -80,10 +81,18 @@ export function useQuizRoomAdmin({
 
   // 早押し正誤判定（issue #546）: 「正解」「不正解」を選んだら判定結果をサーバーへ
   // 送信し、モーダルはローカルで即座に閉じる（roundResetのブロードキャストは
-  // 参加者側の早押しボタン復活・除外に使われる）
-  const judgeQuizRoomBuzz = (correct) => {
+  // 参加者側の早押しボタン復活・除外に使われる）。
+  // 正解の場合は、その場でrevealCurrentResult()を呼び、経過時間を「正解が出た
+  // タイミング」で確定させ、結果画面（答え表示）へ即座に切り替える（issue #600）。
+  // 誰も正解しなかった場合は何もせず、従来どおり「次の札」押下時
+  // （App.jsxのplayKarutaInternal）まで経過時間の確定・結果画面切り替えが持ち越される
+  const judgeQuizRoomBuzz = async (correct) => {
+    const winner = correct ? quizRoomBuzzedBy?.name ?? null : null;
     judgeBuzz(correct);
     setQuizRoomBuzzedBy(null);
+    if (correct) {
+      await revealCurrentResult(winner);
+    }
   };
 
   // 早押し機能（issue #510）: 新しい札が出題されたら、前のラウンドの回答者表示をリセット
@@ -135,7 +144,9 @@ export function useQuizRoomAdmin({
       const r = displayContent.content;
       broadcastQuizRoomState({
         type: "result",
-        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer },
+        // winner: 早押しが正解と判定された場合、その回答者名（issue #600）。
+        // 誰も正解しなかった場合（通常の「次の札」による結果表示）はnull
+        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, winner: r.winner ?? null },
       });
     } else {
       broadcastQuizRoomState({ type: "initial" });

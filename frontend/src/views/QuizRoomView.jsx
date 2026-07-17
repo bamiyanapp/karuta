@@ -42,6 +42,11 @@ function renderParticipantContent(roomState) {
     return (
       <div className="yomifuda shadow-lg mx-auto">
         <div className="d-flex flex-column justify-content-center align-items-center h-100">
+          {/* 早押し正解時の表示（issue #600）: winnerは正解と判定された回答者名、
+              早押しが無かった／不正解のみで終わった場合はnull */}
+          {r.winner && (
+            <div className="h4 fw-bold text-dark mb-3 notranslate">🎉 {r.winner} さん正解！</div>
+          )}
           <div className="text-muted mb-2">所要時間</div>
           <div className="display-4 fw-bold text-dark mb-2">{r.time?.toFixed(2)}<span className="fs-4">秒</span></div>
           {r.answer && r.answer !== "-" && (
@@ -168,6 +173,29 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     setBuzzedBy({ name: confirmedName });
     buzz();
   };
+
+  // 早押し正解時の紙吹雪演出（issue #600）。App.jsxの読了時演出と同じ
+  // pseudoRandom(seed)パターンを流用し、useMemoファクトリ内でのMath.random()
+  // 呼び出し（react-hooks/purity）を避ける。showCelebrationはresult表示かつ
+  // winner（正解と判定された回答者名）がある間だけtrueになり、次のラウンドの
+  // 札が届く（roomState.typeが"phrase"に変わる）とfalseに戻るため、ラウンドが
+  // 変わるたびに演出が再生成される
+  const showCelebration = roomState?.type === "result" && !!roomState.content?.winner;
+  const confettiPieces = useMemo(() => {
+    if (!showCelebration) return [];
+    const emojis = ["🎉", "✨", "🎊", "⭐"];
+    const pseudoRandom = (seed) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+    return Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      left: pseudoRandom(i) * 100,
+      delay: pseudoRandom(i + 100) * 0.6,
+      duration: 2.2 + pseudoRandom(i + 200) * 1.2,
+    }));
+  }, [showCelebration]);
 
   const handleConfirmName = () => {
     const trimmed = nameDraft.trim();
@@ -301,6 +329,19 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   if (joinRoomId) {
     return (
       <div className="container py-5 mx-auto text-center">
+        {showCelebration && (
+          <div className="confetti-container" aria-hidden="true">
+            {confettiPieces.map(c => (
+              <span
+                key={c.id}
+                className="confetti-piece"
+                style={{ left: `${c.left}%`, animationDelay: `${c.delay}s`, animationDuration: `${c.duration}s` }}
+              >
+                {c.emoji}
+              </span>
+            ))}
+          </div>
+        )}
         <header className="mb-4">
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
