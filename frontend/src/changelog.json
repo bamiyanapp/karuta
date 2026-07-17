@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.37.0",
+    "version": "1.37.1",
     "date": "2026/07/17",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standardsの参照バージョンをv1.0.2へ更新する ([#562](https://github.com/bamiyanapp/karuta/issues/562)) ([f9a99b0](https://github.com/bamiyanapp/karuta/commit/f9a99b0ae7f3b18fc47952df8b94e122136ba166)), closes [#556](https://github.com/bamiyanapp/karuta/issues/556)"
+  },
+  {
+    "version": "1.37.0",
+    "date": "2026/07/17 00:00",
     "body": "### Bug Fixes\n\n* **deps:** ルート直下のpackage-lock.json同期 + E2Eテストのロール別拡充 ([#557](https://github.com/bamiyanapp/karuta/issues/557)) ([77e4b73](https://github.com/bamiyanapp/karuta/commit/77e4b730bbca0a2771b4d79605a6cffcc456e7e1)), closes [#559](https://github.com/bamiyanapp/karuta/issues/559)\n\n\n### Features\n\n* **quiz-room:** move player-registration button next to the room button ([#556](https://github.com/bamiyanapp/karuta/issues/556)) ([d2eff4d](https://github.com/bamiyanapp/karuta/commit/d2eff4d111e1f0ae43cb330305210027001672ec)), closes [#549](https://github.com/bamiyanapp/karuta/issues/549)"
   },
   {
