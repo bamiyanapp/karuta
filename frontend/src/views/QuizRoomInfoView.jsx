@@ -68,13 +68,17 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
             <thead>
               <tr>
                 <th scope="col">名前</th>
+                <th scope="col">接続</th>
                 <th scope="col" className="text-end">得点</th>
               </tr>
             </thead>
             <tbody>
-              {participantList.map(({ name, points }) => (
+              {participantList.map(({ name, points, connected }) => (
                 <tr key={name}>
                   <td className="notranslate">{name}</td>
+                  <td className={connected ? "text-success" : "text-muted"}>
+                    {connected ? "接続中" : "切断済み"}
+                  </td>
                   <td className="text-end">{points}pt</td>
                 </tr>
               ))}

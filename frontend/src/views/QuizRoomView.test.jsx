@@ -276,6 +276,19 @@ describe('QuizRoomView', () => {
     expect(screen.queryByText('回答する')).not.toBeInTheDocument();
   });
 
+  it('places the participant list below the buzz button/responder display, not above it (issue #599)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    const { container } = render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitParticipants(['はなこ', 'たろう']);
+
+    const html = container.innerHTML;
+    expect(html.indexOf('回答する')).toBeGreaterThan(-1);
+    expect(html.indexOf('参加者一覧')).toBeGreaterThan(html.indexOf('回答する'));
+  });
+
   it('hides the buzz button immediately on click, before the server broadcast arrives, so it cannot be pressed again in the meantime (issue #588)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
@@ -352,7 +365,7 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('獲得ポイント: 2')).toBeInTheDocument();
   });
 
-  it('shows a combined participant list (including 0pt participants), highlighting the confirmed participant\'s own name (issue #545)', () => {
+  it('shows a combined participant list as a table (including 0pt participants), highlighting the confirmed participant\'s own name (issue #545, #599)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
     confirmName('はなこ');
@@ -361,11 +374,26 @@ describe('QuizRoomView', () => {
     emitPoints({ たろう: 5 });
 
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
-    const points = screen.getAllByText(/pt$/).map((el) => el.textContent);
-    expect(points).toEqual(['たろう: 5pt', 'じろう: 0pt', 'はなこ: 0pt']);
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    expect(rows).toEqual(['たろう接続中5pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
 
-    const ownEntry = screen.getByText('はなこ', { selector: 'span.fw-bold' });
+    const ownEntry = screen.getByText('はなこ', { selector: 'td.fw-bold' });
     expect(ownEntry).toBeInTheDocument();
+  });
+
+  it('shows a participant as disconnected once they leave, while keeping their earned points visible (issue #599, #602)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitParticipants(['はなこ', 'たろう']);
+    emitPoints({ たろう: 2 });
+
+    // たろうが切断（participants一覧から名前が消える）。得点は残る
+    emitParticipants(['はなこ']);
+
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    expect(rows).toEqual(['たろう切断済み2pt', 'はなこ接続中0pt']);
   });
 
   it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {

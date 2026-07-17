@@ -27,7 +27,7 @@ describe('QuizRoomInfoView', () => {
     expect(urlInput).toBeInTheDocument();
   });
 
-  it('shows the participant list as a table at the bottom of the screen, sorted by points descending (issue #587)', () => {
+  it('shows the participant list as a table at the bottom of the screen, sorted by points descending, with a connection status column (issue #587, #599)', () => {
     render(
       <QuizRoomInfoView
         setView={vi.fn()}
@@ -40,7 +40,21 @@ describe('QuizRoomInfoView', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(rows).toEqual(['たろう3pt', 'じろう0pt', 'はなこ0pt']);
+    expect(rows).toEqual(['たろう接続中3pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+  });
+
+  it('shows a participant as disconnected when they are no longer in the connected-participants list, while keeping their earned points visible (issue #599, #602)', () => {
+    render(
+      <QuizRoomInfoView
+        setView={vi.fn()}
+        roomId="ABC123"
+        quizRoomParticipants={['はなこ']}
+        quizRoomPoints={{ たろう: 2 }}
+      />
+    );
+
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    expect(rows).toEqual(['たろう切断済み2pt', 'はなこ接続中0pt']);
   });
 
   it('does not show the participant list section when there are no participants yet', () => {
