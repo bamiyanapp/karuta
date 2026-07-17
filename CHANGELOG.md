@@ -1,3 +1,10 @@
+# [1.45.0](https://github.com/bamiyanapp/karuta/compare/v1.44.1...v1.45.0) (2026-07-17)
+
+
+### Features
+
+* **e2e:** PRの変更と無関係なE2Eスクリーンショットを折りたたむ ([#634](https://github.com/bamiyanapp/karuta/issues/634)) ([60c3132](https://github.com/bamiyanapp/karuta/commit/60c31324cbfadf6efd09a730ab26370f0270caeb)), closes [#628](https://github.com/bamiyanapp/karuta/issues/628)
+
 ## [1.44.1](https://github.com/bamiyanapp/karuta/compare/v1.44.0...v1.44.1) (2026-07-17)
 
 
