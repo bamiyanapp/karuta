@@ -151,6 +151,10 @@ function App() {
   const stopRequestedRef = useRef(false);
   const prefetchedNextRef = useRef(null);
   const autoAdvanceTimeoutRef = useRef(null);
+  // 「次の札」連打対策（issue #590）: loadingは処理の後半（フェードアウト待ち完了後）に
+  // ならないとtrueにならず、押下直後の連打を防げないため、押下と同時に同期的に
+  // 立てられる再入防止用のrefを別途持つ
+  const playKarutaInFlightRef = useRef(false);
 
   const resolvedTheme = useMemo(() => {
     return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
@@ -663,9 +667,9 @@ function App() {
   };
 
 
-  const playKaruta = async () => {
+  const playKarutaInternal = async () => {
     const targetPhrase = currentPhrase;
-    
+
     if (startTimeRef.current && targetPhrase) {
       const elapsedTime = (Date.now() - startTimeRef.current) / 1000;
       
@@ -727,9 +731,7 @@ function App() {
     }
 
     if (selectedCategories.length === 0 || allPhrasesForCategory.length === 0) return;
-    
-    setLoading(true);
-    
+
     try {
       const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
       let unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(`${p.category}:${p.id}`));
@@ -780,8 +782,19 @@ function App() {
     } catch (error) {
       console.error("Error fetching phrase:", error);
       alert("通信エラーが発生しました: " + error.message);
+    }
+  };
+
+  const playKaruta = async () => {
+    if (playKarutaInFlightRef.current) return;
+    playKarutaInFlightRef.current = true;
+    setLoading(true);
+
+    try {
+      await playKarutaInternal();
     } finally {
       setLoading(false);
+      playKarutaInFlightRef.current = false;
     }
   };
 
@@ -1716,7 +1729,13 @@ function App() {
               <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content rounded-4 border-0 shadow">
                   <div className="modal-body p-5 text-center">
-                    <h3 className="h5 mb-4 fw-bold">🔔 {quizRoomBuzzedBy.name} さんが回答しました</h3>
+                    <h3 className="h5 mb-4 fw-bold">🔔 {quizRoomBuzzedBy.name} さんが回答中</h3>
+                    {currentPhrase?.answer && currentPhrase.answer !== "-" && (
+                      <>
+                        <div className="text-muted mb-2">答え</div>
+                        <div className="h4 fw-bold text-dark mb-4">{currentPhrase.answer}</div>
+                      </>
+                    )}
                     <div className="d-flex gap-2 justify-content-center">
                       <button onClick={() => judgeQuizRoomBuzz(true)} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">正解</button>
                       <button onClick={() => judgeQuizRoomBuzz(false)} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">不正解</button>

@@ -567,6 +567,67 @@ describe('App', () => {
     randomSpy.mockRestore();
   }, 40000);
 
+  it('ignores a second "次の札" click while the first is still advancing (e.g. during the fade-out animation), instead of flipping multiple cards at once (issue #590)', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const getPhraseCallIds = [];
+    const phraseById = {
+      p1: { id: 'p1', category: 'Cat1', phrase: '読み札1' },
+      p2: { id: 'p2', category: 'Cat1', phrase: '読み札2' },
+      p3: { id: 'p3', category: 'Cat1', phrase: '読み札3' },
+    };
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }, { id: 'p3', category: 'Cat1' }] }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        const id = new URL(url).searchParams.get('id');
+        getPhraseCallIds.push(id);
+        return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('次の札'));
+    fireEvent.click(screen.getByText('次の札'));
+
+    // p1の読み上げが完了し、次の札へ進める状態に戻るのを待つ
+    await waitFor(() => expect(screen.getByText('次の札')).not.toBeDisabled(), { timeout: 20000 });
+    await waitFor(() => expect(screen.getByText('読み上げ済み 1 / 全3枚')).toBeInTheDocument());
+
+    // ここで連打する。同じボタン要素を捕まえてから2回続けてクリックすることで、
+    // 1回目のクリックで非活性化される前に2回目が送られる状況を再現する
+    // （修正前はこの間ボタンが非活性化されておらず、2回目のクリックも処理されて
+    // しまい、p2だけでなくp3までまとめてめくれてしまっていた）
+    const nextButton = screen.getByText('次の札');
+    fireEvent.click(nextButton);
+    fireEvent.click(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('読み上げ済み 2 / 全3枚')).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    // p2を読み上げている間にp3が裏でプリフェッチされること自体は既存の正常な挙動
+    // （'prefetches the next phrase...'テスト参照）なので、/get-phraseの呼び出し数
+    // ではなく「実際にキューへ積まれ読み上げ済みとしてカウントされた枚数」で判定する。
+    // 修正前は2回目のクリックも処理されてしまい、ここで3枚目まで自動的に
+    // 読み上げ済みになってしまっていた（もう一度「次の札」を押していないのに進む）
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    expect(screen.getByText('読み上げ済み 2 / 全3枚')).toBeInTheDocument();
+
+    randomSpy.mockRestore();
+  }, 40000);
+
   it('requests announceCategory=true for the detail-view replay when multiple categories are selected', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {
@@ -2643,12 +2704,12 @@ describe('App', () => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
     });
 
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('次の札'));
 
     await waitFor(() => {
-      expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+      expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
     }, { timeout: 20000 });
   }, 40000);
 
@@ -2702,14 +2763,74 @@ describe('App', () => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
     });
 
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
     expect(screen.getByText('正解')).toBeInTheDocument();
     expect(screen.getByText('不正解')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('不正解'));
 
     expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
-    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+  }, 40000);
+
+  it('shows the current phrase\'s answer in the judgment modal, so the admin can tell whether the response was correct (issue #586)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    // 実際に札を読み上げ、currentPhraseに答えがセットされた状態にしてから早押しを送る
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
+    expect(screen.getByText('答え1')).toBeInTheDocument();
   }, 40000);
 
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
@@ -2766,13 +2887,13 @@ describe('App', () => {
     act(() => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
     });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     // 同じ札を表示したまま設定を変える（再ブロードキャストが発生するが、ラウンドは
     // 変わっていないので回答者表示は消えてはならない）
     fireEvent.click(screen.getByText('はやい'));
 
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
   }, 40000);
 
   it('shows each participant\'s points to the admin as a "points" message arrives, sorted from highest to lowest (issue #519)', async () => {

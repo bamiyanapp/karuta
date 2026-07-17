@@ -157,6 +157,18 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     }
   }
 
+  // 早押しボタン押下時、サーバーからのbuzzブロードキャストが返ってくるまでの間
+  // ボタンが非活性化されず連打・二重押下できてしまう問題（issue #588）への対策。
+  // 押した瞬間にローカルで即座にbuzzedByを仮設定してボタンを非表示にする。
+  // サーバー側は早押しを1件だけ条件付き書き込みで確定させるため（backend/
+  // quizRoomHandler.js buzzQuizRoom）実際の勝者判定はサーバーに委ねられており、
+  // 後から届くbuzzブロードキャスト（自分の勝ち・他の参加者の勝ちいずれも）が
+  // この仮の値を正しい値で上書きする
+  const handleBuzz = () => {
+    setBuzzedBy({ name: confirmedName });
+    buzz();
+  };
+
   const handleConfirmName = () => {
     const trimmed = nameDraft.trim();
     if (!trimmed) {
@@ -314,10 +326,10 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           );
         })()}
         {buzzedBy ? (
-          <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答しました</p>
+          <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>
         ) : roomState?.type === "phrase" && !excludedThisRound && (
           <div className="mt-4">
-            <button onClick={buzz} className="btn btn-danger btn-lg rounded-pill px-5">
+            <button onClick={handleBuzz} className="btn btn-danger btn-lg rounded-pill px-5">
               回答する
             </button>
           </div>
