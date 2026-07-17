@@ -32,6 +32,16 @@ karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保
 
 E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド成果物のみ、Chromiumの`page.coverage`APIで計測）のカバレッジを`monocart-reporter`（`frontend/playwright.config.js`のreporter設定、`frontend/e2e/coverage.js`のヘルパー経由で各テストが呼び出す）で収集し、`frontend/coverage/coverage-summary.json`へ`frontend-test`ジョブのユニットテストカバレッジと同じ形式で出力する。`frontend-e2e-test`ジョブ側で`check-coverage-threshold`複合アクション（dev-standards）をthreshold未指定（表示のみ）で再利用し、Job Summary・ログへ表示する。閾値によるゲートは現時点では行っていない（要否は別途検討）。カバレッジ算出には`vite.config.js`の`build.sourcemap: true`が必要（ビルド成果物を元のソースファイル単位へマッピングするため）。
 
+### スクリーンショットの公開（issue #568）
+
+`frontend/e2e/screenshot.js`の`captureScreenshot()`が、`testInfo.attach()`によるPlaywright HTMLレポートへの添付に加えて、`frontend/e2e-screenshots/`へPNGファイルとしても書き出す。GitHub Actionsのアーティファクト（zip）はダウンロード・展開が必要で特にスマホ版GitHubアプリからは閲覧が難しいため、`frontend-e2e-test`ジョブ側（dev-standardsの`reusable-ci.yml`）で以下を行い、画像を直接埋め込んだ形で確認できるようにしている。
+
+1. `peaceiris/actions-gh-pages`で`frontend/e2e-screenshots/`配下のPNGを専用ブランチ`e2e-screenshots`（`runs/<run_id>/`配下、過去の実行分は`keep_files: true`で保持）へ公開する
+2. `raw.githubusercontent.com`のURLとして、Job Summaryへ画像を埋め込む
+3. `pull_request`イベントの場合は、同じ内容をPRコメントとしても投稿する（GitHubのモバイルアプリでもネイティブに画像が表示される）
+
+これらはいずれも補助的な機能であり、失敗してもE2Eテスト自体の成功/失敗判定には影響しない（各ステップに`continue-on-error: true`を付けている）。`e2e-screenshots`ブランチは実行のたびに蓄積されるため、リポジトリ肥大化への対応（古い実行分の定期削除等）は必要になった時点で別途検討する。
+
 ## 有効化・無効化しているジョブ（`ci.yml` 固有、issue #461）
 
 `reusable-ci.yml`が提供する任意ジョブのうち、karutaでは以下のように設定している。
