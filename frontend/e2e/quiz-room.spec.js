@@ -127,12 +127,12 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await responderPage.getByRole('button', { name: '回答する' }).click();
 
     // 管理者に判定モーダルが自動表示される（issue #546）
-    await expect(adminPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
+    await expect(adminPage.getByText('🔔 たろう さんが回答中')).toBeVisible({ timeout: 15000 });
     await captureScreenshot(adminPage, testInfo, 'admin-judgment-modal');
 
     // 回答者本人・未回答参加者のどちらの画面にも回答者名が表示され、早押しボタンは無くなる
-    await expect(responderPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
-    await expect(otherPage.getByText('🔔 たろう さんが回答しました')).toBeVisible({ timeout: 15000 });
+    await expect(responderPage.getByText('🔔 たろう さんが回答中')).toBeVisible({ timeout: 15000 });
+    await expect(otherPage.getByText('🔔 たろう さんが回答中')).toBeVisible({ timeout: 15000 });
     await expect(otherPage.getByRole('button', { name: '回答する' })).not.toBeVisible();
 
     // 管理者が不正解と判定する
@@ -147,7 +147,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
 
     // 未回答参加者（はなこ）が早押しする
     await otherPage.getByRole('button', { name: '回答する' }).click();
-    await expect(adminPage.getByText('🔔 はなこ さんが回答しました')).toBeVisible({ timeout: 15000 });
+    await expect(adminPage.getByText('🔔 はなこ さんが回答中')).toBeVisible({ timeout: 15000 });
 
     // 管理者が正解と判定する
     await adminPage.getByRole('button', { name: '正解', exact: true }).click();

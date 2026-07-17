@@ -251,8 +251,27 @@ describe('QuizRoomView', () => {
     expect(buzzMock).toHaveBeenCalled();
 
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
     expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+  });
+
+  it('hides the buzz button immediately on click, before the server broadcast arrives, so it cannot be pressed again in the meantime (issue #588)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('たろう');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    fireEvent.click(screen.getByText('回答する'));
+
+    // サーバーからのbuzzブロードキャストがまだ届いていない時点でも、
+    // 自分自身の押下は即座に反映され、ボタンは既に非表示になっている
+    expect(screen.getByText('🔔 たろう さんが回答中')).toBeInTheDocument();
+    expect(screen.queryByText('回答する')).not.toBeInTheDocument();
+
+    // 後から届くブロードキャストが、実際の勝者（別の参加者だった場合を含む）で
+    // 正しく上書きする
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
   });
 
   it('lets other participants buzz in again after a roundReset (incorrect judgment), but not the participant who was judged incorrect (issue #546)', () => {
@@ -348,13 +367,13 @@ describe('QuizRoomView', () => {
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     emitState({ type: 'result', content: { time: 1.2, answer: '答え1' } });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
-    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
     expect(screen.getByText('回答する')).toBeInTheDocument();
   });
 
@@ -365,10 +384,10 @@ describe('QuizRoomView', () => {
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     emitState({ type: 'initial' });
-    expect(screen.queryByText('🔔 はなこ さんが回答しました')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
   });
 
   it('does not clear an already-recorded responder when the same phrase is re-broadcast (e.g. the admin changed a setting mid-round)', () => {
@@ -378,12 +397,12 @@ describe('QuizRoomView', () => {
 
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3', speechRate: '80%' } });
     emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
 
     // 同じ札（id/categoryが同一）が設定変更等で再ブロードキャストされても、
     // 既に記録済みの回答者表示を誤って消してはならない
     emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3', speechRate: '100%' } });
-    expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
   });
 
   it('accumulates broadcast phrases into a collapsed-by-default local history, newest first, without duplicating a re-broadcast of the same phrase (issue #548)', () => {
