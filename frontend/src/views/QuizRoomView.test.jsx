@@ -386,6 +386,33 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('🔔 はなこ さんが回答しました')).toBeInTheDocument();
   });
 
+  it('accumulates broadcast phrases into a collapsed-by-default local history, newest first, without duplicating a re-broadcast of the same phrase (issue #548)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+    // 履歴一覧はデフォルトで折りたたまれている
+    expect(screen.queryByText('読み札1', { selector: '.list-group-item .text-dark' })).not.toBeInTheDocument();
+    expect(screen.getByText('これまでに読み上げた札を表示する（1枚）')).toBeInTheDocument();
+
+    // 同じ札の再ブロードキャスト（設定変更等）では重複追加されない
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3', speechRate: '100%' } });
+    expect(screen.getByText('これまでに読み上げた札を表示する（1枚）')).toBeInTheDocument();
+
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1' } });
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+
+    fireEvent.click(screen.getByText('これまでに読み上げた札を表示する（2枚）'));
+
+    const items = screen.getAllByText(/^読み札/, { selector: '.list-group-item .text-dark' });
+    expect(items.map((el) => el.textContent)).toEqual(['読み札2', '読み札1']);
+
+    fireEvent.click(screen.getByText('これまでに読み上げた札を閉じる'));
+    expect(screen.queryByText('読み札1', { selector: '.list-group-item .text-dark' })).not.toBeInTheDocument();
+  });
+
   it('fetches and plays audio for a broadcast phrase using the settings broadcast by the admin, not the participant\'s own local settings (issue #490, #498)', async () => {
     // 参加者自身のローカル設定は無視され、管理者からブロードキャストされた設定が使われることを
     // 確認するため、参加者側のlocalStorageにはあえて異なる値を入れておく
