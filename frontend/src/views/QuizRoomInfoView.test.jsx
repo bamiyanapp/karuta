@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import QuizRoomInfoPanel from './QuizRoomInfoPanel';
+import QuizRoomInfoView from './QuizRoomInfoView';
 
 vi.mock('qrcode', () => ({
   default: { toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,fake') },
@@ -17,31 +17,28 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('QuizRoomInfoPanel', () => {
-  it('is collapsed by default and shows nothing but the toggle link', () => {
-    render(<QuizRoomInfoPanel roomId="ABC123" />);
-    expect(screen.getByText('ルーム情報を表示（クイズ大会モード）')).toBeInTheDocument();
-    expect(screen.queryByText('ルームコード')).not.toBeInTheDocument();
-  });
-
-  it('expands to show the room code, invite URL, and a QR code', async () => {
-    render(<QuizRoomInfoPanel roomId="ABC123" />);
-
-    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+describe('QuizRoomInfoView', () => {
+  it('shows the room code, invite URL, and a QR code immediately, since this is now a dedicated screen rather than a collapsible panel (issue #547)', async () => {
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
 
     expect(screen.getByText('ABC123')).toBeInTheDocument();
     expect(await screen.findByAltText('参加用QRコード')).toBeInTheDocument();
     const urlInput = screen.getByDisplayValue(/roomId=ABC123/);
     expect(urlInput).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByText('ルーム情報を隠す'));
-    expect(screen.queryByText('ABC123')).not.toBeInTheDocument();
+  it('lets the admin go back to the normal game screen', () => {
+    const setView = vi.fn();
+    render(<QuizRoomInfoView setView={setView} roomId="ABC123" />);
+
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    expect(setView).toHaveBeenCalledWith('game');
   });
 
   it('copies the invite URL to the clipboard and shows transient feedback', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    render(<QuizRoomInfoPanel roomId="ABC123" />);
-    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
 
     fireEvent.click(screen.getByText('コピー'));
 
@@ -58,8 +55,7 @@ describe('QuizRoomInfoPanel', () => {
 
   it('shows an alert when the clipboard write fails', async () => {
     navigator.clipboard.writeText.mockRejectedValue(new Error('denied'));
-    render(<QuizRoomInfoPanel roomId="ABC123" />);
-    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
 
     fireEvent.click(screen.getByText('コピー'));
 

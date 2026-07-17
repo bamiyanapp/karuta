@@ -2502,7 +2502,7 @@ describe('App', () => {
     expect(screen.queryByText('取った人:')).not.toBeInTheDocument();
   }, 40000);
 
-  it('lets an admin open a quiz room, keeps them on the normal game screen, shows the room info panel, and broadcasts phrase changes over the WebSocket (issue #470)', async () => {
+  it('lets an admin open a quiz room and view the room info on a dedicated screen without dropping the WebSocket connection, then broadcasts phrase changes after returning (issue #470, #547)', async () => {
     // 読み上げ設定はlocalStorageに永続化されており、他のテストの実行順序に
     // 左右されないよう、ブロードキャスト内容として期待する値を明示的に固定する
     localStorage.setItem('repeatCount', '2');
@@ -2556,8 +2556,17 @@ describe('App', () => {
     expect(ws.url).toContain('roomId=ABC123');
     expect(ws.url).toContain('adminToken=token-1');
 
+    // ルーム情報表示は別画面への遷移になった（issue #547）。通常のゲーム画面からは離れる
     fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
     expect(screen.getByText('ABC123')).toBeInTheDocument();
+    expect(screen.queryByText('次の札')).not.toBeInTheDocument();
+
+    // 「戻る」で通常のゲーム画面に戻る。WebSocket接続はApp自体がview遷移で
+    // アンマウントされないため、この間も同じインスタンスのまま維持されている
+    fireEvent.click(screen.getByText('← 戻る'));
+    expect(screen.queryByText('ABC123')).not.toBeInTheDocument();
+    expect(screen.getByText('次の札')).toBeInTheDocument();
+    expect(MockWebSocket.instances).toHaveLength(1);
 
     act(() => {
       ws.readyState = MockWebSocket.OPEN;
