@@ -1,3 +1,10 @@
+# [1.43.0](https://github.com/bamiyanapp/karuta/compare/v1.42.1...v1.43.0) (2026-07-17)
+
+
+### Features
+
+* **quiz-room:** 早押し正解時に即座に結果画面へ切り替え、参加者に紙吹雪演出を出す ([#625](https://github.com/bamiyanapp/karuta/issues/625)) ([04e7441](https://github.com/bamiyanapp/karuta/commit/04e74413331524c2d0e159e25d5a19b8ee8523b3)), closes [#600](https://github.com/bamiyanapp/karuta/issues/600)
+
 ## [1.42.1](https://github.com/bamiyanapp/karuta/compare/v1.42.0...v1.42.1) (2026-07-17)
 
 
