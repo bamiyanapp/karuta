@@ -1,3 +1,10 @@
+## [1.39.1](https://github.com/bamiyanapp/karuta/compare/v1.39.0...v1.39.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **ci:** CI実行一覧でPR時点とpush-to-main時点の実行を判別できるようにする ([#572](https://github.com/bamiyanapp/karuta/issues/572)) ([7a80cd7](https://github.com/bamiyanapp/karuta/commit/7a80cd7452edbbce0162576d862d5050876e66a4)), closes [bamiyanapp/dev-standards#66](https://github.com/bamiyanapp/dev-standards/issues/66) [#558](https://github.com/bamiyanapp/karuta/issues/558)
+
 # [1.39.0](https://github.com/bamiyanapp/karuta/compare/v1.38.0...v1.39.0) (2026-07-17)
 
 
