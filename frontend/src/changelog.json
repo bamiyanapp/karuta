@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.44.0",
+    "version": "1.44.1",
     "date": "2026/07/17",
+    "body": "### Bug Fixes\n\n* **deps:** update dependency puppeteer-core to v25 ([#632](https://github.com/bamiyanapp/karuta/issues/632)) ([3ff8805](https://github.com/bamiyanapp/karuta/commit/3ff8805517150bd400b85b13c3b42a777fd782ff))"
+  },
+  {
+    "version": "1.44.0",
+    "date": "2026/07/17 21:33",
     "body": "### Features\n\n* **quiz-room:** 参加者画面の参加者一覧を表形式にし、接続ステータスを表示する ([#629](https://github.com/bamiyanapp/karuta/issues/629)) ([17e5fb0](https://github.com/bamiyanapp/karuta/commit/17e5fb043493ff0c9b20aec153c472e7467c7dc5)), closes [#599](https://github.com/bamiyanapp/karuta/issues/599)"
   },
   {
