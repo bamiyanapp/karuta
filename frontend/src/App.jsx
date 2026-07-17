@@ -7,6 +7,7 @@ import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useQuizRoomAdmin } from "./hooks/useQuizRoomAdmin";
+import { CONNECTION_STATUS_LABEL } from "./hooks/useQuizRoomSync";
 import DetailView from "./views/DetailView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
@@ -903,6 +904,8 @@ function App() {
     quizRoomBuzzedBy,
     quizRoomPoints,
     quizRoomParticipants,
+    quizRoomConnectionStatus,
+    reconnectQuizRoom,
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,
@@ -1605,6 +1608,27 @@ function App() {
       </div>
       {quizRoom ? (
         <div className="mb-4">
+          {/* issue #614: 管理者側は従来connectionStatusを受け取ってすらおらず、
+              切断されたことが画面のどこにも表示されなかった（切断に気づかず
+              読み上げを進めると参加者に札が配信されない不具合があった）。
+              接続状態が悪い場合のみ警告として表示し、平常時は表示を増やさない */}
+          {quizRoomConnectionStatus !== "connected" && (
+            <p className="text-danger small mb-2">
+              <span>
+                クイズ大会の接続状態: {CONNECTION_STATUS_LABEL[quizRoomConnectionStatus] || quizRoomConnectionStatus}
+                （参加者に札が届いていない可能性があります）
+              </span>
+              {quizRoomConnectionStatus === "error" && (
+                <button
+                  type="button"
+                  onClick={reconnectQuizRoom}
+                  className="btn btn-sm btn-outline-danger rounded-pill ms-2"
+                >
+                  再接続
+                </button>
+              )}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => setView("quiz-room-info")}

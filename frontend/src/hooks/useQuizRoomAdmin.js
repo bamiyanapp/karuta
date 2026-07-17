@@ -69,7 +69,7 @@ export function useQuizRoomAdmin({
   }, [isOnTopPage]);
 
   // クイズ大会モード: quizRoomが設定されている（管理者としてルームを開設した）間だけ接続する
-  const { broadcastState: broadcastQuizRoomState, judgeBuzz } = useQuizRoomSync({
+  const { connectionStatus: quizRoomConnectionStatus, broadcastState: broadcastQuizRoomState, judgeBuzz, reconnect: reconnectQuizRoom } = useQuizRoomSync({
     wsBaseUrl: WS_BASE_URL,
     roomId: quizRoom?.roomId,
     adminToken: quizRoom?.adminToken,
@@ -192,6 +192,8 @@ export function useQuizRoomAdmin({
     quizRoomBuzzedBy,
     quizRoomPoints,
     quizRoomParticipants,
+    quizRoomConnectionStatus,
+    reconnectQuizRoom,
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,

@@ -367,6 +367,142 @@ describe('useQuizRoomSync', () => {
     expect(result.current.connectionStatus).toBe('error');
   });
 
+  // issue #614: スマホの画面ロック・バックグラウンド復帰後、WebSocketが切断された
+  // ままになり自動再接続されないことがある不具合の対応
+  describe('reconnecting on foreground/online recovery (issue #614)', () => {
+    const setVisibilityState = (state) => {
+      Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+    };
+
+    afterEach(() => {
+      setVisibilityState('visible');
+    });
+
+    it('immediately reconnects when the tab becomes visible again, even after the retry limit was exhausted', () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const instance = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+        act(() => {
+          instance.triggerClose();
+          vi.advanceTimersByTime(3000);
+        });
+      }
+      act(() => {
+        MockWebSocket.instances[MockWebSocket.instances.length - 1].triggerClose();
+      });
+      expect(result.current.connectionStatus).toBe('error');
+      const countBeforeVisible = MockWebSocket.instances.length;
+
+      setVisibilityState('visible');
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      // 試行回数を使い切った後でも、フォアグラウンド復帰で即座に新しい接続が張られる
+      expect(MockWebSocket.instances).toHaveLength(countBeforeVisible + 1);
+      expect(result.current.connectionStatus).toBe('connecting');
+    });
+
+    it('does not reconnect when visibilitychange fires while the tab is still hidden', () => {
+      vi.useFakeTimers();
+      renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+      const countBefore = MockWebSocket.instances.length;
+
+      setVisibilityState('hidden');
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(MockWebSocket.instances).toHaveLength(countBefore);
+    });
+
+    it('does not open a redundant connection when visibilitychange fires while already connected', () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+      act(() => {
+        MockWebSocket.instances[0].triggerOpen();
+      });
+      expect(result.current.connectionStatus).toBe('connected');
+
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(MockWebSocket.instances).toHaveLength(1);
+    });
+
+    it('reconnects immediately when the browser reports it is back online', () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+      act(() => {
+        MockWebSocket.instances[0].triggerClose();
+      });
+      expect(result.current.connectionStatus).toBe('connecting');
+
+      act(() => {
+        window.dispatchEvent(new Event('online'));
+      });
+
+      // オンライン復帰で、3秒の再接続待ちを待たずに即座に新しい接続が張られる
+      expect(MockWebSocket.instances).toHaveLength(2);
+    });
+
+    it('lets the caller trigger a manual reconnect via the returned reconnect() function', () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const instance = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+        act(() => {
+          instance.triggerClose();
+          vi.advanceTimersByTime(3000);
+        });
+      }
+      act(() => {
+        MockWebSocket.instances[MockWebSocket.instances.length - 1].triggerClose();
+      });
+      expect(result.current.connectionStatus).toBe('error');
+
+      act(() => {
+        result.current.reconnect();
+      });
+
+      expect(result.current.connectionStatus).toBe('connecting');
+      act(() => {
+        MockWebSocket.instances[MockWebSocket.instances.length - 1].triggerOpen();
+      });
+      expect(result.current.connectionStatus).toBe('connected');
+    });
+
+    it('keeps retrying at a slower interval past the retry limit while the tab stays visible, instead of giving up permanently', () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const instance = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+        act(() => {
+          instance.triggerClose();
+          vi.advanceTimersByTime(3000);
+        });
+      }
+      act(() => {
+        MockWebSocket.instances[MockWebSocket.instances.length - 1].triggerClose();
+      });
+      expect(result.current.connectionStatus).toBe('error');
+      const countAtError = MockWebSocket.instances.length;
+
+      act(() => {
+        vi.advanceTimersByTime(15000);
+      });
+
+      expect(MockWebSocket.instances).toHaveLength(countAtError + 1);
+    });
+  });
+
   it('does not reconnect after the hook unmounts (cleanup closes the connection)', () => {
     vi.useFakeTimers();
     const { unmount } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));

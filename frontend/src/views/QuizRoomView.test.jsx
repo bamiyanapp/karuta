@@ -12,6 +12,7 @@ const onParticipantsCallbacks = [];
 let mockConnectionStatus = 'connected';
 const setParticipantNameMock = vi.fn();
 const buzzMock = vi.fn();
+const reconnectMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
   useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants }) => {
@@ -26,7 +27,14 @@ vi.mock('../hooks/useQuizRoomSync', () => ({
       broadcastState: vi.fn(),
       setParticipantName: setParticipantNameMock,
       buzz: buzzMock,
+      reconnect: reconnectMock,
     };
+  },
+  CONNECTION_STATUS_LABEL: {
+    idle: '未接続',
+    connecting: '接続中...',
+    connected: '接続済み',
+    error: '接続できませんでした',
   },
 }));
 
@@ -98,6 +106,7 @@ beforeEach(() => {
   mockConnectionStatus = 'connected';
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
+  reconnectMock.mockClear();
   fetch.mockReset();
   // 個別のテストが/get-phrase等を明示的にモックしなかった場合のデフォルト応答。
   // 未設定のままだとfetch()がundefinedを返し、レスポンスのプロパティアクセスで
@@ -200,6 +209,22 @@ describe('QuizRoomView', () => {
     confirmName();
 
     expect(screen.getByText('接続状態: 接続できませんでした')).toBeInTheDocument();
+  });
+
+  it('shows a manual reconnect button only when the connection has failed, and calls reconnect() when clicked (issue #614)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    mockConnectionStatus = 'connected';
+
+    const { rerender } = render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    expect(screen.queryByText('再接続')).not.toBeInTheDocument();
+
+    mockConnectionStatus = 'error';
+    rerender(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    fireEvent.click(screen.getByText('再接続'));
+    expect(reconnectMock).toHaveBeenCalled();
   });
 
   it('lets a participant leave the room and go back to the normal game view', () => {
