@@ -616,68 +616,78 @@ function App() {
   };
 
 
-  const playKarutaInternal = async () => {
+  // 現在読み上げ中の札の結果（経過時間・難易度・答え）を確定し、フェードアウト
+  // 演出を経て結果画面へ切り替える。通常は「次の札」押下時（playKarutaInternal）に
+  // しか呼ばれないが、クイズ大会モードで早押しが正解と判定された時点（issue #600）
+  // にも即座に呼ばれる。これにより、経過時間は「正解が出るまで」で確定し、結果画面
+  // （答え表示）も「次の札」を待たずに即座に切り替わる。呼び出し後にstartTimeRef.current
+  // をnullへ戻すため、後から「次の札」が押されてplayKarutaInternalが実行されても
+  // この結果確定処理は再実行されない（二重計測・上書きの防止）
+  const revealCurrentResult = async (winner) => {
     const targetPhrase = currentPhrase;
+    if (!startTimeRef.current || !targetPhrase) return;
 
-    if (startTimeRef.current && targetPhrase) {
-      const elapsedTime = (Date.now() - startTimeRef.current) / 1000;
-      
-      setHistoryByCategory(prev => {
-        const newHistory = { ...prev };
-        if (newHistory[categoryKey] && newHistory[categoryKey].length > 0) {
-          const updatedCategoryHistory = [...newHistory[categoryKey]];
-          const lastReadPhrase = updatedCategoryHistory[0];
-          if (lastReadPhrase.id === targetPhrase.id && lastReadPhrase.category === targetPhrase.category) {
-            updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2) };
-            newHistory[categoryKey] = updatedCategoryHistory;
-          }
+    const elapsedTime = (Date.now() - startTimeRef.current) / 1000;
+    startTimeRef.current = null;
+
+    setHistoryByCategory(prev => {
+      const newHistory = { ...prev };
+      if (newHistory[categoryKey] && newHistory[categoryKey].length > 0) {
+        const updatedCategoryHistory = [...newHistory[categoryKey]];
+        const lastReadPhrase = updatedCategoryHistory[0];
+        if (lastReadPhrase.id === targetPhrase.id && lastReadPhrase.category === targetPhrase.category) {
+          updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2) };
+          newHistory[categoryKey] = updatedCategoryHistory;
         }
-        return newHistory;
-      });
-      
-      const totalCount = allPhrasesForCategory.filter(p => p.category === targetPhrase.category).length || 1;
-      const historyCount = currentHistory.filter(p => p.category === targetPhrase.category).length || 1;
-      const remainingCount = Math.max(1, totalCount - (historyCount - 1));
-      let difficulty = elapsedTime / remainingCount;
-
-      if (!isFinite(difficulty) || isNaN(difficulty)) {
-        difficulty = 0;
       }
+      return newHistory;
+    });
 
-      if (targetPhrase.id && targetPhrase.category && isFinite(elapsedTime) && !isNaN(elapsedTime)) {
-        const isFast = targetPhrase.averageTime > 0 && elapsedTime < targetPhrase.averageTime;
+    const totalCount = allPhrasesForCategory.filter(p => p.category === targetPhrase.category).length || 1;
+    const historyCount = currentHistory.filter(p => p.category === targetPhrase.category).length || 1;
+    const remainingCount = Math.max(1, totalCount - (historyCount - 1));
+    let difficulty = elapsedTime / remainingCount;
 
-        nextContentRef.current = {
-          type: "result",
-          content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer },
-        };
-
-        // 結果表示のフェード完了を待ってから次の札の取得・再生に進む。
-        // 待たずに次の札をすぐキューへ入れると、次の札側のフリップ完了待ち
-        // （animationResolveRef）をこの結果表示のフェード完了が誤って解決して
-        // しまい、次の札の表示が中断される不具合があったため、明示的に区切る。
-        const resultFadePromise = new Promise(resolve => {
-          animationResolveRef.current = resolve;
-        });
-        setIsFadingOut(true);
-
-        fetch(`${API_BASE_URL}/record-time`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: targetPhrase.id,
-            category: targetPhrase.category,
-            time: elapsedTime,
-            difficulty: difficulty,
-          }),
-        }).catch((error) => {
-          console.error("Error recording time:", error);
-        });
-
-        await resultFadePromise;
-      }
-      startTimeRef.current = null;
+    if (!isFinite(difficulty) || isNaN(difficulty)) {
+      difficulty = 0;
     }
+
+    if (targetPhrase.id && targetPhrase.category && isFinite(elapsedTime) && !isNaN(elapsedTime)) {
+      const isFast = targetPhrase.averageTime > 0 && elapsedTime < targetPhrase.averageTime;
+
+      nextContentRef.current = {
+        type: "result",
+        content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer, winner: winner ?? null },
+      };
+
+      // 結果表示のフェード完了を待ってから次の札の取得・再生に進む。
+      // 待たずに次の札をすぐキューへ入れると、次の札側のフリップ完了待ち
+      // （animationResolveRef）をこの結果表示のフェード完了が誤って解決して
+      // しまい、次の札の表示が中断される不具合があったため、明示的に区切る。
+      const resultFadePromise = new Promise(resolve => {
+        animationResolveRef.current = resolve;
+      });
+      setIsFadingOut(true);
+
+      fetch(`${API_BASE_URL}/record-time`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: targetPhrase.id,
+          category: targetPhrase.category,
+          time: elapsedTime,
+          difficulty: difficulty,
+        }),
+      }).catch((error) => {
+        console.error("Error recording time:", error);
+      });
+
+      await resultFadePromise;
+    }
+  };
+
+  const playKarutaInternal = async () => {
+    await revealCurrentResult();
 
     if (selectedCategories.length === 0 || allPhrasesForCategory.length === 0) return;
 
@@ -906,6 +916,7 @@ function App() {
     voiceId,
     isMultiCategorySelection,
     setView,
+    revealCurrentResult,
   });
 
   useEffect(() => {

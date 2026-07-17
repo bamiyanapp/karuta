@@ -160,6 +160,27 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('答え1')).toBeInTheDocument();
   });
 
+  it('shows a celebratory winner message and confetti when the result includes a winner (a buzz was judged correct), but not when there is no winner (issue #600)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+
+    // 誰も正解しなかった場合（winnerなし）は、従来どおり所要時間・答えのみ表示する
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: null } });
+    expect(screen.getByText('答え1')).toBeInTheDocument();
+    expect(screen.queryByText(/さん正解！/)).not.toBeInTheDocument();
+    expect(document.querySelector('.confetti-container')).not.toBeInTheDocument();
+
+    // 早押しが正解と判定された場合（winnerあり）は、正解者名と紙吹雪演出を表示する
+    emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札2', level: '3' } });
+    emitState({ type: 'result', content: { time: 0.8, answer: '答え2', winner: 'たろう' } });
+    expect(screen.getByText('🎉 たろう さん正解！')).toBeInTheDocument();
+    expect(document.querySelector('.confetti-container')).toBeInTheDocument();
+  });
+
   it('treats an unrecognized or empty room state (e.g. right after room creation, before any card is shown) as "waiting" rather than a blank screen', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 
