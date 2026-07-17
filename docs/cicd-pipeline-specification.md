@@ -28,6 +28,10 @@ karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保
 
 このリポジトリにはE2E専用のモックバックエンドが存在しないため、**E2Eテストは実際にデプロイ済みの本番相当AWS環境（`frontend/src/config.js`のAPI_BASE_URL/WS_BASE_URLが指すAPI Gateway・DynamoDB・WebSocket API）に対して実行する**。CI実行のたびに実際のクイズ大会モードのルームが作成されるが、ルームはDynamoDBのTTLにより24時間で自動失効するため、テスト実行のたびに残骸が蓄積し続けることはない。
 
+### JSカバレッジのログ出力（issue #541）
+
+E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド成果物のみ、Chromiumの`page.coverage`APIで計測）のカバレッジを`monocart-reporter`（`frontend/playwright.config.js`のreporter設定、`frontend/e2e/coverage.js`のヘルパー経由で各テストが呼び出す）で収集し、`frontend/coverage/coverage-summary.json`へ`frontend-test`ジョブのユニットテストカバレッジと同じ形式で出力する。`frontend-e2e-test`ジョブ側で`check-coverage-threshold`複合アクション（dev-standards）をthreshold未指定（表示のみ）で再利用し、Job Summary・ログへ表示する。閾値によるゲートは現時点では行っていない（要否は別途検討）。カバレッジ算出には`vite.config.js`の`build.sourcemap: true`が必要（ビルド成果物を元のソースファイル単位へマッピングするため）。
+
 ## 有効化・無効化しているジョブ（`ci.yml` 固有、issue #461）
 
 `reusable-ci.yml`が提供する任意ジョブのうち、karutaでは以下のように設定している。
