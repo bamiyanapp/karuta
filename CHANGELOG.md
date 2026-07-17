@@ -1,3 +1,10 @@
+# [1.41.0](https://github.com/bamiyanapp/karuta/compare/v1.40.0...v1.41.0) (2026-07-17)
+
+
+### Features
+
+* **quiz-room:** 管理者のルーム情報表示をインラインパネルから別画面への遷移に変更する ([#580](https://github.com/bamiyanapp/karuta/issues/580)) ([53b8ee0](https://github.com/bamiyanapp/karuta/commit/53b8ee0e855d46f37179b4880fcb5173e8594e49)), closes [#547](https://github.com/bamiyanapp/karuta/issues/547) [#558](https://github.com/bamiyanapp/karuta/issues/558)
+
 # [1.40.0](https://github.com/bamiyanapp/karuta/compare/v1.39.1...v1.40.0) (2026-07-17)
 
 
