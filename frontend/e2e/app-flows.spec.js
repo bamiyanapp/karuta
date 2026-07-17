@@ -21,6 +21,21 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     window.print = () => { window.__printCalled = true; };
   });
 
+  // PWAの「オフラインで利用可能になりました」トースト（PwaUpdatePrompt.jsx）は
+  // position: fixedで画面下部に表示され、5秒後に自動で消えるが、それまでの間は
+  // 同じ位置にあるトップ画面のフッターリンク（全札一覧を見る／更新履歴を見る／
+  // 指摘された内容を確認するなど）を覆いクリックをブロックすることがある
+  // （PwaUpdatePrompt.jsx自身のコメントに既知の不具合として記載あり）。
+  // このテストはそのフッターリンクを実際にクリックするため、都度出現していれば
+  // 明示的に閉じる
+  const dismissPwaToastIfPresent = async () => {
+    try {
+      await page.getByRole('button', { name: '閉じる' }).click({ timeout: 500 });
+    } catch {
+      // トーストが出ていなければ何もしない
+    }
+  };
+
   try {
     await page.goto('/');
 
@@ -29,6 +44,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // ボタンが無い。カテゴリ選択後のゲーム画面には存在しないため、division選択前に
     // 先に一通り確認しておく
     // 全札一覧画面: 検索・絞り込み・詳細画面への遷移
+    await dismissPwaToastIfPresent();
     await page.getByText('全札一覧を見る →').click();
     await expect(page.getByText('全札一覧')).toBeVisible();
     await page.getByPlaceholder('読み札・読み・答えで検索').fill('ふでこぞう');
@@ -52,6 +68,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await expect(page.getByText('こども向け')).toBeVisible();
 
     // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）
+    await dismissPwaToastIfPresent();
     await page.getByText('更新履歴を見る').click();
     await expect(page.getByText('更新履歴')).toBeVisible();
     await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面');
@@ -59,12 +76,14 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await expect(page.getByText('こども向け')).toBeVisible();
 
     // 指摘一覧画面
+    await dismissPwaToastIfPresent();
     await page.getByText('指摘された内容を確認する').click();
     await expect(page.getByText('指摘された内容一覧')).toBeVisible();
     await captureScreenshot(page, testInfo, 'comments-view', '指摘された内容一覧画面');
 
     // ここから通常の読み上げフロー（カテゴリ選択→読み上げ→結果表示）
     await page.goto('/');
+    await dismissPwaToastIfPresent();
     await page.getByText('こども向け').click();
     // こども向けは1タップで即座に読み上げ画面へ遷移する（App.jsxのtoggleDraftCategory）
     await page.getByRole('button', { name: /おばけかるた/ }).click();
