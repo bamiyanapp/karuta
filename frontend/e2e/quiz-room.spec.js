@@ -116,8 +116,8 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
 
     // 参加者一覧（issue #545）: 管理者側はルーム情報画面の下部に表形式で反映される（issue #587）
     await roomInfoLink.click();
-    await expect(adminPage.getByRole('row').nth(1)).toHaveText('たろう0pt', { timeout: 15000 });
-    await expect(adminPage.getByRole('row').nth(2)).toHaveText('はなこ0pt');
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('たろう接続中0pt', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('はなこ接続中0pt');
     await adminPage.getByText('← 戻る').click();
     await expect(nextButton).toBeVisible();
 
@@ -160,8 +160,8 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // ポイントが参加者一覧（管理者側、ルーム情報画面、issue #587）に反映される
     // （参加者側は獲得ポイント表示で確認済み、issue #519, #545）
     await roomInfoLink.click();
-    await expect(adminPage.getByRole('row').nth(1)).toHaveText('はなこ1pt', { timeout: 15000 });
-    await expect(adminPage.getByRole('row').nth(2)).toHaveText('たろう0pt');
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('はなこ接続中1pt', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('たろう接続中0pt');
   } finally {
     // カバレッジ計測（issue #541）: 失敗時も可能な範囲でカバレッジを収集するため、
     // コンテキストを閉じる前にtry節の成否に関わらず停止・収集する

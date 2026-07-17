@@ -349,23 +349,6 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
         <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
         {renderParticipantContent(roomState)}
-        {(() => {
-          // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
-          // 1つのリストに統合して表示する（管理者画面と同じ並び順）
-          const participantList = mergeParticipantsWithPoints(participants, points);
-          return participantList.length > 0 && (
-            <div className="mx-auto mt-4 text-start" style={{ maxWidth: "320px" }}>
-              <p className="text-muted small mb-2">参加者一覧</p>
-              <div className="d-flex flex-wrap gap-2 justify-content-center">
-                {participantList.map(({ name, points: pt }) => (
-                  <div key={name} className="bg-white rounded-3 shadow-sm px-3 py-2">
-                    <span className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</span>: {pt}pt
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
         {buzzedBy ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>
         ) : roomState?.type === "phrase" && !excludedThisRound && (
@@ -375,6 +358,37 @@ function QuizRoomView({ setView, wsBaseUrl }) {
             </button>
           </div>
         )}
+        {(() => {
+          // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
+          // 1つのリストに統合して表示する（管理者画面と同じ並び順）。
+          // 表形式・接続ステータス表示、回答ボタンより下への配置はissue #599で対応
+          const participantList = mergeParticipantsWithPoints(participants, points);
+          return participantList.length > 0 && (
+            <div className="mx-auto mt-4 text-start" style={{ maxWidth: "360px" }}>
+              <p className="text-muted small mb-2">参加者一覧</p>
+              <table className="table table-sm table-bordered bg-white mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">名前</th>
+                    <th scope="col">接続</th>
+                    <th scope="col" className="text-end">得点</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {participantList.map(({ name, points: pt, connected }) => (
+                    <tr key={name}>
+                      <td className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</td>
+                      <td className={connected ? "text-success" : "text-muted"}>
+                        {connected ? "接続中" : "切断済み"}
+                      </td>
+                      <td className="text-end">{pt}pt</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
         {phraseHistory.length > 0 && (
           <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
             <button
