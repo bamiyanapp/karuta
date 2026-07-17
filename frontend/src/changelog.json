@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.44.1",
+    "version": "1.45.0",
     "date": "2026/07/17",
+    "body": "### Features\n\n* **e2e:** PRの変更と無関係なE2Eスクリーンショットを折りたたむ ([#634](https://github.com/bamiyanapp/karuta/issues/634)) ([60c3132](https://github.com/bamiyanapp/karuta/commit/60c31324cbfadf6efd09a730ab26370f0270caeb)), closes [#628](https://github.com/bamiyanapp/karuta/issues/628)"
+  },
+  {
+    "version": "1.44.1",
+    "date": "2026/07/17 23:00",
     "body": "### Bug Fixes\n\n* **deps:** update dependency puppeteer-core to v25 ([#632](https://github.com/bamiyanapp/karuta/issues/632)) ([3ff8805](https://github.com/bamiyanapp/karuta/commit/3ff8805517150bd400b85b13c3b42a777fd782ff))"
   },
   {
