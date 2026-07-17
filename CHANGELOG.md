@@ -1,3 +1,10 @@
+## [1.42.1](https://github.com/bamiyanapp/karuta/compare/v1.42.0...v1.42.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **e2e:** スクリーンショットに日本語キャプションを付けられるようにする ([#603](https://github.com/bamiyanapp/karuta/issues/603)) ([e9c149d](https://github.com/bamiyanapp/karuta/commit/e9c149d1d18b9232f2169c18317e6186fa9cc201)), closes [#601](https://github.com/bamiyanapp/karuta/issues/601)
+
 # [1.42.0](https://github.com/bamiyanapp/karuta/compare/v1.41.2...v1.42.0) (2026-07-17)
 
 
