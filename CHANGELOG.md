@@ -1,3 +1,16 @@
+# [1.47.0](https://github.com/bamiyanapp/karuta/compare/v1.46.2...v1.47.0) (2026-07-18)
+
+
+### Bug Fixes
+
+* **deps:** CD releaseジョブがsemantic-releaseのプリセット解決で失敗する問題を修正する ([#661](https://github.com/bamiyanapp/karuta/issues/661)) ([01d2138](https://github.com/bamiyanapp/karuta/commit/01d2138910e411ead4b964d5ffb7da4b6f3bb69c)), closes [#654](https://github.com/bamiyanapp/karuta/issues/654)
+
+
+### Features
+
+* **deps:** npm workspaces構成へ移行し、lockfile・依存インストールを一元化する ([#654](https://github.com/bamiyanapp/karuta/issues/654)) ([b32841a](https://github.com/bamiyanapp/karuta/commit/b32841aa990074f06559374db08975e3dae95eee))
+* **e2e:** captureScreenshot()とspec-source-map.jsonをテストケース単位に対応させる ([#660](https://github.com/bamiyanapp/karuta/issues/660)) ([343e3d4](https://github.com/bamiyanapp/karuta/commit/343e3d4da5194250840e722ae896602c4c627d29)), closes [#651](https://github.com/bamiyanapp/karuta/issues/651)
+
 ## [1.46.2](https://github.com/bamiyanapp/karuta/compare/v1.46.1...v1.46.2) (2026-07-18)
 
 

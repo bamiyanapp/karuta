@@ -25,5 +25,5 @@
     "conventional-changelog-conventionalcommits": "^10.2.1",
     "semantic-release": "^25.0.2"
   },
-  "version": "1.46.2"
+  "version": "1.47.0"
 }
