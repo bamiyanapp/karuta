@@ -1,3 +1,10 @@
+# [1.48.0](https://github.com/bamiyanapp/karuta/compare/v1.47.4...v1.48.0) (2026-07-18)
+
+
+### Features
+
+* **frontend:** カテゴリ確定と絵札印刷の導線を統合する ([#675](https://github.com/bamiyanapp/karuta/issues/675)) ([0c9a911](https://github.com/bamiyanapp/karuta/commit/0c9a91179cd72433b7349b7673079960f48bfb9a)), closes [#642](https://github.com/bamiyanapp/karuta/issues/642)
+
 ## [1.47.4](https://github.com/bamiyanapp/karuta/compare/v1.47.3...v1.47.4) (2026-07-18)
 
 
