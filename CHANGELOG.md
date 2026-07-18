@@ -1,3 +1,10 @@
+## [1.47.3](https://github.com/bamiyanapp/karuta/compare/v1.47.2...v1.47.3) (2026-07-18)
+
+
+### Bug Fixes
+
+* **backend:** Lambda関数をesbuildでバンドルしEMFILEを解消 ([#670](https://github.com/bamiyanapp/karuta/issues/670)) ([6e0db77](https://github.com/bamiyanapp/karuta/commit/6e0db77d4a779eebfe6e57e2b27f9413ab3c7e19))
+
 ## [1.47.2](https://github.com/bamiyanapp/karuta/compare/v1.47.1...v1.47.2) (2026-07-18)
 
 

@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.47.2",
+    "version": "1.47.3",
     "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **backend:** Lambda関数をesbuildでバンドルしEMFILEを解消 ([#670](https://github.com/bamiyanapp/karuta/issues/670)) ([6e0db77](https://github.com/bamiyanapp/karuta/commit/6e0db77d4a779eebfe6e57e2b27f9413ab3c7e19))"
+  },
+  {
+    "version": "1.47.2",
+    "date": "2026/07/18 17:16",
     "body": "### Bug Fixes\n\n* **ci:** backendデプロイのファイルディスクリプタ上限をハードリミットまで引き上げる ([#667](https://github.com/bamiyanapp/karuta/issues/667)) ([f0265ce](https://github.com/bamiyanapp/karuta/commit/f0265ce2b95cfe77e07d0438519fabccd0baf220))"
   },
   {
