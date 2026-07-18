@@ -786,7 +786,7 @@ describe('QuizRoomView', () => {
       emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
       emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
 
-      const buzzAudio = audioInstances.find((a) => a.src === '/quiz-buzz.mp3');
+      const buzzAudio = audioInstances.find((a) => a.src === 'quiz-buzz.mp3');
       expect(buzzAudio).toBeDefined();
       expect(buzzAudio.play).toHaveBeenCalled();
     });
@@ -799,12 +799,12 @@ describe('QuizRoomView', () => {
       emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
       // 早押しなし（winnerなし）の結果表示では鳴らさない
       emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: null } });
-      expect(audioInstances.find((a) => a.src === '/quiz-correct.mp3')).toBeUndefined();
+      expect(audioInstances.find((a) => a.src === 'quiz-correct.mp3')).toBeUndefined();
 
       emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札2', level: '3' } });
       emitState({ type: 'result', content: { time: 0.8, answer: '答え2', winner: 'たろう' } });
 
-      const correctAudio = audioInstances.find((a) => a.src === '/quiz-correct.mp3');
+      const correctAudio = audioInstances.find((a) => a.src === 'quiz-correct.mp3');
       expect(correctAudio).toBeDefined();
       expect(correctAudio.play).toHaveBeenCalled();
     });
@@ -818,7 +818,7 @@ describe('QuizRoomView', () => {
       emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
       emitRoundReset({ excludedName: 'はなこ' });
 
-      const incorrectAudio = audioInstances.find((a) => a.src === '/quiz-incorrect.mp3');
+      const incorrectAudio = audioInstances.find((a) => a.src === 'quiz-incorrect.mp3');
       expect(incorrectAudio).toBeDefined();
       expect(incorrectAudio.play).toHaveBeenCalled();
     });

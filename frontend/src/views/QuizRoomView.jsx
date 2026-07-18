@@ -86,10 +86,6 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // 早押し正誤判定（issue #546）: 不正解と判定された場合、そのラウンド中は
   // 自分だけ早押しボタンを再表示しない
   const [excludedThisRound, setExcludedThisRound] = useState(false);
-  // issue #679診断用（後で削除予定）: 効果音の再生に失敗した場合、原因調査のため
-  // 画面上にエラー内容を表示する。スマホオンリーの開発環境ではブラウザの
-  // devtoolsでconsole出力を確認できないため、console.errorだけでは診断できない
-  const [sfxError, setSfxError] = useState(null);
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。集計単位はconnectionIdではなく
   // name（早押し機能の実装参照）なので、自分のポイントはpoints[confirmedName]で引く
   const [points, setPoints] = useState({});
@@ -176,10 +172,10 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   const handleRoundReset = ({ excludedName }) => {
     // issue #613: 不正解の判定結果を参加者全員に音で伝える（除外された本人以外にとっては
     // 「次に早押しできるようになった」合図でもあるが、判定内容自体は不正解のため同じ音を使う）
-    playQuizSfx("incorrect", "/quiz-incorrect.mp3").catch((error) => {
-      // issue #679診断用（後で削除予定）
-      setSfxError(`incorrect: ${error?.name || error}`);
-    });
+    // issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
+    // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
+    // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
+    playQuizSfx("incorrect", "quiz-incorrect.mp3").catch(() => {});
     if (excludedName === confirmedName) {
       setExcludedThisRound(true);
     } else {
@@ -195,10 +191,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     onState: setRoomState,
     onBuzz: (buzzedByParam) => {
       // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
-      playQuizSfx("buzz", "/quiz-buzz.mp3").catch((error) => {
-        // issue #679診断用（後で削除予定）
-        setSfxError(`buzz: ${error?.name || error}`);
-      });
+      playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
       setBuzzedBy(buzzedByParam);
     },
     onPoints: setPoints,
@@ -273,10 +266,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // なった瞬間にだけ再生されるようdepsをshowCelebrationのみにする
   useEffect(() => {
     if (showCelebration) {
-      playQuizSfx("correct", "/quiz-correct.mp3").catch((error) => {
-        // issue #679診断用（後で削除予定）
-        setSfxError(`correct: ${error?.name || error}`);
-      });
+      playQuizSfx("correct", "quiz-correct.mp3").catch(() => {});
     }
   }, [showCelebration]);
 
@@ -470,13 +460,6 @@ function QuizRoomView({ setView, wsBaseUrl }) {
             <button onClick={handleBuzz} className="btn btn-danger btn-lg rounded-pill px-5">
               回答する
             </button>
-          </div>
-        )}
-        {/* issue #679診断用（後で削除予定）: 効果音再生エラーの原因調査のため、
-            スマホの画面上に直接エラー内容を表示する */}
-        {sfxError && (
-          <div className="position-fixed bottom-0 start-0 end-0 alert alert-danger small m-2 mb-0" role="alert">
-            効果音再生エラー（診断用）: {sfxError}
           </div>
         )}
         {(() => {
