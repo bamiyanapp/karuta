@@ -76,7 +76,16 @@ jobs:
         run: npm ci
       - name: 🚀 Deploy Backend (Serverless Framework)
         working-directory: backend
-        run: npx serverless deploy
+        # npm workspaces移行（issue #608）で`install-strategy=nested`にした結果、
+        # 各Lambda関数のzip作成（package.individually: true、11関数）が同一の
+        # node_modules配下を関数ごとに繰り返し走査するようになり、GitHub Actions
+        # ランナーのデフォルトのファイルディスクリプタ上限（1024）を超えて
+        # `EMFILE: too many open files`でデプロイが失敗することを確認した
+        # （issue #608のPR #654マージ後の初回デプロイで実際に発生）。
+        # ソフトリミットをハードリミットまで引き上げて回避する
+        run: |
+          ulimit -n 65536
+          npx serverless deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
