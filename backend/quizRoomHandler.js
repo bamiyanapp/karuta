@@ -100,19 +100,82 @@ exports.listQuizRooms = async (event) => {
       ExpressionAttributeValues: { ":now": now },
     }));
 
-    const rooms = (result.Items || [])
+    const candidates = (result.Items || [])
       .map((item) => ({
         roomId: item.roomId,
         createdAt: item.createdAt,
         category: item.state?.content?.category || null,
       }))
-      .sort((a, b) => b.createdAt - a.createdAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    // issue #617: 管理者が既に切断した「幽霊ルーム」は一覧から除外する。接続テーブル側に
+    // adminConnected相当のフラグを持たせconnect/disconnect時に更新する方式ではなく、
+    // 一覧取得のたびにroomId-indexで実際の接続有無を確認する。ルーム数の上限
+    // （MAX_OPEN_ROOMS_DISPLAYED）が小さいため追加Query数は限定的であり、
+    // フラグの更新漏れ（異常切断時にdisconnectQuizRoomが呼ばれない等）を
+    // 気にしなくてよい利点がある
+    const roomsWithAdminPresence = await Promise.all(
+      candidates.map(async (room) => {
+        const connections = await docClient.send(new QueryCommand({
+          TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+          IndexName: "roomId-index",
+          KeyConditionExpression: "roomId = :roomId",
+          ExpressionAttributeValues: { ":roomId": room.roomId },
+        }));
+        const hasAdmin = (connections.Items || []).some((conn) => conn.role === "admin");
+        return hasAdmin ? room : null;
+      })
+    );
+
+    const rooms = roomsWithAdminPresence
+      .filter((room) => room !== null)
       .slice(0, MAX_OPEN_ROOMS_DISPLAYED);
 
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ rooms }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+    };
+  }
+};
+
+// GET /quiz-room?roomId=XXX（REST API、issue #616）。参加者がWebSocket接続を
+// 試みる前に、ルームコードが実在し失効していないかを軽量に確認するための専用API。
+// listQuizRoomsの流用ではなく専用エンドポイントにしたのは、listQuizRoomsが
+// 直近5件（MAX_OPEN_ROOMS_DISPLAYED）しか返さないため、それより古い有効な
+// ルームを誤って「存在しない」と判定してしまうのを避けるため
+exports.checkQuizRoom = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
+  try {
+    const roomId = event.queryStringParameters?.roomId;
+    if (!roomId) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ message: "roomId is required" }),
+      };
+    }
+
+    const room = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+    }));
+    const now = Math.floor(Date.now() / 1000);
+    // listQuizRoomsと同様、TTL失効後の実削除には最大48時間程度のラグが
+    // 生じ得るため、レコードが残っていてもttlを過ぎていれば存在しない扱いにする
+    const exists = !!room.Item && (!room.Item.ttl || room.Item.ttl > now);
+
+    return {
+      statusCode: 200,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ exists }),
     };
   } catch (error) {
     console.error(error);

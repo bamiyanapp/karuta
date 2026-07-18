@@ -10,6 +10,7 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 // フッターのボタン→QuizRoomInfoView（issue #547）経由で行う（App.jsx参照）
 
 const MAX_NAME_LENGTH = 20; // backend/quizRoomHandler.jsのMAX_NAME_LENGTHと合わせる（早押し機能、issue #510）
+const ROOM_CODE_LENGTH = 6; // backend/quizRoomHandler.jsのROOM_CODE_LENGTHと合わせる（issue #616）
 
 function renderParticipantContent(roomState) {
   // ルーム作成直後（まだ一度もupdateStateが呼ばれていない）は、サーバー側の状態が
@@ -59,6 +60,12 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   const urlRoomId = useMemo(() => new URLSearchParams(window.location.search).get("roomId"), []);
   const [joinRoomId, setJoinRoomId] = useState(urlRoomId);
   const [manualRoomId, setManualRoomId] = useState("");
+  // ルームコードの事前確認（issue #616）: 存在しない・失効済みのルームコードで
+  // 参加しようとした場合、理由不明のままWebSocket接続を5回リトライして
+  // 「接続できませんでした」になるのを避けるため、接続を試みる前に軽量なREST
+  // チェックで存在を確認する。確認自体が失敗した場合（バックエンド障害等）は
+  // 参加をブロックせず、従来どおり接続を試みさせる（安全側にフォールバックする）
+  const [roomInvalid, setRoomInvalid] = useState(false);
 
   const [roomState, setRoomState] = useState(null);
   // これまでに読み上げた札の履歴（issue #548）: サーバー側では履歴を保持・配信していない
@@ -106,6 +113,58 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     setView("game");
   };
 
+  // 誤ったルームコードで参加しようとした場合の再入力導線（issue #616）。
+  // goBackと同様にURLの?roomId=を取り除きつつ、通常のゲーム画面へは戻らず
+  // この画面のルームコード入力欄に留まる
+  const retryRoomCode = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("roomId");
+    const query = params.toString();
+    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    setRoomInvalid(false);
+    setJoinRoomId(null);
+    setManualRoomId("");
+  };
+
+  // ルームコードの事前確認（issue #616）: joinRoomIdが変わるたびに、前回の
+  // 「存在しない」判定を持ち越さないようリセットする。レンダー中のstate調整
+  // パターン（下記のcurrentBuzzRoundKey判定と同じ考え方）で行い、useEffect内での
+  // 無条件setState（react-hooks/set-state-in-effect）を避ける
+  const [lastCheckedRoomId, setLastCheckedRoomId] = useState(joinRoomId);
+  if (joinRoomId !== lastCheckedRoomId) {
+    setLastCheckedRoomId(joinRoomId);
+    setRoomInvalid(false);
+  }
+
+  // 実際にWebSocket接続を試みる前にGET /quiz-roomで存在確認する
+  useEffect(() => {
+    if (!joinRoomId) {
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/quiz-room?roomId=${encodeURIComponent(joinRoomId)}`);
+        if (cancelled || !response.ok) {
+          // 確認自体が失敗した場合は「存在しない」と断定せず、従来どおり
+          // WebSocket接続を試みさせる
+          return;
+        }
+        const data = await response.json();
+        if (!cancelled && data.exists === false) {
+          setRoomInvalid(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to check quiz room existence:", error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [joinRoomId]);
+
   // 早押し正誤判定（issue #546）: 不正解と判定されると、サーバーはbuzzを
   // リセットして{type:"roundReset", excludedName}を返す。除外されたのが
   // 自分自身であれば早押しボタンを再表示せず、それ以外の参加者なら
@@ -123,7 +182,9 @@ function QuizRoomView({ setView, wsBaseUrl }) {
 
   const { connectionStatus, setParticipantName, buzz, reconnect } = useQuizRoomSync({
     wsBaseUrl,
-    roomId: joinRoomId,
+    // issue #616: 存在しないルームだと判明した場合はroomIdをnullに落とし、
+    // WebSocketの無駄な接続リトライを打ち切る
+    roomId: roomInvalid ? null : joinRoomId,
     onState: setRoomState,
     onBuzz: (buzzedByParam) => {
       // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
@@ -300,6 +361,23 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     );
   }
 
+  // issue #616: 存在しない・失効済みのルームコードだと判明した場合、原因不明の
+  // まま接続リトライを待たせず即座に理由を示す
+  if (joinRoomId && roomInvalid) {
+    return (
+      <div className="container py-5 mx-auto text-center">
+        <header className="mb-4">
+          <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
+        </header>
+        <p className="text-danger mb-4">ルームが見つかりませんでした。ルームコードを確認してください。</p>
+        <button onClick={retryRoomCode} className="btn btn-outline-dark rounded-pill">コードを入力し直す</button>
+        <div className="text-center mt-4">
+          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+        </div>
+      </div>
+    );
+  }
+
   if (joinRoomId && !confirmedName) {
     return (
       <div className="container py-5 mx-auto text-center">
@@ -459,17 +537,21 @@ function QuizRoomView({ setView, wsBaseUrl }) {
             value={manualRoomId}
             onChange={(e) => setManualRoomId(e.target.value.toUpperCase())}
             placeholder="ルームコード"
+            maxLength={ROOM_CODE_LENGTH}
             className="form-control"
             style={{ maxWidth: "160px" }}
           />
           <button
             onClick={() => setJoinRoomId(manualRoomId)}
-            disabled={!manualRoomId}
+            disabled={manualRoomId.length !== ROOM_CODE_LENGTH}
             className="btn btn-outline-dark rounded-pill"
           >
             参加する
           </button>
         </div>
+        {/* issue #616: ルームコードは0/O/1/I/Lを使わない6文字（backend/quizRoomHandler.js
+            のROOM_CODE_CHARSと合わせる）ため、読み間違えやすい文字が無い旨を案内する */}
+        <p className="text-muted small mt-2">{ROOM_CODE_LENGTH}文字のコードです（0, O, 1, I, L は使用されません）</p>
         <div className="text-center mt-5">
           <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
