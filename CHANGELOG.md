@@ -1,3 +1,10 @@
+## [1.48.1](https://github.com/bamiyanapp/karuta/compare/v1.48.0...v1.48.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* **ci:** RenovateによるNode.jsバージョンの巻き戻しを修正し再発を防止する ([#676](https://github.com/bamiyanapp/karuta/issues/676)) ([9a6fce9](https://github.com/bamiyanapp/karuta/commit/9a6fce9f921b3d8e07a3c359093cb0bcd4196b43))
+
 # [1.48.0](https://github.com/bamiyanapp/karuta/compare/v1.47.4...v1.48.0) (2026-07-18)
 
 

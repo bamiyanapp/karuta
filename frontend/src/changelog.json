@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.48.0",
+    "version": "1.48.1",
     "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **ci:** RenovateによるNode.jsバージョンの巻き戻しを修正し再発を防止する ([#676](https://github.com/bamiyanapp/karuta/issues/676)) ([9a6fce9](https://github.com/bamiyanapp/karuta/commit/9a6fce9f921b3d8e07a3c359093cb0bcd4196b43))"
+  },
+  {
+    "version": "1.48.0",
+    "date": "2026/07/18 21:35",
     "body": "### Features\n\n* **frontend:** カテゴリ確定と絵札印刷の導線を統合する ([#675](https://github.com/bamiyanapp/karuta/issues/675)) ([0c9a911](https://github.com/bamiyanapp/karuta/commit/0c9a91179cd72433b7349b7673079960f48bfb9a)), closes [#642](https://github.com/bamiyanapp/karuta/issues/642)"
   },
   {
