@@ -462,6 +462,50 @@ exports.judgeQuizRoomBuzz = async (event) => {
   }
 };
 
+// WebSocketカスタムルート"resetPoints"（issue #615）。管理者のみがポイント集計を
+// 初期化できる。同じルームで2ゲーム目を始める際、前のゲームのポイントを引き継がずに
+// 再スタートしたい場合に使う。ゲームリセット（"initial"へ戻る）のたびに自動では
+// リセットしない。カテゴリを切り替えても通算得点で戦い続けたいユースケースもあり、
+// 自動リセットにするとそれを一律に壊してしまうため、管理者の明示操作のみで行う
+exports.resetQuizRoomPoints = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
+    if (!connection.Item || connection.Item.role !== "admin") {
+      return { statusCode: 403, body: "Forbidden" };
+    }
+
+    const { roomId } = connection.Item;
+    await docClient.send(new UpdateCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+      UpdateExpression: "REMOVE points",
+    }));
+
+    const connections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": roomId },
+    }));
+    const managementApi = buildManagementApiClient(event);
+    await Promise.allSettled(
+      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
+        type: "points",
+        points: {},
+      }))
+    );
+
+    return { statusCode: 200, body: "" };
+  } catch (error) {
+    console.error(error);
+    return { statusCode: 500, body: "Internal Server Error" };
+  }
+};
+
 // WebSocketカスタムルート"setName"（早押し機能、issue #510）。参加者（管理者含む、
 // ただし実際に使うのは参加者のみ）が自分の表示名を接続情報へ保存する
 exports.setQuizRoomName = async (event) => {

@@ -233,6 +233,11 @@ functions:
     events:
       - websocket:
           route: judgeBuzz
+  resetQuizRoomPoints: # 追加（issue #615）。管理者のみポイント集計を初期化でき、ルーム内全接続へブロードキャストする
+    handler: quizRoomHandler.resetQuizRoomPoints
+    events:
+      - websocket:
+          route: resetPoints
 
 resources:
   Resources:

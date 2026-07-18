@@ -195,6 +195,22 @@ describe('useQuizRoomSync', () => {
     expect(MockWebSocket.instances[0].sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
   });
 
+  it('resetPoints sends resetPoints only while the connection is open (issue #615)', () => {
+    const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      result.current.resetPoints();
+    });
+    expect(MockWebSocket.instances[0].sent).toEqual([]);
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      result.current.resetPoints();
+    });
+
+    expect(MockWebSocket.instances[0].sent).toContainEqual(JSON.stringify({ action: 'resetPoints' }));
+  });
+
   it('setParticipantName sends setName only while the connection is open, and resends it once the socket opens if called earlier', () => {
     const { result } = renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
 

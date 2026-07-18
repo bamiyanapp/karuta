@@ -13,6 +13,7 @@ import {
   setQuizRoomName,
   buzzQuizRoom,
   judgeQuizRoomBuzz,
+  resetQuizRoomPoints,
 } from './quizRoomHandler';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -849,6 +850,52 @@ describe('judgeQuizRoomBuzz', () => {
   it('handles unexpected errors', async () => {
     ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await judgeQuizRoomBuzz(wsEvent({ body: { correct: true } }));
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('resetQuizRoomPoints', () => {
+  it('rejects when the caller is not an admin', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
+    const response = await resetQuizRoomPoints(wsEvent({}));
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('rejects when the connection record is missing', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    const response = await resetQuizRoomPoints(wsEvent({}));
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('removes the points attribute and broadcasts an empty points map to every connection (issue #615)', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+    });
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-p', roomId: 'ROOM01', role: 'participant' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await resetQuizRoomPoints(wsEvent({ connectionId: 'conn-admin' }));
+
+    expect(response.statusCode).toBe(200);
+    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(updateCall.Key).toEqual({ roomId: 'ROOM01' });
+    expect(updateCall.UpdateExpression).toBe('REMOVE points');
+
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(2);
+    const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
+    expect(payload).toEqual({ type: 'points', points: {} });
+  });
+
+  it('handles unexpected errors', async () => {
+    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    const response = await resetQuizRoomPoints(wsEvent({}));
     expect(response.statusCode).toBe(500);
   });
 });
