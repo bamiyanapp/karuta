@@ -1,19 +1,39 @@
 {
-  "quiz-room.spec.js": [
-    "frontend/src/App.jsx",
-    "frontend/src/views/QuizRoomView.jsx",
-    "frontend/src/views/QuizRoomInfoView.jsx",
-    "frontend/src/hooks/useQuizRoomAdmin.js",
-    "frontend/src/utils/quizRoomParticipants.js",
-    "backend/quizRoomHandler.js"
-  ],
-  "app-flows.spec.js": [
-    "frontend/src/App.jsx",
-    "frontend/src/PwaUpdatePrompt.jsx",
-    "frontend/src/views/AllPhrasesView.jsx",
-    "frontend/src/views/DetailView.jsx",
-    "frontend/src/views/ChangelogView.jsx",
-    "frontend/src/views/CommentsView.jsx",
-    "frontend/src/views/PrintEfudaView.jsx"
-  ]
+  "quiz-room.spec.js": {
+    "admin creates a quiz room and a participant sees the same card update in real time": [
+      "frontend/src/App.jsx",
+      "frontend/src/hooks/useQuizRoomAdmin.js",
+      "frontend/src/hooks/useQuizRoomSync.js",
+      "frontend/src/views/QuizRoomView.jsx",
+      "backend/quizRoomHandler.js"
+    ],
+    "when the admin reloads mid-game, the quiz room association is lost and the participant gets no notification (issue #640)": [
+      "frontend/src/App.jsx",
+      "frontend/src/hooks/useQuizRoomAdmin.js",
+      "frontend/src/views/QuizRoomView.jsx",
+      "backend/quizRoomHandler.js"
+    ],
+    "admin judges a buzz, and the responder vs. other participants end up in different states (issue #545, #546)": [
+      "frontend/src/App.jsx",
+      "frontend/src/views/QuizRoomView.jsx",
+      "frontend/src/views/QuizRoomInfoView.jsx",
+      "frontend/src/utils/quizRoomParticipants.js",
+      "backend/quizRoomHandler.js"
+    ],
+    "joining with a room code that does not exist shows an immediate error instead of retrying the WebSocket connection (issue #616)": [
+      "frontend/src/views/QuizRoomView.jsx",
+      "backend/quizRoomHandler.js"
+    ]
+  },
+  "app-flows.spec.js": {
+    "normal read-aloud flow (category select -> phrase -> result), then browses print/reference views (issue #576)": [
+      "frontend/src/App.jsx",
+      "frontend/src/PwaUpdatePrompt.jsx",
+      "frontend/src/views/AllPhrasesView.jsx",
+      "frontend/src/views/DetailView.jsx",
+      "frontend/src/views/ChangelogView.jsx",
+      "frontend/src/views/CommentsView.jsx",
+      "frontend/src/views/PrintEfudaView.jsx"
+    ]
+  }
 }
