@@ -1,3 +1,10 @@
+## [1.47.2](https://github.com/bamiyanapp/karuta/compare/v1.47.1...v1.47.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* **ci:** backendデプロイのファイルディスクリプタ上限をハードリミットまで引き上げる ([#667](https://github.com/bamiyanapp/karuta/issues/667)) ([f0265ce](https://github.com/bamiyanapp/karuta/commit/f0265ce2b95cfe77e07d0438519fabccd0baf220))
+
 ## [1.47.1](https://github.com/bamiyanapp/karuta/compare/v1.47.0...v1.47.1) (2026-07-18)
 
 
