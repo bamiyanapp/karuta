@@ -1,16 +1,21 @@
 service: karuta-app
 
-# 絵札PDF生成ワーカー（@sparticuz/chromium・puppeteer-core）はrenderEfudaPdfWorker
-# でしか使わない重量級の依存（Chromiumバイナリ圧縮後約50-70MB）のため、全関数で1つの
-# zipを共有するデフォルトのパッケージングのままだと、無関係な関数（getPhrase等）の
-# コールドスタートまで悪化させてしまう。individually: trueで関数ごとに個別zipを作り、
-# 下のpatternsで一旦全関数から重量級依存を除外したうえで、renderEfudaPdfWorker関数側の
-# package.patternsで自分だけ再度含める（後段の定義が優先される.gitignore的な仕組み）
+# serverless-esbuild（issue #608由来のEMFILE対応）: 各関数のzipをnode_modules
+# そのままではなく、実際に使用するコードだけをesbuildでバンドルした1〜数ファイルに
+# まとめてから作成する。npm workspaces移行（issue #608）でinstall-strategy=nestedに
+# した結果、backend/node_modules配下のファイル数が大幅に増え、関数ごとのzip作成
+# （individually: true）のたびにEMFILE: too many open filesでデプロイが失敗する
+# ようになったため導入した。副次効果としてzipサイズが大幅に縮小しコールドスタートも
+# 改善する。@sparticuz/chromium・puppeteer-core（renderEfudaPdfWorkerのみが使う
+# 重量級の依存、Chromiumバイナリ圧縮後約50-70MB）はcustom.esbuild.externalで
+# バンドル対象から除外し、実際にimportしている関数（renderEfudaPdfWorker）の
+# ビルド結果にのみ、serverless-esbuildが実物のファイルを自動的に含める
+# （esbuildの依存解析により、importしていない他の関数のビルド結果には含まれない）
+plugins:
+  - serverless-esbuild
+
 package:
   individually: true
-  patterns:
-    - "!node_modules/@sparticuz/**"
-    - "!node_modules/puppeteer-core/**"
 
 provider:
   name: aws
@@ -78,6 +83,11 @@ provider:
           Resource: "arn:aws:execute-api:${aws:region}:${aws:accountId}:*/*/POST/@connections/*"
 
 custom:
+  esbuild: # @sparticuz/chromium・puppeteer-coreはefudaPdfHandler.js内で動的import()するESM専用
+    # パッケージのため、esbuildのバンドル対象から除外し実体ファイルのまま含める必要がある
+    external:
+      - "@sparticuz/chromium"
+      - "puppeteer-core"
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
@@ -170,10 +180,6 @@ functions:
     timeout: 300
     ephemeralStorageSize: 1024 # @sparticuz/chromiumが/tmpに展開する分の余裕を持たせる
     maximumRetryAttempts: 0 # 失敗時の自動リトライ（既定で最大2回）を無効化。S3のエラーマーカーとの状態不整合を防ぐ
-    package:
-      patterns:
-        - "node_modules/@sparticuz/**"
-        - "node_modules/puppeteer-core/**"
   getEfudaPdfStatus: # 追加（絵札PDFのサーバーサイド生成）。ジョブの完了をS3上のオブジェクトの有無から都度判定する
     handler: efudaPdfHandler.getEfudaPdfStatus
     events:
