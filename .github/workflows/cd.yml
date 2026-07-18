@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v1.3.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v1.4.0
     with:
       enable_release: true
       enable_changelog_json: true
@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.3.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.4.0
         with:
           working-directory: frontend
           node-version: 24
