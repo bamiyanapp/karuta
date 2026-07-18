@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import {
   createQuizRoom,
   listQuizRooms,
+  checkQuizRoom,
   connectQuizRoom,
   disconnectQuizRoom,
   syncQuizRoom,
@@ -78,6 +79,13 @@ describe('createQuizRoom', () => {
 });
 
 describe('listQuizRooms', () => {
+  beforeEach(() => {
+    // issue #617: 一覧の絞り込みは管理者接続の有無をQueryCommandで確認するため、
+    // 個々のテストで参加者一覧の内容を検証しない限りは「管理者接続あり」を既定値にする
+    // （フィルタ自体は別テストで検証する）
+    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'admin-conn', role: 'admin' }] });
+  });
+
   it('returns open rooms sorted by newest first, without leaking adminTokenHash', async () => {
     ddbMock.on(ScanCommand).resolves({
       Items: [
@@ -140,6 +148,70 @@ describe('listQuizRooms', () => {
   it('handles errors', async () => {
     ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
     const response = await listQuizRooms({});
+    expect(response.statusCode).toBe(500);
+  });
+
+  it('excludes rooms that have no active admin connection, without affecting the latest-5 slicing of the remaining rooms (issue #617)', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'HAS-ADMIN', createdAt: 2000, state: {} },
+        { roomId: 'NO-ADMIN', createdAt: 3000, state: {} },
+      ],
+    });
+    ddbMock.on(QueryCommand).callsFake((input) => {
+      const roomId = input.ExpressionAttributeValues[':roomId'];
+      if (roomId === 'HAS-ADMIN') {
+        return { Items: [{ connectionId: 'admin-conn', role: 'admin' }] };
+      }
+      // 参加者の接続は残っているが管理者は既に切断している「幽霊ルーム」を模す
+      return { Items: [{ connectionId: 'participant-conn', role: 'participant' }] };
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(body.rooms.map((r) => r.roomId)).toEqual(['HAS-ADMIN']);
+  });
+});
+
+describe('checkQuizRoom', () => {
+  it('returns exists:true for a room that has not expired', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) + 3600 } });
+
+    const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body).toEqual({ exists: true });
+  });
+
+  it('returns exists:false when the room does not exist', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+    const response = await checkQuizRoom({ queryStringParameters: { roomId: 'MISSING' } });
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body).toEqual({ exists: false });
+  });
+
+  it('returns exists:false when the room record is still present but its ttl has already passed', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) - 3600 } });
+
+    const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
+    const body = JSON.parse(response.body);
+
+    expect(body).toEqual({ exists: false });
+  });
+
+  it('returns 400 when roomId is missing', async () => {
+    const response = await checkQuizRoom({ queryStringParameters: {} });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('handles errors', async () => {
+    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
     expect(response.statusCode).toBe(500);
   });
 });

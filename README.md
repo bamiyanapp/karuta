@@ -126,7 +126,8 @@ graph TD
 | generateEfudaPdf | `/generate-efuda-pdf` | POST | 絵札印刷用PDFの生成ジョブを非同期で開始する（`renderEfudaPdfWorker`がヘッドレスChromiumでレンダリングし、S3へ保存）。 |
 | getEfudaPdfStatus | `/generate-efuda-pdf-status` | GET | PDF生成ジョブの完了状況をS3上のオブジェクトの有無から確認する。 |
 | createQuizRoom | `/quiz-room` | POST | クイズ大会モードの管理者用ルームを新規作成し、ルームコードと管理者トークンを返す。 |
-| listQuizRooms | `/quiz-rooms` | GET | 開設中（失効していない）のクイズ大会ルームを一覧で返す。 |
+| checkQuizRoom | `/quiz-room` | GET | 参加者がWebSocket接続を試みる前に、ルームコードの存在を軽量に確認する。 |
+| listQuizRooms | `/quiz-rooms` | GET | 開設中（失効しておらず管理者接続が存在する）のクイズ大会ルームを一覧で返す。 |
 
 ### WebSocket API（クイズ大会モード）
 

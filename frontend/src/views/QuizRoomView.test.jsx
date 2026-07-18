@@ -83,6 +83,13 @@ function confirmName(name = 'たろう') {
   fireEvent.click(screen.getByText('決定'));
 }
 
+// ルームコードの事前確認（issue #616）用のfetch（GET /quiz-room?roomId=...）は
+// roomIdが設定されるたびに必ず1回発生するため、フレーズ音声取得（/get-phrase）用の
+// fetch呼び出し回数・URLだけを見たいテストではこのヘルパーで除外する
+function audioFetchCalls() {
+  return fetch.mock.calls.filter(([url]) => !url.includes('/quiz-room?'));
+}
+
 window.fetch = vi.fn();
 
 const audioInstances = [];
@@ -167,6 +174,63 @@ describe('QuizRoomView', () => {
     emitState({ type: 'result', content: { time: 1.234, answer: '答え1' } });
     expect(screen.getByText('1.23')).toBeInTheDocument();
     expect(screen.getByText('答え1')).toBeInTheDocument();
+  });
+
+  it('shows an error and does not proceed to the name entry screen when the room does not exist (issue #616)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?roomId=NOPE99')) {
+        return { ok: true, json: async () => ({ exists: false }) };
+      }
+      return { ok: false };
+    });
+    window.history.pushState({}, '', '?roomId=NOPE99');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    expect(await screen.findByText('ルームが見つかりませんでした。ルームコードを確認してください。')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('お名前')).not.toBeInTheDocument();
+  });
+
+  it('lets the participant retry with a different room code after an invalid-room error, without leaving the quiz room screen (issue #616)', async () => {
+    const setView = vi.fn();
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?roomId=NOPE99')) {
+        return { ok: true, json: async () => ({ exists: false }) };
+      }
+      return { ok: false };
+    });
+    window.history.pushState({}, '', '?roomId=NOPE99');
+
+    render(<QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />);
+    await screen.findByText('ルームが見つかりませんでした。ルームコードを確認してください。');
+
+    fireEvent.click(screen.getByText('コードを入力し直す'));
+
+    expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
+    expect(setView).not.toHaveBeenCalled();
+  });
+
+  it('does not block joining when the existence check itself fails, falling back to the normal connection attempt (issue #616)', async () => {
+    fetch.mockImplementation(async () => ({ ok: false }));
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    // 事前確認自体が失敗しても、参加をブロックせず従来どおり名前入力画面へ進める
+    expect(await screen.findByPlaceholderText('お名前')).toBeInTheDocument();
+  });
+
+  it('requires exactly 6 characters before enabling the manual room code join button (issue #616)', () => {
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+    const input = screen.getByPlaceholderText('ルームコード');
+    const joinButton = screen.getByText('参加する');
+
+    fireEvent.change(input, { target: { value: 'ABC12' } });
+    expect(joinButton).toBeDisabled();
+
+    fireEvent.change(input, { target: { value: 'ABC123' } });
+    expect(joinButton).not.toBeDisabled();
   });
 
   it('shows a celebratory winner message and confetti when the result includes a winner (a buzz was judged correct), but not when there is no winner (issue #600)', () => {
@@ -512,9 +576,13 @@ describe('QuizRoomView', () => {
     localStorage.setItem('repeatCount', '1');
     localStorage.setItem('speechRate', '100%');
     localStorage.setItem('voiceId', 'Kazuha');
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }),
+    // issue #616: ルームの事前確認（/quiz-room?）用のfetchも発生するため、
+    // URLで判別してフレーズ音声取得（/get-phrase）用の応答だけを返す
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
     });
     window.history.pushState({}, '', '?roomId=ABC123');
 
@@ -534,8 +602,8 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    const requestedUrl = fetch.mock.calls[0][0];
+    expect(audioFetchCalls()).toHaveLength(1);
+    const requestedUrl = audioFetchCalls()[0][0];
     expect(requestedUrl).toContain('id=p1');
     expect(requestedUrl).toContain('category=Cat1');
     expect(requestedUrl).toContain('repeatCount=3');
@@ -550,7 +618,12 @@ describe('QuizRoomView', () => {
   });
 
   it('falls back to sensible defaults when the broadcast phrase content has no playback settings', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
@@ -563,7 +636,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    const requestedUrl = fetch.mock.calls[0][0];
+    const requestedUrl = audioFetchCalls()[0][0];
     expect(requestedUrl).toContain('repeatCount=2');
     expect(requestedUrl).toContain('speechRate=80%25');
     expect(requestedUrl).toContain('lang=ja');
@@ -617,7 +690,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(fetch).not.toHaveBeenCalled();
+    expect(audioFetchCalls()).toHaveLength(0);
     expect(audioInstances).toHaveLength(0);
 
     // 名前を確定しても、確定前から進行中だった同じラウンドの音声が遡って
@@ -631,7 +704,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(fetch).not.toHaveBeenCalled();
+    expect(audioFetchCalls()).toHaveLength(0);
     expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
 
@@ -642,7 +715,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(audioFetchCalls()).toHaveLength(1);
     expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
   });
@@ -658,7 +731,12 @@ describe('QuizRoomView', () => {
 
   it('does not show a "tap to enable audio" button even when playback is blocked by the autoplay policy (issue #497)', async () => {
     audioPlayImpl = () => Promise.reject(new Error('NotAllowedError'));
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
     window.history.pushState({}, '', '?roomId=ABC123');
 
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);

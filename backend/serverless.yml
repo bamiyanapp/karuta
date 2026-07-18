@@ -198,6 +198,15 @@ functions:
           method: get
           cors:
             origins: ${self:custom.allowedOrigins}
+  checkQuizRoom: # 追加（クイズ大会モード、issue #616）。参加者がWebSocket接続を試みる前に
+    # ルームコードの存在を軽量に確認する
+    handler: quizRoomHandler.checkQuizRoom
+    events:
+      - http:
+          path: quiz-room
+          method: get
+          cors:
+            origins: ${self:custom.allowedOrigins}
   connectQuizRoom: # 追加（クイズ大会モード）。WebSocket接続時にroomId/adminTokenから役割を判定する
     handler: quizRoomHandler.connectQuizRoom
     events:
