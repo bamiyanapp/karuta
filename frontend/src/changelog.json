@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.48.2",
+    "version": "1.48.3",
     "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会効果音の絶対パスをbase設定に合わせ相対化する ([#683](https://github.com/bamiyanapp/karuta/issues/683)) ([8468afa](https://github.com/bamiyanapp/karuta/commit/8468afabfdbae07e5b1b791ca91a7125f7c51a78))"
+  },
+  {
+    "version": "1.48.2",
+    "date": "2026/07/18 22:28",
     "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードの効果音再生エラーを診断表示する ([#681](https://github.com/bamiyanapp/karuta/issues/681)) ([9e1e3ea](https://github.com/bamiyanapp/karuta/commit/9e1e3ea07c7acd12e0ad62b404d2b4b785f489b0))"
   },
   {

@@ -1,3 +1,10 @@
+## [1.48.3](https://github.com/bamiyanapp/karuta/compare/v1.48.2...v1.48.3) (2026-07-18)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会効果音の絶対パスをbase設定に合わせ相対化する ([#683](https://github.com/bamiyanapp/karuta/issues/683)) ([8468afa](https://github.com/bamiyanapp/karuta/commit/8468afabfdbae07e5b1b791ca91a7125f7c51a78))
+
 ## [1.48.2](https://github.com/bamiyanapp/karuta/compare/v1.48.1...v1.48.2) (2026-07-18)
 
 
