@@ -1,3 +1,10 @@
+## [1.46.1](https://github.com/bamiyanapp/karuta/compare/v1.46.0...v1.46.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* **quiz-room:** ルーム情報画面でも早押し判定モーダルを表示し、効果音を追加する ([#647](https://github.com/bamiyanapp/karuta/issues/647)) ([9cc178d](https://github.com/bamiyanapp/karuta/commit/9cc178d440a4f1aefd348f65fe5627d7ccefbc28)), closes [#613](https://github.com/bamiyanapp/karuta/issues/613)
+
 # [1.46.0](https://github.com/bamiyanapp/karuta/compare/v1.45.0...v1.46.0) (2026-07-18)
 
 
