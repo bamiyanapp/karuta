@@ -30,4 +30,9 @@ export async function captureScreenshot(page, testInfo, name, caption) {
   // これとspec-source-map.jsonの宣言、PRの変更ファイル一覧を突き合わせて
   // 関連の有無を判定する
   fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.spec.txt`), path.basename(testInfo.file), 'utf-8');
+  // issue #651: スペックファイル単位のグループ化では、同じファイル内の複数の
+  // 無関係なシナリオが一括りにされ折りたたみ単位として粗いため、テストケース名
+  // （testInfo.title）も記録する。CI側（reusable-ci.yml、dev-standards#88）は
+  // これがあればスペックファイル単位ではなくテストケース単位でグループ化する
+  fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.title.txt`), testInfo.title, 'utf-8');
 }
