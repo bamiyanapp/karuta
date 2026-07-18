@@ -65,6 +65,73 @@ test('admin creates a quiz room and a participant sees the same card update in r
   }
 });
 
+// issue #640: 管理者側でadminTokenが失われた場合（今回はページのリロードで再現する）の
+// 実際の挙動を固定化する回帰テスト。adminTokenはReact stateにのみ保持されており
+// （useQuizRoomAdmin.js）永続化されていないため、リロード後は同じルームへ管理者として
+// 戻る手段が無い。「治る」ことを検証するテストではなく、現状の既知の制約
+// （参加者側にも通知が一切届かない）をそのまま記録することが目的
+test('when the admin reloads mid-game, the quiz room association is lost and the participant gets no notification (issue #640)', async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  await startCoverage(adminPage);
+
+  const participantContext = await browser.newContext();
+  let participantPage = null;
+
+  try {
+    await adminPage.goto('/');
+    await adminPage.getByText('こども向け').click();
+    await adminPage.getByRole('button', { name: /おばけかるた/ }).click();
+    const nextButton = adminPage.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+
+    await adminPage.getByText('クイズ大会のルームを作成する').click();
+    const roomInfoLink = adminPage.getByText('ルーム情報を表示（クイズ大会モード）');
+    await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
+    await roomInfoLink.click();
+    const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
+    await adminPage.getByText('← 戻る').click();
+    await expect(nextButton).toBeVisible();
+
+    participantPage = await participantContext.newPage();
+    await startCoverage(participantPage);
+    await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
+    await participantPage.getByPlaceholder('お名前').fill('たろう');
+    await participantPage.getByText('決定').click();
+    await expect(participantPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
+
+    await nextButton.click();
+    await expect(adminPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+    await expect(participantPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 15000 });
+    const phraseBeforeReload = await participantPage.locator('.yomifuda-phrase').innerText();
+
+    // 管理者側でJS stateが失われる状況を、ページのリロードで再現する
+    await adminPage.reload();
+
+    // division・カテゴリ選択はURLクエリパラメータ経由で復元される（useUrlQuerySync）ため
+    // ゲーム画面自体には戻るが、quizRoom（roomId・adminToken）はReact stateにしか
+    // 保持されておらず永続化されていないため失われ、「ルームを作成する」ボタンが
+    // 再度表示される（＝管理者は同じルームへの管理者としての復帰手段を持たない）
+    await expect(nextButton).toBeVisible({ timeout: 15000 });
+    await expect(adminPage.getByText('クイズ大会のルームを作成する')).toBeVisible();
+    await captureScreenshot(adminPage, testInfo, 'admin-lost-room-after-reload', '管理者：リロード後にルーム作成前の状態へ戻り、同じルームへの復帰手段が無い状態');
+
+    // 参加者側は管理者の切断について一切通知を受け取らず、リロード直前の画面のまま
+    // 変化しない（現状の既知の制約）
+    await participantPage.waitForTimeout(2000);
+    await expect(participantPage.locator('.yomifuda-phrase')).toHaveText(phraseBeforeReload);
+    await expect(participantPage.getByText('接続状態: 接続済み')).toBeVisible();
+    await captureScreenshot(participantPage, testInfo, 'participant-unaware-after-admin-reload', '参加者：管理者がリロードした後も通知なく元の画面のまま変化しない状態');
+  } finally {
+    await stopCoverage(adminPage, testInfo);
+    if (participantPage) {
+      await stopCoverage(participantPage, testInfo);
+    }
+    await closeContext(adminContext);
+    await closeContext(participantContext);
+  }
+});
+
 // issue #559: 管理者・回答者（早押しした本人）・未回答参加者（早押ししていない他の参加者）の
 // 3ロールを同時に登場させ、正誤判定（issue #546）後にロールごとに画面の見え方が異なることを
 // 確認する。あわせて参加者一覧（issue #545）が管理者・参加者双方に反映されることも検証する。

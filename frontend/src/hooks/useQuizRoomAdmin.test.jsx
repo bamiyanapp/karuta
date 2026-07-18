@@ -1029,4 +1029,87 @@ describe('useQuizRoomAdmin (via App)', () => {
     await waitFor(() => expect(quizRoomsCallCount).toBe(2));
     expect(await screen.findByText('NEW999')).toBeInTheDocument();
   });
+
+  it('periodically refreshes the open quiz room list while staying on the top page, so a newly created room shows up without navigating away and back (issue #640)', async () => {
+    let quizRoomsCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        quizRoomsCallCount += 1;
+        const rooms = quizRoomsCallCount < 3
+          ? [{ roomId: 'ABC123', createdAt: 1, category: null }]
+          : [{ roomId: 'NEW999', createdAt: 2, category: null }, { roomId: 'ABC123', createdAt: 1, category: null }];
+        return { ok: true, json: async () => ({ rooms }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('ABC123');
+    expect(quizRoomsCallCount).toBe(1);
+
+    // 別画面（全札一覧）へ移動する（実タイマーのまま）
+    fireEvent.click(screen.getByText('全札一覧を見る →'));
+    await screen.findByText('← 戻る');
+    expect(quizRoomsCallCount).toBe(1);
+
+    // ここでフェイクタイマーへ切り替えてからトップページへ戻ることで、ポーリング用の
+    // setIntervalをこの後のフェイクタイマー下で新規に張らせる（実タイマーで既に
+    // 張られていたsetIntervalは、後からvi.useFakeTimers()に切り替えても
+    // フェイク時計の対象にはならないため）
+    vi.useFakeTimers();
+    await act(async () => {
+      fireEvent.click(screen.getByText('← 戻る'));
+    });
+    expect(quizRoomsCallCount).toBe(2);
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+
+    // ポーリング間隔（15秒）を1回分進める。トップページ遷移をまたがずとも
+    // 一覧が再取得されることを確認する。findBy/waitForはフェイクタイマー下では
+    // 内部の再試行が進まないため、advanceTimersByTimeAsync後は同期的なgetByText
+    // で確認する（issue #614のテストと同じ方針）
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15000);
+    });
+    vi.useRealTimers();
+
+    expect(quizRoomsCallCount).toBe(3);
+    expect(screen.getByText('NEW999')).toBeInTheDocument();
+  });
+
+  it('refreshes the open quiz room list immediately when the tab/app returns to the foreground (issue #640)', async () => {
+    let quizRoomsCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        quizRoomsCallCount += 1;
+        const rooms = quizRoomsCallCount === 1
+          ? [{ roomId: 'ABC123', createdAt: 1, category: null }]
+          : [{ roomId: 'NEW999', createdAt: 2, category: null }, { roomId: 'ABC123', createdAt: 1, category: null }];
+        return { ok: true, json: async () => ({ rooms }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('ABC123');
+    expect(quizRoomsCallCount).toBe(1);
+
+    // バックグラウンドへ回してからフォアグラウンドへ復帰した状況を模す
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    await waitFor(() => expect(quizRoomsCallCount).toBe(2));
+    expect(await screen.findByText('NEW999')).toBeInTheDocument();
+  });
 });
