@@ -59,7 +59,7 @@ const resolvePhraseIndex = (slotIndex, printSide) => {
   return row * EFUDA_GRID_COLUMNS + (EFUDA_GRID_COLUMNS - 1 - col);
 };
 
-function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
+function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // この画面を開いている間、PwaUpdatePromptの「オフラインで利用可能になりました」
@@ -136,7 +136,7 @@ function PrintEfudaView({ categoryLabel, setView, selectedCategories, allPhrases
     <div className="container efuda-print-container py-4 mx-auto">
       <header className="text-center mb-4 border-bottom pb-3 no-print">
         <div className="d-flex justify-content-between align-items-center">
-          <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+          <button onClick={onBack} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
           <h1 className="h4 m-0 fw-bold notranslate">{categoryLabel}の絵札印刷</h1>
           <div style={{ width: "60px" }}></div>
         </div>
