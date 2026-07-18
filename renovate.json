@@ -25,6 +25,12 @@
       "matchPackageNames": ["serverless"],
       "allowedVersions": "<4.0.0",
       "description": "Serverless Framework v4以降はCLI起動時にSaaSへのサインインが必須になりCIでのデプロイが失敗するため、サインイン不要なv3系に固定する"
+    },
+    {
+      "matchDepNames": ["node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "description": "CI（ci.yml）・CD（cd.yml）・backend Lambdaランタイム（nodejs22.x、issue #609）でNode.jsのメジャーバージョンを統一している（issue #610）。自動更新を許すとRenovateが検知できる参照（.nvmrc・cd.ymlのsetup-node等）だけが更新され、検知できない参照（ci.ymlのnode_version input等）が取り残されて3者が再びずれるため、メジャー更新は手動で全参照を揃えてから行う（実際にissue #610の修正がPR #673により部分的に巻き戻された）"
     }
   ]
 }
