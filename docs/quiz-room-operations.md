@@ -52,7 +52,7 @@
 | 開設中ルーム一覧の定期更新・フォアグラウンド復帰時の更新 | ユニットテスト（`hooks/useQuizRoomAdmin.test.jsx`、issue #640） |
 | 画面ロック・バックグラウンド復帰後の再接続・再接続ボタン | ユニットテスト（`hooks/useQuizRoomAdmin.test.jsx`、issue #614） |
 | ポイントリセット | ユニットテスト（`hooks/useQuizRoomAdmin.test.jsx`、issue #615） |
-| 誤ったルームコードでの参加時のエラー表示・再入力 | E2E（`quiz-room.spec.js`）・ユニットテスト（`views/QuizRoomView.test.jsx`、issue #616） |
+| 誤ったルームコードでの参加時のエラー表示・再入力 | ユニットテスト（`views/QuizRoomView.test.jsx`、issue #616）。E2E（`quiz-room.spec.js`）は追加済みだが、本PRのCD実行（`GET /quiz-room`のデプロイ）完了までは`test.skip`にしている。マージ後のフォローアップPRで有効化する |
 | 開設中ルーム一覧からの管理者不在ルームの除外 | ユニットテスト（`backend/quizRoomHandler.test.js`、issue #617） |
 
 ## 手動確認用チェックリスト（自動化しにくいシナリオ）
