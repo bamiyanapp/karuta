@@ -1,3 +1,10 @@
+## [1.48.2](https://github.com/bamiyanapp/karuta/compare/v1.48.1...v1.48.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会モードの効果音再生エラーを診断表示する ([#681](https://github.com/bamiyanapp/karuta/issues/681)) ([9e1e3ea](https://github.com/bamiyanapp/karuta/commit/9e1e3ea07c7acd12e0ad62b404d2b4b785f489b0))
+
 ## [1.48.1](https://github.com/bamiyanapp/karuta/compare/v1.48.0...v1.48.1) (2026-07-18)
 
 
