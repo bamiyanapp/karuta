@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback, playSharedAudio } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
@@ -111,6 +111,9 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // 自分自身であれば早押しボタンを再表示せず、それ以外の参加者なら
   // buzzedByをクリアして再度早押しできるようにする
   const handleRoundReset = ({ excludedName }) => {
+    // issue #613: 不正解の判定結果を参加者全員に音で伝える（除外された本人以外にとっては
+    // 「次に早押しできるようになった」合図でもあるが、判定内容自体は不正解のため同じ音を使う）
+    playQuizSfx("incorrect", "/quiz-incorrect.mp3").catch(() => {});
     if (excludedName === confirmedName) {
       setExcludedThisRound(true);
     } else {
@@ -122,7 +125,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     wsBaseUrl,
     roomId: joinRoomId,
     onState: setRoomState,
-    onBuzz: setBuzzedBy,
+    onBuzz: (buzzedByParam) => {
+      // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
+      playQuizSfx("buzz", "/quiz-buzz.mp3").catch(() => {});
+      setBuzzedBy(buzzedByParam);
+    },
     onPoints: setPoints,
     onNameError: handleNameError,
     onRoundReset: handleRoundReset,
@@ -188,6 +195,15 @@ function QuizRoomView({ setView, wsBaseUrl }) {
       delay: pseudoRandom(i + 100) * 0.6,
       duration: 2.2 + pseudoRandom(i + 200) * 1.2,
     }));
+  }, [showCelebration]);
+
+  // issue #613: 正解時の演出（紙吹雪）と同じタイミングで、正解の音も鳴らす。
+  // showCelebrationはラウンドが変わるたびfalse→trueと切り替わるため、trueに
+  // なった瞬間にだけ再生されるようdepsをshowCelebrationのみにする
+  useEffect(() => {
+    if (showCelebration) {
+      playQuizSfx("correct", "/quiz-correct.mp3").catch(() => {});
+    }
   }, [showCelebration]);
 
   const handleConfirmName = () => {

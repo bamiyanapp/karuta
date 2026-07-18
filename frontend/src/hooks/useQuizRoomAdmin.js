@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, WS_BASE_URL } from "../config";
 import { useQuizRoomSync } from "./useQuizRoomSync";
-import { unlockAudioPlayback } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playQuizSfx } from "../utils/audioUnlock";
 
 // クイズ大会モード（issue #470）でuseQuizRoomSyncにonStateを渡す際の既定値。
 // 管理者側は自身のゲーム状態が唯一の正であり、サーバーから送り返される状態を
@@ -80,7 +80,11 @@ export function useQuizRoomAdmin({
     roomId: quizRoom?.roomId,
     adminToken: quizRoom?.adminToken,
     onState: noop,
-    onBuzz: setQuizRoomBuzzedBy,
+    onBuzz: (buzzedBy) => {
+      // issue #613: 参加者の早押しを管理者側にも音で通知する
+      playQuizSfx("buzz", "/quiz-buzz.mp3").catch(() => {});
+      setQuizRoomBuzzedBy(buzzedBy);
+    },
     onPoints: setQuizRoomPoints,
     onParticipants: setQuizRoomParticipants,
   });
@@ -96,6 +100,10 @@ export function useQuizRoomAdmin({
     const winner = correct ? quizRoomBuzzedBy?.name ?? null : null;
     judgeBuzz(correct);
     setQuizRoomBuzzedBy(null);
+    // issue #613: 正誤判定した瞬間に管理者側でも結果を音で確認できるようにする。
+    // ボタン押下という実際のユーザー操作の中で呼ぶため、事前のunlockAudioPlayback()
+    // なしでも再生できる
+    playQuizSfx(correct ? "correct" : "incorrect", correct ? "/quiz-correct.mp3" : "/quiz-incorrect.mp3").catch(() => {});
     if (correct) {
       await revealCurrentResult(winner);
     }
@@ -161,6 +169,9 @@ export function useQuizRoomAdmin({
 
   // クイズ大会モード（issue #470）: 通常のかるた読み上げ画面のフッターから直接ルームを作成する
   const createQuizRoom = async () => {
+    // issue #613: 早押し発生時（onBuzz）は管理者自身の操作を伴わないため、
+    // ここ（ルーム作成というユーザー操作起点の処理）で効果音要素を解錠しておく
+    unlockAudioPlayback();
     setCreatingQuizRoom(true);
     setQuizRoomCreateError(null);
     try {

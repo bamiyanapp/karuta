@@ -17,12 +17,24 @@
 const SILENT_AUDIO_DATA_URI = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 
 let sharedAudio = null;
+// issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）は、読み上げ音声
+// （sharedAudio）が再生中でも同時に鳴らす必要があるため、sharedAudioとは別に
+// 名前ごとの共有<audio>要素を持つ（同じ理由でシングルトン・解錠が必要）
+const sharedSfxAudio = {};
+const QUIZ_SFX_NAMES = ["buzz", "correct", "incorrect"];
 
 function getSharedAudio() {
   if (!sharedAudio) {
     sharedAudio = new Audio();
   }
   return sharedAudio;
+}
+
+function getSharedSfxAudio(name) {
+  if (!sharedSfxAudio[name]) {
+    sharedSfxAudio[name] = new Audio();
+  }
+  return sharedSfxAudio[name];
 }
 
 // ユーザー操作（クリック/タップ）のハンドラ内から同期的に呼び出すことで、共有<audio>要素を
@@ -33,6 +45,11 @@ export function unlockAudioPlayback() {
     const audio = getSharedAudio();
     audio.src = SILENT_AUDIO_DATA_URI;
     audio.play().catch(() => {});
+    for (const name of QUIZ_SFX_NAMES) {
+      const sfxAudio = getSharedSfxAudio(name);
+      sfxAudio.src = SILENT_AUDIO_DATA_URI;
+      sfxAudio.play().catch(() => {});
+    }
   } catch {
     // 対応していないブラウザでは何もしない
   }
@@ -46,7 +63,19 @@ export function playSharedAudio(src) {
   return audio.play();
 }
 
+// issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）を再生する。
+// nameは"buzz"|"correct"|"incorrect"のいずれか
+export function playQuizSfx(name, src) {
+  const audio = getSharedSfxAudio(name);
+  audio.pause();
+  audio.src = src;
+  return audio.play();
+}
+
 // テスト専用: モジュールスコープのシングルトンをテスト間で共有してしまわないようにリセットする
 export function resetSharedAudioForTests() {
   sharedAudio = null;
+  for (const name of QUIZ_SFX_NAMES) {
+    delete sharedSfxAudio[name];
+  }
 }
