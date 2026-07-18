@@ -1,3 +1,10 @@
+## [1.47.1](https://github.com/bamiyanapp/karuta/compare/v1.47.0...v1.47.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* **ci:** backendデプロイのEMFILE(too many open files)エラーを回避する ([#663](https://github.com/bamiyanapp/karuta/issues/663)) ([5d73d76](https://github.com/bamiyanapp/karuta/commit/5d73d76eda72480149428e051d9fbfe9c6bdecfa)), closes [#661](https://github.com/bamiyanapp/karuta/issues/661)
+
 # [1.47.0](https://github.com/bamiyanapp/karuta/compare/v1.46.2...v1.47.0) (2026-07-18)
 
 
