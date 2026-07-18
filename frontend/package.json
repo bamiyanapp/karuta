@@ -37,6 +37,7 @@
     "monocart-reporter": "^2.12.2",
     "vite": "^6.0.0",
     "vite-plugin-pwa": "^1.3.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "workbox-window": "^7.4.1"
   }
 }

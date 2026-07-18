@@ -47,6 +47,7 @@ jobs:
           working-directory: frontend
           node-version: 24
           artifact-path: frontend/dist
+          workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
       - name: Show GitHub Pages URL
         run: |
           echo "Pages URL: ${{ steps.deploy.outputs.page-url }}"
@@ -66,9 +67,12 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces構成（issue #608）。個々のパッケージにlockfileが無くなった
+      # ため、リポジトリルートで一括インストールする（`.npmrc`のinstall-strategy=
+      # nestedにより、backend/node_modules配下に実行時依存が完全な形で
+      # 展開されるため、後段のserverless packagingへの影響は無い）
       - name: Install dependencies
-        working-directory: backend
         run: npm ci
       - name: 🚀 Deploy Backend (Serverless Framework)
         working-directory: backend
