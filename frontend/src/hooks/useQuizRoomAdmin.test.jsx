@@ -410,6 +410,77 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
     expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+    // issue #613: 不正解の判定結果も音で通知する
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-incorrect.mp3')).toBe(true);
+  }, 40000);
+
+  it('shows the buzz judgment modal even while the admin is on the room info screen (issue #613)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    // issue #613: ルーム情報画面（QuizRoomInfoView）へ遷移すると、以前はearly-return
+    // ブランチがモーダルのJSXを含んでいなかったため、この画面を開いている間に参加者が
+    // 早押ししても管理者が気づけなかった
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
+    // ルーム情報画面自体も表示されたままであることを確認する
+    expect(screen.getByText('ABC123')).toBeInTheDocument();
+    // issue #613: 早押し発生を管理者側にも音で通知する
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-buzz.mp3')).toBe(true);
+
+    fireEvent.click(screen.getByText('正解'));
+    expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: true }));
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+    // issue #613: 正誤判定の結果も音で通知する
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-correct.mp3')).toBe(true);
   }, 40000);
 
   it('shows the current phrase\'s answer in the judgment modal, so the admin can tell whether the response was correct (issue #586)', async () => {
@@ -872,7 +943,8 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
-    expect(window.Audio).toHaveBeenCalledTimes(1);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    expect(window.Audio).toHaveBeenCalledTimes(4);
   });
 
   it('does not show the open-room list section when there are no open quiz rooms', async () => {

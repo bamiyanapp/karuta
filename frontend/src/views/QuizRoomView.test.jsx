@@ -542,7 +542,9 @@ describe('QuizRoomView', () => {
     expect(requestedUrl).toContain('speechRate=70%25');
     expect(requestedUrl).toContain('voiceId=Takumi');
     expect(requestedUrl).toContain('announceCategory=true');
-    expect(audioInstances).toHaveLength(1);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素。
+    // 「決定」ボタンのクリックが共有<audio>要素の解錠（issue #497/#514）を引き起こすため
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
     expect(audioInstances[0].play).toHaveBeenCalled();
   });
@@ -584,7 +586,8 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(audioInstances).toHaveLength(1);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY1');
 
     emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
@@ -595,7 +598,7 @@ describe('QuizRoomView', () => {
 
     // 新しいAudioインスタンスを作るのではなく、同じ（ユーザー操作で解錠済みの）要素を
     // 使い回すことで、非同期文脈からの再生でもSafari等でブロックされないようにしている
-    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].pause).toHaveBeenCalled();
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
   });
@@ -620,15 +623,16 @@ describe('QuizRoomView', () => {
     // 名前を確定しても、確定前から進行中だった同じラウンドの音声が遡って
     // 再生されることはない（「次の札」からの再生という要望どおりの挙動）。
     // 「決定」ボタンのクリック自体が共有<audio>要素の解錠（issue #497/#514）を
-    // 引き起こすため、audioInstancesは1件になるが、フレーズの取得（fetch）は
-    // 行われておらず、再生される音声も無音の解錠用データのままであることを確認する
+    // 引き起こすため、audioInstancesは（sharedAudio+buzz/correct/incorrectの計）4件に
+    // なるが、フレーズの取得（fetch）は行われておらず、再生される音声も無音の
+    // 解錠用データのままであることを確認する
     confirmName();
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
     expect(fetch).not.toHaveBeenCalled();
-    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
 
     // 名前確定後に届いた次の札からは通常どおり再生される（同じ共有要素のsrcが
@@ -639,7 +643,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
   });
 
@@ -667,7 +671,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances).toHaveLength(4);
     expect(screen.queryByText('🔊 タップして音声を有効にする')).not.toBeInTheDocument();
     expect(screen.queryByText('🔊 音声ON')).not.toBeInTheDocument();
   });
@@ -680,7 +684,8 @@ describe('QuizRoomView', () => {
 
     fireEvent.click(document.body);
 
-    expect(audioInstances).toHaveLength(1);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].play).toHaveBeenCalled();
   });
 
@@ -690,7 +695,54 @@ describe('QuizRoomView', () => {
     fireEvent.change(screen.getByPlaceholderText('ルームコード'), { target: { value: 'xyz789' } });
     fireEvent.click(screen.getByText('参加する'));
 
-    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].play).toHaveBeenCalled();
+  });
+
+  describe('sound effects (issue #613)', () => {
+    it('plays the buzz sound effect when a buzz is broadcast', () => {
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+      confirmName();
+
+      emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+      emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+
+      const buzzAudio = audioInstances.find((a) => a.src === '/quiz-buzz.mp3');
+      expect(buzzAudio).toBeDefined();
+      expect(buzzAudio.play).toHaveBeenCalled();
+    });
+
+    it('plays the correct sound effect exactly when the celebratory winner display appears (issue #600と同じ条件)', () => {
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+      confirmName();
+
+      emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+      // 早押しなし（winnerなし）の結果表示では鳴らさない
+      emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: null } });
+      expect(audioInstances.find((a) => a.src === '/quiz-correct.mp3')).toBeUndefined();
+
+      emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札2', level: '3' } });
+      emitState({ type: 'result', content: { time: 0.8, answer: '答え2', winner: 'たろう' } });
+
+      const correctAudio = audioInstances.find((a) => a.src === '/quiz-correct.mp3');
+      expect(correctAudio).toBeDefined();
+      expect(correctAudio.play).toHaveBeenCalled();
+    });
+
+    it('plays the incorrect sound effect on a roundReset, whether or not this participant was the one excluded', () => {
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+      confirmName('はなこ');
+
+      emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+      emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+      emitRoundReset({ excludedName: 'はなこ' });
+
+      const incorrectAudio = audioInstances.find((a) => a.src === '/quiz-incorrect.mp3');
+      expect(incorrectAudio).toBeDefined();
+      expect(incorrectAudio.play).toHaveBeenCalled();
+    });
   });
 });

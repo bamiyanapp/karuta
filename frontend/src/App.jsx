@@ -15,6 +15,7 @@ import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
 import QuizRoomView from "./views/QuizRoomView";
 import QuizRoomInfoView from "./views/QuizRoomInfoView";
+import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -1154,13 +1155,23 @@ function App() {
   // 通常のゲーム画面へフォールスルーする
   if (view === "quiz-room-info" && quizRoom) {
     return (
-      <QuizRoomInfoView
-        setView={setView}
-        roomId={quizRoom.roomId}
-        quizRoomParticipants={quizRoomParticipants}
-        quizRoomPoints={quizRoomPoints}
-        resetQuizRoomPoints={resetQuizRoomPoints}
-      />
+      <>
+        <QuizRoomInfoView
+          setView={setView}
+          roomId={quizRoom.roomId}
+          quizRoomParticipants={quizRoomParticipants}
+          quizRoomPoints={quizRoomPoints}
+          resetQuizRoomPoints={resetQuizRoomPoints}
+        />
+        {/* issue #613: 早押し判定モーダルはこの画面を開いている間も表示する
+            （以前はゲーム画面のレンダー内にしか存在せず、この画面滞在中は
+            参加者が早押ししても管理者が気づけなかった） */}
+        <QuizRoomBuzzJudgmentModal
+          buzzedBy={quizRoomBuzzedBy}
+          answer={currentPhrase?.answer}
+          onJudge={judgeQuizRoomBuzz}
+        />
+      </>
     );
   }
 
@@ -1638,27 +1649,11 @@ function App() {
           >
             ルーム情報を表示（クイズ大会モード）
           </button>
-          {quizRoomBuzzedBy && (
-            <div className="modal fade show d-block modal-overlay" tabIndex="-1">
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content rounded-4 border-0 shadow">
-                  <div className="modal-body p-5 text-center">
-                    <h3 className="h5 mb-4 fw-bold">🔔 {quizRoomBuzzedBy.name} さんが回答中</h3>
-                    {currentPhrase?.answer && currentPhrase.answer !== "-" && (
-                      <>
-                        <div className="text-muted mb-2">答え</div>
-                        <div className="h4 fw-bold text-dark mb-4">{currentPhrase.answer}</div>
-                      </>
-                    )}
-                    <div className="d-flex gap-2 justify-content-center">
-                      <button onClick={() => judgeQuizRoomBuzz(true)} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">正解</button>
-                      <button onClick={() => judgeQuizRoomBuzz(false)} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">不正解</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <QuizRoomBuzzJudgmentModal
+            buzzedBy={quizRoomBuzzedBy}
+            answer={currentPhrase?.answer}
+            onJudge={judgeQuizRoomBuzz}
+          />
         </div>
       ) : (
         <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">
