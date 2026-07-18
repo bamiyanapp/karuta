@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.47.0",
+    "version": "1.47.1",
     "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **ci:** backendデプロイのEMFILE(too many open files)エラーを回避する ([#663](https://github.com/bamiyanapp/karuta/issues/663)) ([5d73d76](https://github.com/bamiyanapp/karuta/commit/5d73d76eda72480149428e051d9fbfe9c6bdecfa)), closes [#661](https://github.com/bamiyanapp/karuta/issues/661)"
+  },
+  {
+    "version": "1.47.0",
+    "date": "2026/07/18 12:55",
     "body": "### Bug Fixes\n\n* **deps:** CD releaseジョブがsemantic-releaseのプリセット解決で失敗する問題を修正する ([#661](https://github.com/bamiyanapp/karuta/issues/661)) ([01d2138](https://github.com/bamiyanapp/karuta/commit/01d2138910e411ead4b964d5ffb7da4b6f3bb69c)), closes [#654](https://github.com/bamiyanapp/karuta/issues/654)\n\n\n### Features\n\n* **deps:** npm workspaces構成へ移行し、lockfile・依存インストールを一元化する ([#654](https://github.com/bamiyanapp/karuta/issues/654)) ([b32841a](https://github.com/bamiyanapp/karuta/commit/b32841aa990074f06559374db08975e3dae95eee))\n* **e2e:** captureScreenshot()とspec-source-map.jsonをテストケース単位に対応させる ([#660](https://github.com/bamiyanapp/karuta/issues/660)) ([343e3d4](https://github.com/bamiyanapp/karuta/commit/343e3d4da5194250840e722ae896602c4c627d29)), closes [#651](https://github.com/bamiyanapp/karuta/issues/651)"
   },
   {
