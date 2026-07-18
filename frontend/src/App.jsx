@@ -902,7 +902,6 @@ function App() {
     quizRoomCreateError,
     openQuizRooms,
     quizRoomBuzzedBy,
-    quizRoomSfxError,
     quizRoomPoints,
     quizRoomParticipants,
     quizRoomConnectionStatus,
@@ -1180,13 +1179,6 @@ function App() {
           answer={currentPhrase?.answer}
           onJudge={judgeQuizRoomBuzz}
         />
-        {/* issue #679診断用（後で削除予定）: 効果音再生エラーの原因調査のため、
-            スマホの画面上に直接エラー内容を表示する */}
-        {quizRoomSfxError && (
-          <div className="position-fixed bottom-0 start-0 end-0 alert alert-danger small m-2 mb-0" role="alert">
-            効果音再生エラー（診断用）: {quizRoomSfxError}
-          </div>
-        )}
       </>
     );
   }
@@ -1668,13 +1660,6 @@ function App() {
             answer={currentPhrase?.answer}
             onJudge={judgeQuizRoomBuzz}
           />
-          {/* issue #679診断用（後で削除予定）: 効果音再生エラーの原因調査のため、
-              スマホの画面上に直接エラー内容を表示する */}
-          {quizRoomSfxError && (
-            <div className="position-fixed bottom-0 start-0 end-0 alert alert-danger small m-2 mb-0" role="alert">
-              効果音再生エラー（診断用）: {quizRoomSfxError}
-            </div>
-          )}
         </div>
       ) : (
         <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">

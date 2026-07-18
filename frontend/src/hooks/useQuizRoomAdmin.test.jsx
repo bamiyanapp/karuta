@@ -409,7 +409,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: false }));
     expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
     // issue #613: 不正解の判定結果も音で通知する
-    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-incorrect.mp3')).toBe(true);
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === 'quiz-incorrect.mp3')).toBe(true);
   }, 40000);
 
   it('shows the buzz judgment modal even while the admin is on the room info screen (issue #613)', async () => {
@@ -472,13 +472,13 @@ describe('useQuizRoomAdmin (via App)', () => {
     // ルーム情報画面自体も表示されたままであることを確認する
     expect(screen.getByText('ABC123')).toBeInTheDocument();
     // issue #613: 早押し発生を管理者側にも音で通知する
-    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-buzz.mp3')).toBe(true);
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === 'quiz-buzz.mp3')).toBe(true);
 
     fireEvent.click(screen.getByText('正解'));
     expect(ws.sent).toContainEqual(JSON.stringify({ action: 'judgeBuzz', correct: true }));
     expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
     // issue #613: 正誤判定の結果も音で通知する
-    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === '/quiz-correct.mp3')).toBe(true);
+    expect(window.Audio.mock.results.map((r) => r.value).some((a) => a.src === 'quiz-correct.mp3')).toBe(true);
   }, 40000);
 
   it('shows the current phrase\'s answer in the judgment modal, so the admin can tell whether the response was correct (issue #586)', async () => {
