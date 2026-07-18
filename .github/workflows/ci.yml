@@ -20,6 +20,7 @@ jobs:
     with:
       frontend_dir: frontend
       backend_dir: backend
+      node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
       enable_e2e_test: true
       enable_standards_check: true
       workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
