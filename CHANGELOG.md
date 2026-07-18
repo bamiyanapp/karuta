@@ -1,3 +1,16 @@
+# [1.46.0](https://github.com/bamiyanapp/karuta/compare/v1.45.0...v1.46.0) (2026-07-18)
+
+
+### Bug Fixes
+
+* **deps:** ルート直下のpackage-lock.jsonの不整合を解消する ([#645](https://github.com/bamiyanapp/karuta/issues/645)) ([618a425](https://github.com/bamiyanapp/karuta/commit/618a425c8b326f38574095fa608aadaa99ee42a8)), closes [#340](https://github.com/bamiyanapp/karuta/issues/340)
+* **quiz-room:** 画面ロック・バックグラウンド復帰後にWebSocketを再接続する ([#637](https://github.com/bamiyanapp/karuta/issues/637)) ([539c77d](https://github.com/bamiyanapp/karuta/commit/539c77dc730172745aefe26f52575c129815537a)), closes [#614](https://github.com/bamiyanapp/karuta/issues/614) [#614](https://github.com/bamiyanapp/karuta/issues/614)
+
+
+### Features
+
+* **quiz-room:** 管理者がポイントを明示的にリセットできるようにする ([#644](https://github.com/bamiyanapp/karuta/issues/644)) ([20c9a9c](https://github.com/bamiyanapp/karuta/commit/20c9a9ca5b759ea35629e092533ea0c25dd5dd4b)), closes [#615](https://github.com/bamiyanapp/karuta/issues/615)
+
 # [1.45.0](https://github.com/bamiyanapp/karuta/compare/v1.44.1...v1.45.0) (2026-07-17)
 
 
