@@ -8,6 +8,10 @@ import { unlockAudioPlayback, playQuizSfx } from "../utils/audioUnlock";
 // 使う必要がないため、何もしない関数を安定した参照として渡す
 const noop = () => {};
 
+// 開設中ルーム一覧（issue #489）の定期更新間隔。REST GET1本のみで参加者数に
+// 応じて増える負荷ではないため、issue #619のsyncポーリングほど頻度を絞る必要はない
+const OPEN_ROOMS_POLL_INTERVAL_MS = 15000;
+
 // クイズ大会モードの管理者側ロジック（ルーム作成・開設中ルーム一覧の取得・
 // WebSocket接続・早押し判定・状態ブロードキャスト）をまとめたカスタムhook（issue #607）。
 // 元々はApp.jsx本体に直接展開されていたが、責務単位で切り出した。
@@ -47,7 +51,10 @@ export function useQuizRoomAdmin({
   // クイズ大会モード（issue #489）: トップページ下部に開設中のルーム一覧を表示するため、
   // WebSocket未設定（機能自体が準備中）の場合は取得を試みない。
   // 一覧は初回マウント時だけでなく、他画面から戻る等でトップページへ再度遷移した
-  // たびに再取得する（issue #531: 一度取得したきり更新されず古くなる不具合の対応）
+  // たびに再取得する（issue #531: 一度取得したきり更新されず古くなる不具合の対応）。
+  // さらに、トップページに開きっぱなしのまま（isOnTopPageが変化しないまま）でも、
+  // 定期ポーリングとフォアグラウンド復帰時（visibilitychange）の即時再取得により、
+  // 他の管理者が新しく開設したルームが自動的に一覧へ反映されるようにする（issue #640）
   const isOnTopPage = view === "game" && selectedCategories.length === 0;
   useEffect(() => {
     if (!WS_BASE_URL || !isOnTopPage) {
@@ -66,6 +73,19 @@ export function useQuizRoomAdmin({
       }
     };
     fetchOpenQuizRooms();
+
+    const pollTimer = setInterval(fetchOpenQuizRooms, OPEN_ROOMS_POLL_INTERVAL_MS);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchOpenQuizRooms();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(pollTimer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [isOnTopPage]);
 
   // クイズ大会モード: quizRoomが設定されている（管理者としてルームを開設した）間だけ接続する
