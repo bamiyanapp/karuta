@@ -2,10 +2,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const RECONNECT_DELAY_MS = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5; // 際限ない再接続ループを防ぐための上限
+// issue #614: 通常の再接続上限（5回・3秒間隔、約15秒）を使い切って"error"状態に
+// 達した後も、画面がフォアグラウンド（visible）である間は完全には諦めず、この
+// 緩い間隔で再試行を続ける。バックグラウンド中の無駄な再試行はせず、フォアグラウンド
+// 復帰時（下記のvisibilitychangeハンドラ）に即座に再接続を試みる方に任せる
+const ERROR_RETRY_INTERVAL_MS = 15000;
 // プッシュ通知（updateStateのブロードキャスト）が何らかの理由で届かなかった場合に備え、
 // 一定間隔でsyncを再要求し自己修復させる保険（本来はプッシュのみで完結するはずだが、
 // 個別のブロードキャスト送信が届かないケースを完全には排除できないため）
 const SYNC_POLL_INTERVAL_MS = 5000;
+
+// connectionStatusの値ごとの表示ラベル。参加者画面（QuizRoomView.jsx）・
+// 管理者画面（App.jsx、issue #614で追加）の両方で同じ表記を使うため共有する
+export const CONNECTION_STATUS_LABEL = {
+  idle: "未接続",
+  connecting: "接続中...",
+  connected: "接続済み",
+  error: "接続できませんでした",
+};
 
 // クイズ大会モード（issue #470）のWebSocket接続を管理する。adminTokenを渡すと管理者として、
 // 渡さなければ参加者（閲覧専用）として接続する。サーバーから状態（{type:"state", state, role}）を
@@ -33,6 +47,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
   const pollTimerRef = useRef(null);
+  // issue #614: connect自体はwsBaseUrl/roomId/adminTokenが変わるたびに再生成される
+  // 別のuseEffect内で定義されるため、フォアグラウンド復帰・手動再接続（下記の
+  // forceReconnect）から常に最新のconnectを呼べるようrefに保持する
+  const connectRef = useRef(() => {});
   // broadcastStateに渡された直近の状態。接続確立前（初回接続のLambdaコールド
   // スタート・WSハンドシェイク中）やその後の再接続中にbroadcastStateが呼ばれると、
   // それまではreadyState !== OPENのため送信が黙って失われ、参加者側の画面が
@@ -139,6 +157,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
         }
         if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
           setInternalStatus("error");
+          // issue #614: フォアグラウンドである間は、緩い間隔で再試行を続ける
+          if (typeof document !== "undefined" && document.visibilityState === "visible") {
+            reconnectTimeoutRef.current = setTimeout(connect, ERROR_RETRY_INTERVAL_MS);
+          }
           return;
         }
         reconnectAttemptsRef.current += 1;
@@ -147,6 +169,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
       };
     };
 
+    connectRef.current = connect;
     connect();
 
     return () => {
@@ -160,6 +183,49 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
       wsRef.current?.close();
     };
   }, [wsBaseUrl, roomId, adminToken]);
+
+  // issue #614: スマホの画面ロック・バックグラウンド復帰後、WebSocketが切断された
+  // ままになり自動再接続されないことがある（バックグラウンド中はブラウザが
+  // タイマーをスロットリングするため、復帰前に再接続試行の上限を使い切って
+  // しまうケースがある）。現在の接続が生きていなければ（readyState !== OPEN）、
+  // 試行回数をリセットして即座に再接続する。フォアグラウンド復帰
+  // （visibilitychange）・オンライン復帰（online）、および手動再接続ボタン
+  // （戻り値のreconnect）の両方から使う共通の関数
+  const forceReconnect = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    if (wsRef.current) {
+      // 古い接続のonclose/onerrorが、これから行う再接続と二重に反応しないよう、
+      // 明示的に閉じる前にハンドラを外す
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
+      wsRef.current.close();
+    }
+    reconnectAttemptsRef.current = 0;
+    connectRef.current();
+  }, []);
+
+  useEffect(() => {
+    if (!wsBaseUrl || !roomId) {
+      return undefined;
+    }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        forceReconnect();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", forceReconnect);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", forceReconnect);
+    };
+  }, [wsBaseUrl, roomId, forceReconnect]);
 
   const broadcastState = useCallback((state) => {
     pendingStateRef.current = state;
@@ -190,5 +256,5 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
     }
   }, []);
 
-  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz };
+  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz, reconnect: forceReconnect };
 }

@@ -214,6 +214,85 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
   }, 40000);
 
+  it('shows the admin a connection warning once the connection is lost, and a reconnect button once retries are exhausted (issue #614)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        this.onopen = null;
+        this.onclose = null;
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {
+        this.readyState = 3;
+      }
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    // ハンドシェイク中（まだonopenが呼ばれていない）は「接続中...」の警告が
+    // 出るが、再接続ボタンはまだ出さない（一時的な状態であり、ユーザー操作を
+    // 促す必要が無いため）
+    expect(screen.getByText(/クイズ大会の接続状態: 接続中/)).toBeInTheDocument();
+    expect(screen.queryByText('再接続')).not.toBeInTheDocument();
+
+    // 再接続の待ち時間（3秒間隔）を手動で進めるため、ここでフェイクタイマーへ
+    // 切り替える（ここまでのAppの初期表示・ルーム作成は実タイマーのまま行う。
+    // shouldAdvanceTime: trueは実時間の経過とfireTimersByTimeの呼び出しが
+    // 競合しMockWebSocket.instancesの数え上げがずれることがあったため使わない）
+    vi.useFakeTimers();
+
+    // 再接続の上限（5回）まで切断を繰り返し、"error"状態に到達させる
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const instance = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+      act(() => {
+        instance.readyState = 3;
+        instance.onclose?.();
+      });
+      if (attempt < 5) {
+        act(() => {
+          vi.advanceTimersByTime(3000);
+        });
+      }
+    }
+
+    expect(screen.getByText(/クイズ大会の接続状態: 接続できませんでした/)).toBeInTheDocument();
+    const reconnectButton = screen.getByText('再接続');
+    const countBeforeReconnect = MockWebSocket.instances.length;
+
+    fireEvent.click(reconnectButton);
+
+    expect(MockWebSocket.instances).toHaveLength(countBeforeReconnect + 1);
+    expect(screen.getByText(/クイズ大会の接続状態: 接続中/)).toBeInTheDocument();
+
+    vi.useRealTimers();
+  }, 20000);
+
   it('shows the responder\'s name to the admin when a participant buzzes in, and resets it once the next card is shown (issue #510)', async () => {
     class MockWebSocket {
       constructor(url) {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuizRoomSync } from "../hooks/useQuizRoomSync";
+import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
 import { unlockAudioPlayback, playSharedAudio } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
@@ -8,13 +8,6 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
 // ルーム作成（管理者側の導線）はここではなく、通常のかるた読み上げ画面の
 // フッターのボタン→QuizRoomInfoView（issue #547）経由で行う（App.jsx参照）
-
-const CONNECTION_STATUS_LABEL = {
-  idle: "未接続",
-  connecting: "接続中...",
-  connected: "接続済み",
-  error: "接続できませんでした",
-};
 
 const MAX_NAME_LENGTH = 20; // backend/quizRoomHandler.jsのMAX_NAME_LENGTHと合わせる（早押し機能、issue #510）
 
@@ -125,7 +118,7 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     }
   };
 
-  const { connectionStatus, setParticipantName, buzz } = useQuizRoomSync({
+  const { connectionStatus, setParticipantName, buzz, reconnect } = useQuizRoomSync({
     wsBaseUrl,
     roomId: joinRoomId,
     onState: setRoomState,
@@ -346,7 +339,21 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
-        <p className="text-muted small mb-3">接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</p>
+        <p className="text-muted small mb-3">
+          <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
+          {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
+              自動的に再接続を試みるが、それでも復帰しない場合に手動でやり直せる導線が
+              無かったため追加する */}
+          {connectionStatus === "error" && (
+            <button
+              type="button"
+              onClick={reconnect}
+              className="btn btn-sm btn-outline-danger rounded-pill ms-2"
+            >
+              再接続
+            </button>
+          )}
+        </p>
         <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
         {renderParticipantContent(roomState)}
         {buzzedBy ? (
