@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.46.0",
+    "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **deps:** ルート直下のpackage-lock.jsonの不整合を解消する ([#645](https://github.com/bamiyanapp/karuta/issues/645)) ([618a425](https://github.com/bamiyanapp/karuta/commit/618a425c8b326f38574095fa608aadaa99ee42a8)), closes [#340](https://github.com/bamiyanapp/karuta/issues/340)\n* **quiz-room:** 画面ロック・バックグラウンド復帰後にWebSocketを再接続する ([#637](https://github.com/bamiyanapp/karuta/issues/637)) ([539c77d](https://github.com/bamiyanapp/karuta/commit/539c77dc730172745aefe26f52575c129815537a)), closes [#614](https://github.com/bamiyanapp/karuta/issues/614) [#614](https://github.com/bamiyanapp/karuta/issues/614)\n\n\n### Features\n\n* **quiz-room:** 管理者がポイントを明示的にリセットできるようにする ([#644](https://github.com/bamiyanapp/karuta/issues/644)) ([20c9a9c](https://github.com/bamiyanapp/karuta/commit/20c9a9ca5b759ea35629e092533ea0c25dd5dd4b)), closes [#615](https://github.com/bamiyanapp/karuta/issues/615)"
+  },
+  {
     "version": "1.45.0",
-    "date": "2026/07/17",
+    "date": "2026/07/17 23:19",
     "body": "### Features\n\n* **e2e:** PRの変更と無関係なE2Eスクリーンショットを折りたたむ ([#634](https://github.com/bamiyanapp/karuta/issues/634)) ([60c3132](https://github.com/bamiyanapp/karuta/commit/60c31324cbfadf6efd09a730ab26370f0270caeb)), closes [#628](https://github.com/bamiyanapp/karuta/issues/628)"
   },
   {
