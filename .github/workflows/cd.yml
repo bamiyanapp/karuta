@@ -65,7 +65,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
+          node-version: 24 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
           cache: 'npm'
           cache-dependency-path: package-lock.json
       # npm workspaces構成（issue #608）。個々のパッケージにlockfileが無くなった
