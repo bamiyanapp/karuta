@@ -1,3 +1,10 @@
+## [1.47.4](https://github.com/bamiyanapp/karuta/compare/v1.47.3...v1.47.4) (2026-07-18)
+
+
+### Bug Fixes
+
+* **ci:** CI/CDのNode.jsバージョンをbackend Lambdaランタイムに合わせて統一する ([#672](https://github.com/bamiyanapp/karuta/issues/672)) ([8ae035f](https://github.com/bamiyanapp/karuta/commit/8ae035fd1f1e79945b7730b8dc7da29105836338))
+
 ## [1.47.3](https://github.com/bamiyanapp/karuta/compare/v1.47.2...v1.47.3) (2026-07-18)
 
 
