@@ -153,7 +153,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText('このかるたはまだありません。')).toBeInTheDocument();
     });
-    expect(screen.queryByText(/決定/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/かるたを始める/)).not.toBeInTheDocument();
   });
 
   it('keeps the secondary navigation links reachable from the category selection screen', async () => {
@@ -198,7 +198,7 @@ describe('App', () => {
     fireEvent.click(screen.getByText('こども向け'));
 
     const cat1Button = await screen.findByRole('button', { name: /Cat1/ });
-    expect(screen.queryByText(/決定/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/かるたを始める/)).not.toBeInTheDocument();
 
     fireEvent.click(cat1Button);
 
@@ -339,17 +339,14 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
-
-    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Cat1・Cat2' })).toBeInTheDocument();
     });
   });
 
-  it('skips the possession-check question and shows a generic prompt when all selected categories have requiresPossessionCheck: false', async () => {
+  it('shows no possession-check notice when all selected categories have requiresPossessionCheck: false', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer', requiresPossessionCheck: false }, { name: 'Cat2', group: 'engineer', requiresPossessionCheck: false }] }) };
       if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
@@ -370,18 +367,16 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
+    expect(screen.queryByText(/をお手元にご用意ください/)).not.toBeInTheDocument();
 
-    await waitFor(() => screen.getByText('ゲームを開始しますか？'));
-    expect(screen.queryByText(/お手元に持っていますか/)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Cat1・Cat2' })).toBeInTheDocument();
     });
   });
 
-  it('only asks about the possession of categories with requiresPossessionCheck: true when a mix is selected', async () => {
+  it('only shows the possession-check notice for categories with requiresPossessionCheck: true when a mix is selected', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer', requiresPossessionCheck: true }, { name: 'Cat2', group: 'engineer', requiresPossessionCheck: false }] }) };
       if (url.includes('category=Cat1')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
@@ -402,9 +397,8 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
 
-    await waitFor(() => screen.getByText('「Cat1」をお手元に持っていますか？'));
+    await waitFor(() => screen.getByText('「Cat1」をお手元にご用意ください'));
   });
 
   it('requests announceCategory=true when reading with multiple categories selected', async () => {
@@ -430,10 +424,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
-
-    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -650,9 +641,7 @@ describe('App', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    await waitFor(() => screen.getByText(/「Cat1」「Cat2」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
 
     await waitFor(() => screen.getByText('次の札'));
     fireEvent.click(screen.getByText('次の札'));
@@ -927,8 +916,6 @@ describe('App', () => {
     categoryNames.forEach((name) => {
       fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }));
     });
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('絵札を印刷する'));
     fireEvent.click(screen.getByText('絵札を印刷する'));
@@ -1112,8 +1099,6 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('絵札を印刷する'));
     fireEvent.click(screen.getByText('絵札を印刷する'));
@@ -1167,7 +1152,7 @@ describe('App', () => {
     expect(cat3Button).toBeDisabled();
     fireEvent.click(cat3Button);
     expect(cat3Button).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText(/決定/)).toHaveTextContent('決定（2件選択中）');
+    expect(screen.getByText(/かるたを始める/)).toHaveTextContent('かるたを始める（2件選択中）');
   });
 
   it('fills a page across the category boundary instead of leaving trailing blanks', async () => {
@@ -1206,8 +1191,6 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
     fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    fireEvent.click(screen.getByText('はい'));
 
     await waitFor(() => screen.getByText('絵札を印刷する'));
     fireEvent.click(screen.getByText('絵札を印刷する'));
@@ -2394,10 +2377,7 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByText('エンジニア向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-
-    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
 
     // 参加者登録（issue #518）はカテゴリ確定モーダルではなく、読み札画面のボタンから行う
     await waitFor(() => screen.getByText('次の札'));
@@ -2434,7 +2414,7 @@ describe('App', () => {
     expect(within(hanakoCard).getByText(/0枚/)).toBeInTheDocument();
   }, 50000);
 
-  it('does not show the participant-registration UI in the category confirmation modal (issue #518)', async () => {
+  it('does not show the participant-registration UI on the category selection screen (issue #518)', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }),
@@ -2446,9 +2426,6 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByText('エンジニア向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-
-    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
 
     expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();
     expect(screen.queryByText('取った人を記録する参加者（任意）')).not.toBeInTheDocument();
@@ -2467,9 +2444,7 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByText('エンジニア向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
     await waitFor(() => screen.getByText('次の札'));
 
     expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();

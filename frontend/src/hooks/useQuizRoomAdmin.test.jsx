@@ -79,9 +79,7 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     fireEvent.click(await screen.findByText('エンジニア向け'));
     fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-    fireEvent.click(screen.getByText(/決定/));
-    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
-    fireEvent.click(screen.getByText('はい'));
+    fireEvent.click(screen.getByText(/かるたを始める/));
     await waitFor(() => screen.getByText('次の札'));
 
     // クイズ大会ルーム作成前は、参加者登録ボタンがルーム作成ボタンと並んで表示される

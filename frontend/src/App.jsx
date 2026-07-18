@@ -113,7 +113,6 @@ function App() {
   // 直前値の追跡用
   const [lastPhraseForTakenByReset, setLastPhraseForTakenByReset] = useState(null);
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [draftCategories, setDraftCategories] = useState([]);
 
   // コメント投稿用の状態
@@ -1061,18 +1060,27 @@ function App() {
 
   const handleDecideClick = () => {
     if (draftCategories.length === 0) return;
-    setShowConfirmModal(true);
-  };
-
-  const confirmCategory = () => {
     setSelectedCategories(draftCategories);
     setDraftCategories([]);
-    setShowConfirmModal(false);
     setView("game");
   };
 
-  const cancelCategory = () => {
-    setShowConfirmModal(false);
+  const handlePrintEfudaClick = () => {
+    if (draftCategories.length === 0) return;
+    setSelectedCategories(draftCategories);
+    setView("print-efuda");
+  };
+
+  // かるた選択画面から印刷画面へ直接遷移した場合（issue #636）はカテゴリを
+  // まだ「決定」していないため、戻る際はselectedCategoriesを空へ戻し
+  // かるた選択画面へ戻す。こども向け（issue #636の検討事項により、ゲーム画面
+  // フッターの印刷ボタンを引き続き使う）はゲーム画面から遷移しているため、
+  // selectedCategoriesはそのままゲーム画面へ戻す
+  const handlePrintEfudaBack = () => {
+    if (division === "engineer") {
+      setSelectedCategories([]);
+    }
+    setView("game");
   };
 
   const openDetail = (id, category) => {
@@ -1107,7 +1115,7 @@ function App() {
     return (
       <PrintEfudaView
         categoryLabel={categoryLabel}
-        setView={setView}
+        onBack={handlePrintEfudaBack}
         selectedCategories={selectedCategories}
         allPhrasesForCategory={allPhrasesForCategory}
         efudaPages={efudaPages}
@@ -1285,13 +1293,27 @@ function App() {
                   {draftCardCount >= MAX_EFUDA_PRINT_CARDS && "（上限に達しました）"}
                 </p>
               )}
-              <button
-                onClick={handleDecideClick}
-                disabled={draftCategories.length === 0}
-                className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
-              >
-                決定（{draftCategories.length}件選択中）
-              </button>
+              {draftCategoriesRequiringPossessionCheck.length > 0 && (
+                <p className="text-muted small mb-2">
+                  {draftCategoriesRequiringPossessionCheck.map(cat => `「${cat}」`).join("")}をお手元にご用意ください
+                </p>
+              )}
+              <div className="d-flex flex-column align-items-center gap-2">
+                <button
+                  onClick={handleDecideClick}
+                  disabled={draftCategories.length === 0}
+                  className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
+                >
+                  かるたを始める（{draftCategories.length}件選択中）
+                </button>
+                <button
+                  onClick={handlePrintEfudaClick}
+                  disabled={draftCategories.length === 0}
+                  className="btn btn-outline-dark px-4 rounded-pill"
+                >
+                  絵札を印刷する
+                </button>
+              </div>
             </div>
           )}
         </main>
@@ -1307,27 +1329,6 @@ function App() {
             更新履歴を見る
           </button>
         </div>
-
-        {showConfirmModal && (
-          <div className="modal fade show d-block modal-overlay" tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content rounded-4 border-0 shadow">
-                <div className="modal-body p-5 text-center">
-                  <h3 className="h5 mb-4 fw-bold">
-                    {draftCategoriesRequiringPossessionCheck.length > 0
-                      ? `${draftCategoriesRequiringPossessionCheck.map(cat => `「${cat}」`).join("")}をお手元に持っていますか？`
-                      : "ゲームを開始しますか？"}
-                  </h3>
-
-                  <div className="d-flex gap-2 justify-content-center">
-                    <button onClick={confirmCategory} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">はい</button>
-                    <button onClick={cancelCategory} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">いいえ</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -1616,7 +1617,12 @@ function App() {
         </section>
       <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
-        <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
+        {division === "kids" && (
+          // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
+          // 置けないため、従来どおりゲーム画面からの導線を残す。エンジニア向けは
+          // かるた選択画面の「かるたを始める」ボタン下に一本化したためここには置かない
+          <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
+        )}
         <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
       {quizRoom ? (

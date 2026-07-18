@@ -22,7 +22,7 @@ describe("PrintEfudaView", () => {
       <>
         <PrintEfudaView
           categoryLabel="テスト"
-          setView={() => {}}
+          onBack={() => {}}
           selectedCategories={[]}
           allPhrasesForCategory={[]}
           efudaPages={[]}
