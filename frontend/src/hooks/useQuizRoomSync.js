@@ -256,5 +256,13 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
     }
   }, []);
 
-  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz, reconnect: forceReconnect };
+  // ポイントリセット（issue #615）: 管理者が同じルームで2ゲーム目を始める際、
+  // 前のゲームのポイントを引き継がずに再スタートしたい場合に送信する
+  const resetPoints = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: "resetPoints" }));
+    }
+  }, []);
+
+  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz, resetPoints, reconnect: forceReconnect };
 }

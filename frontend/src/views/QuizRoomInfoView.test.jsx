@@ -60,6 +60,28 @@ describe('QuizRoomInfoView', () => {
   it('does not show the participant list section when there are no participants yet', () => {
     render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
     expect(screen.queryByText('参加者一覧')).not.toBeInTheDocument();
+    expect(screen.queryByText('ポイントをリセット')).not.toBeInTheDocument();
+  });
+
+  it('calls resetQuizRoomPoints only after the admin confirms the reset (issue #615)', () => {
+    const resetQuizRoomPoints = vi.fn();
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(
+      <QuizRoomInfoView
+        setView={vi.fn()}
+        roomId="ABC123"
+        quizRoomParticipants={['たろう']}
+        quizRoomPoints={{ たろう: 3 }}
+        resetQuizRoomPoints={resetQuizRoomPoints}
+      />
+    );
+
+    fireEvent.click(screen.getByText('ポイントをリセット'));
+    expect(resetQuizRoomPoints).not.toHaveBeenCalled();
+
+    window.confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByText('ポイントをリセット'));
+    expect(resetQuizRoomPoints).toHaveBeenCalled();
   });
 
   it('lets the admin go back to the normal game screen', () => {

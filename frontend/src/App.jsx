@@ -906,6 +906,7 @@ function App() {
     quizRoomParticipants,
     quizRoomConnectionStatus,
     reconnectQuizRoom,
+    resetQuizRoomPoints,
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,
@@ -1158,6 +1159,7 @@ function App() {
         roomId={quizRoom.roomId}
         quizRoomParticipants={quizRoomParticipants}
         quizRoomPoints={quizRoomPoints}
+        resetQuizRoomPoints={resetQuizRoomPoints}
       />
     );
   }

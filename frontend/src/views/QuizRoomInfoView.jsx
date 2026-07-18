@@ -8,7 +8,7 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 // useQuizRoomSync（WebSocket接続）はApp.jsx側のトップレベルで呼ばれており、
 // view遷移によってApp自体がアンマウントされることはないため、この画面への
 // 遷移中も読み上げ・早押し等のクイズ大会の進行状態は維持される
-function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {} }) {
+function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, resetQuizRoomPoints }) {
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -24,6 +24,16 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
   // 統合して表示する。以前は通常のゲーム画面にインラインで表示していたが、ルーム情報
   // 画面（この画面）の下部へ移動し、表形式に変更した（issue #587）
   const participantList = mergeParticipantsWithPoints(quizRoomParticipants, quizRoomPoints);
+
+  // ポイントリセット（issue #615）: 同じルームで2ゲーム目を始める際、前のゲームの
+  // ポイントを引き継がずに再スタートしたい場合に管理者が明示的に実行する。取り消せない
+  // 操作のため確認ダイアログを挟む（ゲームリセット等での自動リセットは行わない。
+  // カテゴリを切り替えても通算得点で戦い続けたいユースケースを壊さないため）
+  const handleResetPoints = () => {
+    if (window.confirm("参加者全員のポイントをリセットします。よろしいですか？")) {
+      resetQuizRoomPoints?.();
+    }
+  };
 
   const copyUrl = async () => {
     try {
@@ -84,6 +94,11 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
               ))}
             </tbody>
           </table>
+          <div className="text-end mt-2">
+            <button type="button" onClick={handleResetPoints} className="btn btn-sm btn-outline-danger">
+              ポイントをリセット
+            </button>
+          </div>
         </div>
       )}
       <div className="mt-5">
