@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.48.1",
+    "version": "1.48.2",
     "date": "2026/07/18",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードの効果音再生エラーを診断表示する ([#681](https://github.com/bamiyanapp/karuta/issues/681)) ([9e1e3ea](https://github.com/bamiyanapp/karuta/commit/9e1e3ea07c7acd12e0ad62b404d2b4b785f489b0))"
+  },
+  {
+    "version": "1.48.1",
+    "date": "2026/07/18 21:40",
     "body": "### Bug Fixes\n\n* **ci:** RenovateによるNode.jsバージョンの巻き戻しを修正し再発を防止する ([#676](https://github.com/bamiyanapp/karuta/issues/676)) ([9a6fce9](https://github.com/bamiyanapp/karuta/commit/9a6fce9f921b3d8e07a3c359093cb0bcd4196b43))"
   },
   {
