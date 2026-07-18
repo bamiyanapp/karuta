@@ -215,8 +215,6 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows the admin a connection warning once the connection is lost, and a reconnect button once retries are exhausted (issue #614)', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-
     class MockWebSocket {
       constructor(url) {
         this.url = url;
@@ -262,6 +260,12 @@ describe('useQuizRoomAdmin (via App)', () => {
     // 促す必要が無いため）
     expect(screen.getByText(/クイズ大会の接続状態: 接続中/)).toBeInTheDocument();
     expect(screen.queryByText('再接続')).not.toBeInTheDocument();
+
+    // 再接続の待ち時間（3秒間隔）を手動で進めるため、ここでフェイクタイマーへ
+    // 切り替える（ここまでのAppの初期表示・ルーム作成は実タイマーのまま行う。
+    // shouldAdvanceTime: trueは実時間の経過とfireTimersByTimeの呼び出しが
+    // 競合しMockWebSocket.instancesの数え上げがずれることがあったため使わない）
+    vi.useFakeTimers();
 
     // 再接続の上限（5回）まで切断を繰り返し、"error"状態に到達させる
     for (let attempt = 0; attempt < 6; attempt += 1) {
