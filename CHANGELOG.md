@@ -1,3 +1,10 @@
+## [1.46.2](https://github.com/bamiyanapp/karuta/compare/v1.46.1...v1.46.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* **quiz-room:** 誤ったルームコードの即時エラー表示と開設中ルーム一覧の絞り込みを実装する ([#653](https://github.com/bamiyanapp/karuta/issues/653)) ([901be7c](https://github.com/bamiyanapp/karuta/commit/901be7cd94f1bb05ecd734807ed93ee610907954))
+
 ## [1.46.1](https://github.com/bamiyanapp/karuta/compare/v1.46.0...v1.46.1) (2026-07-18)
 
 

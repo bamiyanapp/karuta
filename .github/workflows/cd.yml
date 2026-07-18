@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v1.3.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v1.5.0
     with:
       enable_release: true
       enable_changelog_json: true
@@ -40,18 +40,14 @@ jobs:
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
-      # TODO(issue #608): bamiyanapp/dev-standards#89（deploy-github-pages
-      # 複合actionのworkspaces対応）のマージ・リリース後、参照タグを更新した上で
-      # `workspaces: true`を追加すること。npm workspaces構成への移行により
-      # frontend/package-lock.jsonが存在しなくなったため、それまでは本ステップの
-      # `npm ci`（working-directory: frontend）が失敗する
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.4.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.5.0
         with:
           working-directory: frontend
           node-version: 24
           artifact-path: frontend/dist
+          workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
       - name: Show GitHub Pages URL
         run: |
           echo "Pages URL: ${{ steps.deploy.outputs.page-url }}"
