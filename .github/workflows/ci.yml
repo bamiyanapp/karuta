@@ -16,11 +16,12 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v1.3.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v1.4.0
     with:
       frontend_dir: frontend
       backend_dir: backend
       enable_e2e_test: true
       enable_standards_check: true
+      workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}

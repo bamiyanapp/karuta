@@ -40,9 +40,14 @@ jobs:
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
+      # TODO(issue #608): bamiyanapp/dev-standards#89（deploy-github-pages
+      # 複合actionのworkspaces対応）のマージ・リリース後、参照タグを更新した上で
+      # `workspaces: true`を追加すること。npm workspaces構成への移行により
+      # frontend/package-lock.jsonが存在しなくなったため、それまでは本ステップの
+      # `npm ci`（working-directory: frontend）が失敗する
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.3.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.4.0
         with:
           working-directory: frontend
           node-version: 24
@@ -66,9 +71,12 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces構成（issue #608）。個々のパッケージにlockfileが無くなった
+      # ため、リポジトリルートで一括インストールする（`.npmrc`のinstall-strategy=
+      # nestedにより、backend/node_modules配下に実行時依存が完全な形で
+      # 展開されるため、後段のserverless packagingへの影響は無い）
       - name: Install dependencies
-        working-directory: backend
         run: npm ci
       - name: 🚀 Deploy Backend (Serverless Framework)
         working-directory: backend
