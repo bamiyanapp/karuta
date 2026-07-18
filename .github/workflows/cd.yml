@@ -82,9 +82,16 @@ jobs:
         # ランナーのデフォルトのファイルディスクリプタ上限（1024）を超えて
         # `EMFILE: too many open files`でデプロイが失敗することを確認した
         # （issue #608のPR #654マージ後の初回デプロイで実際に発生）。
-        # ソフトリミットをハードリミットまで引き上げて回避する
+        # ソフトリミットを65536へ引き上げる対応（PR #663）を行ったが、
+        # それでも別のパッケージ（@aws-sdk/s3-request-presigner配下の
+        # @smithy/core）でEMFILEが再発した（PR #663マージ後の実際のCD実行）。
+        # 65536でも足りないほどファイル数が多いため、ソフトリミットを
+        # ハードリミットまで引き上げる（実際の上限値はランナーによって
+        # 異なるためログへ出力し、以降の障害調査で参照できるようにする）
         run: |
-          ulimit -n 65536
+          echo "file descriptor limits: soft=$(ulimit -Sn) hard=$(ulimit -Hn)"
+          ulimit -n "$(ulimit -Hn)"
+          echo "file descriptor limit after adjustment: $(ulimit -n)"
           npx serverless deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
