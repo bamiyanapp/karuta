@@ -41,6 +41,10 @@ export function useQuizRoomAdmin({
   // QuizRoomView.jsxのbuzzRoundKeyと同じ考え方で、resultの間はリセットしない）
   const [quizRoomBuzzedBy, setQuizRoomBuzzedBy] = useState(null);
   const [quizRoomBuzzRoundKey, setQuizRoomBuzzRoundKey] = useState(null);
+  // issue #679診断用（後で削除予定）: 効果音の再生に失敗した場合、原因調査のため
+  // 画面上にエラー内容を表示する。スマホオンリーの開発環境ではブラウザの
+  // devtoolsでconsole出力を確認できないため、console.errorだけでは診断できない
+  const [quizRoomSfxError, setQuizRoomSfxError] = useState(null);
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
   // ポイントを一覧表示する
   const [quizRoomPoints, setQuizRoomPoints] = useState({});
@@ -102,7 +106,10 @@ export function useQuizRoomAdmin({
     onState: noop,
     onBuzz: (buzzedBy) => {
       // issue #613: 参加者の早押しを管理者側にも音で通知する
-      playQuizSfx("buzz", "/quiz-buzz.mp3").catch(() => {});
+      playQuizSfx("buzz", "/quiz-buzz.mp3").catch((error) => {
+        // issue #679診断用（後で削除予定）
+        setQuizRoomSfxError(`buzz: ${error?.name || error}`);
+      });
       setQuizRoomBuzzedBy(buzzedBy);
     },
     onPoints: setQuizRoomPoints,
@@ -123,7 +130,10 @@ export function useQuizRoomAdmin({
     // issue #613: 正誤判定した瞬間に管理者側でも結果を音で確認できるようにする。
     // ボタン押下という実際のユーザー操作の中で呼ぶため、事前のunlockAudioPlayback()
     // なしでも再生できる
-    playQuizSfx(correct ? "correct" : "incorrect", correct ? "/quiz-correct.mp3" : "/quiz-incorrect.mp3").catch(() => {});
+    playQuizSfx(correct ? "correct" : "incorrect", correct ? "/quiz-correct.mp3" : "/quiz-incorrect.mp3").catch((error) => {
+      // issue #679診断用（後で削除予定）
+      setQuizRoomSfxError(`${correct ? "correct" : "incorrect"}: ${error?.name || error}`);
+    });
     if (correct) {
       await revealCurrentResult(winner);
     }
@@ -227,6 +237,7 @@ export function useQuizRoomAdmin({
     quizRoomCreateError,
     openQuizRooms,
     quizRoomBuzzedBy,
+    quizRoomSfxError,
     quizRoomPoints,
     quizRoomParticipants,
     quizRoomConnectionStatus,
