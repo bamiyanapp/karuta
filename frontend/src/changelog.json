@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.47.4",
+    "version": "1.48.0",
     "date": "2026/07/18",
+    "body": "### Features\n\n* **frontend:** カテゴリ確定と絵札印刷の導線を統合する ([#675](https://github.com/bamiyanapp/karuta/issues/675)) ([0c9a911](https://github.com/bamiyanapp/karuta/commit/0c9a91179cd72433b7349b7673079960f48bfb9a)), closes [#642](https://github.com/bamiyanapp/karuta/issues/642)"
+  },
+  {
+    "version": "1.47.4",
+    "date": "2026/07/18 21:05",
     "body": "### Bug Fixes\n\n* **ci:** CI/CDのNode.jsバージョンをbackend Lambdaランタイムに合わせて統一する ([#672](https://github.com/bamiyanapp/karuta/issues/672)) ([8ae035f](https://github.com/bamiyanapp/karuta/commit/8ae035fd1f1e79945b7730b8dc7da29105836338))"
   },
   {
