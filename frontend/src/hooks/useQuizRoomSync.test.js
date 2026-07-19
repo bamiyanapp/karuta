@@ -321,8 +321,11 @@ describe('useQuizRoomSync', () => {
     ]);
   });
 
-  it('periodically re-requests sync while connected, as a fallback in case a broadcast is missed', () => {
+  it('periodically re-requests sync while connected, as a fallback in case a broadcast is missed (issue #619: 45秒基準+ジッター)', () => {
     vi.useFakeTimers();
+    // ジッター（Math.random() * SYNC_POLL_JITTER_MS）を0固定にし、間隔を基準値
+    // （45秒）ちょうどに決定的にする
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
 
     act(() => {
@@ -331,7 +334,7 @@ describe('useQuizRoomSync', () => {
     expect(MockWebSocket.instances[0].sent).toEqual([JSON.stringify({ action: 'sync' })]);
 
     act(() => {
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(45000);
     });
     expect(MockWebSocket.instances[0].sent).toEqual([
       JSON.stringify({ action: 'sync' }),
@@ -339,9 +342,43 @@ describe('useQuizRoomSync', () => {
     ]);
 
     act(() => {
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(45000);
     });
     expect(MockWebSocket.instances[0].sent).toHaveLength(3);
+
+    randomSpy.mockRestore();
+  });
+
+  it('skips sending the periodic sync while the tab is hidden, and resumes once visible again (issue #619)', () => {
+    vi.useFakeTimers();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const setVisibilityState = (state) => {
+      Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+    };
+
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn() }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+    });
+    expect(MockWebSocket.instances[0].sent).toHaveLength(1);
+
+    setVisibilityState('hidden');
+    act(() => {
+      vi.advanceTimersByTime(45000);
+    });
+    // 非表示の間はポーリングのsync送信自体をスキップする
+    expect(MockWebSocket.instances[0].sent).toHaveLength(1);
+
+    // フォアグラウンド復帰時、visibilitychangeハンドラが即座に1回同期する
+    setVisibilityState('visible');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(MockWebSocket.instances[0].sent).toHaveLength(2);
+
+    randomSpy.mockRestore();
+    setVisibilityState('visible');
   });
 
   it('stops polling once the connection closes', () => {
