@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.48.4",
+    "version": "1.48.5",
     "date": "2026/07/19",
+    "body": "### Performance Improvements\n\n* **frontend:** クイズ大会syncポーリングの間隔を延長し非表示タブで停止する ([#688](https://github.com/bamiyanapp/karuta/issues/688)) ([ec755d6](https://github.com/bamiyanapp/karuta/commit/ec755d6c6866053e3e106799af4f987ad220413f))"
+  },
+  {
+    "version": "1.48.4",
+    "date": "2026/07/19 05:35",
     "body": "### Bug Fixes\n\n* **frontend:** 不正解時に誤答者へ明確なフィードバックを表示する ([#686](https://github.com/bamiyanapp/karuta/issues/686)) ([bffc252](https://github.com/bamiyanapp/karuta/commit/bffc2525d52f39fa31aecc8808cbe7445bb81b21))"
   },
   {

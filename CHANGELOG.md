@@ -1,3 +1,10 @@
+## [1.48.5](https://github.com/bamiyanapp/karuta/compare/v1.48.4...v1.48.5) (2026-07-19)
+
+
+### Performance Improvements
+
+* **frontend:** クイズ大会syncポーリングの間隔を延長し非表示タブで停止する ([#688](https://github.com/bamiyanapp/karuta/issues/688)) ([ec755d6](https://github.com/bamiyanapp/karuta/commit/ec755d6c6866053e3e106799af4f987ad220413f))
+
 ## [1.48.4](https://github.com/bamiyanapp/karuta/compare/v1.48.3...v1.48.4) (2026-07-19)
 
 
