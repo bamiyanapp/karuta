@@ -9,8 +9,14 @@ const MAX_RECONNECT_ATTEMPTS = 5; // 際限ない再接続ループを防ぐた�
 const ERROR_RETRY_INTERVAL_MS = 15000;
 // プッシュ通知（updateStateのブロードキャスト）が何らかの理由で届かなかった場合に備え、
 // 一定間隔でsyncを再要求し自己修復させる保険（本来はプッシュのみで完結するはずだが、
-// 個別のブロードキャスト送信が届かないケースを完全には排除できないため）
-const SYNC_POLL_INTERVAL_MS = 5000;
+// 個別のブロードキャスト送信が届かないケースを完全には排除できないため）。
+// issue #619: 保険である以上は低頻度で十分なため、参加者数に比例して定常的に発生する
+// Lambda実行・DynamoDB読み取り・WebSocket送信を削減する目的で5秒から延長した。
+// 固定間隔のsetIntervalではなく、送信のたびにランダムなジッターを加えて次回を
+// スケジュールし直す（下記scheduleNextSyncPoll）ことで、同一ルームの全接続が
+// 同時刻に送信を送って負荷が偏るのを防ぐ
+const SYNC_POLL_BASE_INTERVAL_MS = 45000;
+const SYNC_POLL_JITTER_MS = 15000;
 
 // connectionStatusの値ごとの表示ラベル。参加者画面（QuizRoomView.jsx）・
 // 管理者画面（App.jsx、issue #614で追加）の両方で同じ表記を使うため共有する
@@ -115,11 +121,22 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
         if (pendingNameRef.current !== null) {
           ws.send(JSON.stringify({ action: "setName", name: pendingNameRef.current }));
         }
-        pollTimerRef.current = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ action: "sync" }));
-          }
-        }, SYNC_POLL_INTERVAL_MS);
+        // issue #619: 固定間隔のsetIntervalではなく、送信のたびにジッターを加えて
+        // 次回をスケジュールし直すsetTimeoutチェーンにする。あわせて、タブが
+        // 非表示（document.hidden）の間は送信自体をスキップしてコストを抑える
+        // （フォアグラウンド復帰時は下記のvisibilitychangeハンドラが即座に1回同期する）
+        const scheduleNextSyncPoll = () => {
+          const delay = SYNC_POLL_BASE_INTERVAL_MS + Math.random() * SYNC_POLL_JITTER_MS;
+          pollTimerRef.current = setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              if (typeof document === "undefined" || document.visibilityState === "visible") {
+                ws.send(JSON.stringify({ action: "sync" }));
+              }
+              scheduleNextSyncPoll();
+            }
+          }, delay);
+        };
+        scheduleNextSyncPoll();
       };
 
       ws.onmessage = (event) => {
@@ -149,7 +166,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
 
       ws.onclose = () => {
         if (pollTimerRef.current) {
-          clearInterval(pollTimerRef.current);
+          clearTimeout(pollTimerRef.current);
           pollTimerRef.current = null;
         }
         if (closedByCleanupRef.current) {
@@ -178,7 +195,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (pollTimerRef.current) {
-        clearInterval(pollTimerRef.current);
+        clearTimeout(pollTimerRef.current);
       }
       wsRef.current?.close();
     };
@@ -215,9 +232,17 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
       return undefined;
     }
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        forceReconnect();
+      if (document.visibilityState !== "visible") {
+        return;
       }
+      // issue #619: 非表示の間はポーリング（sync）自体を送っていないため、接続が
+      // 生きたままフォアグラウンドに復帰した場合はforceReconnect（読み込み中でない
+      // 場合は何もしない）に任せず、その場で1回同期して即座に最新状態を反映する
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ action: "sync" }));
+        return;
+      }
+      forceReconnect();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("online", forceReconnect);
