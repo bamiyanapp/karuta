@@ -1,3 +1,10 @@
+# [1.49.0](https://github.com/bamiyanapp/karuta/compare/v1.48.5...v1.49.0) (2026-07-19)
+
+
+### Features
+
+* **backend:** モダン開発かるた・法則と効果かるたを大ピンチ系に変更 ([#691](https://github.com/bamiyanapp/karuta/issues/691)) ([e21ca88](https://github.com/bamiyanapp/karuta/commit/e21ca8894e49153a111677f0c591d4c931707b74))
+
 ## [1.48.5](https://github.com/bamiyanapp/karuta/compare/v1.48.4...v1.48.5) (2026-07-19)
 
 
