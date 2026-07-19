@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.48.5",
+    "version": "1.49.0",
     "date": "2026/07/19",
+    "body": "### Features\n\n* **backend:** モダン開発かるた・法則と効果かるたを大ピンチ系に変更 ([#691](https://github.com/bamiyanapp/karuta/issues/691)) ([e21ca88](https://github.com/bamiyanapp/karuta/commit/e21ca8894e49153a111677f0c591d4c931707b74))"
+  },
+  {
+    "version": "1.48.5",
+    "date": "2026/07/19 06:00",
     "body": "### Performance Improvements\n\n* **frontend:** クイズ大会syncポーリングの間隔を延長し非表示タブで停止する ([#688](https://github.com/bamiyanapp/karuta/issues/688)) ([ec755d6](https://github.com/bamiyanapp/karuta/commit/ec755d6c6866053e3e106799af4f987ad220413f))"
   },
   {
