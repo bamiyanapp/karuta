@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.48.4",
+    "date": "2026/07/19",
+    "body": "### Bug Fixes\n\n* **frontend:** 不正解時に誤答者へ明確なフィードバックを表示する ([#686](https://github.com/bamiyanapp/karuta/issues/686)) ([bffc252](https://github.com/bamiyanapp/karuta/commit/bffc2525d52f39fa31aecc8808cbe7445bb81b21))"
+  },
+  {
     "version": "1.48.3",
-    "date": "2026/07/18",
+    "date": "2026/07/18 22:49",
     "body": "### Bug Fixes\n\n* **frontend:** クイズ大会効果音の絶対パスをbase設定に合わせ相対化する ([#683](https://github.com/bamiyanapp/karuta/issues/683)) ([8468afa](https://github.com/bamiyanapp/karuta/commit/8468afabfdbae07e5b1b791ca91a7125f7c51a78))"
   },
   {
