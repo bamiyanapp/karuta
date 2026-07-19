@@ -14,7 +14,8 @@ const TABLE_NAME = "karuta-phrases";
 // key: 変更後（CSV上の現在の）カテゴリ名, value: 過去に使っていたカテゴリ名の配列
 // （categoryはDynamoDBのキーの一部のため、名前を変えると別レコード扱いになってしまう）
 const CATEGORY_RENAMES = {
-  "モダン開発かるた": ["モダンソフトウェア開発かるた"],
+  "モダン開発大ピンチ": ["モダン開発かるた", "モダンソフトウェア開発かるた"],
+  "大ピンチ法則かるた": ["法則と効果かるた"],
 };
 
 async function seed() {

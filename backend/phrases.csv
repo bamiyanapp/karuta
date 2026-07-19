@@ -697,131 +697,131 @@ id,category,level,kana,phrase,phrase_en,answer,group
 1933,Windows大ピンチ,43,`,かな入力に　なってしまった,I accidentally switched input modes.,Alt+`,engineer
 1934,Windows大ピンチ,41,D,同じ操作を　何度も繰り返している,I'm repeating the same action over and over.,Ctrl+D,engineer
 1935,Windows大ピンチ,44,F,右クリックメニューを　開きたい,I need the context menu without a mouse.,Shift+F10,engineer
-2001,モダン開発かるた,-,し,不具合は後ではなく、できるだけ開発の早い段階で見つけようという考え方。,"The idea of finding bugs as early in development as possible, rather than later.",シフトレフト,engineer
-2002,モダン開発かるた,-,し,リリース後の利用状況や運用データを開発改善に活かす考え方。,The idea of using post-release usage and operational data to improve development.,シフトライト,engineer
-2003,モダン開発かるた,-,D,開発と運用の壁をなくし、素早く価値を届ける文化や手法。,A culture and set of practices that break down the wall between development and operations to deliver value faster.,DevOps,engineer
-2004,モダン開発かるた,-,D,セキュリティを開発や運用の後付けではなく、最初から組み込む考え方。,"The idea of building security in from the start, rather than adding it on after development and operations.",DevSecOps,engineer
-2005,モダン開発かるた,-,G,Gitを唯一の正しい状態としてインフラやアプリを管理する運用手法。,An operational approach that manages infrastructure and applications using Git as the single source of truth.,GitOps,engineer
-2006,モダン開発かるた,-,P,開発者が開発に集中できる共通基盤を提供する取り組み。,An initiative that provides a shared platform so developers can focus on building.,Platform Engineering,engineer
-2007,モダン開発かるた,-,D,業務知識を中心にソフトウェアを設計する設計手法。,A design approach that puts business and domain knowledge at the center of software design.,DDD,engineer
-2008,モダン開発かるた,-,T,まずテストを書き、その後で実装する開発手法。,"A development method where you write the test first, then the implementation.",TDD,engineer
-2009,モダン開発かるた,-,B,利用者の振る舞いを基準に仕様を表現しながら開発する手法。,A method of developing while expressing specifications based on user behavior.,BDD,engineer
-2010,モダン開発かるた,-,り,動作は変えずにコードの構造だけを改善する作業。,The work of improving code structure without changing its behavior.,リファクタリング,engineer
-2011,モダン開発かるた,-,C,コード変更を頻繁に統合し、自動ビルドやテストを行う仕組み。,A mechanism that frequently integrates code changes and runs automated builds and tests.,CI,engineer
-2012,モダン開発かるた,-,C,いつでもリリースできる状態を維持する継続的な開発手法。,A continuous development practice that keeps software always ready to release.,Continuous Delivery,engineer
-2013,モダン開発かるた,-,C,テストに合格した変更を人手を介さず本番へ反映する仕組み。,A mechanism that automatically deploys changes that pass tests to production without human intervention.,Continuous Deployment,engineer
-2014,モダン開発かるた,-,ひ,一定の品質基準を満たさなければ先へ進めない仕組み。,A mechanism that blocks progress unless a certain quality standard is met.,品質ゲート,engineer
-2015,モダン開発かるた,-,ふ,デプロイせずに機能のオン・オフを切り替える仕組み。,A mechanism for turning features on and off without redeploying.,フィーチャーフラグ,engineer
-2016,モダン開発かるた,-,か,一部の利用者だけに新機能を公開して安全性を確認する手法。,A technique that releases a new feature to only a subset of users to verify its safety.,カナリアリリース,engineer
-2017,モダン開発かるた,-,ぶ,新旧2つの環境を切り替えて安全にリリースする手法。,"A technique that safely releases software by switching between two environments, old and new.",ブルーグリーンデプロイ,engineer
-2018,モダン開発かるた,-,と,長期間ブランチを分けず、メインブランチへ頻繁に統合する開発手法。,A development method that avoids long-lived branches and integrates into the main branch frequently.,トランクベース開発,engineer
-2019,モダン開発かるた,-,I,サーバーやクラウド構成をコードとして管理する考え方。,The idea of managing server and cloud configuration as code.,IaC,engineer
-2020,モダン開発かるた,-,D,アプリケーションを実行環境ごとパッケージ化するコンテナ技術。,A container technology that packages an application together with its runtime environment.,Docker,engineer
-2021,モダン開発かるた,-,K,コンテナを自動配置・運用・拡張するオーケストレーション基盤。,"An orchestration platform that automatically deploys, operates, and scales containers.",Kubernetes,engineer
-2022,モダン開発かるた,-,さ,サービス間通信を共通基盤で管理する仕組み。,A mechanism that manages communication between services through a common infrastructure layer.,サービスメッシュ,engineer
-2023,モダン開発かるた,-,さ,サーバー管理を意識せずアプリケーションを実行する仕組み。,A mechanism for running applications without having to manage servers.,サーバーレス,engineer
-2024,モダン開発かるた,-,ま,システムを小さな独立したサービスへ分割する設計。,"A design that splits a system into small, independent services.",マイクロサービス,engineer
-2025,モダン開発かるた,-,も,モノリスを保ちながら内部を疎結合なモジュールで構成する設計。,A design that keeps a monolith while structuring its internals as loosely coupled modules.,モジュラーモノリス,engineer
-2026,モダン開発かるた,-,く,ビジネスロジックを外部技術から独立させる設計思想。,A design philosophy that keeps business logic independent of external technologies.,クリーンアーキテクチャ,engineer
-2027,モダン開発かるた,-,C,更新処理と参照処理を分離して設計するアーキテクチャ。,An architecture that separates the design of update processing from read processing.,CQRS,engineer
-2028,モダン開発かるた,-,E,状態ではなく発生したイベントを記録してシステムを管理する手法。,"A technique that manages a system by recording the events that occurred, rather than its state.",Event Sourcing,engineer
-2029,モダン開発かるた,-,O,システム内部の状態を外部から把握しやすくする考え方。,The idea of making a system's internal state easy to understand from the outside.,Observability,engineer
-2030,モダン開発かるた,-,O,ログ・メトリクス・トレースを共通仕様で収集する仕組み。,"A mechanism for collecting logs, metrics, and traces under a common specification.",OpenTelemetry,engineer
-2031,モダン開発かるた,-,S,サービス品質を測るための具体的な指標。,A concrete metric used to measure the quality of a service.,SLI,engineer
-2032,モダン開発かるた,-,S,サービス品質について目標値を定めたもの。,A defined target value for a service's quality.,SLO,engineer
-2033,モダン開発かるた,-,え,許容できる障害や失敗の範囲を数値化した考え方。,The idea of quantifying the acceptable range of failures or outages.,エラーバジェット,engineer
-2034,モダン開発かるた,-,ぽ,障害後に原因や改善策を振り返る活動。,An activity that reviews the cause and improvements after an incident.,ポストモーテム,engineer
-2035,モダン開発かるた,-,Z,社内外を問わず何も信用せず毎回検証するセキュリティモデル。,"A security model that trusts nothing, inside or outside the network, and verifies every time.",Zero Trust,engineer
-2036,モダン開発かるた,-,S,ソフトウェアを構成する部品一覧をまとめた情報。,Information that lists the components that make up a piece of software.,SBOM,engineer
-2037,モダン開発かるた,-,P,ルールやポリシーをコードで管理・自動適用する手法。,A technique for managing and automatically enforcing rules and policies as code.,Policy as Code,engineer
-2038,モダン開発かるた,-,F,デリバリー性能を4つの指標で測定するフレームワーク。,A framework that measures delivery performance using four metrics.,Four Keys,engineer
-2039,モダン開発かるた,-,D,開発組織の成果を測る代表的な4つの指標。,A representative set of four metrics for measuring a development organization's performance.,DORAメトリクス,engineer
-2040,モダン開発かるた,-,S,生産性を多面的に評価するためのフレームワーク。,A framework for evaluating productivity from multiple perspectives.,SPACEフレームワーク,engineer
-2041,モダン開発かるた,-,D,開発者が快適に開発できる体験を重視する考え方。,An idea that values the experience of developers being able to work comfortably.,DevEx,engineer
-2042,モダン開発かるた,-,C,開発者が理解や作業に必要とする認知的な負荷。,The mental effort a developer needs to understand and do their work.,Cognitive Load,engineer
-2043,モダン開発かるた,-,ぎ,将来の保守性を犠牲にして短期的な開発を優先した結果生じる問題。,Problems that arise from prioritizing short-term development at the expense of future maintainability.,技術的負債,engineer
-2044,モダン開発かるた,-,ご,開発者が迷わず利用できる推奨された標準的な開発手順。,"A recommended, standard development path that developers can follow without confusion.",ゴールデンパス,engineer
-2045,モダン開発かるた,-,A,人の指示だけでなく、自律的に判断しながら作業を進めるAI。,"An AI that carries out work by making its own decisions, not just following instructions.",AIエージェント,engineer
-2046,モダン開発かるた,-,C,AIが必要な情報を適切に利用できるよう文脈を設計する技術。,The technique of designing context so an AI can properly use the information it needs.,Context Engineering,engineer
-2047,モダン開発かるた,-,M,AIが外部ツールやデータと標準方式で連携するためのプロトコル。,A protocol that lets AI connect with external tools and data in a standard way.,MCP,engineer
-2048,モダン開発かるた,-,R,外部知識を検索してからAIが回答を生成する手法。,A technique where AI generates answers after retrieving external knowledge.,RAG,engineer
-2049,モダン開発かるた,-,A,AIが複数の工程を自律的に計画・実行するワークフロー。,A workflow in which AI autonomously plans and executes multiple steps.,Agentic Workflow,engineer
-2050,モダン開発かるた,-,A,設計上の重要な意思決定とその理由を記録する文書。,A document that records an important design decision and its rationale.,ADR,engineer
-2100,法則と効果かるた,79,べ,呼び出す回数によらず、同じ結果になる操作の性質。,A property of an operation that produces the same result no matter how many times it is called.,冪等性,engineer
-2101,法則と効果かるた,60,ぽ,送信するデータには厳格に、受け取るデータには寛容にせよという設計指針。,"Be strict in what you send, and lenient in what you accept.",ポステルの法則,engineer
-2102,法則と効果かるた,23,は,利用者が増えるほど、実装の詳細まで暗黙の仕様になってしまうという法則。,"With enough users, every observable behavior of a system becomes somebody's depended-upon interface.",ハイラムの法則,engineer
-2103,法則と効果かるた,55,り,目に触れる人が多いオープンソースほど、バグは早く見つかり浅くなるという法則。,"Given enough eyeballs, all bugs are shallow.",リーナスの法則,engineer
-2104,法則と効果かるた,14,ざ,組織のプロジェクトはいずれ、メール読み上げソフトを再発明することになるという法則。,Every program attempts to expand until it can read mail.,ザウィンスキーの法則,engineer
-2105,法則と効果かるた,34,め,ネットワークの価値は、利用者数の2乗に比例して大きくなるという法則。,The value of a network is proportional to the square of the number of its users.,メトカーフの法則,engineer
-2106,法則と効果かるた,94,む,半導体の集積度は、およそ2年ごとに倍になるという経験則。,The number of transistors on a chip doubles roughly every two years.,ムーアの法則,engineer
-2107,法則と効果かるた,64,C,分散システムでは、一貫性・可用性・分断耐性の3つを同時には満たせないという定理。,"A distributed system cannot simultaneously guarantee consistency, availability, and partition tolerance.",CAP定理,engineer
-2108,法則と効果かるた,51,け,更新の直後は一時的にずれても、時間が経てば最終的に整合が取れるという考え方。,"A consistency model where replicas converge to the same value over time, if no new updates occur.",結果整合性,engineer
-2109,法則と効果かるた,27,ば,処理が追いつかない受け手が、送り手に流量を抑えるよう伝える仕組み。,A mechanism where a slow consumer signals a fast producer to slow down.,バックプレッシャー,engineer
-2110,法則と効果かるた,21,ゔ,ソフトウェアは使われ続ける限り、複雑さが増していくという経験則。,"Software complexity increases over time, faster than the ability to control it.",ヴィルトの法則,engineer
-2111,法則と効果かるた,70,た,1つのクラスやモジュールが持つ、変更する理由は1つだけであるべきという原則。,A class should have only one reason to change.,単一責務の原則,engineer
-2112,法則と効果かるた,67,か,1つの処理が扱う関心事は1つに絞るべきだという設計思想。,The idea that a program should be divided so that each part addresses a separate concern.,関心の分離,engineer
-2113,法則と効果かるた,83,ぎ,その場しのぎの対応を続けた結果、あとで返済が必要になる開発上の負債。,The implied cost of future rework caused by choosing an easy solution now instead of a better one.,技術的負債,engineer
-2114,法則と効果かるた,26,で,オブジェクトは直接の友達とだけ話し、他人の内部構造を知りすぎるべきではないという原則。,"An object should only talk to its immediate friends, not to strangers.",デメテルの法則,engineer
-2115,法則と効果かるた,31,も,複雑な仕組みを隠す抽象化ほど、どこかで詳細が透けて見えてしまうという法則。,"All non-trivial abstractions are, to some degree, leaky.",漏れ出す抽象化の法則,engineer
-2116,法則と効果かるた,25,ふ,エラーを隠さず、問題が起きたらすぐに処理を止めて知らせる設計方針。,A design approach that immediately reports failure rather than continuing silently.,フェイルファスト,engineer
-2117,法則と効果かるた,57,か,既存のコードを変更せずに、拡張だけで機能を追加できるようにすべきという原則。,"Software entities should be open for extension, but closed for modification.",解放閉鎖の原則,engineer
-2118,法則と効果かるた,22,ぎ,複雑な仕組みは、うまく機能する単純な仕組みを育てて作るしかないという経験則。,A complex system that works is invariably found to have evolved from a simple system that worked.,ギャルの法則,engineer
-2119,法則と効果かるた,99,D,同じ知識やロジックを、コード中に繰り返し書かないようにするという原則。,Don't repeat the same piece of knowledge in more than one place.,DRY,engineer
-2120,法則と効果かるた,97,K,仕組みはできる限り単純に保つべきだという設計の格言。,"Keep it simple, stupid.",KISS,engineer
-2121,法則と効果かるた,88,S,保守しやすいオブジェクト指向設計のための、5つの原則の頭文字。,An acronym for five principles of maintainable object-oriented design.,SOLID,engineer
-2122,法則と効果かるた,49,U,小さな部品を組み合わせ、テキストで連携させるという設計思想。,"Write programs that do one thing well, and work together through text streams.",Unix哲学,engineer
-2123,法則と効果かるた,18,E,正しさと同じくらい、変更のしやすさを重視すべきだという設計指針。,"Prioritize making code easy to change, not just correct.",ETC,engineer
-2124,法則と効果かるた,38,ご,人形に向かって説明しているうちに、自分でバグの原因に気づく手法。,"A method of finding bugs by explaining the code, line by line, to an inanimate object.",ゴムのアヒルデバッグ,engineer
-2125,法則と効果かるた,73,ぶ,人員を追加しても、遅れているプロジェクトはかえって遅れるという法則。,Adding manpower to a late software project makes it later.,ブルックスの法則,engineer
-2126,法則と効果かるた,17,9,作業の9割が終わるのに全体の9割の時間がかかり、残り1割にも同じだけかかるという経験則。,"The first 90 percent of the code takes 90 percent of the time, and the remaining 10 percent takes the other 90 percent.",90対90の法則,engineer
-2127,法則と効果かるた,16,ほ,物事は思ったより時間がかかる、そう分かっていてもという法則。,"It always takes longer than you expect, even when you take this law into account.",ホフスタッターの法則,engineer
-2128,法則と効果かるた,86,Y,今必要ないなら作るな、という開発の原則。,You aren't gonna need it.,YAGNI,engineer
-2129,法則と効果かるた,42,ぷ,本番の設計に入る前に、まず試しに作ってみる簡易な実装。,"A quick, rough implementation built to try out an idea before committing to a full design.",プロトタイプ,engineer
-2130,法則と効果かるた,10,と,要となる機能だけを最初から実際に動く形で貫通させて作る開発手法。,"A thin, working slice through an entire system, built end-to-end early to prove the design.",トレーサーバレット,engineer
-2131,法則と効果かるた,62,さ,利用者やプロセスには、仕事に必要な最小限の権限しか与えないという原則。,Grant only the minimum access needed to perform a task.,最小権限の原則,engineer
-2132,法則と効果かるた,54,ふ,一部が故障しても、安全な状態を保つように設計する考え方。,Designing a system so that it fails in a safe state.,フェイルセーフ,engineer
-2133,法則と効果かるた,48,わ,小さな乱れを放置すると、やがて大きな荒廃を招くという理論。,Visible signs of disorder invite more serious disorder and crime.,割れ窓理論,engineer
-2134,法則と効果かるた,33,ぐ,一部の機能が使えなくても、全体は動き続けるように落とし所を用意する設計。,"A design that allows a system to continue operating, in a reduced way, when part of it fails.",グレースフルデグラデーション,engineer
-2135,法則と効果かるた,20,す,あらゆる創作物の9割はくだらない、という経験則。,Ninety percent of everything is crap.,スタージョンの法則,engineer
-2136,法則と効果かるた,37,ば,その人がいなくなるとプロジェクトが立ち行かなくなる人数の少なさを表す指標。,The number of key people who could disappear before a project stalls.,バス係数,engineer
-2137,法則と効果かるた,71,ぴ,有能な人はやがて、自分の能力の限界にあたる地位まで昇進するという法則。,People rise to their level of incompetence.,ピーターの法則,engineer
-2138,法則と効果かるた,90,こ,システムの構造は、それを作る組織の伝達構造をそのまま映すという法則。,Organizations design systems that mirror their own communication structure.,コンウェイの法則,engineer
-2139,法則と効果かるた,40,ぴ,期待をかけられると、その期待どおりに成果が伸びていく効果。,The phenomenon where higher expectations lead to improved performance.,ピグマリオン効果,engineer
-2140,法則と効果かるた,93,ぱ,成果の8割は、全体のうち2割の原因から生まれるという経験則。,Roughly 80 percent of effects come from 20 percent of causes.,パレートの法則,engineer
-2141,法則と効果かるた,50,M,モレなくダブりなく物事を分類するという考え方の頭文字。,"Mutually exclusive, collectively exhaustive.",MECE,engineer
-2142,法則と効果かるた,53,お,むやみに複雑な説明より、単純な説明を選ぶべきだという指針。,"Among competing explanations, the simplest one should be preferred.",オッカムの剃刀,engineer
-2143,法則と効果かるた,12,ち,使われていない小さな柵でも、理由が分かるまでは壊してはいけないという教え。,Do not remove a fence until you understand why it was put up in the first place.,チェスタトンの柵,engineer
-2144,法則と効果かるた,28,り,物事のとらえ方の枠組みを変え、違う意味づけをし直すこと。,Changing the frame through which a situation is interpreted.,リフレーミング,engineer
-2145,法則と効果かるた,32,ぐ,指標を目標にした瞬間、その指標は良い指標でなくなるという法則。,"When a measure becomes a target, it ceases to be a good measure.",グッドハートの法則,engineer
-2146,法則と効果かるた,11,き,数値目標に圧力がかかるほど、その数値自体が歪められやすくなるという法則。,"The more a quantitative indicator is used for decision-making, the more it will be distorted.",キャンベルの法則,engineer
-2147,法則と効果かるた,7,じ,見えている木の背後にどれだけ木があるかで、森の大きさを見積もれるという経験則。,"A rule of thumb for estimating a large, mostly hidden quantity from the small visible part of it.",ジョシュアツリーの法則,engineer
-2148,法則と効果かるた,95,だ,能力が低い人ほど、自分の能力の低さに気づけないという認知バイアス。,People with low ability at a task overestimate their own competence.,ダニングクルーガー効果,engineer
-2149,法則と効果かるた,92,か,自分の考えに合う情報ばかり集め、反する情報を軽視してしまう偏り。,The tendency to favor information that confirms one's existing beliefs.,確証バイアス,engineer
-2150,法則と効果かるた,82,は,一つの好印象に引きずられて、他の面まで高く評価してしまう効果。,A single positive trait influences the overall impression of a person.,ハロー効果,engineer
-2151,法則と効果かるた,15,さ,意識にのぼらないほど短い刺激が、後の判断に影響を与える効果。,A stimulus presented below the threshold of conscious perception influences later behavior.,サブリミナル効果,engineer
-2152,法則と効果かるた,89,せ,失敗した例が見えないまま、成功した例だけを見て判断してしまう偏り。,"Drawing conclusions only from the survivors of a selection process, while ignoring those that did not survive.",生存者バイアス,engineer
-2153,法則と効果かるた,44,ば,一度気になり始めると、その物事が身の回りのあちこちで目につくようになる現象。,"Once you notice something, you start seeing it everywhere.",バーダーマインホフ現象,engineer
-2154,法則と効果かるた,45,か,禁止されるとかえって、その物事に強く惹かれてしまう心理。,The tendency to desire something more strongly precisely because it is forbidden.,カリギュラ効果,engineer
-2155,法則と効果かるた,65,し,最初に与えられた情報ほど、記憶に残り印象を左右しやすいという効果。,Information presented first has a disproportionate effect on later judgment.,初頭効果,engineer
-2156,法則と効果かるた,68,ざ,何度も接するうちに、対象への好感度が自然と高まっていく効果。,Repeated exposure to something increases one's liking for it.,ザイオンス効果,engineer
-2157,法則と効果かるた,61,か,周りが騒がしくても、自分の名前や関心事だけは聞き取れる現象。,"The ability to focus on a single voice, such as one's own name, amid background noise.",カクテルパーティー効果,engineer
-2158,法則と効果かるた,81,ば,周りが支持しているものほど、自分も支持したくなる心理。,The tendency to do or believe things because many other people do.,バンドワゴン効果,engineer
-2159,法則と効果かるた,75,し,多くの人が選んでいるという事実自体が、正しさの根拠に感じられる心理。,The tendency to assume the actions of others reflect correct behavior.,社会的証明,engineer
-2160,法則と効果かるた,78,あ,最初に見た数字に、その後の判断が引きずられてしまう効果。,An initial piece of information disproportionately influences subsequent judgments.,アンカリング効果,engineer
-2161,法則と効果かるた,98,ま,うまくいってほしくないことほど、実際に起きてしまうという経験則。,Anything that can go wrong will go wrong.,マーフィーの法則,engineer
-2162,法則と効果かるた,59,ふ,使い方を間違えようとしても、簡単には間違えられないような設計。,Designed so that it is difficult to use incorrectly.,フールプルーフ,engineer
-2163,法則と効果かるた,56,お,利用者を無用に驚かせない、予想どおりに振る舞う設計であるべきという原則。,A system should behave in a way that does not surprise its users.,驚き最小の原則,engineer
-2164,法則と効果かるた,43,で,最初から用意された選択肢のままにしておく人が多いという効果。,People tend to stick with the option that is already selected for them.,デフォルト効果,engineer
-2165,法則と効果かるた,47,W,共通化を怠って、同じコードをあちこちに書き広げてしまう状態。,Write everything twice: the opposite of DRY.,WET,engineer
-2166,法則と効果かるた,87,し,既にある解決策を知らずに、一から同じものを作り直してしまうこと。,Creating a basic solution from scratch when an existing solution already exists.,車輪の再発明,engineer
-2167,法則と効果かるた,84,ゆ,少しずつの変化に慣れてしまい、危機に気づかず茹で上がってしまうたとえ話。,"A metaphor for failing to notice a gradual, dangerous change until it is too late.",茹でガエル,engineer
-2168,法則と効果かるた,6,や,本来の目的から逸れ、その前提を整えるための作業に次々と手を取られること。,A chain of small preparatory tasks that leads you further and further from your original goal.,ヤクの毛刈り,engineer
-2169,法則と効果かるた,29,い,何もない所から始めても、協力が集まれば豊かな成果になるという寓話。,A folktale in which a meal made from 'just a stone' grows rich as people are drawn in to contribute.,石のスープ,engineer
-2170,法則と効果かるた,77,ぱ,与えられた期限いっぱいまで、仕事は膨張してしまうという法則。,Work expands so as to fill the time available for its completion.,パーキンソンの法則,engineer
-2171,法則と効果かるた,5,き,斧を研ぐ時間を惜しんで、非効率な作業を続けてしまうというたとえ話。,"A parable about refusing to stop and sharpen the axe, even though it would make the work faster.",木こりのジレンマ,engineer
-2172,法則と効果かるた,39,ぱ,重要な議題より、些細で分かりやすい議題に議論の時間が割かれてしまうという法則。,The amount of discussion is inversely proportional to the importance of the issue.,パーキンソンの凡俗法則,engineer
-2173,法則と効果かるた,66,こ,すでに費やした分がもったいなくて、やめるべき計画をやめられなくなる心理。,"Continuing an endeavor because of previously invested resources, despite new evidence suggesting it is a poor choice.",コンコルド効果,engineer
-2174,法則と効果かるた,36,ふ,小さな頼み事を承諾させてから、本命の大きな頼み事を通しやすくする手法。,"Getting agreement to a small request first, to increase the likelihood of agreement to a larger one later.",フットインザドア効果,engineer
-2175,法則と効果かるた,76,へ,何かをしてもらうと、お返しをしなければと感じてしまう心理。,The social pressure to repay what another person has provided.,返報性の法則,engineer
-2176,法則と効果かるた,72,け,専門家や肩書きのある人の言うことほど、信じやすくなる心理。,The tendency to comply more readily with people perceived as authorities.,権威性の法則,engineer
-2177,法則と効果かるた,9,り,良い面だけでなく悪い面も併せて伝えた方が、かえって信頼されやすいという法則。,Presenting both the pros and cons of something tends to be more persuasive than presenting only the pros.,両面提示の法則,engineer
+2001,モダン開発大ピンチ,93,し,リリース直前に重大バグ発覚,A critical bug is discovered right before release.,シフトレフト,engineer
+2002,モダン開発大ピンチ,15,し,本番環境でしか障害が起きない,The failure only happens in production.,シフトライト,engineer
+2003,モダン開発大ピンチ,91,D,開発と運用が対立している,Development and operations are at odds.,DevOps,engineer
+2004,モダン開発大ピンチ,85,D,セキュリティチェックがリリース直前,The security check happens right before release.,DevSecOps,engineer
+2005,モダン開発大ピンチ,69,G,サーバー設定が誰にも分からない,Nobody understands the server configuration.,GitOps,engineer
+2006,モダン開発大ピンチ,61,P,開発環境構築に丸1日かかる,Setting up a dev environment takes a full day.,Platform Engineering,engineer
+2007,モダン開発大ピンチ,75,D,業務用語とコードの意味が噛み合わない,Business terms and code don't mean the same thing.,DDD,engineer
+2008,モダン開発大ピンチ,31,T,テストのたびに手作業祭り,Every test run turns into manual busywork.,TDD,engineer
+2009,モダン開発大ピンチ,57,B,ユーザーの期待と実装がずれる,What users expect and what's built don't match.,BDD,engineer
+2010,モダン開発大ピンチ,55,り,誰も触れないコード爆誕,Code nobody dares to touch is born.,リファクタリング,engineer
+2011,モダン開発大ピンチ,95,C,マージのたびに動かなくなる,Every merge breaks the build.,CI,engineer
+2012,モダン開発大ピンチ,71,C,リリース準備だけで数週間,Just preparing a release takes weeks.,Continuous Delivery,engineer
+2013,モダン開発大ピンチ,37,C,デプロイ担当待ちで開発停止,Development stalls waiting for someone to deploy.,Continuous Deployment,engineer
+2014,モダン開発大ピンチ,47,ひ,品質チェックが人頼み,Quality checks depend entirely on people.,品質ゲート,engineer
+2015,モダン開発大ピンチ,29,ふ,機能を試したいだけなのに再デプロイ,"You just want to try a feature, but must redeploy.",フィーチャーフラグ,engineer
+2016,モダン開発大ピンチ,77,か,全ユーザーに一斉リリースして炎上,Releasing to all users at once causes a meltdown.,カナリアリリース,engineer
+2017,モダン開発大ピンチ,41,ぶ,本番切り替えに徹夜,Switching to production means an all-nighter.,ブルーグリーンデプロイ,engineer
+2018,モダン開発大ピンチ,89,と,半年ブランチ放置で地獄,A branch left untouched for six months becomes hell.,トランクベース開発,engineer
+2019,モダン開発大ピンチ,73,I,サーバー設定が職人技,Server configuration is a lost art known to one person.,IaC,engineer
+2020,モダン開発大ピンチ,81,D,自分のPCだけ動く,It only works on my machine.,Docker,engineer
+2021,モダン開発大ピンチ,33,K,コンテナが増えすぎて管理不能,Too many containers to manage.,Kubernetes,engineer
+2022,モダン開発大ピンチ,13,さ,サービス間通信が複雑怪奇,Communication between services is a tangled mess.,サービスメッシュ,engineer
+2023,モダン開発大ピンチ,17,さ,サーバー管理だけで一日終了,A whole day gone just managing servers.,サーバーレス,engineer
+2024,モダン開発大ピンチ,67,ま,一つの障害で全システム停止,One failure takes down the entire system.,マイクロサービス,engineer
+2025,モダン開発大ピンチ,39,も,マイクロサービス化したら逆に複雑化,Going microservices made things more complex instead.,モジュラーモノリス,engineer
+2026,モダン開発大ピンチ,21,く,フレームワーク依存が深すぎる,The code is too deeply tied to the framework.,クリーンアーキテクチャ,engineer
+2027,モダン開発大ピンチ,11,C,読み取り処理が重すぎる,Read operations are too heavy.,CQRS,engineer
+2028,モダン開発大ピンチ,49,E,過去データが復元できない,Past data can't be reconstructed.,Event Sourcing,engineer
+2029,モダン開発大ピンチ,97,O,障害原因が誰にも分からない,Nobody can tell what caused the failure.,Observability,engineer
+2030,モダン開発大ピンチ,25,O,ログ形式がバラバラ,Log formats are all over the place.,OpenTelemetry,engineer
+2031,モダン開発大ピンチ,19,S,品質を感覚で議論する,Quality gets debated based on gut feeling.,SLI,engineer
+2032,モダン開発大ピンチ,35,S,「速いサービス」の定義が曖昧,What counts as a 'fast service' is vague.,SLO,engineer
+2033,モダン開発大ピンチ,65,え,完璧を求めすぎて何も出せない,Chasing perfection means nothing ships.,エラーバジェット,engineer
+2034,モダン開発大ピンチ,59,ぽ,障害の犯人探し大会,The incident turns into a witch hunt.,ポストモーテム,engineer
+2035,モダン開発大ピンチ,83,Z,社内ネットワークだから安心,It's assumed safe just because it's the internal network.,Zero Trust,engineer
+2036,モダン開発大ピンチ,63,S,脆弱ライブラリ混入,A vulnerable library sneaks in.,SBOM,engineer
+2037,モダン開発大ピンチ,45,P,セキュリティルールが口伝,Security rules are only passed down by word of mouth.,Policy as Code,engineer
+2038,モダン開発大ピンチ,23,F,開発力を勘で評価している,Team performance is judged by gut feeling.,Four Keys,engineer
+2039,モダン開発大ピンチ,1,D,改善効果が見えない,You can't see whether improvements are working.,DORAメトリクス,engineer
+2040,モダン開発大ピンチ,53,S,コミット数だけで評価,People are evaluated by commit count alone.,SPACEフレームワーク,engineer
+2041,モダン開発大ピンチ,79,D,優秀な人ほど辞める,The best people are the ones who quit.,DevEx,engineer
+2042,モダン開発大ピンチ,87,C,ベテランしか理解できない,Only veterans can understand it.,Cognitive Load,engineer
+2043,モダン開発大ピンチ,99,ぎ,短納期のツケで保守不能,The cost of a rushed deadline makes it unmaintainable.,技術的負債,engineer
+2044,モダン開発大ピンチ,27,ご,チームごとに開発手順が違う,Every team follows a different process.,ゴールデンパス,engineer
+2045,モダン開発大ピンチ,9,A,AIが指示待ち人間,The AI just waits around for instructions.,AIエージェント,engineer
+2046,モダン開発大ピンチ,51,C,AIが仕様を誤解する,The AI misunderstands the spec.,Context Engineering,engineer
+2047,モダン開発大ピンチ,3,M,AIごとに連携方法が違う,Every AI connects in a different way.,MCP,engineer
+2048,モダン開発大ピンチ,43,R,AIが古い知識で回答する,The AI answers with outdated knowledge.,RAG,engineer
+2049,モダン開発大ピンチ,7,A,AIが単発作業しかできない,The AI can only handle one-off tasks.,Agentic Workflow,engineer
+2050,モダン開発大ピンチ,5,A,なぜこの設計なのか誰も知らない,Nobody knows why the design is this way.,ADR,engineer
+2100,大ピンチ法則かるた,79,べ,ボタン連打でデータが二重登録,Mashing the button registers the data twice.,冪等性,engineer
+2101,大ピンチ法則かるた,60,ぽ,厳密すぎて外部サービスと連携不能,Being too strict breaks integration with external services.,ポステルの法則,engineer
+2102,大ピンチ法則かるた,23,は,誰も知らない挙動を変えたら大炎上,Changing behavior nobody knew about causes a meltdown.,ハイラムの法則,engineer
+2103,大ピンチ法則かるた,55,り,レビュー不足でバグが埋もれる,Bugs stay buried because of too little review.,リーナスの法則,engineer
+2104,大ピンチ法則かるた,14,ざ,便利機能を足し続けてメールソフト化,Adding convenience features endlessly turns it into a mail client.,ザウィンスキーの法則,engineer
+2105,大ピンチ法則かるた,34,め,利用者が少なく価値が生まれない,Too few users means no value is created.,メトカーフの法則,engineer
+2106,大ピンチ法則かるた,94,む,性能向上を当てにした設計が破綻,A design betting on future performance gains falls apart.,ムーアの法則,engineer
+2107,大ピンチ法則かるた,64,C,全部入りを目指して全部失う,Trying to have it all means losing it all.,CAP定理,engineer
+2108,大ピンチ法則かるた,51,け,更新したのに画面が食い違う,"You updated it, but the screens disagree.",結果整合性,engineer
+2109,大ピンチ法則かるた,27,ば,処理が追いつかずシステムが詰まる,Processing can't keep up and the system chokes.,バックプレッシャー,engineer
+2110,大ピンチ法則かるた,21,ゔ,長年の改修で誰も理解できない,Years of changes leave nobody able to understand it.,ヴィルトの法則,engineer
+2111,大ピンチ法則かるた,70,た,一つ直したら別の機能も壊れる,"Fix one thing, break another feature.",単一責務の原則,engineer
+2112,大ピンチ法則かるた,67,か,UI変更なのにDB修正が必要,A UI change somehow requires a database fix.,関心の分離,engineer
+2113,大ピンチ法則かるた,83,ぎ,先送りのツケで大改修が必要に,Postponing it now means a massive rebuild is required.,技術的負債,engineer
+2114,大ピンチ法則かるた,26,で,他人の内部事情まで知りすぎる,It knows way too much about someone else's internals.,デメテルの法則,engineer
+2115,大ピンチ法則かるた,31,も,隠したはずの仕組みが漏れ出す,The mechanism you tried to hide leaks through anyway.,漏れ出す抽象化の法則,engineer
+2116,大ピンチ法則かるた,25,ふ,エラーを隠して障害が拡大,Hiding the error lets the failure spread.,フェイルファスト,engineer
+2117,大ピンチ法則かるた,57,か,機能追加のたび既存コードを書き換える,Every new feature means rewriting existing code.,解放閉鎖の原則,engineer
+2118,大ピンチ法則かるた,22,ぎ,複雑な仕組みを一気に作って失敗,Building a complex system all at once fails.,ギャルの法則,engineer
+2119,大ピンチ法則かるた,99,D,同じ修正を十か所に反映,The same fix has to be applied in ten places.,DRY,engineer
+2120,大ピンチ法則かるた,97,K,賢すぎる設計で誰も理解できない,The design is too clever for anyone to understand.,KISS,engineer
+2121,大ピンチ法則かるた,88,S,設計ルールが崩れて泥団子化,The design rules collapse into a big ball of mud.,SOLID,engineer
+2122,大ピンチ法則かるた,49,U,一つのツールが何でも屋になる,One tool ends up doing everything.,Unix哲学,engineer
+2123,大ピンチ法則かるた,18,E,正しいが誰も変更できないコード,Code that's correct but nobody dares to change.,ETC,engineer
+2124,大ピンチ法則かるた,38,ご,一人で悩み続けて一日終了,A whole day spent agonizing alone.,ゴムのアヒルデバッグ,engineer
+2125,大ピンチ法則かるた,73,ぶ,人を増やしたのに納期が延びる,Adding more people only pushes the deadline back.,ブルックスの法則,engineer
+2126,大ピンチ法則かるた,17,9,あと一割が終わらない,The last ten percent never gets done.,90対90の法則,engineer
+2127,大ピンチ法則かるた,16,ほ,見積もりが毎回外れる,The estimate is wrong every single time.,ホフスタッターの法則,engineer
+2128,大ピンチ法則かるた,86,Y,誰も使わない機能を量産,Features nobody uses keep piling up.,YAGNI,engineer
+2129,大ピンチ法則かるた,42,ぷ,試作品がそのまま本番化,The prototype becomes production as-is.,プロトタイプ,engineer
+2130,大ピンチ法則かるた,10,と,最後まで繋いだら動かない,Wiring it end-to-end reveals it doesn't work.,トレーサーバレット,engineer
+2131,大ピンチ法則かるた,62,さ,全員が本番DBを消せる,Everyone has permission to delete the production database.,最小権限の原則,engineer
+2132,大ピンチ法則かるた,54,ふ,一つ壊れただけで全停止,One failure takes the whole thing down.,フェイルセーフ,engineer
+2133,大ピンチ法則かるた,48,わ,小さな手抜きが大崩壊を招く,A small shortcut leads to total collapse.,割れ窓理論,engineer
+2134,大ピンチ法則かるた,33,ぐ,一部障害でサービス全停止,A partial failure takes the entire service down.,グレースフルデグラデーション,engineer
+2135,大ピンチ法則かるた,20,す,作った機能の九割が使われない,Ninety percent of the features built go unused.,スタージョンの法則,engineer
+2136,大ピンチ法則かるた,37,ば,一人辞めたら開発停止,One person leaves and development grinds to a halt.,バス係数,engineer
+2137,大ピンチ法則かるた,71,ぴ,昇進したら誰も幸せにならない,The promotion makes nobody happy.,ピーターの法則,engineer
+2138,大ピンチ法則かるた,90,こ,組織図そのままのシステム誕生,The system ends up mirroring the org chart exactly.,コンウェイの法則,engineer
+2139,大ピンチ法則かるた,40,ぴ,期待されず成長が止まる,Growth stalls when nobody expects anything.,ピグマリオン効果,engineer
+2140,大ピンチ法則かるた,93,ぱ,重要な二割を見誤る,The critical twenty percent gets misjudged.,パレートの法則,engineer
+2141,大ピンチ法則かるた,50,M,分類漏れと重複だらけ,Full of gaps and overlaps in the classification.,MECE,engineer
+2142,大ピンチ法則かるた,53,お,複雑な説明ばかり増える,Explanations just keep getting more convoluted.,オッカムの剃刀,engineer
+2143,大ピンチ法則かるた,12,ち,理由も知らずに消して事故,Removing it without knowing why causes an accident.,チェスタトンの柵,engineer
+2144,大ピンチ法則かるた,28,り,見方を変えられず行き詰まる,Stuck because nobody can change their perspective.,リフレーミング,engineer
+2145,大ピンチ法則かるた,32,ぐ,指標を追って本質を失う,Chasing the metric loses sight of the point.,グッドハートの法則,engineer
+2146,大ピンチ法則かるた,11,き,KPI達成のため数字を盛る,The numbers get inflated just to hit the KPI.,キャンベルの法則,engineer
+2147,大ピンチ法則かるた,7,じ,見えている範囲だけで判断,Judging everything from only what's visible.,ジョシュアツリーの法則,engineer
+2148,大ピンチ法則かるた,95,だ,自信満々なのに実力不足,"Full of confidence, short on actual skill.",ダニングクルーガー効果,engineer
+2149,大ピンチ法則かるた,92,か,都合の良い情報しか見ない,Only the convenient information gets noticed.,確証バイアス,engineer
+2150,大ピンチ法則かるた,82,は,一つの長所だけで全部高評価,One strength earns a high rating on everything.,ハロー効果,engineer
+2151,大ピンチ法則かるた,15,さ,気づかぬうちに判断を誘導される,A judgment gets nudged without anyone noticing.,サブリミナル効果,engineer
+2152,大ピンチ法則かるた,89,せ,成功例だけ真似して失敗,Copying only the success stories leads to failure.,生存者バイアス,engineer
+2153,大ピンチ法則かるた,44,ば,急に全部が気になり始める,Suddenly it seems to be everywhere.,バーダーマインホフ現象,engineer
+2154,大ピンチ法則かるた,45,か,禁止したら余計にやりたくなる,Banning it only makes people want it more.,カリギュラ効果,engineer
+2155,大ピンチ法則かるた,65,し,第一印象だけで評価が決まる,The first impression decides the whole evaluation.,初頭効果,engineer
+2156,大ピンチ法則かるた,68,ざ,顔を出す人だけ評価される,Only the person who shows up gets the credit.,ザイオンス効果,engineer
+2157,大ピンチ法則かるた,61,か,興味のある話しか耳に入らない,Only the topics you care about actually get heard.,カクテルパーティー効果,engineer
+2158,大ピンチ法則かるた,81,ば,みんなが使うから採用,It gets adopted just because everyone else uses it.,バンドワゴン効果,engineer
+2159,大ピンチ法則かるた,75,し,人気だけで技術選定,The tech choice is made on popularity alone.,社会的証明,engineer
+2160,大ピンチ法則かるた,78,あ,最初の数字から離れられない,Nobody can move past the first number they heard.,アンカリング効果,engineer
+2161,大ピンチ法則かるた,98,ま,本番だけ、なぜか落ちる,It only ever crashes in production.,マーフィーの法則,engineer
+2162,大ピンチ法則かるた,59,ふ,操作ミスで重大事故,A simple mistake causes a serious incident.,フールプルーフ,engineer
+2163,大ピンチ法則かるた,56,お,ボタンを押したら予想外の動作,Pressing the button does something unexpected.,驚き最小の原則,engineer
+2164,大ピンチ法則かるた,43,で,初期設定のまま本番投入,It ships to production with the default settings untouched.,デフォルト効果,engineer
+2165,大ピンチ法則かるた,47,W,同じコードを何度もコピペ,The same code gets copy-pasted over and over.,WET,engineer
+2166,大ピンチ法則かるた,87,し,既存ライブラリを無視して自作,An existing library gets ignored in favor of building it from scratch.,車輪の再発明,engineer
+2167,大ピンチ法則かるた,84,ゆ,少しずつ悪化して手遅れ,It gets gradually worse until it's too late.,茹でガエル,engineer
+2168,大ピンチ法則かるた,6,や,本題に入れず一日終了,The whole day goes by without ever reaching the actual task.,ヤクの毛刈り,engineer
+2169,大ピンチ法則かるた,29,い,協力が集まらず企画倒れ,Nobody chips in and the plan falls apart.,石のスープ,engineer
+2170,大ピンチ法則かるた,77,ぱ,締切まで仕事が膨らみ続ける,Work keeps expanding to fill the time until the deadline.,パーキンソンの法則,engineer
+2171,大ピンチ法則かるた,5,き,改善を後回しにして疲弊,Putting off the improvement leads to burnout.,木こりのジレンマ,engineer
+2172,大ピンチ法則かるた,39,ぱ,重要な議題ほど後回し,"The more important the topic, the more it gets postponed.",パーキンソンの凡俗法則,engineer
+2173,大ピンチ法則かるた,66,こ,やめ時を失って炎上継続,Missing the moment to quit keeps the fire burning.,コンコルド効果,engineer
+2174,大ピンチ法則かるた,36,ふ,小さな依頼が大仕事になる,A small favor turns into a huge job.,フットインザドア効果,engineer
+2175,大ピンチ法則かるた,76,へ,借りを返すため残業,Working overtime just to repay a favor.,返報性の法則,engineer
+2176,大ピンチ法則かるた,72,け,偉い人の一声で仕様変更,One word from someone senior changes the spec.,権威性の法則,engineer
+2177,大ピンチ法則かるた,9,り,良い話だけして信用を失う,Only mentioning the upside costs you trust.,両面提示の法則,engineer
