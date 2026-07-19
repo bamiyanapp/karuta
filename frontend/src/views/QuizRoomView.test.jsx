@@ -413,6 +413,28 @@ describe('QuizRoomView', () => {
     expect(screen.queryByText('回答する')).not.toBeInTheDocument();
   });
 
+  it('tells the participant judged incorrect that they were wrong instead of leaving the stale "answering" display, and clears it once the next question arrives (issue #680)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    fireEvent.click(screen.getByText('回答する'));
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
+
+    emitRoundReset({ excludedName: 'はなこ' });
+
+    // 「〇〇さんが回答中」の古い表示が残り続けず、不正解だったことが分かる表示に切り替わる
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+    expect(screen.getByText('不正解でした。次の問題まで待っててね')).toBeInTheDocument();
+
+    // 次の札が届いたら通常どおり早押しボタンに戻る
+    emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
+    expect(screen.queryByText('不正解でした。次の問題まで待っててね')).not.toBeInTheDocument();
+    expect(screen.getByText('回答する')).toBeInTheDocument();
+  });
+
   it('shows the buzz button again for a participant not excluded after a roundReset (issue #546)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);

@@ -176,10 +176,13 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
     // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
     playQuizSfx("incorrect", "quiz-incorrect.mp3").catch(() => {});
+    // issue #680: 除外された本人はbuzzedByを残したままにするとexcludedThisRoundが
+    // trueになっても表示分岐（下記JSX）でbuzzedByが優先され、「〇〇さんが回答中」の
+    // 表示が次の札が届くまで残り続けてしまう。自分自身が不正解と判定されたことを
+    // 表す専用の表示に切り替えるため、buzzedByもクリアする
+    setBuzzedBy(null);
     if (excludedName === confirmedName) {
       setExcludedThisRound(true);
-    } else {
-      setBuzzedBy(null);
     }
   };
 
@@ -453,9 +456,14 @@ function QuizRoomView({ setView, wsBaseUrl }) {
         </p>
         <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
         {renderParticipantContent(roomState)}
-        {buzzedBy ? (
+        {excludedThisRound ? (
+          // issue #680: 不正解と判定された本人には「回答中」ではなく、不正解だった
+          // ことと次の札を待つよう案内する専用の表示を出す。excludedThisRoundは
+          // 次の札が届いたタイミングでfalseに戻る（上記のラウンド切り替え判定）
+          <p className="fw-bold text-muted mt-4">不正解でした。次の問題まで待っててね</p>
+        ) : buzzedBy ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>
-        ) : roomState?.type === "phrase" && !excludedThisRound && (
+        ) : roomState?.type === "phrase" && (
           <div className="mt-4">
             <button onClick={handleBuzz} className="btn btn-danger btn-lg rounded-pill px-5">
               回答する
