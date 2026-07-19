@@ -36,13 +36,13 @@ describe('seed', () => {
     expect(putItem.totalDifficulty).toBe(21);
   });
 
-  it('carries over stats from the old category name via CATEGORY_RENAMES instead of resetting them, and deletes the old record (モダン開発かるたへのリネーム)', async () => {
+  it('carries over stats from the old category name via CATEGORY_RENAMES instead of resetting them, and deletes the old record (モダン開発大ピンチへのリネーム)', async () => {
     vi.spyOn(fs, 'readFileSync').mockReturnValue(
-      `${CSV_HEADER}\n2001,モダン開発かるた,-,し,シフトレフト,shift left,-,engineer`
+      `${CSV_HEADER}\n2001,モダン開発大ピンチ,93,し,リリース直前に重大バグ発覚,A critical bug is discovered right before release.,シフトレフト,engineer`
     );
     ddbMock.on(ScanCommand).resolves({
       Items: [
-        { id: '2001', category: 'モダンソフトウェア開発かるた', readCount: 42, averageTime: 8, averageDifficulty: 2, totalTime: 336, totalDifficulty: 84 },
+        { id: '2001', category: 'モダン開発かるた', readCount: 42, averageTime: 8, averageDifficulty: 2, totalTime: 336, totalDifficulty: 84 },
       ],
     });
     ddbMock.on(PutCommand).resolves({});
@@ -51,7 +51,7 @@ describe('seed', () => {
     await seed();
 
     const putItem = ddbMock.commandCalls(PutCommand)[0].args[0].input.Item;
-    expect(putItem.category).toBe('モダン開発かるた');
+    expect(putItem.category).toBe('モダン開発大ピンチ');
     // リネーム前の統計が引き継がれ、0にリセットされていないこと
     expect(putItem.readCount).toBe(42);
     expect(putItem.averageTime).toBe(8);
@@ -59,7 +59,7 @@ describe('seed', () => {
 
     // リネーム前の（旧カテゴリ名の）レコードは不要データとして削除される
     const deleteParams = ddbMock.commandCalls(DeleteCommand)[0].args[0].input;
-    expect(deleteParams.Key).toEqual({ category: 'モダンソフトウェア開発かるた', id: '2001' });
+    expect(deleteParams.Key).toEqual({ category: 'モダン開発かるた', id: '2001' });
   });
 
   it('defaults stats to 0 for a brand-new item with no existing or renamed match', async () => {
