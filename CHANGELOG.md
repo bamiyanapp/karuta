@@ -1,3 +1,10 @@
+## [1.48.4](https://github.com/bamiyanapp/karuta/compare/v1.48.3...v1.48.4) (2026-07-19)
+
+
+### Bug Fixes
+
+* **frontend:** 不正解時に誤答者へ明確なフィードバックを表示する ([#686](https://github.com/bamiyanapp/karuta/issues/686)) ([bffc252](https://github.com/bamiyanapp/karuta/commit/bffc2525d52f39fa31aecc8808cbe7445bb81b21))
+
 ## [1.48.3](https://github.com/bamiyanapp/karuta/compare/v1.48.2...v1.48.3) (2026-07-18)
 
 
