@@ -183,7 +183,7 @@ export function useQuizRoomAdmin({
         type: "result",
         // winner: 早押しが正解と判定された場合、その回答者名（issue #600）。
         // 誰も正解しなかった場合（通常の「次の札」による結果表示）はnull
-        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, winner: r.winner ?? null },
+        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, explanation: r.explanation, winner: r.winner ?? null },
       });
     } else {
       broadcastQuizRoomState({ type: "initial" });

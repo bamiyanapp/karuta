@@ -49,6 +49,12 @@ function renderParticipantContent(roomState) {
               <div className="h4 fw-bold text-dark">{r.answer}</div>
             </>
           )}
+          {r.explanation && r.explanation !== "-" && (
+            <>
+              <div className="text-muted mt-4 mb-2">解説</div>
+              <div className="fs-6 text-dark">{r.explanation}</div>
+            </>
+          )}
         </div>
       </div>
     );

@@ -326,7 +326,7 @@ exports.getPhrase = async (event) => {
       // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -473,7 +473,7 @@ exports.getPhrasesList = async (event) => {
         ExpressionAttributeValues: {
           ":cat": category,
         },
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -483,7 +483,7 @@ exports.getPhrasesList = async (event) => {
     } else {
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },

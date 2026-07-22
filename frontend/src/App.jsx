@@ -658,7 +658,7 @@ function App() {
 
       nextContentRef.current = {
         type: "result",
-        content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer, winner: winner ?? null },
+        content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer, explanation: targetPhrase.explanation, winner: winner ?? null },
       };
 
       // 結果表示のフェード完了を待ってから次の札の取得・再生に進む。
@@ -1369,6 +1369,13 @@ function App() {
             <>
               <div className="text-muted mt-4 mb-2">答え</div>
               <div className="h4 fw-bold text-dark">{result.answer}</div>
+            </>
+          )}
+
+          {result.explanation && result.explanation !== "-" && (
+            <>
+              <div className="text-muted mt-4 mb-2">解説</div>
+              <div className="fs-6 text-dark">{result.explanation}</div>
             </>
           )}
         </div>
