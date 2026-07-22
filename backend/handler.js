@@ -512,7 +512,7 @@ exports.getCategories = async (event) => {
   try {
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "category, #grp, answer",
+      ProjectionExpression: "category, #grp, answer, readCount",
       ExpressionAttributeNames: {
         "#grp": "group",
       },
@@ -531,11 +531,13 @@ exports.getCategories = async (event) => {
           group: item.group === "engineer" ? "engineer" : "kids",
           allHaveAnswer: hasAnswer,
           count: 1,
+          totalReadCount: item.readCount || 0,
         });
       } else {
         const info = categoryMap.get(name);
         info.allHaveAnswer = info.allHaveAnswer && hasAnswer;
         info.count += 1;
+        info.totalReadCount += (item.readCount || 0);
       }
     });
 
@@ -544,9 +546,13 @@ exports.getCategories = async (event) => {
       group: info.group,
       requiresPossessionCheck: !info.allHaveAnswer,
       count: info.count,
+      readCount: info.totalReadCount,
     }));
+
+    // カテゴリを人気順（readCount降順）にソート
+    categories.sort((a, b) => b.readCount - a.readCount);
     if (categories.length === 0) {
-      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0 }];
+      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0, readCount: 0 }];
     }
 
     return {
