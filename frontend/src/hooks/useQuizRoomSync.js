@@ -39,7 +39,10 @@ export const CONNECTION_STATUS_LABEL = {
 // されたときはサーバーから{type:"roundReset", excludedName}が返るのでonRoundResetを呼ぶ
 // 参加者一覧（issue #545）: サーバーから{type:"participants", names}（名前確定済みの
 // 参加者名一覧）を受け取るたびonParticipantsを呼ぶ
-export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants }) {
+// ルームを閉じる（issue #748）: 管理者はcloseRoomでルームの終了を送信できる。サーバーが
+// ルームを削除し全接続へ{type:"roomClosed"}を配信したうえで強制切断するので、これを
+// 受け取るたびonRoomClosedを呼ぶ
+export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants, onRoomClosed }) {
   const [internalStatus, setInternalStatus] = useState("idle"); // connecting|connected|error（idleはwsBaseUrl/roomId未設定時に導出する）
   const connectionStatus = (!wsBaseUrl || !roomId) ? "idle" : internalStatus;
   const wsRef = useRef(null);
@@ -49,6 +52,7 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   const onNameErrorRef = useRef(onNameError);
   const onRoundResetRef = useRef(onRoundReset);
   const onParticipantsRef = useRef(onParticipants);
+  const onRoomClosedRef = useRef(onRoomClosed);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef(null);
   const closedByCleanupRef = useRef(false);
@@ -88,6 +92,10 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
   useEffect(() => {
     onParticipantsRef.current = onParticipants;
   }, [onParticipants]);
+
+  useEffect(() => {
+    onRoomClosedRef.current = onRoomClosed;
+  }, [onRoomClosed]);
 
   useEffect(() => {
     if (!wsBaseUrl || !roomId) {
@@ -157,6 +165,8 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
             onRoundResetRef.current?.({ excludedName: data.excludedName, answerCounts: data.answerCounts });
           } else if (data?.type === "participants") {
             onParticipantsRef.current?.(data.names);
+          } else if (data?.type === "roomClosed") {
+            onRoomClosedRef.current?.();
           }
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);
@@ -292,5 +302,15 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
     }
   }, []);
 
-  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz, resetPoints, reconnect: forceReconnect };
+  // ルームを閉じる（issue #748）: 管理者がルームを明示的に終了する際に送信する。
+  // サーバー側でルームレコードが削除され、全接続へroomClosedがブロードキャストされた
+  // うえで強制切断されるため、呼び出し元はonRoomClosedで自身のroomId等の状態を
+  // クリアすることを想定している
+  const closeRoom = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: "closeRoom" }));
+    }
+  }, []);
+
+  return { connectionStatus, broadcastState, setParticipantName, buzz, judgeBuzz, resetPoints, closeRoom, reconnect: forceReconnect };
 }
