@@ -16,7 +16,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [
-    process.env.CI ? ['html', { open: 'never' }] : ['list'],
+    // issue #711: CI用のhtmlレポーターは失敗の詳細（アサーション差分・エラー
+    // メッセージ）をコンソール（GitHub Actionsのジョブログ）へ一切出力しない。
+    // htmlレポート自体はAzure Blobストレージ経由のアーティファクトとしてしか
+    // 取得できず、組織のプロキシポリシー等でダウンロードできない環境もあるため、
+    // ジョブログのテキストだけで一次診断できるよう`line`レポーターを併用する
+    process.env.CI ? ['line'] : ['list'],
+    process.env.CI ? ['html', { open: 'never' }] : null,
     // JSカバレッジ算出結果のログ出力（issue #541）。frontend/e2e/coverage.jsの
     // startCoverage/stopCoverageで各ページのカバレッジを収集し、ここで登録した
     // グローバルレポートへ集約する。console-summaryでコンソールへ要約を出力しつつ、
@@ -37,7 +43,7 @@ export default defineConfig({
         reports: [['console-summary'], ['json-summary']],
       },
     }],
-  ],
+  ].filter(Boolean),
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
