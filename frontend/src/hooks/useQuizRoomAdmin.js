@@ -49,6 +49,7 @@ export function useQuizRoomAdmin({
   view,
   selectedCategories,
   displayContent,
+  isAllRead,
   repeatCount,
   speechRate,
   lang,
@@ -261,13 +262,18 @@ export function useQuizRoomAdmin({
       broadcastQuizRoomState({
         type: "result",
         // winner: 早押しが正解と判定された場合、その回答者名（issue #600）。
-        // 誰も正解しなかった場合（通常の「次の札」による結果表示）はnull
-        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, explanation: r.explanation, winner: r.winner ?? null },
+        // 誰も正解しなかった場合（通常の「次の札」による結果表示）はnull。
+        // isAllRead: 選択中カテゴリの全札を読み終えたかどうか（issue #501）。
+        // トップページの開設中ルーム一覧で「終了」ステータスを表示するために使う
+        content: {
+          time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, explanation: r.explanation,
+          winner: r.winner ?? null, isAllRead,
+        },
       });
     } else {
       broadcastQuizRoomState({ type: "initial" });
     }
-  }, [quizRoom, displayContent, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+  }, [quizRoom, displayContent, isAllRead, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
 
   // クイズ大会モード（issue #470）: 通常のかるた読み上げ画面のフッターから直接ルームを作成する
   const createQuizRoom = async () => {

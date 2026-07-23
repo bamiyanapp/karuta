@@ -920,6 +920,7 @@ function App() {
     view,
     selectedCategories,
     displayContent,
+    isAllRead,
     repeatCount,
     speechRate,
     lang,
@@ -1225,21 +1226,6 @@ function App() {
           </div>
         </main>
 
-        <div className="text-center d-flex flex-column gap-2">
-          <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
-            全札一覧を見る →
-          </button>
-          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-            指摘された内容を確認する
-          </button>
-          <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
-            更新履歴を見る
-          </button>
-          <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
-            クイズ大会に参加する
-          </button>
-        </div>
-
         {openQuizRooms.length > 0 && (
           <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
             <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
@@ -1251,12 +1237,40 @@ function App() {
                   className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
                 >
                   <span className="fw-bold notranslate">{room.roomId}</span>
-                  <span className="text-muted small">{room.category || "開始前"}</span>
+                  <span className="d-flex align-items-center gap-2">
+                    <span className={`badge rounded-pill ${
+                      room.status === "進行中" ? "text-bg-success"
+                        : room.status === "終了" ? "text-bg-dark"
+                          : "text-bg-secondary"
+                    }`}
+                    >
+                      {room.status}
+                    </span>
+                    {room.category && <span className="text-muted small notranslate">{room.category}</span>}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        <div className="text-center mt-4">
+          <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
+            {openQuizRooms.length > 0 ? "他のクイズ大会に参加する" : "クイズ大会に参加する"}
+          </button>
+        </div>
+
+        <div className="text-center d-flex flex-column gap-2 mt-4">
+          <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
+            全札一覧を見る →
+          </button>
+          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
+            指摘された内容を確認する
+          </button>
+          <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
+            更新履歴を見る
+          </button>
+        </div>
       </div>
     );
   }
