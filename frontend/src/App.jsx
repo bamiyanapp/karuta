@@ -16,6 +16,8 @@ import ChangelogView from "./views/ChangelogView";
 import QuizRoomView from "./views/QuizRoomView";
 import QuizRoomInfoView from "./views/QuizRoomInfoView";
 import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
+import ResultCard from "./components/ResultCard";
+import QuizCompletionScreen from "./components/QuizCompletionScreen";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 const PLAYERS_STORAGE_KEY = "players";
@@ -216,26 +218,6 @@ function App() {
 
     return { totalTime, fastest, slowest };
   }, [isAllRead, currentHistory]);
-
-  // 読了時の紙吹雪演出（isAllReadになった時点の1回だけ生成し、以降の再レンダーでは揺れ動かさない）。
-  // Math.random()はレンダー中（useMemoのファクトリ関数を含む）に呼び出すと
-  // react-hooks/purityに抵触するため、iから決定的に導出する疑似乱数を使う
-  // （見た目のランダムさだけが目的で、実際の乱雑さの品質は問わない演出のため）
-  const confettiPieces = useMemo(() => {
-    if (!isAllRead) return [];
-    const emojis = ["🎉", "✨", "🎊", "⭐"];
-    const pseudoRandom = (seed) => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-    return Array.from({ length: 24 }, (_, i) => ({
-      id: i,
-      emoji: emojis[i % emojis.length],
-      left: pseudoRandom(i) * 100,
-      delay: pseudoRandom(i + 100) * 0.6,
-      duration: 2.2 + pseudoRandom(i + 200) * 1.2,
-    }));
-  }, [isAllRead]);
 
   const EFUDA_PER_PAGE = 10;
   const efudaPages = useMemo(() => {
@@ -1427,45 +1409,6 @@ function App() {
     );
   }
 
-  const renderResult = (result) => {
-    if (!result) return null;
-    return (
-      <div className="yomifuda shadow-lg">
-        <div className="d-flex flex-column justify-content-center align-items-center h-100">
-          <div className="text-muted mb-2">所要時間</div>
-          <div className="display-4 fw-bold text-dark mb-2">{result.time.toFixed(2)}<span className="fs-4">秒</span></div>
-          
-          {result.isFast && (
-            <div className="badge bg-warning text-dark fs-6 mb-4 px-3 py-2 rounded-pill shadow-sm">
-              🎉 平均より速い！
-            </div>
-          )}
-
-          {division !== "kids" && (
-            <>
-              <div className="text-muted mb-2">難易度レベル</div>
-              <div className="h3 fw-bold text-danger">{result.difficulty.toFixed(2)}</div>
-            </>
-          )}
-
-          {result.answer && result.answer !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">答え</div>
-              <div className="h4 fw-bold text-dark">{result.answer}</div>
-            </>
-          )}
-
-          {result.explanation && result.explanation !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">解説</div>
-              <div className="fs-6 text-dark">{result.explanation}</div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   const renderInitial = () => {
     return (
       <div className="d-flex flex-column justify-content-center align-items-center text-muted h-100">
@@ -1509,73 +1452,16 @@ function App() {
 
       <main className="text-center">
         {isAllRead ? (
-          <>
-            {confettiPieces.length > 0 && (
-              <div className="confetti-container" aria-hidden="true">
-                {confettiPieces.map(c => (
-                  <span
-                    key={c.id}
-                    className="confetti-piece"
-                    style={{ left: `${c.left}%`, animationDelay: `${c.delay}s`, animationDuration: `${c.duration}s` }}
-                  >
-                    {c.emoji}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="alert alert-success py-5 mb-5 shadow-sm rounded-4 border-0">
-              <h2 className="display-5 fw-bold mb-3">🎉 おめでとう！ 🎉</h2>
-              <p className="lead mb-4">すべての札を読み上げました！</p>
-              {sessionSummary && (
-                <div className="row justify-content-center g-3 mb-4 text-dark">
-                  <div className="col-6 col-md-4">
-                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
-                      <div className="text-muted small">合計所要時間</div>
-                      <div className="h4 fw-bold mb-0">{sessionSummary.totalTime.toFixed(2)}秒</div>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-4">
-                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
-                      <div className="text-muted small">最速の札</div>
-                      <div className="fw-bold text-truncate">{sessionSummary.fastest.phrase}</div>
-                      <div className="small text-muted">{sessionSummary.fastest.elapsedTime}秒</div>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-4">
-                    <div className="bg-white rounded-3 shadow-sm p-3 h-100">
-                      <div className="text-muted small">最も時間がかかった札</div>
-                      <div className="fw-bold text-truncate">{sessionSummary.slowest.phrase}</div>
-                      <div className="small text-muted">{sessionSummary.slowest.elapsedTime}秒</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {scoreSummary && (
-                <div className="mb-4 text-dark">
-                  <h3 className="h5 fw-bold mb-3">
-                    {scoreSummary.winners.length === 1
-                      ? `🏆 優勝: ${scoreSummary.winners[0]}`
-                      : scoreSummary.winners.length > 1
-                      ? `🏆 優勝: ${scoreSummary.winners.join('・')}（同点）`
-                      : "取った札の記録はありません"}
-                  </h3>
-                  <div className="d-flex flex-wrap gap-2 justify-content-center">
-                    {scoreSummary.entries.map(e => (
-                      <div key={e.name} className="bg-white rounded-3 shadow-sm px-3 py-2">
-                        <span className="fw-bold">{e.name}</span>: {e.count}枚
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <button onClick={restartCategory} className="btn btn-primary btn-lg px-5 rounded-pill shadow">もう一度最初から遊ぶ</button>
-            </div>
-          </>
+          <QuizCompletionScreen
+            sessionSummary={sessionSummary}
+            scoreSummary={scoreSummary}
+            restartCategory={restartCategory}
+          />
         ) : (
           <>
             <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
               {displayContent.type === 'phrase' && renderPhrase(displayContent.content)}
-              {displayContent.type === 'result' && renderResult(displayContent.content)}
+              {displayContent.type === 'result' && <ResultCard result={displayContent.content} division={division} />}
               {displayContent.type === 'initial' && renderInitial()}
             </div>
 
