@@ -1192,6 +1192,7 @@ function App() {
         <QuizRoomBuzzJudgmentModal
           buzzedBy={quizRoomBuzzedBy}
           answer={currentPhrase?.answer}
+          explanation={currentPhrase?.explanation}
           onJudge={judgeQuizRoomBuzz}
         />
       </>
@@ -1683,6 +1684,7 @@ function App() {
           <QuizRoomBuzzJudgmentModal
             buzzedBy={quizRoomBuzzedBy}
             answer={currentPhrase?.answer}
+            explanation={currentPhrase?.explanation}
             onJudge={judgeQuizRoomBuzz}
           />
         </div>

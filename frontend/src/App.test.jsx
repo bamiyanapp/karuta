@@ -1315,7 +1315,7 @@ describe('App', () => {
     randomSpy.mockRestore();
   }, 40000);
 
-  it('shows the answer on the detail/report screen opened from history', async () => {
+  it('shows the answer and explanation on the detail/report screen opened from history (issue #693)', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0); // 常にp1を選ばせる
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
@@ -1326,8 +1326,8 @@ describe('App', () => {
           ok: true,
           json: async () => ({
             phrases: [
-              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A' },
-              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B' },
+              { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A', explanation: '解説A' },
+              { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B', explanation: '解説B' },
             ],
           }),
         };
@@ -1335,8 +1335,8 @@ describe('App', () => {
       if (url.includes('get-phrase')) {
         const id = new URL(url).searchParams.get('id');
         const phraseById = {
-          p1: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A' },
-          p2: { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B' },
+          p1: { id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '回答A', explanation: '解説A' },
+          p2: { id: 'p2', category: 'Cat1', kana: 'い', phrase: '読み札2', level: '-', answer: '回答B', explanation: '解説B' },
         };
         return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
       }
@@ -1368,6 +1368,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText('答え')).toBeInTheDocument();
       expect(screen.getByText('回答A')).toBeInTheDocument();
+      expect(screen.getByText('解説A')).toBeInTheDocument();
     });
 
     // バックエンドの上限(1000文字)と揃え、送信後に拒否される体験を防ぐ
@@ -1671,6 +1672,42 @@ describe('App', () => {
     // 読み札列・答え列の幅バランスが崩れないよう、同じ幅指定クラスを共有していることを確認する
     expect(screen.getByText('読み札', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
     expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
+  });
+
+  it('shows an explanation column with data and blank fallback in all-phrases view (issue #693)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1', phrase: '読み札A', level: '-', answer: '回答A', explanation: '解説A' },
+              { id: 'p2', category: 'Cat1', phrase: '読み札B', level: '-', answer: '-', explanation: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    await waitFor(() => {
+      expect(screen.getByText('解説')).toBeInTheDocument();
+      expect(screen.getByText('解説A')).toBeInTheDocument();
+      expect(screen.getByText('読み札B').closest('tr')).not.toHaveTextContent('-');
+    });
   });
 
   it('shows existing comments for the phrase on the detail screen (issue #223)', async () => {

@@ -528,7 +528,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       if (url.includes('/get-phrase?')) {
-        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', explanation: '解説1', audioData: 'dummy' }) };
       }
       return { ok: false };
     });
@@ -562,6 +562,8 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
     expect(screen.getByText('答え1')).toBeInTheDocument();
+    // issue #693: 判定モーダルにも解説を表示する
+    expect(screen.getByText('解説1')).toBeInTheDocument();
   }, 40000);
 
   it('reveals the result screen (and stops the elapsed-time measurement) as soon as a buzz is judged correct, instead of waiting for the admin to click 次の札, and broadcasts the winner\'s name (issue #600)', async () => {
