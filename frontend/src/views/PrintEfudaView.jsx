@@ -59,7 +59,7 @@ const resolvePhraseIndex = (slotIndex, printSide) => {
   return row * EFUDA_GRID_COLUMNS + (EFUDA_GRID_COLUMNS - 1 - col);
 };
 
-function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesForCategory, efudaPages, efudaPerPage }) {
+function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesForCategory, phrasesFetchError, onRetryFetchPhrases, efudaPages, efudaPerPage }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // この画面を開いている間、PwaUpdatePromptの「オフラインで利用可能になりました」
@@ -144,10 +144,24 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
 
       {selectedCategories.length === 0 ? (
         <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>
+      ) : allPhrasesForCategory.length === 0 && phrasesFetchError ? (
+        // issue #474: 「読み込み中」と「取得失敗」を区別する。以前はどちらも
+        // allPhrasesForCategory.length === 0だけで判定していたため、取得に失敗した
+        // 場合も「読み込み中...」の表示のまま進まなくなっていた
+        <div className="text-center py-5 no-print">
+          <p className="text-danger mb-3">かるたデータの取得に失敗しました。</p>
+          <button onClick={onRetryFetchPhrases} className="btn btn-outline-dark rounded-pill px-4">再試行する</button>
+        </div>
       ) : allPhrasesForCategory.length === 0 ? (
         <p className="text-muted text-center py-5 no-print">読み込み中...</p>
       ) : (
         <>
+          {phrasesFetchError && (
+            <div className="alert alert-warning no-print text-center d-flex align-items-center justify-content-center gap-3 flex-wrap">
+              <span>一部のかるたデータの取得に失敗したため、表示されていない種別があります。</span>
+              <button onClick={onRetryFetchPhrases} className="btn btn-sm btn-outline-dark rounded-pill">再試行する</button>
+            </div>
+          )}
           <div className="no-print text-center mb-4">
             <p className="text-muted small mb-3">
               用紙（顔料インク用）: <a href="https://www.a-one.co.jp/product/search/detail.php?id=51677" target="_blank" rel="noopener noreferrer">エーワン マルチカード A4・10面用 品番51677</a><br />

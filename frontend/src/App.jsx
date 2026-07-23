@@ -72,6 +72,9 @@ function App() {
   const [allComments, setAllComments] = useState([]);
 
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]);
+  // issue #474: 選択中のカテゴリのうち1件でも取得に失敗したかどうか。
+  // 「まだ読み込んでいない」(allPhrasesForCategory.length === 0)と区別するための専用state
+  const [phrasesFetchError, setPhrasesFetchError] = useState(false);
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [filterCategory, setFilterCategory] = useState(''); // 全札一覧フィルタ
@@ -345,33 +348,50 @@ function App() {
     fetchCategories();
   }, []);
 
-  // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する
+  // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。
+  // issue #474: 以前はPromise.allを使っており、選択中の1カテゴリでも取得に失敗すると
+  // 全体がrejectしてallPhrasesForCategoryが空配列にリセットされていた（カテゴリ数が
+  // 多い「全カテゴリ選択」ほど並列リクエスト数が増え、個々の失敗確率も上がるため
+  // 発生しやすかった）。Promise.allSettledに変更し、失敗したカテゴリがあっても
+  // 成功分はそのまま反映しつつ、phrasesFetchErrorで失敗の有無だけ別途知らせる。
+  // phrasesFetchRetryTokenは「再試行する」ボタンから同じカテゴリ構成のまま
+  // 再フェッチを起動するためだけのstateで、値自体に意味はない
+  const [phrasesFetchRetryToken, setPhrasesFetchRetryToken] = useState(0);
   useEffect(() => {
     const fetchPhrasesList = async () => {
       if (selectedCategories.length === 0) {
         setAllPhrasesForCategory([]);
+        setPhrasesFetchError(false);
         return;
       }
-      try {
-        const results = await Promise.all(
-          selectedCategories.map(async (cat) => {
-            const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(cat)}`);
-            if (!response.ok) {
-              throw new Error(`Failed to fetch phrases for category: ${cat}`);
-            }
-            const data = await response.json();
-            return data.phrases || [];
-          })
-        );
-        setAllPhrasesForCategory(results.flat());
-      } catch (error) {
-        console.error("Error fetching phrases list:", error);
-        alert("かるたデータの取得に失敗したカテゴリがあります。もう一度選び直してください。");
-        setAllPhrasesForCategory([]);
+      const settled = await Promise.allSettled(
+        selectedCategories.map(async (cat) => {
+          const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(cat)}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch phrases for category: ${cat}`);
+          }
+          const data = await response.json();
+          return data.phrases || [];
+        })
+      );
+      const succeeded = settled.filter((r) => r.status === "fulfilled").flatMap((r) => r.value);
+      const failedCount = settled.filter((r) => r.status === "rejected").length;
+      settled.forEach((r, i) => {
+        if (r.status === "rejected") {
+          console.error(`Error fetching phrases for category "${selectedCategories[i]}":`, r.reason);
+        }
+      });
+      setAllPhrasesForCategory(succeeded);
+      setPhrasesFetchError(failedCount > 0);
+      // 選択中の全カテゴリが失敗した場合（部分的な失敗ではなく完全な失敗）のみ、
+      // 従来どおりアラートで知らせる。1カテゴリの失敗程度ではアラートを出さない
+      if (failedCount > 0 && succeeded.length === 0) {
+        alert("かるたデータの取得に失敗しました。もう一度お試しください。");
       }
     };
     fetchPhrasesList();
-  }, [selectedCategories]);
+  }, [selectedCategories, phrasesFetchRetryToken]);
+  const retryFetchPhrasesList = () => setPhrasesFetchRetryToken((token) => token + 1);
 
   // 詳細データの取得
   useEffect(() => {
@@ -1125,6 +1145,8 @@ function App() {
         onBack={handlePrintEfudaBack}
         selectedCategories={selectedCategories}
         allPhrasesForCategory={allPhrasesForCategory}
+        phrasesFetchError={phrasesFetchError}
+        onRetryFetchPhrases={retryFetchPhrasesList}
         efudaPages={efudaPages}
         efudaPerPage={EFUDA_PER_PAGE}
       />

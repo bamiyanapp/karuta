@@ -719,6 +719,82 @@ describe('App', () => {
     expect(document.querySelector('.efuda-card-category')).toHaveTextContent('Cat1');
   });
 
+  it('shows the phrases from categories that succeeded, plus a retry banner, when only some selected categories fail to fetch (issue #474)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list') && url.includes('category=Cat1')) {
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', answer: '回答1' }] }) };
+      }
+      if (url.includes('get-phrases-list') && url.includes('category=Cat2')) {
+        return { ok: false };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Cat1/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cat2/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Cat2/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      // Cat1（成功分）は表示され、「読み込み中...」で止まったままにはならない
+      expect(screen.getByText('回答1')).toBeInTheDocument();
+    });
+
+    // 一部失敗のみでは、完全失敗時のアラートは出さない
+    expect(window.alert).not.toHaveBeenCalledWith(expect.stringContaining('かるたデータの取得'));
+    // 一部失敗を知らせる警告と再試行導線が表示される
+    expect(screen.getByText(/一部のかるたデータの取得に失敗した/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '再試行する' })).toBeInTheDocument();
+  });
+
+  it('shows a retry option instead of getting stuck on "読み込み中..." when all selected categories fail to fetch, and recovers after retrying (issue #474)', async () => {
+    let cat1ShouldFail = true;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        if (cat1ShouldFail) return { ok: false };
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', answer: '回答1' }] }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    await waitFor(() => screen.getByText('絵札を印刷する'));
+    fireEvent.click(screen.getByText('絵札を印刷する'));
+
+    await waitFor(() => {
+      expect(screen.getByText('かるたデータの取得に失敗しました。')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
+    expect(window.alert).toHaveBeenCalledWith('かるたデータの取得に失敗しました。もう一度お試しください。');
+
+    cat1ShouldFail = false;
+    fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('回答1')).toBeInTheDocument();
+    });
+  });
+
   it('switches the efuda print view to show the back side (category and level) (issue #363)', async () => {
     const phrases = [
       { id: 'p0', category: 'Cat1', kana: 'あ', phrase: '読み札テキスト0', answer: '-', level: '3' },
