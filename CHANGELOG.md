@@ -1,3 +1,10 @@
+## [1.49.3](https://github.com/bamiyanapp/karuta/compare/v1.49.2...v1.49.3) (2026-07-23)
+
+
+### Bug Fixes
+
+* **frontend:** 最後の1枚読み上げ中は「次の札」を無効化する（issue [#721](https://github.com/bamiyanapp/karuta/issues/721)） ([#727](https://github.com/bamiyanapp/karuta/issues/727)) ([57279f0](https://github.com/bamiyanapp/karuta/commit/57279f02c0ba455d5742f0c751f2b03b52d09ebf)), closes [#590](https://github.com/bamiyanapp/karuta/issues/590) [#590](https://github.com/bamiyanapp/karuta/issues/590)
+
 ## [1.49.2](https://github.com/bamiyanapp/karuta/compare/v1.49.1...v1.49.2) (2026-07-23)
 
 
