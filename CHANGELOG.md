@@ -1,3 +1,10 @@
+# [1.51.0](https://github.com/bamiyanapp/karuta/compare/v1.50.1...v1.51.0) (2026-07-23)
+
+
+### Features
+
+* **frontend:** 読み上げ画面から管理者セッションを再開できるようにする（issue [#744](https://github.com/bamiyanapp/karuta/issues/744)） ([#746](https://github.com/bamiyanapp/karuta/issues/746)) ([bc26a19](https://github.com/bamiyanapp/karuta/commit/bc26a198d6f52a54d089a0eebc62bccd12cca693))
+
 ## [1.50.1](https://github.com/bamiyanapp/karuta/compare/v1.50.0...v1.50.1) (2026-07-23)
 
 

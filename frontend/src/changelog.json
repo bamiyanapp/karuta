@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.50.1",
+    "version": "1.51.0",
     "date": "2026/07/23",
+    "body": "### Features\n\n* **frontend:** 読み上げ画面から管理者セッションを再開できるようにする（issue [#744](https://github.com/bamiyanapp/karuta/issues/744)） ([#746](https://github.com/bamiyanapp/karuta/issues/746)) ([bc26a19](https://github.com/bamiyanapp/karuta/commit/bc26a198d6f52a54d089a0eebc62bccd12cca693))"
+  },
+  {
+    "version": "1.50.1",
+    "date": "2026/07/23 20:40",
     "body": "### Bug Fixes\n\n* **frontend:** 読み上げ進行の永久停止対策 & ci: カバレッジゲート部分有効化（issue [#729](https://github.com/bamiyanapp/karuta/issues/729), [#459](https://github.com/bamiyanapp/karuta/issues/459)） ([#743](https://github.com/bamiyanapp/karuta/issues/743)) ([eea0eb6](https://github.com/bamiyanapp/karuta/commit/eea0eb612d1d983c88bbc24c581e8da726858b9e))"
   },
   {
