@@ -248,7 +248,12 @@ exports.disconnectQuizRoom = async (event) => {
     // 参加者一覧（issue #545）: 切断は参加者一覧からも即座に消す。残りの接続へ
     // 更新後の一覧をブロードキャストする（削除済みなので自分自身は含まれない）
     if (connection.Item?.roomId) {
-      const { roomId } = connection.Item;
+      const { roomId, name } = connection.Item;
+      // 名前の重複予約（issue #618）を解放し、同じ名前で他の参加者・自分自身の
+      // 再入室が再びできるようにする
+      if (name) {
+        await releaseQuizRoomName(roomId, name);
+      }
       const connections = await docClient.send(new QueryCommand({
         TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
         IndexName: "roomId-index",
@@ -589,6 +594,34 @@ exports.resetQuizRoomPoints = async (event) => {
 
 // WebSocketカスタムルート"setName"（早押し機能、issue #510）。参加者（管理者含む、
 // ただし実際に使うのは参加者のみ）が自分の表示名を接続情報へ保存する
+// QuizRoomsTable.names（String Set）へ名前を原子的に予約する。ADD ... NOT contains(...)は
+// DynamoDBが単一の条件付き書き込みとして原子的に評価するため、2接続がほぼ同時に同じ名前を
+// 予約しようとしても一方だけが必ず成功する（issue #618。従来のread-then-write方式は
+// Query→比較→Updateの間に他方の書き込みが割り込むと両方のQueryが互いを観測できずすり抜けていた）
+async function reserveQuizRoomName(roomId, name) {
+  await docClient.send(new UpdateCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+    UpdateExpression: "ADD #names :nameSet",
+    ConditionExpression: "attribute_not_exists(#names) OR NOT contains(#names, :name)",
+    ExpressionAttributeNames: { "#names": "names" },
+    ExpressionAttributeValues: { ":nameSet": new Set([name]), ":name": name },
+  }));
+}
+
+// 予約済みの名前を解放する（切断時・別名への変更時）。namesが未作成でも
+// DynamoDBのDELETEは対象要素が無ければ何もしないため、事前の存在確認は不要
+async function releaseQuizRoomName(roomId, name) {
+  if (!name) return;
+  await docClient.send(new UpdateCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+    UpdateExpression: "DELETE #names :nameSet",
+    ExpressionAttributeNames: { "#names": "names" },
+    ExpressionAttributeValues: { ":nameSet": new Set([name]) },
+  }));
+}
+
 exports.setQuizRoomName = async (event) => {
   try {
     const connectionId = event.requestContext.connectionId;
@@ -609,37 +642,57 @@ exports.setQuizRoomName = async (event) => {
 
     // ポイント制（issue #519）はnameを集計キーにするため、同一ルーム内で名前が
     // 重複すると他人のポイントと混ざってしまう。参加時点で重複を禁止する
-    const { roomId } = connection.Item;
+    const { roomId, name: previousName } = connection.Item;
+    const isRenaming = previousName !== name;
+
+    if (isRenaming) {
+      try {
+        await reserveQuizRoomName(roomId, name);
+      } catch (reserveError) {
+        if (reserveError.name === "ConditionalCheckFailedException") {
+          const managementApi = buildManagementApiClient(event);
+          await postToConnection(managementApi, connectionId, {
+            type: "nameError",
+            message: "その名前は既に使われています。別の名前を入力してください。",
+          });
+          return { statusCode: 200, body: "" };
+        }
+        throw reserveError;
+      }
+    }
+
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+        Key: { connectionId },
+        UpdateExpression: "SET #name = :name",
+        ExpressionAttributeNames: { "#name": "name" },
+        ExpressionAttributeValues: { ":name": name },
+        ConditionExpression: "attribute_exists(connectionId)",
+      }));
+    } catch (updateError) {
+      // 接続が消えていた場合、予約した名前を解放してから終了する
+      if (isRenaming) {
+        await releaseQuizRoomName(roomId, name);
+      }
+      if (updateError.name === "ConditionalCheckFailedException") {
+        return { statusCode: 200, body: "" };
+      }
+      throw updateError;
+    }
+
+    if (isRenaming && previousName) {
+      await releaseQuizRoomName(roomId, previousName);
+    }
+
+    // 参加者一覧（issue #545）: 名前が確定したら、ルーム内の全接続（管理者含む）へ
+    // 更新後の参加者一覧をブロードキャストする
     const connections = await docClient.send(new QueryCommand({
       TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
       IndexName: "roomId-index",
       KeyConditionExpression: "roomId = :roomId",
       ExpressionAttributeValues: { ":roomId": roomId },
     }));
-    const isDuplicate = (connections.Items || []).some(
-      (conn) => conn.connectionId !== connectionId && conn.name === name
-    );
-    if (isDuplicate) {
-      const managementApi = buildManagementApiClient(event);
-      await postToConnection(managementApi, connectionId, {
-        type: "nameError",
-        message: "その名前は既に使われています。別の名前を入力してください。",
-      });
-      return { statusCode: 200, body: "" };
-    }
-
-    await docClient.send(new UpdateCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-      UpdateExpression: "SET #name = :name",
-      ExpressionAttributeNames: { "#name": "name" },
-      ExpressionAttributeValues: { ":name": name },
-      ConditionExpression: "attribute_exists(connectionId)",
-    }));
-
-    // 参加者一覧（issue #545）: 名前が確定したら、ルーム内の全接続（管理者含む）へ
-    // 更新後の参加者一覧をブロードキャストする。connections.Itemsは名前確定前に
-    // 取得したものなので、呼び出し元自身の分だけ新しい名前で上書きする
     const managementApi = buildManagementApiClient(event);
     const participantNames = (connections.Items || [])
       .filter((conn) => conn.role === "participant")

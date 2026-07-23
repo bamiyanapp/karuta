@@ -302,6 +302,7 @@ describe('disconnectQuizRoom', () => {
   it('broadcasts the updated participant list (excluding the departed participant) to the remaining connections (issue #545)', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
     ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(UpdateCommand).resolves({});
     ddbMock.on(QueryCommand).resolves({
       Items: [
         { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
@@ -319,6 +320,30 @@ describe('disconnectQuizRoom', () => {
     expect(targets).toEqual(['conn-2', 'conn-admin']);
     const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
     expect(payload).toEqual({ type: 'participants', names: ['はなこ'] });
+  });
+
+  it('releases the departed participant\'s reserved name so it can be reused (issue #618)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
+    ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(UpdateCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    await disconnectQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    const releaseCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+    expect(releaseCall.Key).toEqual({ roomId: 'ROOM01' });
+    expect(releaseCall.UpdateExpression).toBe('DELETE #names :nameSet');
+    expect(releaseCall.ExpressionAttributeValues[':nameSet']).toEqual(new Set(['たろう']));
+  });
+
+  it('does not attempt to release a name when the departed connection never had one', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
+    ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+
+    await disconnectQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
   });
 
   it('handles errors', async () => {
@@ -668,9 +693,28 @@ describe('setQuizRoomName', () => {
     const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: '  たろう  ' } }));
 
     expect(response.statusCode).toBe(200);
-    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
-    expect(updateCall.Key).toEqual({ connectionId: 'conn-1' });
-    expect(updateCall.ExpressionAttributeValues[':name']).toBe('たろう');
+    // 1回目は名前予約（QuizRoomsTable）、2回目が接続レコードへの保存
+    const updateCalls = ddbMock.commandCalls(UpdateCommand);
+    expect(updateCalls).toHaveLength(2);
+    const connectionUpdate = updateCalls.find((call) => call.args[0].input.Key.connectionId).args[0].input;
+    expect(connectionUpdate.Key).toEqual({ connectionId: 'conn-1' });
+    expect(connectionUpdate.ExpressionAttributeValues[':name']).toBe('たろう');
+  });
+
+  it('reserves the name on QuizRoomsTable.names before saving it on the connection record (issue #618)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
+    ddbMock.on(QueryCommand).resolves({ Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' }] });
+    ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: 'たろう' } }));
+
+    const reserveCall = ddbMock.commandCalls(UpdateCommand)
+      .find((call) => call.args[0].input.Key.roomId).args[0].input;
+    expect(reserveCall.Key).toEqual({ roomId: 'ROOM01' });
+    expect(reserveCall.UpdateExpression).toBe('ADD #names :nameSet');
+    expect(reserveCall.ConditionExpression).toBe('attribute_not_exists(#names) OR NOT contains(#names, :name)');
+    expect(reserveCall.ExpressionAttributeValues[':nameSet']).toEqual(new Set(['たろう']));
   });
 
   it('truncates names longer than the configured limit', async () => {
@@ -681,8 +725,9 @@ describe('setQuizRoomName', () => {
 
     await setQuizRoomName(wsEvent({ body: { name: 'x'.repeat(50) } }));
 
-    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
-    expect(updateCall.ExpressionAttributeValues[':name']).toHaveLength(20);
+    const connectionUpdate = ddbMock.commandCalls(UpdateCommand)
+      .find((call) => call.args[0].input.Key.connectionId).args[0].input;
+    expect(connectionUpdate.ExpressionAttributeValues[':name']).toHaveLength(20);
   });
 
   it('broadcasts the updated participant list (including the newly-named connection) to every connection in the room (issue #545)', async () => {
@@ -723,27 +768,27 @@ describe('setQuizRoomName', () => {
     expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
   });
 
-  it('rejects a name already used by another connection in the same room, without saving it (issue #519)', async () => {
+  it('rejects a name already reserved by another connection in the same room, without saving it (issue #519, #618)', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-2', roomId: 'ROOM01', role: 'participant' } });
-    ddbMock.on(QueryCommand).resolves({
-      Items: [
-        { connectionId: 'conn-1', roomId: 'ROOM01', name: 'たろう' },
-        { connectionId: 'conn-2', roomId: 'ROOM01' },
-      ],
-    });
+    // 名前の重複はQuizRoomsTable.namesへの条件付きADDが失敗することで検出される
+    // （issue #618。従来のQueryベースの重複チェックは同時参加時にすり抜けることがあった）
+    const conditionalError = new Error('ConditionalCheckFailedException');
+    conditionalError.name = 'ConditionalCheckFailedException';
+    ddbMock.on(UpdateCommand).rejects(conditionalError);
     managementApiMock.on(PostToConnectionCommand).resolves({});
 
     const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-2', body: { name: 'たろう' } }));
 
     expect(response.statusCode).toBe(200);
-    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+    // 予約(ADD)が失敗した1回のみで、接続レコードへの保存は行われない
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(1);
     const postCall = managementApiMock.commandCalls(PostToConnectionCommand)[0].args[0].input;
     expect(postCall.ConnectionId).toBe('conn-2');
     const payload = JSON.parse(Buffer.from(postCall.Data).toString('utf-8'));
     expect(payload.type).toBe('nameError');
   });
 
-  it('allows re-saving the same name for the same connection (not a duplicate of itself)', async () => {
+  it('allows re-saving the same name for the same connection without re-reserving it (not a duplicate of itself)', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
     ddbMock.on(QueryCommand).resolves({
       Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' }],
@@ -754,7 +799,28 @@ describe('setQuizRoomName', () => {
     const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: 'たろう' } }));
 
     expect(response.statusCode).toBe(200);
+    // 予約(ADD)は既に自分自身が保持しているためスキップされ、接続レコードの保存のみ1回
     expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(1);
+    expect(ddbMock.commandCalls(UpdateCommand)[0].args[0].input.Key).toEqual({ connectionId: 'conn-1' });
+  });
+
+  it('releases the previous name reservation when the same connection changes to a different name', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'たろう' } });
+    ddbMock.on(QueryCommand).resolves({
+      Items: [{ connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant', name: 'じろう' }],
+    });
+    ddbMock.on(UpdateCommand).resolves({});
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    const response = await setQuizRoomName(wsEvent({ connectionId: 'conn-1', body: { name: 'じろう' } }));
+
+    expect(response.statusCode).toBe(200);
+    const roomUpdates = ddbMock.commandCalls(UpdateCommand).filter((call) => call.args[0].input.Key.roomId);
+    expect(roomUpdates).toHaveLength(2);
+    const reserveCall = roomUpdates.find((call) => call.args[0].input.UpdateExpression === 'ADD #names :nameSet').args[0].input;
+    expect(reserveCall.ExpressionAttributeValues[':nameSet']).toEqual(new Set(['じろう']));
+    const releaseCall = roomUpdates.find((call) => call.args[0].input.UpdateExpression === 'DELETE #names :nameSet').args[0].input;
+    expect(releaseCall.ExpressionAttributeValues[':nameSet']).toEqual(new Set(['たろう']));
   });
 
   it('handles unexpected errors', async () => {
