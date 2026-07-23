@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
-import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime } from './handler';
+import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, resolveAllowedOrigin } from './handler';
 import { Readable } from 'stream';
 import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
@@ -13,6 +13,17 @@ const pollyMock = mockClient(PollyClient);
 vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid');
 vi.spyOn(console, 'error').mockImplementation(() => {});
 
+
+describe('resolveAllowedOrigin', () => {
+  it('reflects the request origin when it is on the allow-list', () => {
+    expect(resolveAllowedOrigin({ headers: { origin: 'http://localhost:5173' } })).toBe('http://localhost:5173');
+  });
+
+  it('falls back to the production origin when the request origin is not on the allow-list (or missing entirely)', () => {
+    expect(resolveAllowedOrigin({ headers: { origin: 'https://evil.example.com' } })).toBe('https://bamiyanapp.github.io');
+    expect(resolveAllowedOrigin({})).toBe('https://bamiyanapp.github.io');
+  });
+});
 
 describe('getCategories', () => {
   beforeEach(() => {
@@ -110,6 +121,30 @@ describe('getCategories', () => {
     const response = await getCategories({});
     expect(response.statusCode).toBe(500);
   });
+
+  it('treats a Scan response with no Items field as empty, returning the default category', async () => {
+    ddbMock.on(ScanCommand).resolves({});
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids', requiresPossessionCheck: true, count: 0, readCount: 0 }]);
+  });
+
+  it('groups an item with no category field under the default category name (大ピンチずかん)', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [{ group: 'kids', answer: '-' }],
+    });
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body.categories).toEqual([
+      { name: '大ピンチずかん', group: 'kids', requiresPossessionCheck: true, count: 1, readCount: 0 },
+    ]);
+  });
 });
 
 describe('getPhrasesList', () => {
@@ -196,6 +231,26 @@ describe('getPhrasesList', () => {
         { id: '1', category: 'Category1', readCount: 4, averageTime: 10, averageDifficulty: 2 },
       ]);
     });
+
+    it('treats a Scan response with no Items field as an empty list instead of throwing', async () => {
+      ddbMock.on(ScanCommand).resolves({});
+
+      const response = await getPhrasesList({});
+      const body = JSON.parse(response.body);
+
+      expect(response.statusCode).toBe(200);
+      expect(body.phrases).toEqual([]);
+    });
+
+    it('treats a Query response with no Items field as an empty list instead of throwing', async () => {
+      ddbMock.on(QueryCommand).resolves({});
+
+      const response = await getPhrasesList({ queryStringParameters: { category: 'Category1' } });
+      const body = JSON.parse(response.body);
+
+      expect(response.statusCode).toBe(200);
+      expect(body.phrases).toEqual([]);
+    });
 });
 
 describe('getComments', () => {
@@ -220,6 +275,14 @@ describe('getComments', () => {
         ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
         const response = await getComments({});
         expect(response.statusCode).toBe(500);
+    });
+
+    it('treats a Scan response with no Items field as an empty list instead of throwing', async () => {
+        ddbMock.on(ScanCommand).resolves({});
+        const response = await getComments({});
+        const body = JSON.parse(response.body);
+        expect(response.statusCode).toBe(200);
+        expect(body.comments).toEqual([]);
     });
 });
 
@@ -247,6 +310,12 @@ describe('postComment', () => {
 
     it('should return 400 for invalid input', async () => {
         const event = { body: JSON.stringify({ phraseId: 'p1' }) }; // missing comment
+        const response = await postComment(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when phraseId is missing', async () => {
+        const event = { body: JSON.stringify({ comment: 'This is a comment' }) };
         const response = await postComment(event);
         expect(response.statusCode).toBe(400);
     });
@@ -659,6 +728,106 @@ describe('getPhrase', () => {
         expect(body.id).toBe('p1');
         expect(body.readCount).toBe(5);
         expect(body.averageTime).toBe(12.3);
+    });
+
+    it('looks up a phrase directly via GetItem (skipping the Scan) when both id and category are provided', async () => {
+        ddbMock.on(GetCommand, { TableName: 'TestTable' }).resolves({
+            Item: { id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' },
+        });
+        ddbMock.on(GetCommand, { TableName: 'CacheTable' }).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', category: 'c1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+
+        expect(response.statusCode).toBe(200);
+        expect(body.id).toBe('p1');
+        expect(ddbMock.commandCalls(ScanCommand).length).toBe(0);
+    });
+
+    it('filters out items whose category does not match (tolerating a missing category field on other items), returning 404 when nothing matches', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [
+                { id: 'p1', phrase: 'no category field' }, // categoryフィールド自体が無いアイテム
+                { id: 'p2', category: 'OtherCategory', phrase: 'different category' },
+            ],
+        });
+
+        const event = { queryStringParameters: { category: 'c1' } };
+        const response = await getPhrase(event);
+
+        expect(response.statusCode).toBe(404);
+    });
+
+    it('falls back to the Japanese phrase text for English speech when phrase_en is not set', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: '日本語のみ', level: '-' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1', lang: 'en' } };
+        const response = await getPhrase(event);
+
+        expect(response.statusCode).toBe(200);
+        const pollyParams = pollyMock.commandCalls(SynthesizeSpeechCommand)[0].args[0].input;
+        expect(pollyParams.Text).toContain('日本語のみ');
+    });
+
+    it('skips the Polly cache lookup/write entirely when POLLY_CACHE_TABLE_NAME is not configured', async () => {
+        delete process.env.POLLY_CACHE_TABLE_NAME;
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-' }],
+        });
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+
+        expect(response.statusCode).toBe(200);
+        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
+    });
+
+    it('uses averageTime/averageDifficulty as a legacy fallback (0 when also absent) when only one of totalTime/totalDifficulty is present (partial migration)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{
+                id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-',
+                readCount: 0, totalTime: 30, averageTime: 55,
+                // totalDifficultyもaverageDifficultyも無い状態
+            }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+
+        // readCountが0のため（totalTimeが数値であっても）平均は計算せず、既存のaverageTimeをそのまま使う
+        expect(body.averageTime).toBe(55);
+        // averageDifficultyの元になる値が無いため0にフォールバックする
+        expect(body.averageDifficulty).toBe(0);
     });
 
     it('should compute averageTime/averageDifficulty from totalTime/totalDifficulty when present (post-migration data)', async () => {
@@ -1090,5 +1259,32 @@ describe('recordTime', () => {
         // readCountとtotalTimeが常に対応するサンプル数を保つよう、
         // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
         expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    });
+
+    it('should return 400 when id is missing', async () => {
+        const event = { body: JSON.stringify({ category: 'c1', time: 10 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when time is not a number', async () => {
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: '10' }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when time exceeds JSON-safe integer precision (Infinity, serialized as null)', async () => {
+        // JSONにNaN/Infinityのリテラルは存在しないため、Infinityはnullとしてシリアライズされる
+        // （typeof time !== 'number'に該当し、400になることを確認する）
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: Infinity }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should propagate (as a 500) an Update failure that is not a ConditionalCheckFailedException', async () => {
+        ddbMock.on(UpdateCommand).rejects(new Error('ProvisionedThroughputExceededException'));
+        const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 10 }) };
+        const response = await recordTime(event);
+        expect(response.statusCode).toBe(500);
     });
 });

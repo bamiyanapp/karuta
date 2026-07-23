@@ -65,4 +65,19 @@ describe('backfillPollyCacheTtl', () => {
     expect(updatedCount).toBe(0);
     expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
   });
+
+  it('treats a Scan response with no Items field as an empty page instead of throwing', async () => {
+    ddbMock.on(ScanCommand).resolves({});
+
+    const updatedCount = await backfillPollyCacheTtl();
+
+    expect(updatedCount).toBe(0);
+  });
+
+  it('rethrows an Update failure that is not a ConditionalCheckFailedException', async () => {
+    ddbMock.on(ScanCommand).resolves({ Items: [{ id: 'cache1' }] });
+    ddbMock.on(UpdateCommand).rejects(new Error('ProvisionedThroughputExceededException'));
+
+    await expect(backfillPollyCacheTtl()).rejects.toThrow('ProvisionedThroughputExceededException');
+  });
 });

@@ -95,6 +95,20 @@ describe('generateEfudaPdf', () => {
     const response = await generateEfudaPdf({ body: JSON.stringify({ categoryParam: 'Cat1', side: 'front' }) });
     expect(response.statusCode).toBe(500);
   });
+
+  it('treats a missing Count from DynamoDB as 0 cards for that category', async () => {
+    ddbMock.on(QueryCommand, { ExpressionAttributeValues: { ':cat': 'Cat1' } }).resolves({});
+    lambdaMock.on(InvokeCommand).resolves({ StatusCode: 202 });
+
+    const response = await generateEfudaPdf({ body: JSON.stringify({ categoryParam: 'Cat1', side: 'front' }) });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('treats a missing request body as an empty object instead of throwing', async () => {
+    const response = await generateEfudaPdf({});
+    expect(response.statusCode).toBe(400);
+  });
 });
 
 describe('renderEfudaPdfWorker', () => {
@@ -164,6 +178,11 @@ describe('getEfudaPdfStatus', () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it('rejects when queryStringParameters itself is missing, instead of throwing', async () => {
+    const response = await getEfudaPdfStatus({});
+    expect(response.statusCode).toBe(400);
+  });
+
   it('returns a presigned download URL (with a correctly encoded Japanese filename) when the PDF exists', async () => {
     s3Mock.on(HeadObjectCommand).resolves({});
 
@@ -207,6 +226,28 @@ describe('getEfudaPdfStatus', () => {
   it('handles unexpected errors', async () => {
     s3Mock.on(HeadObjectCommand).rejects(new Error('S3 outage'));
     const response = await getEfudaPdfStatus({ queryStringParameters: { jobId: 'job-4' } });
+    expect(response.statusCode).toBe(500);
+  });
+
+  it('defaults to the front-side label and "karuta" category label when side/categoryLabel are omitted', async () => {
+    s3Mock.on(HeadObjectCommand).resolves({});
+
+    const response = await getEfudaPdfStatus({ queryStringParameters: { jobId: 'job-5' } });
+    const body = JSON.parse(response.body);
+
+    expect(body.status).toBe('DONE');
+    const url = new URL(body.url);
+    expect(url.searchParams.get('response-content-disposition')).toBe(
+      `attachment; filename*=UTF-8''${encodeURIComponent('karuta_絵札_表面.pdf')}`
+    );
+  });
+
+  it('propagates an unexpected error from the error-marker lookup as a 500, instead of masking it as IN_PROGRESS', async () => {
+    s3Mock.on(HeadObjectCommand).rejects(Object.assign(new Error('not found'), { name: 'NotFound' }));
+    s3Mock.on(GetObjectCommand).rejects(new Error('S3 outage'));
+
+    const response = await getEfudaPdfStatus({ queryStringParameters: { jobId: 'job-6' } });
+
     expect(response.statusCode).toBe(500);
   });
 });

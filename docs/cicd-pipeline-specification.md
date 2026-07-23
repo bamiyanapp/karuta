@@ -51,6 +51,7 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 | `frontend-e2e-test` | `enable_e2e_test: true`（有効） | 上記「E2Eテスト」節を参照 |
 | `standards-check` | `enable_standards_check: true`（有効） | dev-standardsサブモジュールの`sync-manifest.json`に基づき、symlinkの欠落・リンク切れ・`.gitignore`等コピー対象ファイルの内容乾離を検知する。`node dev-standards/scripts/bootstrap.js --check`を実行する |
 | `package-test` | 未指定（無効、デフォルトのまま） | `inputs.packages`（frontend/backend以外の小さなパッケージをmatrix展開する仕組み）向けで、karutaは`frontend_dir`/`backend_dir`による固定2パッケージ構成のため対象がなく不要。パッケージ構成が増えた場合に改めて検討する |
+| カバレッジ閾値ゲート（`frontend-test`/`backend-test`共通） | `coverage_threshold: 80`・`coverage_metrics: "branches"`・`coverage_check_per_file: true`（有効、issue #459） | 分岐(branches)カバレッジを基準に80%を必須化し、パッケージ全体平均だけでなくファイル単位でも80%を必須化する。一部ファイルのカバレッジが著しく低くても全体平均でクリアしてしまう問題（issue #459）に対応するため、`coverage_check_per_file: true`をあわせて指定している。カバレッジ表自体は常に4指標（statements/branches/functions/lines）を表示し、ゲート判定のみ`branches`に絞り込む。前提となる`check-coverage-threshold`複合アクションのファイル単位判定・指標絞り込み対応は[dev-standards#57](https://github.com/bamiyanapp/dev-standards/issues/57)で実装済み |
 
 ### `.gitignore`の同期について
 
