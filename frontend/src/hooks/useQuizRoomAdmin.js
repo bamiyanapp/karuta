@@ -350,6 +350,7 @@ export function useQuizRoomAdmin({
     judgeQuizRoomBuzz,
     adminSessionRoomId,
     adminSessionRestoreError,
+    isRestoringAdminSession,
     switchToAdminMode,
   };
 }

@@ -1461,6 +1461,78 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('クイズ大会モードのルーム情報')).toBeInTheDocument();
   }, 40000);
 
+  it('offers to resume the saved admin session from the reading screen itself, instead of only via the participant URL (issue #744)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    const firstRender = await act(async () => render(<App />));
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/かるたを始める/));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    // ブラウザ/タブを閉じた状況を模す。Reactのstateはここで失われるが、localStorageは残る
+    firstRender.unmount();
+
+    // URLの?roomId=を経由せず、素朴にトップから読み上げ画面へ戻ってきた状況を模す
+    window.history.pushState({}, '', '/');
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/かるたを始める/));
+    await waitFor(() => screen.getByText('次の札'));
+
+    // 従来は「クイズ大会のルームを作成する」ボタンしかなく、これを押すと別の新しい
+    // ルームが作られてしまっていた（issue #744）。保存済みセッションがある今は、
+    // 読み上げ画面自体に「再開する」ボタンが出て、新規作成ボタンと並んで選べる
+    expect(screen.getByText('クイズ大会のルームを作成する')).toBeInTheDocument();
+    const resumeButton = screen.getByText('クイズ大会のルームを再開する');
+    fireEvent.click(resumeButton);
+
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const adminConnections = MockWebSocket.instances.filter((instance) => instance.url.includes('adminToken='));
+    expect(adminConnections).toHaveLength(2); // 1回目の作成時 + 今回の再開時
+    expect(adminConnections[1].url).toContain('roomId=ABC123');
+    expect(adminConnections[1].url).toContain('adminToken=token-1');
+
+    // 復帰した接続が確立すれば、エラー表示は出ずルーム情報画面に留まる
+    act(() => {
+      adminConnections[1].readyState = MockWebSocket.OPEN;
+      adminConnections[1].onopen?.();
+    });
+    expect(screen.getByText('ルーム情報を表示（クイズ大会モード）')).toBeInTheDocument();
+  }, 40000);
+
   it('discards the saved admin token and falls back to the participant screen with an error when the saved token fails to connect (issue #697)', async () => {
     class MockWebSocket {
       constructor(url) {

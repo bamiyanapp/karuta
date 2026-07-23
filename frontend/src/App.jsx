@@ -976,6 +976,7 @@ function App() {
     judgeQuizRoomBuzz,
     adminSessionRoomId,
     adminSessionRestoreError,
+    isRestoringAdminSession,
     switchToAdminMode,
   } = useQuizRoomAdmin({
     view,
@@ -1674,15 +1675,29 @@ function App() {
       ) : (
         <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">
           <div>
+            {/* 管理者セッション復帰（issue #697）: ブラウザを閉じて読み上げ画面へ戻ってきた
+                場合でも、保存済みの管理者セッションがあれば新規作成の前に再開できるようにする
+                （issue #744: 従来はこの画面に再開の導線が無く、常に新規ルームを作ってしまっていた） */}
+            {adminSessionRoomId && (
+              <button
+                type="button"
+                onClick={() => switchToAdminMode(adminSessionRoomId)}
+                disabled={isRestoringAdminSession || creatingQuizRoom}
+                className="btn btn-outline-dark px-4 rounded-pill me-2"
+              >
+                {isRestoringAdminSession ? "再開中..." : "クイズ大会のルームを再開する"}
+              </button>
+            )}
             <button
               type="button"
               onClick={createQuizRoom}
-              disabled={creatingQuizRoom}
+              disabled={creatingQuizRoom || isRestoringAdminSession}
               className="btn btn-outline-dark px-4 rounded-pill"
             >
               {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
             </button>
             {quizRoomCreateError && <p className="text-danger small">{quizRoomCreateError}</p>}
+            {adminSessionRestoreError && <p className="text-danger small">{adminSessionRestoreError}</p>}
           </div>
           {division !== "kids" && (
             <div>
