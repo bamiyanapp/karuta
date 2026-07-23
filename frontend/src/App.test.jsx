@@ -1679,6 +1679,74 @@ describe('App', () => {
     localStorage.removeItem('autoAdvanceInterval');
   }, 40000);
 
+  it('recovers and advances to the next phrase even if audio.play() never settles (issue #729)', async () => {
+    const originalAudio = window.Audio;
+    // モバイルブラウザのオートプレイポリシー等により、audio.play()のPromiseが
+    // 解決も拒否もされないまま（onendedも発火しないまま）ハングし続けるケースを再現する。
+    // vitest v4はvi.fn()のモック実装をnewで呼び出す場合、アロー関数を許容しないため通常の関数式を使う
+    window.Audio = vi.fn().mockImplementation(function () {
+      const audio = {
+        play: vi.fn(() => new Promise(() => {})), // 永久に解決/拒否されない
+        pause: vi.fn(),
+        load: vi.fn(),
+        set src(_url) {
+          // onendedを意図的に発火させない（ハングを模擬する）
+        },
+      };
+      return audio;
+    });
+
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    localStorage.setItem('autoAdvance', 'true');
+    localStorage.setItem('autoAdvanceInterval', '1');
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }),
+        };
+      }
+      if (url.includes('/get-phrase?')) {
+        const id = new URL(url).searchParams.get('id');
+        return { ok: true, json: async () => ({ id, category: 'Cat1', phrase: `読み札${id}`, audioData: 'dummy' }) };
+      }
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+      await waitFor(() => screen.getByText('次の札'));
+      fireEvent.click(screen.getByText('次の札'));
+
+      // イントロ音・本編音声のaudio.play()が両方ハングしても、タイムアウトにより
+      // 強制的に諦めて読み上げ進行（表示のフェード）が先へ進むことを確認する
+      // （タイムアウト15秒×2回分の余裕を見て待つ）
+      await waitFor(() => {
+        expect(screen.getByText('読み札p1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+      }, { timeout: 45000 });
+
+      // 「次の札」ボタンを一切押さずに、自動読み上げでp2まで進むことを確認する
+      // （p1と同様にp2側もaudio.play()がハングするため、さらにタイムアウト分待つ）
+      await waitFor(() => {
+        expect(screen.getByText('読み札p2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+      }, { timeout: 45000 });
+
+      randomSpy.mockRestore();
+      localStorage.removeItem('autoAdvance');
+      localStorage.removeItem('autoAdvanceInterval');
+    } finally {
+      window.Audio = originalAudio;
+    }
+  }, 100000);
+
   it('applies the selected theme to the document and persists it', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
@@ -2567,6 +2635,10 @@ describe('App', () => {
 
     // リピート再生（イントロ音＋本編）が終わるまで待つ
     await waitFor(() => expect(screen.getByText('もう一度')).not.toBeDisabled(), { timeout: 20000 });
+
+    // リピート再生完了後も、画面が準備完了画面（初期表示）に戻らず、
+    // 読み上げていたカードの表示のままであることを確認する（issue #729の調査で判明した回帰）
+    expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
 
     fetch.mockClear();
     fireEvent.click(screen.getByText('次の札'));
