@@ -44,6 +44,9 @@ describe('useQuizRoomAdmin (via App)', () => {
     vi.clearAllMocks();
     window.history.pushState({}, '', '/');
     sessionStorage.clear();
+    // 参加者名の永続化（issue #697）: あるテストで確定した名前が別のテストへ
+    // 漏れ、名前入力画面が意図せずスキップされてしまわないようにする
+    localStorage.removeItem('quizRoomParticipantName');
     resetSharedAudioForTests();
   });
 
@@ -1110,4 +1113,138 @@ describe('useQuizRoomAdmin (via App)', () => {
     await waitFor(() => expect(quizRoomsCallCount).toBe(2));
     expect(await screen.findByText('NEW999')).toBeInTheDocument();
   });
+
+  it('persists the admin token on room creation, then lets a fresh session (e.g. after closing the tab) restore admin mode from the participant screen using the saved token (issue #697)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    const firstRender = await act(async () => render(<App />));
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/決定/));
+    await waitFor(() => screen.getByText(/「Cat1」をお手元に持っていますか？/));
+    fireEvent.click(screen.getByText('はい'));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    // 管理者トークンはlocalStorageへ保存される
+    expect(JSON.parse(localStorage.getItem('quizRoomAdminSession'))).toEqual({ roomId: 'ABC123', adminToken: 'token-1' });
+
+    // ブラウザ/タブを閉じた状況を模す。Reactのstateはここで失われるが、localStorageは残る
+    firstRender.unmount();
+
+    // 招待URL経由で参加者として同じルームへアクセスした状況を模す
+    window.history.pushState({}, '', '?view=quiz-room&roomId=ABC123');
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.change(await screen.findByPlaceholderText('お名前'), { target: { value: 'はなこ' } });
+    fireEvent.click(screen.getByText('決定'));
+    await screen.findByText('クイズ大会モード（参加者）');
+
+    // 保存済みの管理者トークンが今のルームIDと一致するため、切り替えボタンが表示される
+    const switchButton = await screen.findByText('管理者に切り替える');
+    fireEvent.click(switchButton);
+
+    // 管理者画面（ルーム情報）へ切り替わる
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    const adminConnections = MockWebSocket.instances.filter((instance) => instance.url.includes('adminToken='));
+    expect(adminConnections).toHaveLength(2); // 1回目の作成時 + 今回の復帰時
+    expect(adminConnections[1].url).toContain('roomId=ABC123');
+    expect(adminConnections[1].url).toContain('adminToken=token-1');
+
+    // 復帰した接続が確立すれば、エラー表示は出ず管理者画面に留まる
+    act(() => {
+      adminConnections[1].readyState = MockWebSocket.OPEN;
+      adminConnections[1].onopen?.();
+    });
+    expect(screen.getByText('クイズ大会モードのルーム情報')).toBeInTheDocument();
+  }, 40000);
+
+  it('discards the saved admin token and falls back to the participant screen with an error when the saved token fails to connect (issue #697)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    // 事前に（失効済み・無効化された）管理者トークンが保存されている状況を模す
+    localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'XYZ999', adminToken: 'stale-token' }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: false };
+    });
+
+    window.history.pushState({}, '', '?view=quiz-room&roomId=XYZ999');
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.change(await screen.findByPlaceholderText('お名前'), { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('決定'));
+    await screen.findByText('クイズ大会モード（参加者）');
+
+    const switchButton = await screen.findByText('管理者に切り替える');
+    fireEvent.click(switchButton);
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    const adminConnection = MockWebSocket.instances.find((instance) => instance.url.includes('adminToken=stale-token'));
+    expect(adminConnection).toBeDefined();
+
+    // 保存済みトークンが無効だった（ルーム失効・削除済み等）状況を模す
+    act(() => {
+      adminConnection.onerror?.();
+    });
+
+    // 参加者画面へ戻り、エラーメッセージが表示される
+    await screen.findByText('クイズ大会モード（参加者）');
+    expect(screen.getByText(/保存されていた管理者情報でルームに接続できませんでした/)).toBeInTheDocument();
+
+    // 無効だったトークンは破棄され、切り替えボタンも消える
+    expect(screen.queryByText('管理者に切り替える')).not.toBeInTheDocument();
+    expect(localStorage.getItem('quizRoomAdminSession')).toBeNull();
+  }, 40000);
 });

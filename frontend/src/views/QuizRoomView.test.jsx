@@ -349,6 +349,22 @@ describe('QuizRoomView', () => {
     expect(setParticipantNameMock).toHaveBeenCalledWith('はなこ');
   });
 
+  it('remembers the confirmed name across reconnects, skipping the name entry screen on the next visit (issue #697)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    const { unmount } = render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+    unmount();
+
+    // 別のタブ/再接続を模して再度マウントする。localStorageに保存済みの名前が
+    // あるため、名前入力画面をスキップしてそのまま参加者画面へ進む
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    expect(screen.queryByPlaceholderText('お名前')).not.toBeInTheDocument();
+    expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+    expect(setParticipantNameMock).toHaveBeenCalledWith('はなこ');
+  });
+
   it('lets a participant buzz in while a phrase is being read, and shows the responder\'s name once someone has buzzed (issue #510)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);

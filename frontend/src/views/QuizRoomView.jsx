@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
+import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { API_BASE_URL } from "../config";
 import { unlockAudioPlayback, playSharedAudio, playQuizSfx, stopSharedAudio } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
@@ -11,6 +12,9 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 const MAX_NAME_LENGTH = 20; // backend/quizRoomHandler.jsのMAX_NAME_LENGTHと合わせる（早押し機能、issue #510）
 const ROOM_CODE_LENGTH = 6; // backend/quizRoomHandler.jsのROOM_CODE_LENGTHと合わせる（issue #616）
+// 参加者名の永続化（issue #697）: ルームごとではなく端末全体で1つの名前を使い回す
+// （同じ端末で複数のルームに参加する場合も、毎回同じ名前を入力し直さずに済むようにする）
+const PARTICIPANT_NAME_STORAGE_KEY = "quizRoomParticipantName";
 
 function renderParticipantContent(roomState) {
   // ルーム作成直後（まだ一度もupdateStateが呼ばれていない）は、サーバー側の状態が
@@ -62,7 +66,7 @@ function renderParticipantContent(roomState) {
   return null;
 }
 
-function QuizRoomView({ setView, wsBaseUrl }) {
+function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRestoreError, switchToAdminMode }) {
   const urlRoomId = useMemo(() => new URLSearchParams(window.location.search).get("roomId"), []);
   const [joinRoomId, setJoinRoomId] = useState(urlRoomId);
   const [manualRoomId, setManualRoomId] = useState("");
@@ -82,9 +86,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   const [phraseHistory, setPhraseHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // 早押し機能（issue #510）: 参加者名は入室のたびに入力してもらう（永続化しない）。
-  // confirmedNameが空の間は名前入力画面を表示し、決定後にのみ通常の参加者画面へ進む
-  const [confirmedName, setConfirmedName] = useState("");
+  // 参加者名の永続化（issue #697）: 以前はconfirmedNameを毎回空文字から始め、
+  // 入室のたびに名前入力を必須にしていた（issue #510）が、保存済みの名前があれば
+  // それを初期値として採用し、名前入力画面自体をスキップできるようにする
+  const [storedParticipantName, setStoredParticipantName] = useLocalStorageState(PARTICIPANT_NAME_STORAGE_KEY, "");
+  const [confirmedName, setConfirmedName] = useState(storedParticipantName);
   const [nameDraft, setNameDraft] = useState("");
   const [nameError, setNameError] = useState(null);
   const [buzzedBy, setBuzzedBy] = useState(null);
@@ -288,8 +294,18 @@ function QuizRoomView({ setView, wsBaseUrl }) {
     }
     setNameError(null);
     setConfirmedName(trimmed);
-    setParticipantName(trimmed);
+    // 参加者名の永続化（issue #697）: 次回以降、この端末での再接続時に
+    // 名前入力をスキップできるよう保存する
+    setStoredParticipantName(trimmed);
   };
+
+  // 参加者名の永続化（issue #697）: confirmedNameが決まったタイミング（手動確定・
+  // 保存済み名前による自動確定のいずれも）でサーバーへ表示名を伝える
+  useEffect(() => {
+    if (confirmedName) {
+      setParticipantName(confirmedName);
+    }
+  }, [confirmedName, setParticipantName]);
 
   // issue #490: 音声同期再生は明示的にスコープ外だった（管理者端末でのみ再生）ため、
   // 参加者側は通知（roomState）を受けて自分自身で/get-phraseを呼び直し、取得した
@@ -447,6 +463,10 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
+        {/* 管理者セッション復帰（issue #697）: 保存済みの管理者トークンで管理者への
+            切り替えを試みて失敗した場合のエラー表示。この時点で保存済みトークンは
+            既に破棄されているため、「管理者に切り替える」ボタン自体も表示されなくなる */}
+        {adminSessionRestoreError && <p className="text-danger small mb-3">{adminSessionRestoreError}</p>}
         <p className="text-muted small mb-3">
           <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
           {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
@@ -538,6 +558,24 @@ function QuizRoomView({ setView, wsBaseUrl }) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {/* 管理者セッション復帰（issue #697）: このルームの管理者トークンが保存されている
+            場合のみ表示する。押すと保存済みトークンで管理者として再接続し、
+            管理者画面（QuizRoomInfoView）へ切り替わる */}
+        {adminSessionRoomId === joinRoomId && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                if (switchToAdminMode(joinRoomId)) {
+                  setView("quiz-room-info");
+                }
+              }}
+              className="btn btn-sm btn-outline-dark rounded-pill px-3"
+            >
+              管理者に切り替える
+            </button>
           </div>
         )}
         <div className="mt-5">

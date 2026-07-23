@@ -910,6 +910,9 @@ function App() {
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,
+    adminSessionRoomId,
+    adminSessionRestoreError,
+    switchToAdminMode,
   } = useQuizRoomAdmin({
     view,
     selectedCategories,
@@ -1154,7 +1157,15 @@ function App() {
   }
 
   if (view === "quiz-room") {
-    return <QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />;
+    return (
+      <QuizRoomView
+        setView={setView}
+        wsBaseUrl={WS_BASE_URL}
+        adminSessionRoomId={adminSessionRoomId}
+        adminSessionRestoreError={adminSessionRestoreError}
+        switchToAdminMode={switchToAdminMode}
+      />
+    );
   }
 
   // ルーム情報（ルームコード・QRコード・招待URL）表示は、以前は通常のゲーム画面内の
