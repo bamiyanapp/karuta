@@ -1,0 +1,1 @@
+engineer division: selects multiple categories, prints combined efuda, then reads with announceCategory (issue #576)
