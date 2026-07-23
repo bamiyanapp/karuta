@@ -101,11 +101,26 @@ exports.listQuizRooms = async (event) => {
     }));
 
     const candidates = (result.Items || [])
-      .map((item) => ({
-        roomId: item.roomId,
-        createdAt: item.createdAt,
-        category: item.state?.content?.category || null,
-      }))
+      .map((item) => {
+        const type = item.state?.type;
+        const content = item.state?.content;
+        const category = content?.category || null;
+        // issue #501: ステータス（開始前／進行中／終了）とかるた種別を別フィールドで
+        // 返す。「終了」は選択中カテゴリの全札を読み終えた場合（result状態の
+        // content.isAllRead、issue #502のブロードキャスト拡張で追加）。それ以外は
+        // 状態がphrase（読み上げ中）またはresult（各札の結果表示中）であれば「進行中」、
+        // まだ一度も札が出題されていなければ「開始前」とする。categoryは各札の
+        // 結果表示（result）の間はcontentに含まれず一時的にnullへ戻ることがあるため、
+        // ステータスの判定にはtype自体を使い、categoryの有無には依存させない
+        const isAllRead = content?.isAllRead === true;
+        const status = isAllRead ? "終了" : (type === "phrase" || type === "result") ? "進行中" : "開始前";
+        return {
+          roomId: item.roomId,
+          createdAt: item.createdAt,
+          category,
+          status,
+        };
+      })
       .sort((a, b) => b.createdAt - a.createdAt);
 
     // issue #617: 管理者が既に切断した「幽霊ルーム」は一覧から除外する。接続テーブル側に

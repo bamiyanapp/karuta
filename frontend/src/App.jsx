@@ -920,6 +920,7 @@ function App() {
     view,
     selectedCategories,
     displayContent,
+    isAllRead,
     repeatCount,
     speechRate,
     lang,
@@ -1236,7 +1237,17 @@ function App() {
                   className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
                 >
                   <span className="fw-bold notranslate">{room.roomId}</span>
-                  <span className="text-muted small">{room.category || "開始前"}</span>
+                  <span className="d-flex align-items-center gap-2">
+                    <span className={`badge rounded-pill ${
+                      room.status === "進行中" ? "text-bg-success"
+                        : room.status === "終了" ? "text-bg-dark"
+                          : "text-bg-secondary"
+                    }`}
+                    >
+                      {room.status}
+                    </span>
+                    {room.category && <span className="text-muted small notranslate">{room.category}</span>}
+                  </span>
                 </button>
               ))}
             </div>

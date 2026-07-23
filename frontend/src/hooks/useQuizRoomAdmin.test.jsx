@@ -641,6 +641,69 @@ describe('useQuizRoomAdmin (via App)', () => {
     }, { timeout: 20000 });
   }, 40000);
 
+  it('broadcasts isAllRead:true once the selected category\'s last phrase has been read, so the top-page room list can show a "終了" status (issue #501)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      if (url.includes('get-congratulation-audio')) return { ok: true, json: async () => ({ audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    // 1件しかないカテゴリの唯一の札を読み上げる
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    // もう一度「次の札」を押すと、未読の札が無いため全て読了したと判定される
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const resultMsg = ws.sent.find((msg) => msg.includes('"action":"updateState"') && msg.includes('"isAllRead":true'));
+      expect(resultMsg).toBeDefined();
+    }, { timeout: 20000 });
+  }, 40000);
+
   it('shows the winner\'s name in the "これまでに読み上げた札" history once a buzz is judged correct (issue #695)', async () => {
     class MockWebSocket {
       constructor(url) {
@@ -1065,8 +1128,8 @@ describe('useQuizRoomAdmin (via App)', () => {
           ok: true,
           json: async () => ({
             rooms: [
-              { roomId: 'ABC123', createdAt: 2, category: 'Cat1' },
-              { roomId: 'DEF456', createdAt: 1, category: null },
+              { roomId: 'ABC123', createdAt: 2, category: 'Cat1', status: '進行中' },
+              { roomId: 'DEF456', createdAt: 1, category: null, status: '開始前' },
             ],
           }),
         };

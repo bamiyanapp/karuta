@@ -100,12 +100,54 @@ describe('listQuizRooms', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.rooms).toEqual([
-      { roomId: 'ROOM02', createdAt: 3000, category: 'Cat1' },
-      { roomId: 'ROOM03', createdAt: 2000, category: null },
-      { roomId: 'ROOM01', createdAt: 1000, category: null },
+      { roomId: 'ROOM02', createdAt: 3000, category: 'Cat1', status: '進行中' },
+      { roomId: 'ROOM03', createdAt: 2000, category: null, status: '開始前' },
+      { roomId: 'ROOM01', createdAt: 1000, category: null, status: '開始前' },
     ]);
     // adminTokenHashが応答に含まれていないことを確認する
     expect(JSON.stringify(body)).not.toContain('secret-hash');
+  });
+
+  it('reports status as "進行中" once a category is set, and "開始前" beforehand (issue #501)', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'ROOM01', createdAt: 1000, state: {} },
+        { roomId: 'ROOM02', createdAt: 2000, state: { type: 'phrase', content: { category: 'Cat1' } } },
+      ],
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    const byRoomId = Object.fromEntries(body.rooms.map((r) => [r.roomId, r.status]));
+    expect(byRoomId).toEqual({ ROOM01: '開始前', ROOM02: '進行中' });
+  });
+
+  it('reports status as "進行中" during a result screen (category temporarily absent from state.content) rather than falling back to "開始前"', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'ROOM01', createdAt: 1000, state: { type: 'result', content: { answer: '答え1', isAllRead: false } } },
+      ],
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(body.rooms[0].status).toBe('進行中');
+    expect(body.rooms[0].category).toBeNull();
+  });
+
+  it('reports status as "終了" once all phrases in the selected category have been read (issue #501)', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'ROOM01', createdAt: 1000, state: { type: 'result', content: { answer: '答え1', isAllRead: true } } },
+      ],
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    expect(body.rooms[0].status).toBe('終了');
   });
 
   it('returns only the latest 5 rooms even when more are open (issue #500)', async () => {
