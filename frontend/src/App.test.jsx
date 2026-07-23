@@ -1152,7 +1152,7 @@ describe('App', () => {
     expect(cat3Button).toBeDisabled();
     fireEvent.click(cat3Button);
     expect(cat3Button).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText(/かるたを始める/)).toHaveTextContent('かるたを始める（2件選択中）');
+    expect(screen.getByText(/かるたを始める/)).toHaveTextContent('かるたを始める');
   });
 
   it('fills a page across the category boundary instead of leaving trailing blanks', async () => {
@@ -2381,7 +2381,7 @@ describe('App', () => {
 
     // 参加者登録（issue #518）はカテゴリ確定モーダルではなく、読み札画面のボタンから行う
     await waitFor(() => screen.getByText('次の札'));
-    fireEvent.click(screen.getByText('取った人を記録する参加者を登録する'));
+    fireEvent.click(screen.getByText('取った人を記録する'));
 
     const nameInput = screen.getByPlaceholderText('名前を入力');
     fireEvent.change(nameInput, { target: { value: 'たろう' } });
@@ -2449,7 +2449,7 @@ describe('App', () => {
 
     expect(screen.queryByPlaceholderText('名前を入力')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('取った人を記録する参加者を登録する'));
+    fireEvent.click(screen.getByText('取った人を記録する'));
     expect(screen.getByPlaceholderText('名前を入力')).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText('名前を入力'), { target: { value: 'たろう' } });

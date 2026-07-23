@@ -1319,7 +1319,7 @@ function App() {
                   disabled={draftCategories.length === 0}
                   className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
                 >
-                  かるたを始める（{draftCategories.length}件選択中）
+                  かるたを始める
                 </button>
                 <button
                   onClick={handlePrintEfudaClick}
@@ -1641,7 +1641,6 @@ function App() {
             )}
           </div>
         </section>
-      <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         {division === "kids" && (
           // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
@@ -1707,7 +1706,7 @@ function App() {
                 onClick={() => setShowPlayerRegistration(prev => !prev)}
                 className="btn btn-sm btn-outline-secondary rounded-pill px-3"
               >
-                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する参加者を登録する"}
+                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する"}
               </button>
               {showPlayerRegistration && (
                 <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>

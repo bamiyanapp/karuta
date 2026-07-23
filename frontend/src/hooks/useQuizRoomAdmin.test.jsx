@@ -86,14 +86,14 @@ describe('useQuizRoomAdmin (via App)', () => {
     await waitFor(() => screen.getByText('次の札'));
 
     // クイズ大会ルーム作成前は、参加者登録ボタンがルーム作成ボタンと並んで表示される
-    expect(screen.getByText('取った人を記録する参加者を登録する')).toBeInTheDocument();
+    expect(screen.getByText('取った人を記録する')).toBeInTheDocument();
     expect(screen.getByText('クイズ大会のルームを作成する')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
     await screen.findByText('ルーム情報を表示（クイズ大会モード）');
 
     // ルーム作成後は参加者登録ボタン自体が非表示になる
-    expect(screen.queryByText('取った人を記録する参加者を登録する')).not.toBeInTheDocument();
+    expect(screen.queryByText('取った人を記録する')).not.toBeInTheDocument();
     expect(screen.queryByText('参加者を編集する')).not.toBeInTheDocument();
   });
 
