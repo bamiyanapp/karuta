@@ -1,3 +1,10 @@
+# [1.50.0](https://github.com/bamiyanapp/karuta/compare/v1.49.3...v1.50.0) (2026-07-23)
+
+
+### Features
+
+* **frontend:** 全札一覧の種別絞り込みをこども向け/エンジニア向けで先に絞り込めるようにする（issue [#730](https://github.com/bamiyanapp/karuta/issues/730)） ([#738](https://github.com/bamiyanapp/karuta/issues/738)) ([ab8547f](https://github.com/bamiyanapp/karuta/commit/ab8547f4f0e550776330e6f65d56564c6e1938bc))
+
 ## [1.49.3](https://github.com/bamiyanapp/karuta/compare/v1.49.2...v1.49.3) (2026-07-23)
 
 

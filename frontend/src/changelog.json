@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.49.3",
+    "version": "1.50.0",
     "date": "2026/07/23",
+    "body": "### Features\n\n* **frontend:** 全札一覧の種別絞り込みをこども向け/エンジニア向けで先に絞り込めるようにする（issue [#730](https://github.com/bamiyanapp/karuta/issues/730)） ([#738](https://github.com/bamiyanapp/karuta/issues/738)) ([ab8547f](https://github.com/bamiyanapp/karuta/commit/ab8547f4f0e550776330e6f65d56564c6e1938bc))"
+  },
+  {
+    "version": "1.49.3",
+    "date": "2026/07/23 11:48",
     "body": "### Bug Fixes\n\n* **frontend:** 最後の1枚読み上げ中は「次の札」を無効化する（issue [#721](https://github.com/bamiyanapp/karuta/issues/721)） ([#727](https://github.com/bamiyanapp/karuta/issues/727)) ([57279f0](https://github.com/bamiyanapp/karuta/commit/57279f02c0ba455d5742f0c751f2b03b52d09ebf)), closes [#590](https://github.com/bamiyanapp/karuta/issues/590) [#590](https://github.com/bamiyanapp/karuta/issues/590)"
   },
   {
