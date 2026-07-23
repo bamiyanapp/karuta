@@ -637,7 +637,9 @@ function App() {
         const updatedCategoryHistory = [...newHistory[categoryKey]];
         const lastReadPhrase = updatedCategoryHistory[0];
         if (lastReadPhrase.id === targetPhrase.id && lastReadPhrase.category === targetPhrase.category) {
-          updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2) };
+          // クイズ大会モードの正解者表示（issue #695）: winnerは早押しが正解と
+          // 判定された参加者名。クイズ大会モード以外・誰も正解しなかった場合はnull
+          updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2), winner: winner ?? null };
           newHistory[categoryKey] = updatedCategoryHistory;
         }
       }
@@ -1556,6 +1558,10 @@ function App() {
                       <span className="text-dark">{p.phrase}</span>
                     </div>
                     <div className="d-flex align-items-center">
+                      {/* クイズ大会モードの正解者表示（issue #695）: winnerは早押しが
+                          正解と判定された参加者名。クイズ大会モード以外・誰も正解
+                          しなかった場合は表示しない */}
+                      {p.winner && <span className="text-success small me-3 notranslate">🎉 {p.winner}さん正解</span>}
                       {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
                       <span className="text-primary small">詳細・報告 →</span>
                     </div>
