@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.51.0",
+    "version": "1.52.0",
     "date": "2026/07/23",
+    "body": "### Features\n\n* 再開可能な場合は新規作成ボタンを隠し、ルームを閉じる機能を追加する（issue [#748](https://github.com/bamiyanapp/karuta/issues/748)） ([#749](https://github.com/bamiyanapp/karuta/issues/749)) ([3c1284f](https://github.com/bamiyanapp/karuta/commit/3c1284f47cdf625e7312db576b2e4dc321b7786c))"
+  },
+  {
+    "version": "1.51.0",
+    "date": "2026/07/23 21:04",
     "body": "### Features\n\n* **frontend:** 読み上げ画面から管理者セッションを再開できるようにする（issue [#744](https://github.com/bamiyanapp/karuta/issues/744)） ([#746](https://github.com/bamiyanapp/karuta/issues/746)) ([bc26a19](https://github.com/bamiyanapp/karuta/commit/bc26a198d6f52a54d089a0eebc62bccd12cca693))"
   },
   {

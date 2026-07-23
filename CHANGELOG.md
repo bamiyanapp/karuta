@@ -1,3 +1,10 @@
+# [1.52.0](https://github.com/bamiyanapp/karuta/compare/v1.51.0...v1.52.0) (2026-07-23)
+
+
+### Features
+
+* 再開可能な場合は新規作成ボタンを隠し、ルームを閉じる機能を追加する（issue [#748](https://github.com/bamiyanapp/karuta/issues/748)） ([#749](https://github.com/bamiyanapp/karuta/issues/749)) ([3c1284f](https://github.com/bamiyanapp/karuta/commit/3c1284f47cdf625e7312db576b2e4dc321b7786c))
+
 # [1.51.0](https://github.com/bamiyanapp/karuta/compare/v1.50.1...v1.51.0) (2026-07-23)
 
 
