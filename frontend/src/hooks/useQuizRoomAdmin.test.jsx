@@ -1138,6 +1138,38 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     await screen.findByText('かるた読み上げアプリ');
     expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
+    // openQuizRoomsが0件の場合は「他の」を付けない（issue #502）
+    expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
+  });
+
+  it('places the quiz-room join link below the open-room list, and the footer links (all-phrases/comments/changelog) at the very bottom, with the label changed to "他のクイズ大会に参加する" when rooms are open (issue #502)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        return { ok: true, json: async () => ({ rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1' }] }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await screen.findByText('開設中のクイズ大会ルーム');
+    expect(screen.queryByText('クイズ大会に参加する')).not.toBeInTheDocument();
+    const joinOtherLink = screen.getByText('他のクイズ大会に参加する');
+    expect(joinOtherLink).toBeInTheDocument();
+
+    // 表示順: 開設中ルーム一覧 → 「他のクイズ大会に参加する」 → 全札一覧等のフッターリンク（最下部）
+    const openRoomHeading = screen.getByText('開設中のクイズ大会ルーム');
+    const allPhrasesLink = screen.getByText(/全札一覧を見る/);
+    const commentsLink = screen.getByText('指摘された内容を確認する');
+    const changelogLink = screen.getByText('更新履歴を見る');
+
+    expect(openRoomHeading.compareDocumentPosition(joinOtherLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(joinOtherLink.compareDocumentPosition(allPhrasesLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(allPhrasesLink.compareDocumentPosition(commentsLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(commentsLink.compareDocumentPosition(changelogLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('does not log an error when the quiz-rooms endpoint responds with a non-JSON-bearing failure (e.g. no response body at all)', async () => {
