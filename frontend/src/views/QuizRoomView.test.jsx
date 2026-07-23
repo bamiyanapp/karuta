@@ -520,6 +520,20 @@ describe('QuizRoomView', () => {
     expect(screen.getByPlaceholderText('お名前')).toBeInTheDocument();
   });
 
+  it('hides the stale "回答中" display once the result screen shows a winner (correct judgment), since the winner is already shown there (issue #696)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
+
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: 'はなこ' } });
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+    expect(screen.getByText('🎉 はなこ さん正解！')).toBeInTheDocument();
+  });
+
   it('keeps showing the responder during the result screen, but resets it once a new (different) phrase is broadcast', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
@@ -696,6 +710,34 @@ describe('QuizRoomView', () => {
     expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].pause).toHaveBeenCalled();
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
+  });
+
+  it('stops the currently-playing narration audio when the participant presses the buzz button (issue #696)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    const narrationAudio = audioInstances[0];
+    narrationAudio.pause.mockClear();
+
+    fireEvent.click(screen.getByText('回答する'));
+
+    expect(narrationAudio.pause).toHaveBeenCalled();
+    expect(buzzMock).toHaveBeenCalled();
   });
 
   it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {

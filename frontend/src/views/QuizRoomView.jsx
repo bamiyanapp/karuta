@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, stopSharedAudio } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
@@ -243,6 +243,8 @@ function QuizRoomView({ setView, wsBaseUrl }) {
   // 後から届くbuzzブロードキャスト（自分の勝ち・他の参加者の勝ちいずれも）が
   // この仮の値を正しい値で上書きする
   const handleBuzz = () => {
+    // issue #696: 読み上げ中に回答ボタンが押された場合、読み上げを中断する
+    stopSharedAudio();
     setBuzzedBy({ name: confirmedName });
     buzz();
   };
@@ -467,7 +469,11 @@ function QuizRoomView({ setView, wsBaseUrl }) {
           // ことと次の札を待つよう案内する専用の表示を出す。excludedThisRoundは
           // 次の札が届いたタイミングでfalseに戻る（上記のラウンド切り替え判定）
           <p className="fw-bold text-muted mt-4">不正解でした。次の問題まで待っててね</p>
-        ) : buzzedBy ? (
+        ) : /* issue #696: 正解と判定されresult画面に勝者（winner）が表示されている間は、
+               「回答中」の重複表示を出さない（結果画面側で既に正解者名を表示しているため）。
+               winnerが無いresult（早押しを介さない通常の「次の札」による結果表示等）では、
+               従来どおり回答者表示を維持する */
+        buzzedBy && !(roomState?.type === "result" && roomState.content?.winner) ? (
           <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>
         ) : roomState?.type === "phrase" && (
           <div className="mt-4">
