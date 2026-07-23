@@ -65,10 +65,12 @@ test('admin creates a quiz room and a participant sees the same card update in r
   }
 });
 
-// issue #640: 管理者側でadminTokenが失われた場合（今回はページのリロードで再現する）の
-// 実際の挙動を固定化する回帰テスト。adminTokenはReact stateにのみ保持されており
-// （useQuizRoomAdmin.js）永続化されていないため、リロード後は同じルームへ管理者として
-// 戻る手段が無い。「治る」ことを検証するテストではなく、現状の既知の制約
+// issue #640: 管理者がリロードした（このテストの再現方法）その場での挙動を固定化する
+// 回帰テスト。adminTokenはissue #697でlocalStorageへ永続化されたが、それはあくまで
+// 「参加者画面から『管理者に切り替える』ボタンで再接続する」という別導線での復帰を
+// 可能にするものであり、リロードされた本人のタブが自動的に管理者画面へ戻るわけではない。
+// そのため、このテストが記録する「リロードした直後のタブでは元のルーム作成前の状態に戻る」
+// という挙動自体は現在も変わらない。「治る」ことを検証するテストではなく、現状の既知の制約
 // （参加者側にも通知が一切届かない）をそのまま記録することが目的
 test('when the admin reloads mid-game, the quiz room association is lost and the participant gets no notification (issue #640)', async ({ browser }, testInfo) => {
   const adminContext = await browser.newContext();
@@ -181,10 +183,11 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await otherPage.getByText('決定').click();
     await expect(otherPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
 
-    // 参加者一覧（issue #545）: 管理者側はルーム情報画面の下部に表形式で反映される（issue #587）
+    // 参加者一覧（issue #545）: 管理者側はルーム情報画面の下部に表形式で反映される
+    // （issue #587）。回答数・正答数の2列（issue #698）はまだ誰も回答していないため0
     await roomInfoLink.click();
-    await expect(adminPage.getByRole('row').nth(1)).toHaveText('たろう接続中0pt', { timeout: 15000 });
-    await expect(adminPage.getByRole('row').nth(2)).toHaveText('はなこ接続中0pt');
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('たろう接続中00', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('はなこ接続中00');
     await adminPage.getByText('← 戻る').click();
     await expect(nextButton).toBeVisible();
 
@@ -225,10 +228,11 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     await captureScreenshot(adminPage, testInfo, 'admin-after-correct-judgment', '管理者：正解判定後の状態');
 
     // ポイントが参加者一覧（管理者側、ルーム情報画面、issue #587）に反映される
-    // （参加者側は獲得ポイント表示で確認済み、issue #519, #545）
+    // （参加者側は獲得ポイント表示で確認済み、issue #519, #545）。回答数・正答数の
+    // 2列（issue #698）: はなこは1回答1正答、たろうは1回答0正答（不正解判定のみ）
     await roomInfoLink.click();
-    await expect(adminPage.getByRole('row').nth(1)).toHaveText('はなこ接続中1pt', { timeout: 15000 });
-    await expect(adminPage.getByRole('row').nth(2)).toHaveText('たろう接続中0pt');
+    await expect(adminPage.getByRole('row').nth(1)).toHaveText('はなこ接続中11', { timeout: 15000 });
+    await expect(adminPage.getByRole('row').nth(2)).toHaveText('たろう接続中10');
   } finally {
     // カバレッジ計測（issue #541）: 失敗時も可能な範囲でカバレッジを収集するため、
     // コンテキストを閉じる前にtry節の成否に関わらず停止・収集する
