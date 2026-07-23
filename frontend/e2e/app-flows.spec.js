@@ -129,3 +129,88 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await closeContext(context);
   }
 });
+
+// issue #576対応: エンジニア向け（複数カテゴリ選択・所持確認不要な種別）のみで
+// 到達できる画面・分岐（複数選択トグル、絵札印刷のカテゴリ選択画面からの直接遷移、
+// 複数カテゴリ選択時のannounceCategory=trueでの読み上げ）をカバーする
+test('engineer division: selects multiple categories, prints combined efuda, then reads with announceCategory (issue #576)', async ({ browser }, testInfo) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await startCoverage(page);
+
+  await page.addInitScript(() => {
+    window.__printCalled = false;
+    window.print = () => { window.__printCalled = true; };
+  });
+
+  try {
+    await page.goto('/');
+    await page.getByText('エンジニア向け').click();
+
+    // Git大ピンチ・AWSかるたはいずれも全札にanswerが設定済み（市販品ではなくオリジナル）
+    // のため、所持確認の警告表示を経由せずに「かるたを始める」「絵札を印刷する」の
+    // いずれもすぐに押せる状態になる
+    await page.getByRole('button', { name: /Git大ピンチ/ }).click();
+    await page.getByRole('button', { name: /AWSかるた/ }).click();
+
+    // カテゴリ選択画面から直接、複数カテゴリ分の絵札印刷画面へ遷移できる
+    await page.getByText('絵札を印刷する').click();
+    await expect(page.locator('.efuda-card-text').first()).toBeVisible();
+    await captureScreenshot(page, testInfo, 'engineer-multi-category-print', 'エンジニア向け：複数種別選択時の絵札印刷画面');
+    await page.getByText('← 戻る').click();
+
+    // 同じ複数選択のまま読み上げを開始する
+    await expect(page.getByRole('button', { name: /Git大ピンチ/ })).toBeVisible();
+    await page.getByText(/かるたを始める/).click();
+
+    const nextButton = page.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+    await nextButton.click();
+    await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+    await captureScreenshot(page, testInfo, 'engineer-multi-category-reading', 'エンジニア向け：複数種別選択後の読み上げ画面');
+  } finally {
+    await stopCoverage(page, testInfo);
+    await closeContext(context);
+  }
+});
+
+// issue #474/#576対応: PrintEfudaViewの取得失敗・再試行の分岐は新規追加時点で
+// E2Eの実カバレッジが無かったため、page.routeでget-phrases-listを意図的に失敗
+// させて検証する（本番バックエンドを実際に落とすわけではなく、ブラウザ側の
+// ネットワーク層でのみ失敗を模擬する）
+test('print-efuda view shows an error with a retry button when the phrase list fails to fetch, and recovers after retrying (issue #474)', async ({ browser }, testInfo) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await startCoverage(page);
+
+  let shouldFail = true;
+  await page.route('**/get-phrases-list*', async (route) => {
+    if (shouldFail) {
+      await route.fulfill({ status: 500, body: 'error' });
+    } else {
+      await route.continue();
+    }
+  });
+  // 全カテゴリ取得失敗時のアラート（App.jsx）をそのまま受け止める
+  page.on('dialog', (dialog) => dialog.accept());
+
+  try {
+    await page.goto('/');
+    await page.getByText('こども向け').click();
+    // こども向けは1タップで即座に読み上げ画面へ遷移する
+    await page.getByRole('button', { name: /おばけかるた/ }).click();
+
+    await page.getByText('絵札を印刷する').click();
+    await expect(page.getByText('かるたデータの取得に失敗しました。')).toBeVisible();
+    await expect(page.getByText('読み込み中...')).not.toBeVisible();
+    await captureScreenshot(page, testInfo, 'print-efuda-fetch-error', '絵札印刷画面：かるたデータの取得に失敗しエラー表示になった状態');
+
+    shouldFail = false;
+    await page.getByRole('button', { name: '再試行する' }).click();
+    await expect(page.locator('.efuda-card-text').first()).toBeVisible({ timeout: 10000 });
+    await captureScreenshot(page, testInfo, 'print-efuda-fetch-retry-recovered', '絵札印刷画面：再試行によりかるたデータが表示された状態');
+  } finally {
+    await stopCoverage(page, testInfo);
+    await closeContext(context);
+  }
+});
