@@ -485,16 +485,45 @@ function App() {
   const playAudio = useCallback((audioData) => {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioData);
-      currentAudioRef.current = { audio, resolve };
-      audio.onended = () => {
+      let settled = false;
+      // モバイルブラウザでは、ユーザー操作を伴わない呼び出し（自動で次への
+      // setTimeout起点）でaudio.play()のPromiseが拒否も解決もされないまま
+      // 待機し続けることがある（issue #729）。onended/onerrorのどちらも発火せず
+      // ハングすると、これを直列でawaitしている読み上げ進行全体（次の札の表示・
+      // 読み上げ）が永久に止まってしまうため、上限時間で強制的に諦めて先へ進める。
+      // stopReading()がcurrentAudioRef.current.resolve()を直接呼ぶ経路も
+      // このsettleResolve経由にし、タイマー解除とsettledフラグを確実に揃える
+      const AUDIO_TIMEOUT_MS = 15000;
+      const settleResolve = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
         if (currentAudioRef.current?.audio === audio) currentAudioRef.current = null;
         resolve();
       };
+      currentAudioRef.current = { audio, resolve: settleResolve };
+      const timeoutId = setTimeout(() => {
+        if (settled) return;
+        console.error("Audio playback timed out (issue #729)");
+        settleResolve();
+      }, AUDIO_TIMEOUT_MS);
+      audio.onended = () => {
+        settleResolve();
+      };
       audio.onerror = (e) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
         if (currentAudioRef.current?.audio === audio) currentAudioRef.current = null;
         reject(e);
       };
-      audio.play().catch(e => reject(e));
+      audio.play().catch(e => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        if (currentAudioRef.current?.audio === audio) currentAudioRef.current = null;
+        reject(e);
+      });
     });
   }, []);
 
@@ -575,10 +604,11 @@ function App() {
         return;
       }
 
-      if (!phraseData) {
-        nextContentRef.current = { type: 'initial' };
-        setIsFadingOut(true);
-      }
+      // phraseDataが無い（repeatPhrase由来の音声のみの再生）場合は、表示中の画面
+      // （phrase/result/initialいずれの状態でも）を変えずに音声だけ再生する。
+      // 以前はここで表示をinitialへ強制的に戻していたが、読み上げ中のカードを
+      // クリックして「もう一度」再生しただけで画面が準備完了画面に戻ってしまう
+      // 不具合（issue #729の調査で判明）だったため、表示状態の変更自体をやめた
 
       setAudioQueue(prev => prev.slice(1));
       setIsReading(false);
