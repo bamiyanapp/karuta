@@ -1,3 +1,10 @@
+## [1.49.2](https://github.com/bamiyanapp/karuta/compare/v1.49.1...v1.49.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* **frontend:** 全カテゴリ選択時のかるたデータ取得失敗を部分的に許容する（issue [#474](https://github.com/bamiyanapp/karuta/issues/474)） ([#723](https://github.com/bamiyanapp/karuta/issues/723)) ([a4cde54](https://github.com/bamiyanapp/karuta/commit/a4cde54e5dc0292fdcff90e4019dd7d63463ec70))
+
 ## [1.49.1](https://github.com/bamiyanapp/karuta/compare/v1.49.0...v1.49.1) (2026-07-23)
 
 
