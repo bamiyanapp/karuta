@@ -35,7 +35,7 @@
       "frontend/src/views/CommentsView.jsx",
       "frontend/src/views/PrintEfudaView.jsx"
     ],
-    "engineer division: selects multiple categories, prints combined efuda, then reads with announceCategory (issue #576)": [
+    "engineer division: selects multiple categories, then prints combined efuda directly from the category selection screen (issue #576)": [
       "frontend/src/App.jsx",
       "frontend/src/views/PrintEfudaView.jsx"
     ],
