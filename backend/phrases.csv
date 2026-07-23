@@ -166,7 +166,7 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 168,おばけかるた,-,ゆ,ゆきおんな　おゆにはいってとけちゃった,Yuki-onna went into hot water and melted.,ゆきおんな,kids,-
 169,おばけかるた,-,や,やなぎのしたで　ゆうれいけんか,Ghosts fighting under a willow tree.,ゆうれい,kids,-
 170,おばけかるた,-,へ,へびよりこわい　ろくろっくび,"Rokurokubi, scarier than a snake.",ろくろっくび,kids,-
-171,いろはかるた,-,ま,嘘から出たまこと,A lie can sometimes turn into the truth,でたらめに言ったことが、偶然にも事実になってしまうこと,kids,-
+171,いろはかるた,-,う,嘘から出たまこと,A lie can sometimes turn into the truth,でたらめに言ったことが、偶然にも事実になってしまうこと,kids,-
 172,いろはかるた,-,こ,弘法にも筆の誤り,Even experts make mistakes,どんな名人でも失敗することがあるというたとえ,kids,-
 173,いろはかるた,-,あ,得手に帆を揚げる,To take advantage of a good opportunity,物事を行うのに絶好の機会を得ること,kids,-
 174,いろはかるた,-,あ,味なもの縁は異なもの,Romance works in mysterious ways,男女の仲は理屈では説明できないものだということ,kids,-
@@ -214,7 +214,7 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 216,いろはかるた,-,れ,良薬は口に苦し,Good medicine tastes bitter,忠告は耳に痛いが自分のためになる,kids,-
 217,いろはかるた,-,そ,総領の甚六,The eldest son is often naive,長男は大事に育てられ世間知らずになりがちだということ,kids,-
 218,いろはかるた,-,つ,月とすっぽん,Like night and day,似ているようで実際は大きな違いがある,kids,-
-219,いろはかるた（意味）,-,ま,でたらめに言ったことが、偶然にも事実になってしまうこと,A lie can sometimes turn into the truth,嘘から出たまこと,kids,-
+219,いろはかるた（意味）,-,う,でたらめに言ったことが、偶然にも事実になってしまうこと,A lie can sometimes turn into the truth,嘘から出たまこと,kids,-
 220,いろはかるた（意味）,-,こ,どんな名人でも失敗することがあるというたとえ,Even experts make mistakes,弘法にも筆の誤り,kids,-
 221,いろはかるた（意味）,-,あ,物事を行うのに絶好の機会を得ること,To take advantage of a good opportunity,得手に帆を揚げる,kids,-
 222,いろはかるた（意味）,-,あ,男女の仲は理屈では説明できないものだということ,Romance works in mysterious ways,味なもの縁は異なもの,kids,-
