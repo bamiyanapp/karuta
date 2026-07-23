@@ -2,6 +2,8 @@ function AllPhrasesView({
   allPhrases,
   filterCategory,
   setFilterCategory,
+  filterDivision,
+  setFilterDivision,
   searchQuery,
   setSearchQuery,
   uniqueCategories,
@@ -14,6 +16,17 @@ function AllPhrasesView({
   setView,
   setSelectedCategories,
 }) {
+  // uniqueCategoriesは呼び出し元（App.jsx）でfilterDivisionに応じて既に絞り込まれた
+  // 一覧が渡ってくるため、種別ボタン一覧を切り替えるたびdivisionを跨いだ絞り込みが
+  // 残らないよう、division切り替え時は種別フィルタをリセットする
+  const changeFilterDivision = (division) => {
+    setFilterDivision(division);
+    setFilterCategory('');
+  };
+
+  // 「すべて」ボタンの件数は、選択中のdivisionに属する種別だけの合計にする
+  // （division未選択時はuniqueCategoriesが全種別のためallPhrases.length相当になる）
+  const visibleTotal = uniqueCategories.reduce((sum, cat) => sum + (categoryCount[cat] || 0), 0);
   const getAriaSort = (key) => {
     if (sortConfig.key !== key) return 'none';
     return sortConfig.direction === 'asc' ? 'ascending' : 'descending';
@@ -30,7 +43,7 @@ function AllPhrasesView({
     <div className="container py-4 mx-auto">
       <header className="text-center mb-4 border-bottom pb-3">
         <div className="d-flex justify-content-between align-items-center">
-          <button onClick={() => { setView("game"); setSelectedCategories([]); setFilterCategory(''); setSearchQuery(''); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
+          <button onClick={() => { setView("game"); setSelectedCategories([]); setFilterCategory(''); setFilterDivision(''); setSearchQuery(''); }} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
           <h1 className="h2 fw-bold m-0 text-dark">全札一覧</h1>
           <div style={{ width: "60px" }}></div>
         </div>
@@ -42,12 +55,33 @@ function AllPhrasesView({
         ) : (
           <div className="all-phrases-scroll-container">
             <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
+              <span className="text-muted small fw-bold me-1">対象:</span>
+              <button
+                className={`btn btn-sm rounded-pill ${filterDivision === '' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                onClick={() => changeFilterDivision('')}
+              >
+                すべて
+              </button>
+              <button
+                className={`btn btn-sm rounded-pill ${filterDivision === 'kids' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                onClick={() => changeFilterDivision('kids')}
+              >
+                こども向け
+              </button>
+              <button
+                className={`btn btn-sm rounded-pill ${filterDivision === 'engineer' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                onClick={() => changeFilterDivision('engineer')}
+              >
+                エンジニア向け
+              </button>
+            </div>
+            <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
               <span className="text-muted small fw-bold me-1">種別:</span>
               <button
                 className={`btn btn-sm rounded-pill ${filterCategory === '' ? 'btn-dark' : 'btn-outline-secondary'}`}
                 onClick={() => setFilterCategory('')}
               >
-                すべて ({allPhrases.length})
+                すべて ({visibleTotal})
               </button>
               {uniqueCategories.map(cat => (
                 <button
