@@ -52,9 +52,9 @@ function emitBuzz(buzz) {
   });
 }
 
-function emitPoints(points) {
+function emitPoints(points, answerCounts) {
   act(() => {
-    onPointsCallbacks[onPointsCallbacks.length - 1]?.(points);
+    onPointsCallbacks[onPointsCallbacks.length - 1]?.(points, answerCounts);
   });
 }
 
@@ -502,7 +502,7 @@ describe('QuizRoomView', () => {
 
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう接続中5pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう接続中05', 'じろう接続中00', 'はなこ接続中00']);
 
     const ownEntry = screen.getByText('はなこ', { selector: 'td.fw-bold' });
     expect(ownEntry).toBeInTheDocument();
@@ -520,7 +520,21 @@ describe('QuizRoomView', () => {
     emitParticipants(['はなこ']);
 
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み2pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう切断済み02', 'はなこ接続中00']);
+  });
+
+  it('shows the attempt count (回答数) and correct count (正答数) as separate columns in the participant list, keeping them after a participant disconnects (issue #698)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitParticipants(['はなこ']);
+    emitPoints({ たろう: 2 }, { たろう: { attempts: 3, correct: 2 }, はなこ: { attempts: 1, correct: 0 } });
+
+    expect(screen.getByText('回答数')).toBeInTheDocument();
+    expect(screen.getByText('正答数')).toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    expect(rows).toEqual(['たろう切断済み32', 'はなこ接続中10']);
   });
 
   it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {

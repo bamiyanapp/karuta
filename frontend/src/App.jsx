@@ -905,6 +905,7 @@ function App() {
     openQuizRooms,
     quizRoomBuzzedBy,
     quizRoomPoints,
+    quizRoomAnswerCounts,
     quizRoomParticipants,
     quizRoomConnectionStatus,
     reconnectQuizRoom,
@@ -1182,6 +1183,7 @@ function App() {
           roomId={quizRoom.roomId}
           quizRoomParticipants={quizRoomParticipants}
           quizRoomPoints={quizRoomPoints}
+          quizRoomAnswerCounts={quizRoomAnswerCounts}
           resetQuizRoomPoints={resetQuizRoomPoints}
         />
         {/* issue #613: 早押し判定モーダルはこの画面を開いている間も表示する

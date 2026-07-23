@@ -40,7 +40,7 @@ describe('QuizRoomInfoView', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(rows).toEqual(['たろう接続中3pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう接続中03', 'じろう接続中00', 'はなこ接続中00']);
   });
 
   it('shows a participant as disconnected when they are no longer in the connected-participants list, while keeping their earned points visible (issue #599, #602)', () => {
@@ -54,7 +54,25 @@ describe('QuizRoomInfoView', () => {
     );
 
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み2pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう切断済み02', 'はなこ接続中00']);
+  });
+
+  it('shows the attempt count (回答数) and correct count (正答数) as separate columns, keeping them after a participant disconnects (issue #698)', () => {
+    render(
+      <QuizRoomInfoView
+        setView={vi.fn()}
+        roomId="ABC123"
+        quizRoomParticipants={['はなこ']}
+        quizRoomPoints={{ たろう: 2 }}
+        quizRoomAnswerCounts={{ たろう: { attempts: 3, correct: 2 }, はなこ: { attempts: 1, correct: 0 } }}
+      />
+    );
+
+    expect(screen.getByText('回答数')).toBeInTheDocument();
+    expect(screen.getByText('正答数')).toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    // たろうは切断済みでも回答数・正答数がpointsと同様に保持され続ける
+    expect(rows).toEqual(['たろう切断済み32', 'はなこ接続中10']);
   });
 
   it('does not show the participant list section when there are no participants yet', () => {

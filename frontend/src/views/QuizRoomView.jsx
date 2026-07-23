@@ -101,6 +101,9 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。集計単位はconnectionIdではなく
   // name（早押し機能の実装参照）なので、自分のポイントはpoints[confirmedName]で引く
   const [points, setPoints] = useState({});
+  // 回答数集計（issue #698）: 名前→{attempts, correct}のマップ。pointsと同様、
+  // 切断・退室後も保持され続ける
+  const [answerCounts, setAnswerCounts] = useState({});
   // 参加者一覧（issue #545）: 名前確定済みの参加者名一覧。管理者側と同様、ポイントと
   // 統合した1つのリストとして表示する
   const [participants, setParticipants] = useState([]);
@@ -181,7 +184,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // リセットして{type:"roundReset", excludedName}を返す。除外されたのが
   // 自分自身であれば早押しボタンを再表示せず、それ以外の参加者なら
   // buzzedByをクリアして再度早押しできるようにする
-  const handleRoundReset = ({ excludedName }) => {
+  const handleRoundReset = ({ excludedName, answerCounts: nextAnswerCounts }) => {
     // issue #613: 不正解の判定結果を参加者全員に音で伝える（除外された本人以外にとっては
     // 「次に早押しできるようになった」合図でもあるが、判定内容自体は不正解のため同じ音を使う）
     // issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
@@ -196,6 +199,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     if (excludedName === confirmedName) {
       setExcludedThisRound(true);
     }
+    // 回答数集計（issue #698）: 不正解判定でもattemptsが増えるため更新する
+    if (nextAnswerCounts) {
+      setAnswerCounts(nextAnswerCounts);
+    }
   };
 
   const { connectionStatus, setParticipantName, buzz, reconnect } = useQuizRoomSync({
@@ -209,7 +216,13 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
       playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
       setBuzzedBy(buzzedByParam);
     },
-    onPoints: setPoints,
+    onPoints: (nextPoints, nextAnswerCounts) => {
+      setPoints(nextPoints);
+      // 回答数集計（issue #698）: 正解判定時（type:"points"ブロードキャスト）の更新
+      if (nextAnswerCounts) {
+        setAnswerCounts(nextAnswerCounts);
+      }
+    },
     onNameError: handleNameError,
     onRoundReset: handleRoundReset,
     onParticipants: setParticipants,
@@ -505,8 +518,9 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
         {(() => {
           // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
           // 1つのリストに統合して表示する（管理者画面と同じ並び順）。
-          // 表形式・接続ステータス表示、回答ボタンより下への配置はissue #599で対応
-          const participantList = mergeParticipantsWithPoints(participants, points);
+          // 表形式・接続ステータス表示、回答ボタンより下への配置はissue #599で対応。
+          // 回答数（issue #698）: 早押しして正誤判定された累計回数（attempts）も併せて表示する
+          const participantList = mergeParticipantsWithPoints(participants, points, answerCounts);
           return participantList.length > 0 && (
             <div className="mx-auto mt-4 text-start" style={{ maxWidth: "360px" }}>
               <p className="text-muted small mb-2">参加者一覧</p>
@@ -515,17 +529,19 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
                   <tr>
                     <th scope="col">名前</th>
                     <th scope="col">接続</th>
-                    <th scope="col" className="text-end">得点</th>
+                    <th scope="col" className="text-end">回答数</th>
+                    <th scope="col" className="text-end">正答数</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {participantList.map(({ name, points: pt, connected }) => (
+                  {participantList.map(({ name, points: pt, attempts, connected }) => (
                     <tr key={name}>
                       <td className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</td>
                       <td className={connected ? "text-success" : "text-muted"}>
                         {connected ? "接続中" : "切断済み"}
                       </td>
-                      <td className="text-end">{pt}pt</td>
+                      <td className="text-end">{attempts}</td>
+                      <td className="text-end">{pt}</td>
                     </tr>
                   ))}
                 </tbody>

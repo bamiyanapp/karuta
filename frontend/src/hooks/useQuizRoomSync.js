@@ -147,11 +147,14 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
           } else if (data?.type === "buzz") {
             onBuzzRef.current?.({ name: data.name, connectionId: data.connectionId });
           } else if (data?.type === "points") {
-            onPointsRef.current?.(data.points);
+            // 回答数集計（issue #698）: answerCountsは名前→{attempts, correct}のマップ
+            onPointsRef.current?.(data.points, data.answerCounts);
           } else if (data?.type === "nameError") {
             onNameErrorRef.current?.(data.message);
           } else if (data?.type === "roundReset") {
-            onRoundResetRef.current?.({ excludedName: data.excludedName });
+            // 回答数集計（issue #698）: 不正解判定でもattemptsが増えるため、
+            // roundResetブロードキャストにも更新後のanswerCountsを含めて配信する
+            onRoundResetRef.current?.({ excludedName: data.excludedName, answerCounts: data.answerCounts });
           } else if (data?.type === "participants") {
             onParticipantsRef.current?.(data.names);
           }

@@ -81,6 +81,9 @@ export function useQuizRoomAdmin({
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
   // ポイントを一覧表示する
   const [quizRoomPoints, setQuizRoomPoints] = useState({});
+  // 回答数集計（issue #698）: 名前→{attempts, correct}のマップ。pointsと同様、
+  // 切断・退室後も保持され続ける
+  const [quizRoomAnswerCounts, setQuizRoomAnswerCounts] = useState({});
   // 参加者一覧（issue #545）: 名前確定済みの参加者名一覧。ポイントと統合して
   // 「参加者名（0pt含む全員）」の1つのリストとして表示する
   const [quizRoomParticipants, setQuizRoomParticipants] = useState([]);
@@ -145,8 +148,21 @@ export function useQuizRoomAdmin({
       playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
       setQuizRoomBuzzedBy(buzzedBy);
     },
-    onPoints: setQuizRoomPoints,
+    onPoints: (points, answerCounts) => {
+      setQuizRoomPoints(points);
+      // 回答数集計（issue #698）: 正解判定時（type:"points"ブロードキャスト）の更新
+      if (answerCounts) {
+        setQuizRoomAnswerCounts(answerCounts);
+      }
+    },
     onParticipants: setQuizRoomParticipants,
+    // 回答数集計（issue #698）: 不正解判定時（type:"roundReset"ブロードキャスト）にも
+    // attemptsが増えるため、管理者側もこのイベントでanswerCountsを更新する
+    onRoundReset: ({ answerCounts }) => {
+      if (answerCounts) {
+        setQuizRoomAnswerCounts(answerCounts);
+      }
+    },
   });
 
   // 管理者セッション復帰（issue #697）: switchToAdminModeで保存済みトークンを使った
@@ -318,6 +334,7 @@ export function useQuizRoomAdmin({
     openQuizRooms,
     quizRoomBuzzedBy,
     quizRoomPoints,
+    quizRoomAnswerCounts,
     quizRoomParticipants,
     quizRoomConnectionStatus,
     reconnectQuizRoom,

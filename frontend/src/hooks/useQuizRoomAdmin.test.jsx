@@ -805,7 +805,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がはなこ(1pt)より先（降順）に表示される
-    expect(rows).toEqual(['たろう接続中3pt', 'はなこ接続中1pt']);
+    expect(rows).toEqual(['たろう接続中03', 'はなこ接続中01']);
   }, 40000);
 
   it('shows participants who have not scored yet as 0pt in the same list once a "participants" message arrives (issue #545)', async () => {
@@ -865,7 +865,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(rows).toEqual(['たろう接続中3pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう接続中03', 'じろう接続中00', 'はなこ接続中00']);
   }, 40000);
 
   it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {
