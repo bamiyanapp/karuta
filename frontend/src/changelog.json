@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.49.1",
+    "version": "1.49.2",
     "date": "2026/07/23",
+    "body": "### Bug Fixes\n\n* **frontend:** 全カテゴリ選択時のかるたデータ取得失敗を部分的に許容する（issue [#474](https://github.com/bamiyanapp/karuta/issues/474)） ([#723](https://github.com/bamiyanapp/karuta/issues/723)) ([a4cde54](https://github.com/bamiyanapp/karuta/commit/a4cde54e5dc0292fdcff90e4019dd7d63463ec70))"
+  },
+  {
+    "version": "1.49.1",
+    "date": "2026/07/23 03:35",
     "body": "### Bug Fixes\n\n* **e2e:** CIでE2E失敗の詳細をジョブログへ出力する（issue [#711](https://github.com/bamiyanapp/karuta/issues/711)） ([#713](https://github.com/bamiyanapp/karuta/issues/713)) ([861a3c8](https://github.com/bamiyanapp/karuta/commit/861a3c8ee0b8688509dd4385a277baee496da701))"
   },
   {
