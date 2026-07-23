@@ -1891,6 +1891,85 @@ describe('App', () => {
     });
   });
 
+  it('sorts the all-phrases table by level, count/time/difficulty, and answer presence, handling "-"/missing values (issue #459)', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ categories: [] }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return { ok: true, json: async () => ({ categories: [] }) };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              // levelは「初級/上級」の特別扱い・数値文字列・"-"（未設定）・それ以外の
+              // 非数値文字列（parseIntがNaNになるケース）を一通り含める
+              { id: 'p1', category: 'CatA', phrase: 'ぱ1', level: '初級', readCount: 5, averageTime: 2.5, averageDifficulty: 1.2, answer: '回答1' },
+              { id: 'p2', category: 'CatB', phrase: 'ぱ2', level: '上級', readCount: 0, answer: '-' },
+              { id: 'p3', category: 'CatA', phrase: 'ぱ3', level: '-', readCount: 3, averageTime: 1.1, averageDifficulty: 0.9 },
+              { id: 'p4', category: 'CatC', phrase: 'ぱ4', level: '5', readCount: 0, averageTime: 0, averageDifficulty: 0, answer: '回答4' },
+              { id: 'p5', category: 'CatB', phrase: 'ぱ5', level: '-', readCount: 1, averageTime: 0.5, averageDifficulty: 0.3, answer: '回答5' },
+              { id: 'p6', category: 'CatA', phrase: 'ぱ6', level: 'その他', readCount: 2, averageTime: 1.5, averageDifficulty: 1.0, answer: '回答6' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+    await screen.findByText('ぱ1');
+
+    const getBodyRows = () => screen.getAllByRole('row').slice(1); // 先頭はヘッダー行
+    const getPhraseOrder = () => getBodyRows().map(row => within(row).getByText(/^ぱ\d$/).textContent);
+    // AllPhrasesView.jsxのソート可能な列見出しはaria-sort等の都合上role="button"を
+    // 明示指定しているため（既定のcolumnheaderではない）、role="button"かつ名前で絞り込む
+    const levelHeader = screen.getByRole('button', { name: /^Lv/ });
+    const readCountHeader = screen.getByRole('button', { name: /^回数/ });
+    const answerHeader = screen.getByRole('button', { name: /^答え/ });
+    const categoryHeader = screen.getByRole('button', { name: /^カテゴリ/ });
+
+    // Lv列でソート（"初級"/"上級"の特別扱い、"-"同士・"-"と実値の比較、非数値文字列を網羅）
+    fireEvent.click(levelHeader);
+    await waitFor(() => {
+      expect(getPhraseOrder()[0]).not.toBe('');
+    });
+    fireEvent.click(levelHeader); // 降順へ切り替え、direction分岐の両方を通す
+
+    // 回数列でソート（readCount未設定/0 のフォールバック分岐を通す）
+    fireEvent.click(readCountHeader);
+    await waitFor(() => {
+      expect(getPhraseOrder().length).toBe(6);
+    });
+    fireEvent.click(readCountHeader);
+
+    // 答え列でソート（未設定/"-"/実値の組み合わせを網羅）
+    fireEvent.click(answerHeader);
+    await waitFor(() => {
+      expect(getPhraseOrder().length).toBe(6);
+    });
+    fireEvent.click(answerHeader);
+
+    // カテゴリ列（文字列としての汎用ソート、大小比較の両分岐）でソート
+    fireEvent.click(categoryHeader);
+    await waitFor(() => {
+      const order = getBodyRows().map(row => within(row).getAllByRole('cell')[0].textContent);
+      expect(order).toEqual([...order].sort());
+    });
+    fireEvent.click(categoryHeader);
+    await waitFor(() => {
+      const order = getBodyRows().map(row => within(row).getAllByRole('cell')[0].textContent);
+      expect(order).toEqual([...order].sort().reverse());
+    });
+  });
+
   it('filters all-phrases table by category when a filter button is clicked', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
