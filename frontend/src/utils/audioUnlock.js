@@ -63,6 +63,14 @@ export function playSharedAudio(src) {
   return audio.play();
 }
 
+// issue #696: 読み上げ中に早押しボタンが押された場合、読み上げ音声を中断するために使う。
+// sharedAudioが未生成（一度も再生されていない）場合は何もしない
+export function stopSharedAudio() {
+  if (sharedAudio) {
+    sharedAudio.pause();
+  }
+}
+
 // issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）を再生する。
 // nameは"buzz"|"correct"|"incorrect"のいずれか
 export function playQuizSfx(name, src) {

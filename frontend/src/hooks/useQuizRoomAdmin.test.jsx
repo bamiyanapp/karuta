@@ -44,6 +44,9 @@ describe('useQuizRoomAdmin (via App)', () => {
     vi.clearAllMocks();
     window.history.pushState({}, '', '/');
     sessionStorage.clear();
+    // 参加者名の永続化（issue #697）: あるテストで確定した名前が別のテストへ
+    // 漏れ、名前入力画面が意図せずスキップされてしまわないようにする
+    localStorage.removeItem('quizRoomParticipantName');
     resetSharedAudioForTests();
   });
 
@@ -83,14 +86,14 @@ describe('useQuizRoomAdmin (via App)', () => {
     await waitFor(() => screen.getByText('次の札'));
 
     // クイズ大会ルーム作成前は、参加者登録ボタンがルーム作成ボタンと並んで表示される
-    expect(screen.getByText('取った人を記録する参加者を登録する')).toBeInTheDocument();
+    expect(screen.getByText('取った人を記録する')).toBeInTheDocument();
     expect(screen.getByText('クイズ大会のルームを作成する')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
     await screen.findByText('ルーム情報を表示（クイズ大会モード）');
 
     // ルーム作成後は参加者登録ボタン自体が非表示になる
-    expect(screen.queryByText('取った人を記録する参加者を登録する')).not.toBeInTheDocument();
+    expect(screen.queryByText('取った人を記録する')).not.toBeInTheDocument();
     expect(screen.queryByText('参加者を編集する')).not.toBeInTheDocument();
   });
 
@@ -616,6 +619,169 @@ describe('useQuizRoomAdmin (via App)', () => {
     }, { timeout: 20000 });
   }, 40000);
 
+  it('shows the winner\'s name in the "これまでに読み上げた札" history once a buzz is judged correct (issue #695)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+    fireEvent.click(screen.getByText('正解'));
+
+    await waitFor(() => {
+      expect(screen.getByText('所要時間')).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    fireEvent.click(screen.getByText(/これまでに読み上げた札を表示する/));
+
+    expect(await screen.findByText('🎉 はなこさん正解')).toBeInTheDocument();
+  }, 40000);
+
+  it('reflects both attempts (回答数) and correct (正答数) counts in the room-info participant table after an incorrect judgment followed by a different participant\'s correct judgment (issue #698)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    const roomInfoLink = await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+      ws.onmessage?.({ data: JSON.stringify({ type: 'participants', names: ['たろう', 'はなこ'] }) });
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    // たろうが早押しし、管理者が不正解と判定する。実際のバックエンド
+    // （backend/quizRoomHandler.jsのjudgeQuizRoomBuzz）は判定結果をルーム内の
+    // 全接続（管理者自身を含む）へブロードキャストするため、ここでは
+    // そのブロードキャストをモックWebSocket経由で模擬する
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'たろう', connectionId: 'conn-1' }) });
+    });
+    fireEvent.click(screen.getByText('不正解'));
+    act(() => {
+      ws.onmessage?.({
+        data: JSON.stringify({
+          type: 'roundReset', excludedName: 'たろう',
+          answerCounts: { たろう: { attempts: 1, correct: 0 } },
+        }),
+      });
+    });
+
+    // はなこが早押しし、管理者が正解と判定する
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+    fireEvent.click(screen.getByText('正解'));
+    act(() => {
+      ws.onmessage?.({
+        data: JSON.stringify({
+          type: 'points', points: { はなこ: 1 },
+          answerCounts: { たろう: { attempts: 1, correct: 0 }, はなこ: { attempts: 1, correct: 1 } },
+        }),
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('所要時間')).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    fireEvent.click(roomInfoLink);
+
+    // はなこ: 1回答1正答、たろう: 1回答0正答（ポイント降順、同点は名前昇順）
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+      expect(rows).toEqual(['はなこ接続中11', 'たろう接続中10']);
+    }, { timeout: 15000 });
+  }, 40000);
+
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
     class MockWebSocket {
       constructor(url) {
@@ -736,7 +902,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がはなこ(1pt)より先（降順）に表示される
-    expect(rows).toEqual(['たろう接続中3pt', 'はなこ接続中1pt']);
+    expect(rows).toEqual(['たろう接続中03', 'はなこ接続中01']);
   }, 40000);
 
   it('shows participants who have not scored yet as 0pt in the same list once a "participants" message arrives (issue #545)', async () => {
@@ -796,7 +962,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
     // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(rows).toEqual(['たろう接続中3pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう接続中03', 'じろう接続中00', 'はなこ接続中00']);
   }, 40000);
 
   it('broadcasts the settings actually used to fetch the admin\'s own audio, even if the admin changes the voice while that card is still being read out (issue #498)', async () => {
@@ -1110,4 +1276,136 @@ describe('useQuizRoomAdmin (via App)', () => {
     await waitFor(() => expect(quizRoomsCallCount).toBe(2));
     expect(await screen.findByText('NEW999')).toBeInTheDocument();
   });
+
+  it('persists the admin token on room creation, then lets a fresh session (e.g. after closing the tab) restore admin mode from the participant screen using the saved token (issue #697)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    const firstRender = await act(async () => render(<App />));
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/かるたを始める/));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    // 管理者トークンはlocalStorageへ保存される
+    expect(JSON.parse(localStorage.getItem('quizRoomAdminSession'))).toEqual({ roomId: 'ABC123', adminToken: 'token-1' });
+
+    // ブラウザ/タブを閉じた状況を模す。Reactのstateはここで失われるが、localStorageは残る
+    firstRender.unmount();
+
+    // 招待URL経由で参加者として同じルームへアクセスした状況を模す
+    window.history.pushState({}, '', '?view=quiz-room&roomId=ABC123');
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.change(await screen.findByPlaceholderText('お名前'), { target: { value: 'はなこ' } });
+    fireEvent.click(screen.getByText('決定'));
+    await screen.findByText('クイズ大会モード（参加者）');
+
+    // 保存済みの管理者トークンが今のルームIDと一致するため、切り替えボタンが表示される
+    const switchButton = await screen.findByText('管理者に切り替える');
+    fireEvent.click(switchButton);
+
+    // 管理者画面（ルーム情報）へ切り替わる
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    const adminConnections = MockWebSocket.instances.filter((instance) => instance.url.includes('adminToken='));
+    expect(adminConnections).toHaveLength(2); // 1回目の作成時 + 今回の復帰時
+    expect(adminConnections[1].url).toContain('roomId=ABC123');
+    expect(adminConnections[1].url).toContain('adminToken=token-1');
+
+    // 復帰した接続が確立すれば、エラー表示は出ず管理者画面に留まる
+    act(() => {
+      adminConnections[1].readyState = MockWebSocket.OPEN;
+      adminConnections[1].onopen?.();
+    });
+    expect(screen.getByText('クイズ大会モードのルーム情報')).toBeInTheDocument();
+  }, 40000);
+
+  it('discards the saved admin token and falls back to the participant screen with an error when the saved token fails to connect (issue #697)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    // 事前に（失効済み・無効化された）管理者トークンが保存されている状況を模す
+    localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'XYZ999', adminToken: 'stale-token' }));
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: false };
+    });
+
+    window.history.pushState({}, '', '?view=quiz-room&roomId=XYZ999');
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.change(await screen.findByPlaceholderText('お名前'), { target: { value: 'たろう' } });
+    fireEvent.click(screen.getByText('決定'));
+    await screen.findByText('クイズ大会モード（参加者）');
+
+    const switchButton = await screen.findByText('管理者に切り替える');
+    fireEvent.click(switchButton);
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    const adminConnection = MockWebSocket.instances.find((instance) => instance.url.includes('adminToken=stale-token'));
+    expect(adminConnection).toBeDefined();
+
+    // 保存済みトークンが無効だった（ルーム失効・削除済み等）状況を模す
+    act(() => {
+      adminConnection.onerror?.();
+    });
+
+    // 参加者画面へ戻り、エラーメッセージが表示される
+    await screen.findByText('クイズ大会モード（参加者）');
+    expect(screen.getByText(/保存されていた管理者情報でルームに接続できませんでした/)).toBeInTheDocument();
+
+    // 無効だったトークンは破棄され、切り替えボタンも消える
+    expect(screen.queryByText('管理者に切り替える')).not.toBeInTheDocument();
+    expect(localStorage.getItem('quizRoomAdminSession')).toBeNull();
+  }, 40000);
 });

@@ -138,7 +138,23 @@ describe('useQuizRoomSync', () => {
       MockWebSocket.instances[0].triggerMessage({ type: 'points', points: { たろう: 2, はなこ: 1 } });
     });
 
-    expect(onPoints).toHaveBeenCalledWith({ たろう: 2, はなこ: 1 });
+    expect(onPoints).toHaveBeenCalledWith({ たろう: 2, はなこ: 1 }, undefined);
+  });
+
+  it('passes answerCounts through to onPoints alongside points (issue #698)', () => {
+    const onPoints = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onPoints }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({
+        type: 'points',
+        points: { たろう: 2 },
+        answerCounts: { たろう: { attempts: 3, correct: 2 } },
+      });
+    });
+
+    expect(onPoints).toHaveBeenCalledWith({ たろう: 2 }, { たろう: { attempts: 3, correct: 2 } });
   });
 
   it('calls onNameError when a nameError message is received (issue #519)', () => {
@@ -163,6 +179,22 @@ describe('useQuizRoomSync', () => {
     });
 
     expect(onRoundReset).toHaveBeenCalledWith({ excludedName: 'たろう' });
+  });
+
+  it('passes answerCounts through to onRoundReset alongside excludedName (issue #698)', () => {
+    const onRoundReset = vi.fn();
+    renderHook(() => useQuizRoomSync({ wsBaseUrl: 'wss://example.com/dev', roomId: 'ROOM01', onState: vi.fn(), onRoundReset }));
+
+    act(() => {
+      MockWebSocket.instances[0].triggerOpen();
+      MockWebSocket.instances[0].triggerMessage({
+        type: 'roundReset',
+        excludedName: 'たろう',
+        answerCounts: { たろう: { attempts: 2, correct: 0 } },
+      });
+    });
+
+    expect(onRoundReset).toHaveBeenCalledWith({ excludedName: 'たろう', answerCounts: { たろう: { attempts: 2, correct: 0 } } });
   });
 
   it('calls onParticipants when a participants message is received (issue #545)', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, resetSharedAudioForTests } from './audioUnlock';
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, stopSharedAudio, resetSharedAudioForTests } from './audioUnlock';
 
 const audioInstances = [];
 let audioPlayImpl = () => Promise.resolve();
@@ -70,6 +70,21 @@ describe('audioUnlock', () => {
     unlockAudioPlayback();
 
     expect(audioInstances).toHaveLength(8);
+  });
+
+  describe('stopSharedAudio (issue #696)', () => {
+    it('pauses the shared narration element if it has already been created', async () => {
+      await playSharedAudio('data:audio/mp3;base64,DUMMY');
+      const instance = audioInstances[0];
+
+      stopSharedAudio();
+
+      expect(instance.pause).toHaveBeenCalledTimes(2); // playSharedAudio内の一時停止 + stopSharedAudio
+    });
+
+    it('does nothing if the shared narration element was never created', () => {
+      expect(() => stopSharedAudio()).not.toThrow();
+    });
   });
 
   describe('playQuizSfx (issue #613)', () => {

@@ -339,11 +339,13 @@ exports.syncQuizRoom = async (event) => {
       });
     }
 
-    // ポイント制（issue #519）: 再接続・遅れて参加した端末にも現在の集計を伝える
-    if (room.Item.points) {
+    // ポイント制（issue #519）・回答数集計（issue #698）: 再接続・遅れて参加した
+    // 端末にも現在の集計を伝える
+    if (room.Item.points || room.Item.answerCounts) {
       await postToConnection(managementApi, connectionId, {
         type: "points",
-        points: room.Item.points,
+        points: room.Item.points || {},
+        answerCounts: room.Item.answerCounts || {},
       });
     }
 
@@ -488,32 +490,45 @@ exports.judgeQuizRoomBuzz = async (event) => {
     }));
     const managementApi = buildManagementApiClient(event);
 
+    // 回答数集計（issue #698）: 早押しして正誤判定された累計回数（attempts）と、
+    // そのうち正解と判定された累計回数（correct）を、正解・不正解いずれの
+    // 判定でも記録する。pointsと同様にDynamoDBのルームアイテムへ保持するため、
+    // 切断・退室後も（pointsと同じ寿命で）残り続ける
+    const updatedAnswerCounts = { ...(room.Item.answerCounts || {}) };
+    const previousCount = updatedAnswerCounts[buzzedName] || { attempts: 0, correct: 0 };
+    updatedAnswerCounts[buzzedName] = {
+      attempts: previousCount.attempts + 1,
+      correct: previousCount.correct + (correct ? 1 : 0),
+    };
+
     if (correct) {
       const updatedPoints = { ...(room.Item.points || {}) };
       updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
       await docClient.send(new UpdateCommand({
         TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
         Key: { roomId },
-        UpdateExpression: "SET points = :points REMOVE buzz, excludedNames",
-        ExpressionAttributeValues: { ":points": updatedPoints },
+        UpdateExpression: "SET points = :points, answerCounts = :answerCounts REMOVE buzz, excludedNames",
+        ExpressionAttributeValues: { ":points": updatedPoints, ":answerCounts": updatedAnswerCounts },
       }));
       await Promise.allSettled(
         (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
           type: "points",
           points: updatedPoints,
+          answerCounts: updatedAnswerCounts,
         }))
       );
     } else {
       await docClient.send(new UpdateCommand({
         TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
         Key: { roomId },
-        UpdateExpression: "REMOVE buzz ADD excludedNames :names",
-        ExpressionAttributeValues: { ":names": new Set([buzzedName]) },
+        UpdateExpression: "SET answerCounts = :answerCounts REMOVE buzz ADD excludedNames :names",
+        ExpressionAttributeValues: { ":answerCounts": updatedAnswerCounts, ":names": new Set([buzzedName]) },
       }));
       await Promise.allSettled(
         (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
           type: "roundReset",
           excludedName: buzzedName,
+          answerCounts: updatedAnswerCounts,
         }))
       );
     }
@@ -542,10 +557,12 @@ exports.resetQuizRoomPoints = async (event) => {
     }
 
     const { roomId } = connection.Item;
+    // 回答数集計（issue #698）: 同じルームで2ゲーム目を始める際の再スタートなので、
+    // pointsと同じタイミングでanswerCountsもリセットする
     await docClient.send(new UpdateCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
-      UpdateExpression: "REMOVE points",
+      UpdateExpression: "REMOVE points, answerCounts",
     }));
 
     const connections = await docClient.send(new QueryCommand({
@@ -559,6 +576,7 @@ exports.resetQuizRoomPoints = async (event) => {
       (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
         type: "points",
         points: {},
+        answerCounts: {},
       }))
     );
 

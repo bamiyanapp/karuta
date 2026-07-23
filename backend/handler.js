@@ -326,7 +326,7 @@ exports.getPhrase = async (event) => {
       // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -473,7 +473,7 @@ exports.getPhrasesList = async (event) => {
         ExpressionAttributeValues: {
           ":cat": category,
         },
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -483,7 +483,7 @@ exports.getPhrasesList = async (event) => {
     } else {
       const scanParams = {
         TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+        ProjectionExpression: "id, category, phrase, #lvl, kana, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
         ExpressionAttributeNames: {
           "#lvl": "level",
         },
@@ -512,7 +512,7 @@ exports.getCategories = async (event) => {
   try {
     const scanParams = {
       TableName: process.env.TABLE_NAME,
-      ProjectionExpression: "category, #grp, answer",
+      ProjectionExpression: "category, #grp, answer, readCount",
       ExpressionAttributeNames: {
         "#grp": "group",
       },
@@ -531,11 +531,13 @@ exports.getCategories = async (event) => {
           group: item.group === "engineer" ? "engineer" : "kids",
           allHaveAnswer: hasAnswer,
           count: 1,
+          totalReadCount: item.readCount || 0,
         });
       } else {
         const info = categoryMap.get(name);
         info.allHaveAnswer = info.allHaveAnswer && hasAnswer;
         info.count += 1;
+        info.totalReadCount += (item.readCount || 0);
       }
     });
 
@@ -544,9 +546,13 @@ exports.getCategories = async (event) => {
       group: info.group,
       requiresPossessionCheck: !info.allHaveAnswer,
       count: info.count,
+      readCount: info.totalReadCount,
     }));
+
+    // カテゴリを人気順（readCount降順）にソート
+    categories.sort((a, b) => b.readCount - a.readCount);
     if (categories.length === 0) {
-      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0 }];
+      categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0, readCount: 0 }];
     }
 
     return {

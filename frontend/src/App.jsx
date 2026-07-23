@@ -637,7 +637,9 @@ function App() {
         const updatedCategoryHistory = [...newHistory[categoryKey]];
         const lastReadPhrase = updatedCategoryHistory[0];
         if (lastReadPhrase.id === targetPhrase.id && lastReadPhrase.category === targetPhrase.category) {
-          updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2) };
+          // クイズ大会モードの正解者表示（issue #695）: winnerは早押しが正解と
+          // 判定された参加者名。クイズ大会モード以外・誰も正解しなかった場合はnull
+          updatedCategoryHistory[0] = { ...lastReadPhrase, elapsedTime: elapsedTime.toFixed(2), winner: winner ?? null };
           newHistory[categoryKey] = updatedCategoryHistory;
         }
       }
@@ -658,7 +660,7 @@ function App() {
 
       nextContentRef.current = {
         type: "result",
-        content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer, winner: winner ?? null },
+        content: { time: elapsedTime, difficulty, isFast, answer: targetPhrase.answer, explanation: targetPhrase.explanation, winner: winner ?? null },
       };
 
       // 結果表示のフェード完了を待ってから次の札の取得・再生に進む。
@@ -903,6 +905,7 @@ function App() {
     openQuizRooms,
     quizRoomBuzzedBy,
     quizRoomPoints,
+    quizRoomAnswerCounts,
     quizRoomParticipants,
     quizRoomConnectionStatus,
     reconnectQuizRoom,
@@ -910,6 +913,9 @@ function App() {
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,
+    adminSessionRoomId,
+    adminSessionRestoreError,
+    switchToAdminMode,
   } = useQuizRoomAdmin({
     view,
     selectedCategories,
@@ -1154,7 +1160,15 @@ function App() {
   }
 
   if (view === "quiz-room") {
-    return <QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />;
+    return (
+      <QuizRoomView
+        setView={setView}
+        wsBaseUrl={WS_BASE_URL}
+        adminSessionRoomId={adminSessionRoomId}
+        adminSessionRestoreError={adminSessionRestoreError}
+        switchToAdminMode={switchToAdminMode}
+      />
+    );
   }
 
   // ルーム情報（ルームコード・QRコード・招待URL）表示は、以前は通常のゲーム画面内の
@@ -1169,6 +1183,7 @@ function App() {
           roomId={quizRoom.roomId}
           quizRoomParticipants={quizRoomParticipants}
           quizRoomPoints={quizRoomPoints}
+          quizRoomAnswerCounts={quizRoomAnswerCounts}
           resetQuizRoomPoints={resetQuizRoomPoints}
         />
         {/* issue #613: 早押し判定モーダルはこの画面を開いている間も表示する
@@ -1304,7 +1319,7 @@ function App() {
                   disabled={draftCategories.length === 0}
                   className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
                 >
-                  かるたを始める（{draftCategories.length}件選択中）
+                  かるたを始める
                 </button>
                 <button
                   onClick={handlePrintEfudaClick}
@@ -1369,6 +1384,13 @@ function App() {
             <>
               <div className="text-muted mt-4 mb-2">答え</div>
               <div className="h4 fw-bold text-dark">{result.answer}</div>
+            </>
+          )}
+
+          {result.explanation && result.explanation !== "-" && (
+            <>
+              <div className="text-muted mt-4 mb-2">解説</div>
+              <div className="fs-6 text-dark">{result.explanation}</div>
             </>
           )}
         </div>
@@ -1538,6 +1560,10 @@ function App() {
                       <span className="text-dark">{p.phrase}</span>
                     </div>
                     <div className="d-flex align-items-center">
+                      {/* クイズ大会モードの正解者表示（issue #695）: winnerは早押しが
+                          正解と判定された参加者名。クイズ大会モード以外・誰も正解
+                          しなかった場合は表示しない */}
+                      {p.winner && <span className="text-success small me-3 notranslate">🎉 {p.winner}さん正解</span>}
                       {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
                       <span className="text-primary small">詳細・報告 →</span>
                     </div>
@@ -1615,7 +1641,6 @@ function App() {
             )}
           </div>
         </section>
-      <p className="text-muted small mb-4">履歴はこのタブを閉じるまで保持されます（リロードしても消えません）。</p>
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         {division === "kids" && (
           // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
@@ -1681,7 +1706,7 @@ function App() {
                 onClick={() => setShowPlayerRegistration(prev => !prev)}
                 className="btn btn-sm btn-outline-secondary rounded-pill px-3"
               >
-                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する参加者を登録する"}
+                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する"}
               </button>
               {showPlayerRegistration && (
                 <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>

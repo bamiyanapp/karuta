@@ -8,6 +8,33 @@ import { unlockAudioPlayback, playQuizSfx } from "../utils/audioUnlock";
 // 使う必要がないため、何もしない関数を安定した参照として渡す
 const noop = () => {};
 
+// 管理者セッション復帰（issue #697）: 管理者トークンをlocalStorageへ保存する際のキー。
+// ブラウザ/タブを閉じてもルームへ管理者として復帰できるようにするため、
+// createQuizRoom成功時にここへ{roomId, adminToken}を保存する
+const ADMIN_SESSION_STORAGE_KEY = "quizRoomAdminSession";
+
+function readStoredAdminSession() {
+  try {
+    const raw = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.roomId === "string" && typeof parsed.adminToken === "string") {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function clearStoredAdminSession() {
+  try {
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  } catch {
+    // プライベートブラウズ等でlocalStorageが使えない環境では何もしない
+  }
+}
+
 // 開設中ルーム一覧（issue #489）の定期更新間隔。REST GET1本のみで参加者数に
 // 応じて増える負荷ではないため、issue #619のsyncポーリングほど頻度を絞る必要はない
 const OPEN_ROOMS_POLL_INTERVAL_MS = 15000;
@@ -34,6 +61,16 @@ export function useQuizRoomAdmin({
   const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
   const [creatingQuizRoom, setCreatingQuizRoom] = useState(false);
   const [quizRoomCreateError, setQuizRoomCreateError] = useState(null);
+  // 管理者セッション復帰（issue #697）: 保存済みの管理者トークンが指すルームID。
+  // QuizRoomView.jsx（参加者画面）側で、このルームIDに一致する場合のみ
+  // 「管理者に切り替える」ボタンを表示する
+  const [adminSessionRoomId, setAdminSessionRoomId] = useState(() => readStoredAdminSession()?.roomId ?? null);
+  const [adminSessionRestoreError, setAdminSessionRestoreError] = useState(null);
+  // switchToAdminMode経由で復帰を試みている間だけtrueにする。この間に接続が
+  // エラーになった場合のみ「トークンが無効化された」と判断して保存済みトークンを
+  // 破棄する（既に管理者として正常稼働中の接続が、一時的なネットワーク不調で
+  // エラーになった場合にまで誤ってトークンを破棄しないようにするため）
+  const [isRestoringAdminSession, setIsRestoringAdminSession] = useState(false);
   // トップページ下部に表示する、開設中のクイズ大会ルーム一覧（issue #489）
   const [openQuizRooms, setOpenQuizRooms] = useState([]);
   // 早押し機能（issue #510）: 現在のラウンドで最初に回答した参加者名。次の札が
@@ -44,6 +81,9 @@ export function useQuizRoomAdmin({
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
   // ポイントを一覧表示する
   const [quizRoomPoints, setQuizRoomPoints] = useState({});
+  // 回答数集計（issue #698）: 名前→{attempts, correct}のマップ。pointsと同様、
+  // 切断・退室後も保持され続ける
+  const [quizRoomAnswerCounts, setQuizRoomAnswerCounts] = useState({});
   // 参加者一覧（issue #545）: 名前確定済みの参加者名一覧。ポイントと統合して
   // 「参加者名（0pt含む全員）」の1つのリストとして表示する
   const [quizRoomParticipants, setQuizRoomParticipants] = useState([]);
@@ -108,9 +148,48 @@ export function useQuizRoomAdmin({
       playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
       setQuizRoomBuzzedBy(buzzedBy);
     },
-    onPoints: setQuizRoomPoints,
+    onPoints: (points, answerCounts) => {
+      setQuizRoomPoints(points);
+      // 回答数集計（issue #698）: 正解判定時（type:"points"ブロードキャスト）の更新
+      if (answerCounts) {
+        setQuizRoomAnswerCounts(answerCounts);
+      }
+    },
     onParticipants: setQuizRoomParticipants,
+    // 回答数集計（issue #698）: 不正解判定時（type:"roundReset"ブロードキャスト）にも
+    // attemptsが増えるため、管理者側もこのイベントでanswerCountsを更新する
+    onRoundReset: ({ answerCounts }) => {
+      if (answerCounts) {
+        setQuizRoomAnswerCounts(answerCounts);
+      }
+    },
   });
+
+  // 管理者セッション復帰（issue #697）: switchToAdminModeで保存済みトークンを使った
+  // 復帰を試みている間、接続が確立できれば復帰成功とみなして監視を終了する。
+  // 逆に接続がエラーになった場合は、トークンが無効（ルーム失効・削除済み等）と
+  // 判断し、保存済みトークンを破棄したうえで通常の参加者フローへフォールバックする。
+  // レンダー中のstate調整パターン（QuizRoomView.jsxのbuzzRoundKey判定と同じ考え方）で、
+  // 副作用を伴わないstate更新はuseEffectを介さずレンダー中に直接行う
+  // （react-hooks/set-state-in-effect対策）
+  const [lastRestoreCheckedStatus, setLastRestoreCheckedStatus] = useState(quizRoomConnectionStatus);
+  if (quizRoomConnectionStatus !== lastRestoreCheckedStatus) {
+    setLastRestoreCheckedStatus(quizRoomConnectionStatus);
+    if (isRestoringAdminSession) {
+      if (quizRoomConnectionStatus === "connected") {
+        setIsRestoringAdminSession(false);
+      } else if (quizRoomConnectionStatus === "error") {
+        setIsRestoringAdminSession(false);
+        clearStoredAdminSession();
+        setAdminSessionRoomId(null);
+        setQuizRoom(null);
+        setAdminSessionRestoreError("保存されていた管理者情報でルームに接続できませんでした。ルームが終了しているか、情報が無効になっている可能性があります。");
+        // quizRoomがnullに戻るとview==="quiz-room-info"の表示条件を満たさなくなる
+        // ため、エラーメッセージが表示できる参加者画面（quiz-room）へ明示的に戻す
+        setView("quiz-room");
+      }
+    }
+  }
 
   // 早押し正誤判定（issue #546）: 「正解」「不正解」を選んだら判定結果をサーバーへ
   // 送信し、モーダルはローカルで即座に閉じる（roundResetのブロードキャストは
@@ -183,7 +262,7 @@ export function useQuizRoomAdmin({
         type: "result",
         // winner: 早押しが正解と判定された場合、その回答者名（issue #600）。
         // 誰も正解しなかった場合（通常の「次の札」による結果表示）はnull
-        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, winner: r.winner ?? null },
+        content: { time: r.time, isFast: r.isFast, difficulty: r.difficulty, answer: r.answer, explanation: r.explanation, winner: r.winner ?? null },
       });
     } else {
       broadcastQuizRoomState({ type: "initial" });
@@ -204,6 +283,15 @@ export function useQuizRoomAdmin({
       }
       const data = await response.json();
       setQuizRoom({ roomId: data.roomId, adminToken: data.adminToken });
+      // 管理者セッション復帰（issue #697）: ブラウザ/タブを閉じても管理者として
+      // 復帰できるよう、トークンをlocalStorageへ保存する
+      try {
+        localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify({ roomId: data.roomId, adminToken: data.adminToken }));
+      } catch {
+        // プライベートブラウズ等でlocalStorageが使えない環境では保存をあきらめる
+        // （復帰できないだけで、今回のセッションでの利用自体には影響しない）
+      }
+      setAdminSessionRoomId(data.roomId);
     } catch (error) {
       console.error("Failed to create quiz room:", error);
       setQuizRoomCreateError("ルームの作成に失敗しました。もう一度お試しください。");
@@ -224,6 +312,21 @@ export function useQuizRoomAdmin({
     setView("quiz-room");
   };
 
+  // 管理者セッション復帰（issue #697）: 参加者画面（QuizRoomView.jsx）の
+  // 「管理者に切り替える」ボタンから呼ばれる。保存済みの管理者トークンが
+  // 現在のroomIdに一致する場合のみ管理者として再接続し、trueを返す
+  const switchToAdminMode = (roomId) => {
+    const stored = readStoredAdminSession();
+    if (!stored || stored.roomId !== roomId) {
+      return false;
+    }
+    unlockAudioPlayback();
+    setAdminSessionRestoreError(null);
+    setIsRestoringAdminSession(true);
+    setQuizRoom({ roomId: stored.roomId, adminToken: stored.adminToken });
+    return true;
+  };
+
   return {
     quizRoom,
     creatingQuizRoom,
@@ -231,6 +334,7 @@ export function useQuizRoomAdmin({
     openQuizRooms,
     quizRoomBuzzedBy,
     quizRoomPoints,
+    quizRoomAnswerCounts,
     quizRoomParticipants,
     quizRoomConnectionStatus,
     reconnectQuizRoom,
@@ -238,5 +342,8 @@ export function useQuizRoomAdmin({
     createQuizRoom,
     joinQuizRoom,
     judgeQuizRoomBuzz,
+    adminSessionRoomId,
+    adminSessionRestoreError,
+    switchToAdminMode,
   };
 }

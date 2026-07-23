@@ -404,7 +404,27 @@ describe('syncQuizRoom', () => {
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
     expect(postCalls).toHaveLength(3);
     const pointsPayload = JSON.parse(Buffer.from(postCalls[1].args[0].input.Data).toString('utf-8'));
-    expect(pointsPayload).toEqual({ type: 'points', points: { たろう: 2, はなこ: 1 } });
+    expect(pointsPayload).toEqual({ type: 'points', points: { たろう: 2, はなこ: 1 }, answerCounts: {} });
+  });
+
+  it('also sends the current answer counts (attempts/correct) to a reconnecting/late-joining participant (issue #698)', async () => {
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRoomConnections' }).resolves({
+      Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' },
+    });
+    ddbMock.on(GetCommand, { TableName: 'TestQuizRooms' }).resolves({
+      Item: {
+        roomId: 'ROOM01',
+        state: { type: 'phrase', content: { id: 'p1' } },
+        answerCounts: { たろう: { attempts: 3, correct: 2 } },
+      },
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+
+    await syncQuizRoom(wsEvent({ connectionId: 'conn-1' }));
+
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    const pointsPayload = JSON.parse(Buffer.from(postCalls[1].args[0].input.Data).toString('utf-8'));
+    expect(pointsPayload).toEqual({ type: 'points', points: {}, answerCounts: { たろう: { attempts: 3, correct: 2 } } });
   });
 
   it('does not send a points message when no one has scored yet', async () => {
@@ -863,7 +883,12 @@ describe('judgeQuizRoomBuzz', () => {
       Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
     });
     ddbMock.on(GetCommand, { TableName: 'TestQuizRooms' }).resolves({
-      Item: { roomId: 'ROOM01', buzz: { connectionId: 'conn-p', name: 'たろう', buzzedAt: 1000 }, points: { たろう: 1 } },
+      Item: {
+        roomId: 'ROOM01',
+        buzz: { connectionId: 'conn-p', name: 'たろう', buzzedAt: 1000 },
+        points: { たろう: 1 },
+        answerCounts: { たろう: { attempts: 1, correct: 1 } },
+      },
     });
     ddbMock.on(UpdateCommand).resolves({});
     ddbMock.on(QueryCommand).resolves({
@@ -880,12 +905,14 @@ describe('judgeQuizRoomBuzz', () => {
     const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
     expect(updateCall.Key).toEqual({ roomId: 'ROOM01' });
     expect(updateCall.ExpressionAttributeValues[':points']).toEqual({ たろう: 2 });
-    expect(updateCall.UpdateExpression).toBe('SET points = :points REMOVE buzz, excludedNames');
+    // 回答数集計（issue #698）: 正解判定でもattempts/correctを両方インクリメントする
+    expect(updateCall.ExpressionAttributeValues[':answerCounts']).toEqual({ たろう: { attempts: 2, correct: 2 } });
+    expect(updateCall.UpdateExpression).toBe('SET points = :points, answerCounts = :answerCounts REMOVE buzz, excludedNames');
 
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
     expect(postCalls).toHaveLength(2);
     const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
-    expect(payload).toEqual({ type: 'points', points: { たろう: 2 } });
+    expect(payload).toEqual({ type: 'points', points: { たろう: 2 }, answerCounts: { たろう: { attempts: 2, correct: 2 } } });
   });
 
   it('clears buzz, excludes the participant from the round, and broadcasts a roundReset when judged incorrect', async () => {
@@ -909,14 +936,16 @@ describe('judgeQuizRoomBuzz', () => {
     expect(response.statusCode).toBe(200);
     const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
     expect(updateCall.Key).toEqual({ roomId: 'ROOM01' });
-    expect(updateCall.UpdateExpression).toBe('REMOVE buzz ADD excludedNames :names');
+    expect(updateCall.UpdateExpression).toBe('SET answerCounts = :answerCounts REMOVE buzz ADD excludedNames :names');
     expect(updateCall.ExpressionAttributeValues[':names']).toEqual(new Set(['たろう']));
     expect(updateCall.ExpressionAttributeValues[':points']).toBeUndefined();
+    // 回答数集計（issue #698）: 不正解判定でもattemptsはインクリメントされるが、correctはされない
+    expect(updateCall.ExpressionAttributeValues[':answerCounts']).toEqual({ たろう: { attempts: 1, correct: 0 } });
 
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
     expect(postCalls).toHaveLength(2);
     const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
-    expect(payload).toEqual({ type: 'roundReset', excludedName: 'たろう' });
+    expect(payload).toEqual({ type: 'roundReset', excludedName: 'たろう', answerCounts: { たろう: { attempts: 1, correct: 0 } } });
   });
 
   it('handles unexpected errors', async () => {
@@ -957,12 +986,14 @@ describe('resetQuizRoomPoints', () => {
     expect(response.statusCode).toBe(200);
     const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
     expect(updateCall.Key).toEqual({ roomId: 'ROOM01' });
-    expect(updateCall.UpdateExpression).toBe('REMOVE points');
+    // 回答数集計（issue #698）: 2ゲーム目の再スタートとしてanswerCountsもpointsと
+    // 同時にリセットする
+    expect(updateCall.UpdateExpression).toBe('REMOVE points, answerCounts');
 
     const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
     expect(postCalls).toHaveLength(2);
     const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
-    expect(payload).toEqual({ type: 'points', points: {} });
+    expect(payload).toEqual({ type: 'points', points: {}, answerCounts: {} });
   });
 
   it('handles unexpected errors', async () => {

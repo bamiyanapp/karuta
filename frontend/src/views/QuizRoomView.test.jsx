@@ -52,9 +52,9 @@ function emitBuzz(buzz) {
   });
 }
 
-function emitPoints(points) {
+function emitPoints(points, answerCounts) {
   act(() => {
-    onPointsCallbacks[onPointsCallbacks.length - 1]?.(points);
+    onPointsCallbacks[onPointsCallbacks.length - 1]?.(points, answerCounts);
   });
 }
 
@@ -349,6 +349,22 @@ describe('QuizRoomView', () => {
     expect(setParticipantNameMock).toHaveBeenCalledWith('はなこ');
   });
 
+  it('remembers the confirmed name across reconnects, skipping the name entry screen on the next visit (issue #697)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    const { unmount } = render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+    unmount();
+
+    // 別のタブ/再接続を模して再度マウントする。localStorageに保存済みの名前が
+    // あるため、名前入力画面をスキップしてそのまま参加者画面へ進む
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    expect(screen.queryByPlaceholderText('お名前')).not.toBeInTheDocument();
+    expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+    expect(screen.getByText('ルーム: ABC123')).toBeInTheDocument();
+    expect(setParticipantNameMock).toHaveBeenCalledWith('はなこ');
+  });
+
   it('lets a participant buzz in while a phrase is being read, and shows the responder\'s name once someone has buzzed (issue #510)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
@@ -486,7 +502,7 @@ describe('QuizRoomView', () => {
 
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう接続中5pt', 'じろう接続中0pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう接続中05', 'じろう接続中00', 'はなこ接続中00']);
 
     const ownEntry = screen.getByText('はなこ', { selector: 'td.fw-bold' });
     expect(ownEntry).toBeInTheDocument();
@@ -504,7 +520,21 @@ describe('QuizRoomView', () => {
     emitParticipants(['はなこ']);
 
     const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み2pt', 'はなこ接続中0pt']);
+    expect(rows).toEqual(['たろう切断済み02', 'はなこ接続中00']);
+  });
+
+  it('shows the attempt count (回答数) and correct count (正答数) as separate columns in the participant list, keeping them after a participant disconnects (issue #698)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName('はなこ');
+
+    emitParticipants(['はなこ']);
+    emitPoints({ たろう: 2 }, { たろう: { attempts: 3, correct: 2 }, はなこ: { attempts: 1, correct: 0 } });
+
+    expect(screen.getByText('回答数')).toBeInTheDocument();
+    expect(screen.getByText('正答数')).toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+    expect(rows).toEqual(['たろう切断済み32', 'はなこ接続中10']);
   });
 
   it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {
@@ -518,6 +548,20 @@ describe('QuizRoomView', () => {
 
     expect(screen.getByText('その名前は既に使われています。別の名前を入力してください。')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('お名前')).toBeInTheDocument();
+  });
+
+  it('hides the stale "回答中" display once the result screen shows a winner (correct judgment), since the winner is already shown there (issue #696)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+    expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
+
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: 'はなこ' } });
+    expect(screen.queryByText('🔔 はなこ さんが回答中')).not.toBeInTheDocument();
+    expect(screen.getByText('🎉 はなこ さん正解！')).toBeInTheDocument();
   });
 
   it('keeps showing the responder during the result screen, but resets it once a new (different) phrase is broadcast', () => {
@@ -696,6 +740,34 @@ describe('QuizRoomView', () => {
     expect(audioInstances).toHaveLength(4);
     expect(audioInstances[0].pause).toHaveBeenCalled();
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
+  });
+
+  it('stops the currently-playing narration audio when the participant presses the buzz button (issue #696)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    const narrationAudio = audioInstances[0];
+    narrationAudio.pause.mockClear();
+
+    fireEvent.click(screen.getByText('回答する'));
+
+    expect(narrationAudio.pause).toHaveBeenCalled();
+    expect(buzzMock).toHaveBeenCalled();
   });
 
   it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {

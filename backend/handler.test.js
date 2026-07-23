@@ -34,8 +34,8 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'Category1', group: 'kids', requiresPossessionCheck: true, count: 2 },
-      { name: 'Category2', group: 'engineer', requiresPossessionCheck: true, count: 1 },
+      { name: 'Category1', group: 'kids', requiresPossessionCheck: true, count: 2, readCount: 0 },
+      { name: 'Category2', group: 'engineer', requiresPossessionCheck: true, count: 1, readCount: 0 },
     ]);
   });
 
@@ -52,8 +52,8 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'Category1', group: 'kids', requiresPossessionCheck: true, count: 1 },
-      { name: 'Category2', group: 'kids', requiresPossessionCheck: true, count: 1 },
+      { name: 'Category1', group: 'kids', requiresPossessionCheck: true, count: 1, readCount: 0 },
+      { name: 'Category2', group: 'kids', requiresPossessionCheck: true, count: 1, readCount: 0 },
     ]);
   });
 
@@ -66,7 +66,7 @@ describe('getCategories', () => {
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids', requiresPossessionCheck: true, count: 0 }]);
+    expect(body.categories).toEqual([{ name: '大ピンチずかん', group: 'kids', requiresPossessionCheck: true, count: 0, readCount: 0 }]);
   });
 
   it('should mark a category as not requiring possession check when every phrase has answer data', async () => {
@@ -83,8 +83,8 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'OriginalCat', group: 'engineer', requiresPossessionCheck: false, count: 2 },
-      { name: 'CommercialCat', group: 'kids', requiresPossessionCheck: true, count: 1 },
+      { name: 'OriginalCat', group: 'engineer', requiresPossessionCheck: false, count: 2, readCount: 0 },
+      { name: 'CommercialCat', group: 'kids', requiresPossessionCheck: true, count: 1, readCount: 0 },
     ]);
   });
 
@@ -101,7 +101,7 @@ describe('getCategories', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.categories).toEqual([
-      { name: 'MixedCat', group: 'engineer', requiresPossessionCheck: true, count: 2 },
+      { name: 'MixedCat', group: 'engineer', requiresPossessionCheck: true, count: 2, readCount: 0 },
     ]);
   });
 
