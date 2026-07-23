@@ -1,3 +1,10 @@
+## [1.50.1](https://github.com/bamiyanapp/karuta/compare/v1.50.0...v1.50.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **frontend:** 読み上げ進行の永久停止対策 & ci: カバレッジゲート部分有効化（issue [#729](https://github.com/bamiyanapp/karuta/issues/729), [#459](https://github.com/bamiyanapp/karuta/issues/459)） ([#743](https://github.com/bamiyanapp/karuta/issues/743)) ([eea0eb6](https://github.com/bamiyanapp/karuta/commit/eea0eb612d1d983c88bbc24c581e8da726858b9e))
+
 # [1.50.0](https://github.com/bamiyanapp/karuta/compare/v1.49.3...v1.50.0) (2026-07-23)
 
 

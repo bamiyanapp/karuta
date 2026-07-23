@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.50.0",
+    "version": "1.50.1",
     "date": "2026/07/23",
+    "body": "### Bug Fixes\n\n* **frontend:** 読み上げ進行の永久停止対策 & ci: カバレッジゲート部分有効化（issue [#729](https://github.com/bamiyanapp/karuta/issues/729), [#459](https://github.com/bamiyanapp/karuta/issues/459)） ([#743](https://github.com/bamiyanapp/karuta/issues/743)) ([eea0eb6](https://github.com/bamiyanapp/karuta/commit/eea0eb612d1d983c88bbc24c581e8da726858b9e))"
+  },
+  {
+    "version": "1.50.0",
+    "date": "2026/07/23 16:07",
     "body": "### Features\n\n* **frontend:** 全札一覧の種別絞り込みをこども向け/エンジニア向けで先に絞り込めるようにする（issue [#730](https://github.com/bamiyanapp/karuta/issues/730)） ([#738](https://github.com/bamiyanapp/karuta/issues/738)) ([ab8547f](https://github.com/bamiyanapp/karuta/commit/ab8547f4f0e550776330e6f65d56564c6e1938bc))"
   },
   {
