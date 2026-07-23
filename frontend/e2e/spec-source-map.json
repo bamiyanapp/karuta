@@ -34,6 +34,14 @@
       "frontend/src/views/ChangelogView.jsx",
       "frontend/src/views/CommentsView.jsx",
       "frontend/src/views/PrintEfudaView.jsx"
+    ],
+    "engineer division: selects multiple categories, then prints combined efuda directly from the category selection screen (issue #576)": [
+      "frontend/src/App.jsx",
+      "frontend/src/views/PrintEfudaView.jsx"
+    ],
+    "print-efuda view shows an error with a retry button when the phrase list fails to fetch, and recovers after retrying (issue #474)": [
+      "frontend/src/App.jsx",
+      "frontend/src/views/PrintEfudaView.jsx"
     ]
   }
 }
