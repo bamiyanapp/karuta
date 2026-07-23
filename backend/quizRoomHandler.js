@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
+const { ApiGatewayManagementApiClient, PostToConnectionCommand, DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { docClient, resolveAllowedOrigin } = require("./handler");
 
 // issue #470: クイズ大会モード（管理者ルーム開設＋複数端末同期）の最小構成。
@@ -598,6 +598,52 @@ exports.resetQuizRoomPoints = async (event) => {
         points: {},
         answerCounts: {},
       }))
+    );
+
+    return { statusCode: 200, body: "" };
+  } catch (error) {
+    console.error(error);
+    return { statusCode: 500, body: "Internal Server Error" };
+  }
+};
+
+// WebSocketカスタムルート"closeRoom"（issue #748）。管理者のみルームを明示的に終了できる。
+// ルームレコード自体を削除するため、以後の$connect試行は404で拒否される。ルーム内の
+// 全接続（参加者・管理者自身の他接続含む）へ終了をブロードキャストしたうえで、
+// 各接続をDeleteConnectionCommandで強制切断する。切断により$disconnectが呼ばれ、
+// 既存のdisconnectQuizRoom（接続レコード削除・予約名の解放）が自然に走るため、
+// このハンドラ側で接続レコードを個別に掃除する必要はない
+exports.closeQuizRoom = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const connection = await docClient.send(new GetCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+    }));
+    if (!connection.Item || connection.Item.role !== "admin") {
+      return { statusCode: 403, body: "Forbidden" };
+    }
+
+    const { roomId } = connection.Item;
+
+    await docClient.send(new DeleteCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+    }));
+
+    const connections = await docClient.send(new QueryCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      IndexName: "roomId-index",
+      KeyConditionExpression: "roomId = :roomId",
+      ExpressionAttributeValues: { ":roomId": roomId },
+    }));
+    const managementApi = buildManagementApiClient(event);
+    const items = connections.Items || [];
+    await Promise.allSettled(
+      items.map((conn) => postToConnection(managementApi, conn.connectionId, { type: "roomClosed" }))
+    );
+    await Promise.allSettled(
+      items.map((conn) => managementApi.send(new DeleteConnectionCommand({ ConnectionId: conn.connectionId })).catch(() => {}))
     );
 
     return { statusCode: 200, body: "" };

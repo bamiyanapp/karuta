@@ -67,6 +67,11 @@ describe('useQuizRoomAdmin (via App)', () => {
     // 参加者名の永続化（issue #697）: あるテストで確定した名前が別のテストへ
     // 漏れ、名前入力画面が意図せずスキップされてしまわないようにする
     localStorage.removeItem('quizRoomParticipantName');
+    // 管理者セッション復帰（issue #697）: あるテストでルームを作成すると保存される
+    // quizRoomAdminSessionが別のテストへ漏れると、読み上げ画面が「再開する」ボタンの
+    // 表示に切り替わってしまい（issue #748）、「作成する」ボタンを前提にした他の
+    // テストが軒並み壊れるため、テストごとに毎回明示的にクリアする
+    localStorage.removeItem('quizRoomAdminSession');
     resetSharedAudioForTests();
   });
 
@@ -1513,8 +1518,9 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     // 従来は「クイズ大会のルームを作成する」ボタンしかなく、これを押すと別の新しい
     // ルームが作られてしまっていた（issue #744）。保存済みセッションがある今は、
-    // 読み上げ画面自体に「再開する」ボタンが出て、新規作成ボタンと並んで選べる
-    expect(screen.getByText('クイズ大会のルームを作成する')).toBeInTheDocument();
+    // 読み上げ画面自体に「再開する」ボタンが出る。誤って別の新しいルームを作って
+    // しまわないよう、再開可能な間は新規作成ボタン自体を表示しない（issue #748）
+    expect(screen.queryByText('クイズ大会のルームを作成する')).not.toBeInTheDocument();
     const resumeButton = screen.getByText('クイズ大会のルームを再開する');
     fireEvent.click(resumeButton);
 
@@ -1588,5 +1594,122 @@ describe('useQuizRoomAdmin (via App)', () => {
     // 無効だったトークンは破棄され、切り替えボタンも消える
     expect(screen.queryByText('管理者に切り替える')).not.toBeInTheDocument();
     expect(localStorage.getItem('quizRoomAdminSession')).toBeNull();
+  }, 40000);
+
+  it('closes the room from the room-info screen, clears the saved admin session, and returns to the reading screen (issue #748)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/かるたを始める/));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+    expect(JSON.parse(localStorage.getItem('quizRoomAdminSession'))).toEqual({ roomId: 'ABC123', adminToken: 'token-1' });
+
+    const adminConnection = MockWebSocket.instances.find((instance) => instance.url.includes('adminToken=token-1'));
+    act(() => {
+      adminConnection.readyState = MockWebSocket.OPEN;
+      adminConnection.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+    const closeButton = await screen.findByText('ルームを閉じる');
+    fireEvent.click(closeButton);
+    expect(confirmSpy).toHaveBeenCalled();
+
+    expect(adminConnection.sent).toContainEqual(JSON.stringify({ action: 'closeRoom' }));
+
+    // サーバーからのroomClosedブロードキャストを模す
+    act(() => {
+      adminConnection.onmessage?.({ data: JSON.stringify({ type: 'roomClosed' }) });
+    });
+
+    // 読み上げ画面へ戻り、保存済みセッションが破棄されるため、新規作成ボタンが再び表示される
+    await screen.findByText('クイズ大会のルームを作成する');
+    expect(screen.queryByText('クイズ大会のルームを再開する')).not.toBeInTheDocument();
+    expect(localStorage.getItem('quizRoomAdminSession')).toBeNull();
+
+    confirmSpy.mockRestore();
+  }, 40000);
+
+  it('does not close the room when the confirmation dialog is dismissed', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('エンジニア向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    fireEvent.click(screen.getByText(/かるたを始める/));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+    fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
+
+    const closeButton = await screen.findByText('ルームを閉じる');
+    fireEvent.click(closeButton);
+    expect(confirmSpy).toHaveBeenCalled();
+
+    const adminConnection = MockWebSocket.instances.find((instance) => instance.url.includes('adminToken=token-1'));
+    expect(adminConnection.sent).not.toContainEqual(JSON.stringify({ action: 'closeRoom' }));
+    expect(JSON.parse(localStorage.getItem('quizRoomAdminSession'))).toEqual({ roomId: 'ABC123', adminToken: 'token-1' });
+
+    confirmSpy.mockRestore();
   }, 40000);
 });

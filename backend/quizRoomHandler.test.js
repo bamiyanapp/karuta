@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
+import { ApiGatewayManagementApiClient, PostToConnectionCommand, DeleteConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import crypto from 'crypto';
 import {
   createQuizRoom,
@@ -15,6 +15,7 @@ import {
   buzzQuizRoom,
   judgeQuizRoomBuzz,
   resetQuizRoomPoints,
+  closeQuizRoom,
 } from './quizRoomHandler';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -1107,6 +1108,82 @@ describe('resetQuizRoomPoints', () => {
   it('handles unexpected errors', async () => {
     ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
     const response = await resetQuizRoomPoints(wsEvent({}));
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('closeQuizRoom', () => {
+  it('rejects when the caller is not an admin', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { connectionId: 'conn-1', roomId: 'ROOM01', role: 'participant' } });
+    const response = await closeQuizRoom(wsEvent({}));
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('rejects when the connection record is missing', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    const response = await closeQuizRoom(wsEvent({}));
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('deletes the room record, broadcasts roomClosed, and force-disconnects every connection (issue #748)', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+    });
+    ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-p', roomId: 'ROOM01', role: 'participant' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+    managementApiMock.on(DeleteConnectionCommand).resolves({});
+
+    const response = await closeQuizRoom(wsEvent({ connectionId: 'conn-admin' }));
+
+    expect(response.statusCode).toBe(200);
+    // ルームレコード自体を削除するため、以後の$connect試行は404で拒否される
+    const deleteRoomCall = ddbMock.commandCalls(DeleteCommand)[0].args[0].input;
+    expect(deleteRoomCall.TableName).toBe('TestQuizRooms');
+    expect(deleteRoomCall.Key).toEqual({ roomId: 'ROOM01' });
+
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(2);
+    const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
+    expect(payload).toEqual({ type: 'roomClosed' });
+
+    // 参加者・管理者自身の接続の両方を強制切断する（$disconnectで接続レコードの
+    // 掃除・予約名の解放が自然に走るため、このハンドラ側では個別に掃除しない）
+    const deleteConnectionCalls = managementApiMock.commandCalls(DeleteConnectionCommand);
+    expect(deleteConnectionCalls).toHaveLength(2);
+    expect(deleteConnectionCalls.map((c) => c.args[0].input.ConnectionId).sort()).toEqual(['conn-admin', 'conn-p']);
+  });
+
+  it('does not let one failed force-disconnect stop the others from being closed', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+    });
+    ddbMock.on(DeleteCommand).resolves({});
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
+        { connectionId: 'conn-p', roomId: 'ROOM01', role: 'participant' },
+      ],
+    });
+    managementApiMock.on(PostToConnectionCommand).resolves({});
+    managementApiMock.on(DeleteConnectionCommand)
+      .rejectsOnce(new Error('already gone'))
+      .resolves({});
+
+    const response = await closeQuizRoom(wsEvent({ connectionId: 'conn-admin' }));
+
+    expect(response.statusCode).toBe(200);
+    expect(managementApiMock.commandCalls(DeleteConnectionCommand)).toHaveLength(2);
+  });
+
+  it('handles unexpected errors', async () => {
+    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    const response = await closeQuizRoom(wsEvent({}));
     expect(response.statusCode).toBe(500);
   });
 });

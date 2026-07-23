@@ -66,12 +66,12 @@ test('admin creates a quiz room and a participant sees the same card update in r
 });
 
 // issue #640: 管理者がリロードした（このテストの再現方法）その場での挙動を固定化する
-// 回帰テスト。adminTokenはissue #697でlocalStorageへ永続化されたが、それはあくまで
-// 「参加者画面から『管理者に切り替える』ボタンで再接続する」という別導線での復帰を
-// 可能にするものであり、リロードされた本人のタブが自動的に管理者画面へ戻るわけではない。
-// そのため、このテストが記録する「リロードした直後のタブでは元のルーム作成前の状態に戻る」
-// という挙動自体は現在も変わらない。「治る」ことを検証するテストではなく、現状の既知の制約
-// （参加者側にも通知が一切届かない）をそのまま記録することが目的
+// 回帰テスト。adminTokenはissue #697でlocalStorageへ永続化されており、当初は
+// 「参加者画面から『管理者に切り替える』ボタンで再接続する」という別導線でのみ
+// 復帰できたが、issue #744・#748でリロードされた本人のタブ（読み上げ画面）からも
+// 「再開する」ボタンで直接復帰できるようになった。それでも quizRoom（React state）
+// 自体は失われるため、リロード直後は一瞬ルーム作成前の画面に戻る点、および参加者側には
+// 管理者の一時切断について一切通知が届かない点（現状の既知の制約）は変わらない
 test('when the admin reloads mid-game, the quiz room association is lost and the participant gets no notification (issue #640)', async ({ browser }, testInfo) => {
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
@@ -112,11 +112,15 @@ test('when the admin reloads mid-game, the quiz room association is lost and the
 
     // division・カテゴリ選択はURLクエリパラメータ経由で復元される（useUrlQuerySync）ため
     // ゲーム画面自体には戻るが、quizRoom（roomId・adminToken）はReact stateにしか
-    // 保持されておらず永続化されていないため失われ、「ルームを作成する」ボタンが
-    // 再度表示される（＝管理者は同じルームへの管理者としての復帰手段を持たない）
+    // 保持されておらず永続化されていないため失われる。ただし管理者トークン自体は
+    // createQuizRoom時にlocalStorageへ保存されている（issue #697）ため、読み上げ画面に
+    // 「クイズ大会のルームを作成する」ではなく「クイズ大会のルームを再開する」ボタンが
+    // 表示される（issue #744・#748: 読み上げ画面から保存済みセッションで再開できるように
+    // なった）。「作成する」を誤って押して別の新しいルームを作ってしまう心配はない
     await expect(nextButton).toBeVisible({ timeout: 15000 });
-    await expect(adminPage.getByText('クイズ大会のルームを作成する')).toBeVisible();
-    await captureScreenshot(adminPage, testInfo, 'admin-lost-room-after-reload', '管理者：リロード後にルーム作成前の状態へ戻り、同じルームへの復帰手段が無い状態');
+    await expect(adminPage.getByText('クイズ大会のルームを再開する')).toBeVisible();
+    await expect(adminPage.getByText('クイズ大会のルームを作成する')).not.toBeVisible();
+    await captureScreenshot(adminPage, testInfo, 'admin-lost-room-after-reload', '管理者：リロード後、ルーム作成前の画面に戻るが「再開する」ボタンから同じルームへ復帰できる状態');
 
     // 参加者側は管理者の切断について一切通知を受け取らず、リロード直前の画面のまま
     // 変化しない（現状の既知の制約）

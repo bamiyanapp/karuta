@@ -8,7 +8,7 @@ import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 // useQuizRoomSync（WebSocket接続）はApp.jsx側のトップレベルで呼ばれており、
 // view遷移によってApp自体がアンマウントされることはないため、この画面への
 // 遷移中も読み上げ・早押し等のクイズ大会の進行状態は維持される
-function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, quizRoomAnswerCounts = {}, resetQuizRoomPoints }) {
+function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, quizRoomAnswerCounts = {}, resetQuizRoomPoints, closeQuizRoom }) {
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -33,6 +33,14 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
   const handleResetPoints = () => {
     if (window.confirm("参加者全員のポイントをリセットします。よろしいですか？")) {
       resetQuizRoomPoints?.();
+    }
+  };
+
+  // ルームを閉じる（issue #748）: 参加者全員が切断され、以後このルームIDでは
+  // 再接続できなくなる取り消せない操作のため、ポイントリセットと同様に確認ダイアログを挟む
+  const handleCloseRoom = () => {
+    if (window.confirm("このルームを閉じます。参加者全員が切断され、元に戻せません。よろしいですか？")) {
+      closeQuizRoom?.();
     }
   };
 
@@ -105,6 +113,11 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
         </div>
       )}
       <div className="mt-5">
+        <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
+          ルームを閉じる
+        </button>
+      </div>
+      <div className="mt-3">
         <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
       </div>
     </div>

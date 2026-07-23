@@ -76,6 +76,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // チェックで存在を確認する。確認自体が失敗した場合（バックエンド障害等）は
   // 参加をブロックせず、従来どおり接続を試みさせる（安全側にフォールバックする）
   const [roomInvalid, setRoomInvalid] = useState(false);
+  // ルームを閉じる（issue #748）: 管理者がルームを閉じると、サーバーから
+  // {type: "roomClosed"}が届いたのち強制切断される。理由不明のまま「接続できません
+  // でした」表示に落ちるのを避け、終了したことを明示的に案内する
+  const [roomClosedNotice, setRoomClosedNotice] = useState(false);
 
   const [roomState, setRoomState] = useState(null);
   // これまでに読み上げた札の履歴（issue #548）: サーバー側では履歴を保持・配信していない
@@ -208,8 +212,8 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   const { connectionStatus, setParticipantName, buzz, reconnect } = useQuizRoomSync({
     wsBaseUrl,
     // issue #616: 存在しないルームだと判明した場合はroomIdをnullに落とし、
-    // WebSocketの無駄な接続リトライを打ち切る
-    roomId: roomInvalid ? null : joinRoomId,
+    // WebSocketの無駄な接続リトライを打ち切る（issue #748: ルームが閉じられた場合も同様）
+    roomId: (roomInvalid || roomClosedNotice) ? null : joinRoomId,
     onState: setRoomState,
     onBuzz: (buzzedByParam) => {
       // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
@@ -226,6 +230,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     onNameError: handleNameError,
     onRoundReset: handleRoundReset,
     onParticipants: setParticipants,
+    onRoomClosed: () => setRoomClosedNotice(true),
   });
 
   // 早押し結果表示のリセット判定（issue #510）。ラウンドを表す値（buzzRoundKey）を
@@ -399,6 +404,20 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     return (
       <div className="container py-5 mx-auto text-center">
         <p className="text-muted mb-4">クイズ大会モードは現在準備中です。しばらくお待ちください。</p>
+        <button onClick={goBack} className="btn btn-outline-dark rounded-pill">← 戻る</button>
+      </div>
+    );
+  }
+
+  // ルームを閉じる（issue #748）: 管理者がルームを閉じた場合、理由不明のまま
+  // 「接続できませんでした」表示に落ちるのを避け、終了したことを明示的に案内する
+  if (joinRoomId && roomClosedNotice) {
+    return (
+      <div className="container py-5 mx-auto text-center">
+        <header className="mb-4">
+          <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
+        </header>
+        <p className="text-danger mb-4">このルームはホストによって終了されました。</p>
         <button onClick={goBack} className="btn btn-outline-dark rounded-pill">← 戻る</button>
       </div>
     );

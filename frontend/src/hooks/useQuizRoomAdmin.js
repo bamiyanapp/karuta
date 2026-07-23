@@ -135,6 +135,7 @@ export function useQuizRoomAdmin({
     broadcastState: broadcastQuizRoomState,
     judgeBuzz,
     resetPoints: resetQuizRoomPoints,
+    closeRoom: closeQuizRoomConnection,
     reconnect: reconnectQuizRoom,
   } = useQuizRoomSync({
     wsBaseUrl: WS_BASE_URL,
@@ -163,6 +164,15 @@ export function useQuizRoomAdmin({
       if (answerCounts) {
         setQuizRoomAnswerCounts(answerCounts);
       }
+    },
+    // ルームを閉じる（issue #748）: 自分自身の操作（closeQuizRoom）・別タブでの操作の
+    // いずれで閉じられた場合も同じ経路で受け取り、保存済みセッション・管理者状態を
+    // クリアして読み上げ画面へ戻す
+    onRoomClosed: () => {
+      clearStoredAdminSession();
+      setAdminSessionRoomId(null);
+      setQuizRoom(null);
+      setView("game");
     },
   });
 
@@ -333,6 +343,14 @@ export function useQuizRoomAdmin({
     return true;
   };
 
+  // ルームを閉じる（issue #748）: ルーム詳細画面（QuizRoomInfoView.jsx）の
+  // 「ルームを閉じる」ボタンから呼ばれる。実際の状態クリア（保存済みセッションの
+  // 破棄・quizRoomのリセット・画面遷移）はサーバーからのroomClosedブロードキャストを
+  // 受けて上記onRoomClosedで行う
+  const closeQuizRoom = () => {
+    closeQuizRoomConnection();
+  };
+
   return {
     quizRoom,
     creatingQuizRoom,
@@ -352,5 +370,6 @@ export function useQuizRoomAdmin({
     adminSessionRestoreError,
     isRestoringAdminSession,
     switchToAdminMode,
+    closeQuizRoom,
   };
 }

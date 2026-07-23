@@ -77,10 +77,12 @@ provider:
           # api-id/stageをワイルドカードにしているのはAWS公式ドキュメントで案内されている定型パターン。
           # Serverless Frameworkが自動生成するWebSocket APIの論理ID（未確定・デプロイ時に決まる）を
           # !Subで直接参照する方式は、名前を誤ると循環参照等でデプロイ自体が壊れるリスクがあるため
-          # 採用しない（このAWSアカウントは本サービス専用でほかにWebSocket APIを持たない前提）
+          # 採用しない（このAWSアカウントは本サービス専用でほかにWebSocket APIを持たない前提）。
+          # メソッド部分はPOST（PostToConnectionCommand）に加え、ルーム終了時の強制切断
+          # （DeleteConnectionCommand、issue #748）が使うDELETEも許可するようワイルドカードにする
           Action:
             - execute-api:ManageConnections
-          Resource: "arn:aws:execute-api:${aws:region}:${aws:accountId}:*/*/POST/@connections/*"
+          Resource: "arn:aws:execute-api:${aws:region}:${aws:accountId}:*/*/*/@connections/*"
 
 custom:
   esbuild: # @sparticuz/chromium・puppeteer-coreはefudaPdfHandler.js内で動的import()するESM専用
@@ -253,6 +255,11 @@ functions:
     events:
       - websocket:
           route: resetPoints
+  closeQuizRoom: # 追加（issue #748）。管理者のみルームを明示的に終了でき、ルーム内全接続へ終了を通知して強制切断する
+    handler: quizRoomHandler.closeQuizRoom
+    events:
+      - websocket:
+          route: closeRoom
 
 resources:
   Resources:

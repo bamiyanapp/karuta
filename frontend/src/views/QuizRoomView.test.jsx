@@ -9,19 +9,21 @@ const onPointsCallbacks = [];
 const onNameErrorCallbacks = [];
 const onRoundResetCallbacks = [];
 const onParticipantsCallbacks = [];
+const onRoomClosedCallbacks = [];
 let mockConnectionStatus = 'connected';
 const setParticipantNameMock = vi.fn();
 const buzzMock = vi.fn();
 const reconnectMock = vi.fn();
 
 vi.mock('../hooks/useQuizRoomSync', () => ({
-  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants }) => {
+  useQuizRoomSync: ({ onState, onBuzz, onPoints, onNameError, onRoundReset, onParticipants, onRoomClosed }) => {
     onStateCallbacks.push(onState);
     onBuzzCallbacks.push(onBuzz);
     onPointsCallbacks.push(onPoints);
     onNameErrorCallbacks.push(onNameError);
     onRoundResetCallbacks.push(onRoundReset);
     onParticipantsCallbacks.push(onParticipants);
+    onRoomClosedCallbacks.push(onRoomClosed);
     return {
       connectionStatus: mockConnectionStatus,
       broadcastState: vi.fn(),
@@ -76,6 +78,12 @@ function emitParticipants(names) {
   });
 }
 
+function emitRoomClosed() {
+  act(() => {
+    onRoomClosedCallbacks[onRoomClosedCallbacks.length - 1]?.();
+  });
+}
+
 // 早押し機能（issue #510）: 参加者画面は名前入力を先に確定させないと通常画面へ進まないため、
 // 名前を関係しないテストではこのヘルパーで確定させておく
 function confirmName(name = 'たろう') {
@@ -110,6 +118,7 @@ beforeEach(() => {
   onNameErrorCallbacks.length = 0;
   onRoundResetCallbacks.length = 0;
   onParticipantsCallbacks.length = 0;
+  onRoomClosedCallbacks.length = 0;
   mockConnectionStatus = 'connected';
   setParticipantNameMock.mockClear();
   buzzMock.mockClear();
@@ -174,6 +183,24 @@ describe('QuizRoomView', () => {
     emitState({ type: 'result', content: { time: 1.234, answer: '答え1' } });
     expect(screen.getByText('1.23')).toBeInTheDocument();
     expect(screen.getByText('答え1')).toBeInTheDocument();
+  });
+
+  it('shows a "closed by the host" message and stops trying to reconnect when the admin closes the room (issue #748)', () => {
+    const setView = vi.fn();
+    window.history.pushState({}, '', '?view=quiz-room&roomId=ABC123');
+
+    render(<QuizRoomView setView={setView} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    expect(screen.getByText('クイズ大会モード（参加者）')).toBeInTheDocument();
+
+    emitRoomClosed();
+
+    expect(screen.getByText('このルームはホストによって終了されました。')).toBeInTheDocument();
+    expect(screen.queryByText('ホストの操作を待っています...')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('← 戻る'));
+    expect(setView).toHaveBeenCalledWith('game');
   });
 
   it('shows an error and does not proceed to the name entry screen when the room does not exist (issue #616)', async () => {
