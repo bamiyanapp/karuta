@@ -685,6 +685,103 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(await screen.findByText('🎉 はなこさん正解')).toBeInTheDocument();
   }, 40000);
 
+  it('reflects both attempts (回答数) and correct (正答数) counts in the room-info participant table after an incorrect judgment followed by a different participant\'s correct judgment (issue #698)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    const roomInfoLink = await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+      ws.onmessage?.({ data: JSON.stringify({ type: 'participants', names: ['たろう', 'はなこ'] }) });
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    // たろうが早押しし、管理者が不正解と判定する。実際のバックエンド
+    // （backend/quizRoomHandler.jsのjudgeQuizRoomBuzz）は判定結果をルーム内の
+    // 全接続（管理者自身を含む）へブロードキャストするため、ここでは
+    // そのブロードキャストをモックWebSocket経由で模擬する
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'たろう', connectionId: 'conn-1' }) });
+    });
+    fireEvent.click(screen.getByText('不正解'));
+    act(() => {
+      ws.onmessage?.({
+        data: JSON.stringify({
+          type: 'roundReset', excludedName: 'たろう',
+          answerCounts: { たろう: { attempts: 1, correct: 0 } },
+        }),
+      });
+    });
+
+    // はなこが早押しし、管理者が正解と判定する
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+    fireEvent.click(screen.getByText('正解'));
+    act(() => {
+      ws.onmessage?.({
+        data: JSON.stringify({
+          type: 'points', points: { はなこ: 1 },
+          answerCounts: { たろう: { attempts: 1, correct: 0 }, はなこ: { attempts: 1, correct: 1 } },
+        }),
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('所要時間')).toBeInTheDocument();
+    }, { timeout: 20000 });
+
+    fireEvent.click(roomInfoLink);
+
+    // はなこ: 1回答1正答、たろう: 1回答0正答（ポイント降順、同点は名前昇順）
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
+      expect(rows).toEqual(['はなこ接続中11', 'たろう接続中10']);
+    }, { timeout: 15000 });
+  }, 40000);
+
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
     class MockWebSocket {
       constructor(url) {
