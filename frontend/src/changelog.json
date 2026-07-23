@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.49.2",
+    "version": "1.49.3",
     "date": "2026/07/23",
+    "body": "### Bug Fixes\n\n* **frontend:** 最後の1枚読み上げ中は「次の札」を無効化する（issue [#721](https://github.com/bamiyanapp/karuta/issues/721)） ([#727](https://github.com/bamiyanapp/karuta/issues/727)) ([57279f0](https://github.com/bamiyanapp/karuta/commit/57279f02c0ba455d5742f0c751f2b03b52d09ebf)), closes [#590](https://github.com/bamiyanapp/karuta/issues/590) [#590](https://github.com/bamiyanapp/karuta/issues/590)"
+  },
+  {
+    "version": "1.49.2",
+    "date": "2026/07/23 09:03",
     "body": "### Bug Fixes\n\n* **frontend:** 全カテゴリ選択時のかるたデータ取得失敗を部分的に許容する（issue [#474](https://github.com/bamiyanapp/karuta/issues/474)） ([#723](https://github.com/bamiyanapp/karuta/issues/723)) ([a4cde54](https://github.com/bamiyanapp/karuta/commit/a4cde54e5dc0292fdcff90e4019dd7d63463ec70))"
   },
   {
