@@ -78,6 +78,9 @@ function App() {
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [filterCategory, setFilterCategory] = useState(''); // 全札一覧フィルタ
+  // 全札一覧の種別ボタンが多すぎて探しづらい問題（issue #730）に対応するため、
+  // まず「こども向け/エンジニア向け」で絞り込んでから種別ボタンを表示する
+  const [filterDivision, setFilterDivision] = useState('');
   const [searchQuery, setSearchQuery] = useState(''); // 全札一覧テキスト検索
   const [currentPhrase, setCurrentPhrase] = useState(null);
   
@@ -303,6 +306,21 @@ function App() {
   const uniqueCategories = useMemo(() => {
     return [...new Set(allPhrases.map(p => p.category))].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [allPhrases]);
+
+  // allPhrases（get-phrases-list由来）自体にはgroupフィールドが無いため、
+  // getCategories由来のcategories（division選択でも使っているgroup情報を持つ）と
+  // カテゴリ名で突き合わせる。group不明時は既定値である"kids"扱いにする
+  // （backend/handler.jsのgetCategoriesの既定値と合わせる）
+  const categoryGroupMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach(cat => map.set(cat.name, cat.group));
+    return map;
+  }, [categories]);
+
+  const visibleCategories = useMemo(() => {
+    if (!filterDivision) return uniqueCategories;
+    return uniqueCategories.filter(name => (categoryGroupMap.get(name) || "kids") === filterDivision);
+  }, [uniqueCategories, filterDivision, categoryGroupMap]);
 
   const categoryCount = useMemo(() => {
     const counts = {};
@@ -1170,9 +1188,11 @@ function App() {
         allPhrases={allPhrases}
         filterCategory={filterCategory}
         setFilterCategory={setFilterCategory}
+        filterDivision={filterDivision}
+        setFilterDivision={setFilterDivision}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        uniqueCategories={uniqueCategories}
+        uniqueCategories={visibleCategories}
         categoryCount={categoryCount}
         filteredPhrases={filteredPhrases}
         renderSortArrow={renderSortArrow}

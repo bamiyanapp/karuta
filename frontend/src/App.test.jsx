@@ -2014,12 +2014,82 @@ describe('App', () => {
       expect(screen.queryByText('読み札Cat2')).not.toBeInTheDocument();
     });
 
-    // 「すべて」ボタンで全件に戻る
-    fireEvent.click(screen.getByRole('button', { name: /^すべて/ }));
+    // 「すべて」ボタンで全件に戻る（種別絞り込み側。division絞り込み側の「すべて」
+    // ボタンと区別するため、件数の括弧付きで一致させる）
+    fireEvent.click(screen.getByRole('button', { name: /^すべて \(/ }));
 
     await waitFor(() => {
       expect(screen.getByText('読み札Cat1')).toBeInTheDocument();
       expect(screen.getByText('読み札Cat2')).toBeInTheDocument();
+    });
+  });
+
+  it('narrows the category buttons in all-phrases view by division (kids/engineer), issue #730', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        categories: [
+          { name: 'KidsCat', group: 'kids' },
+          { name: 'EngineerCat', group: 'engineer' },
+        ],
+      }),
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [
+              { name: 'KidsCat', group: 'kids' },
+              { name: 'EngineerCat', group: 'engineer' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'KidsCat', phrase: '読み札Kids', level: '-', answer: '-' },
+              { id: 'p2', category: 'EngineerCat', phrase: '読み札Engineer', level: '-', answer: '-' },
+            ],
+          }),
+        };
+      }
+      return { ok: false };
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/i));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^KidsCat/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^EngineerCat/ })).toBeInTheDocument();
+    });
+
+    // 「こども向け」に絞り込むと、エンジニア向けの種別ボタンは表示されなくなる
+    fireEvent.click(screen.getByRole('button', { name: 'こども向け' }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^KidsCat/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^EngineerCat/ })).not.toBeInTheDocument();
+    });
+
+    // 「エンジニア向け」に切り替えると、今度はこども向けの種別ボタンが消える
+    fireEvent.click(screen.getByRole('button', { name: 'エンジニア向け' }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^EngineerCat/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^KidsCat/ })).not.toBeInTheDocument();
+    });
+
+    // 「すべて」（division側）に戻すと両方の種別ボタンが再び表示される
+    fireEvent.click(screen.getByRole('button', { name: 'すべて' }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^KidsCat/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^EngineerCat/ })).toBeInTheDocument();
     });
   });
 
