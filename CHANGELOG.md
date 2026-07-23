@@ -1,3 +1,10 @@
+## [1.49.1](https://github.com/bamiyanapp/karuta/compare/v1.49.0...v1.49.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **e2e:** CIでE2E失敗の詳細をジョブログへ出力する（issue [#711](https://github.com/bamiyanapp/karuta/issues/711)） ([#713](https://github.com/bamiyanapp/karuta/issues/713)) ([861a3c8](https://github.com/bamiyanapp/karuta/commit/861a3c8ee0b8688509dd4385a277baee496da701))
+
 # [1.49.0](https://github.com/bamiyanapp/karuta/compare/v1.48.5...v1.49.0) (2026-07-19)
 
 
