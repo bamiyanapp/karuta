@@ -181,6 +181,17 @@ function App() {
     return categoryKey ? (scoresByCategory[categoryKey] || {}) : {};
   }, [categoryKey, scoresByCategory]);
 
+  // 途中の札はaudioQueueが直前の再生完了まで次の音声を溜めておくため、読み上げ中に
+  // 「次の札」を押しても現在の再生を止めずに済む。しかし最後の1枚だけは次に読む札が
+  // 無いため、押した瞬間にplayKarutaInternalが即座に全札読了（おめでとう画面）へ
+  // 進んでしまい、最後の音声が最後まで再生されないまま打ち切られる（issue #721）。
+  // この最後の1枚を読み上げている間だけ「次の札」を無効化する
+  const isReadingLastPhrase = useMemo(() => {
+    if (!isReading) return false;
+    const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
+    return allPhrasesForCategory.every(p => readKeys.has(`${p.category}:${p.id}`));
+  }, [isReading, currentHistory, allPhrasesForCategory]);
+
   // 読了時のスコア集計（参加者が1人以上登録されている場合のみ表示する）
   const scoreSummary = useMemo(() => {
     if (!isAllRead || division === "kids" || players.length === 0) return null;
@@ -1566,7 +1577,7 @@ function App() {
             )}
 
             <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-              <button onClick={playKaruta} disabled={loading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
+              <button onClick={playKaruta} disabled={loading || isReadingLastPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
                 {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
                 {loading ? "読み込み中..." : "次の札"}
               </button>

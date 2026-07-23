@@ -2236,6 +2236,87 @@ describe('App', () => {
     }
   }, 65000);
 
+  it('keeps 次の札 disabled while the last remaining phrase is still being read, instead of racing ahead to the congratulations screen (issue #721)', async () => {
+    const originalAudio = window.Audio;
+    // イントロ音（wadodon.mp3）は従来どおり即座に終わらせるが、本編の音声は
+    // テストが明示的にonendedを呼ぶまで意図的に終了させない。これにより
+    // isReadingがtrueであり続ける状態（＝まだ読み上げ中）を作り出す
+    window.Audio = vi.fn().mockImplementation(function (url) {
+      const isIntro = url === 'wadodon.mp3';
+      const audio = {
+        play: vi.fn().mockResolvedValue(),
+        pause: vi.fn(),
+        load: vi.fn(),
+        _src: undefined,
+        get src() { return this._src; },
+        set src(newUrl) {
+          this._src = newUrl;
+          if (isIntro) {
+            setTimeout(() => {
+              if (this.oncanplaythrough) this.oncanplaythrough();
+              if (this.onended) setTimeout(this.onended, 0);
+            }, 0);
+          }
+        },
+      };
+      if (url) audio.src = url;
+      return audio;
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      if (url.includes('get-congratulation-audio')) return { ok: true, json: async () => ({ audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+      await waitFor(() => screen.getByText('次の札'));
+      fireEvent.click(screen.getByText('次の札'));
+
+      // フリップ演出は音声再生とは独立したタイマーで進むため、本編音声が
+      // 再生中でも読み札自体は表示される
+      await waitFor(() => {
+        expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+      }, { timeout: 20000 });
+
+      // このカテゴリの唯一（＝最後）の札がまだ読み上げ中の間は、「次の札」ボタンが
+      // 無効化されており、押しても全札読了（おめでとう画面）や結果表示には進まない
+      expect(screen.getByText('次の札').closest('button')).toBeDisabled();
+      fireEvent.click(screen.getByText('次の札'));
+      expect(screen.queryByText('🎉 おめでとう！ 🎉')).not.toBeInTheDocument();
+      expect(screen.queryByText('所要時間')).not.toBeInTheDocument();
+
+      // 本編音声の再生が実際に完了すると、ボタンが再度押せるようになる
+      const phraseAudio = window.Audio.mock.results.map((r) => r.value).find((a) => a.src === 'dummy');
+      act(() => {
+        phraseAudio.onended?.();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('次の札').closest('button')).not.toBeDisabled();
+      }, { timeout: 10000 });
+
+      // 読み上げ完了後に改めて「次の札」を押すと、最後の1枚だったため
+      // 正しく全札読了（おめでとう画面）まで進む
+      fireEvent.click(screen.getByText('次の札'));
+      await waitFor(() => {
+        expect(screen.getByText('🎉 おめでとう！ 🎉')).toBeInTheDocument();
+      }, { timeout: 20000 });
+    } finally {
+      window.Audio = originalAudio;
+    }
+  }, 40000);
+
   it('reads many phrases back-to-back without ever stalling, all the way through to the session summary (issue #262 regression coverage)', async () => {
     // 未読み札から常に先頭（p1→p2→...の順）を選ばせ、カードの出現順を固定する
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
