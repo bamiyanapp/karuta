@@ -4,7 +4,7 @@
 // 描画されず、参加者が早押ししても管理者が気づけない不具合があった（issue #613）。
 // ゲーム画面・ルーム情報画面の両方から共通で呼び出せるよう、独立したコンポーネントへ
 // 切り出した
-function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, onJudge }) {
+function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, explanation, onJudge }) {
   if (!buzzedBy) {
     return null;
   }
@@ -20,6 +20,9 @@ function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, onJudge }) {
                 <div className="text-muted mb-2">答え</div>
                 <div className="h4 fw-bold text-dark mb-4">{answer}</div>
               </>
+            )}
+            {explanation && explanation !== "-" && (
+              <div className="fs-6 text-dark mb-4">{explanation}</div>
             )}
             <div className="d-flex gap-2 justify-content-center">
               <button onClick={() => onJudge(true)} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">正解</button>

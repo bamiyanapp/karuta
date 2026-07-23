@@ -47,6 +47,9 @@ function DetailView({
                 <div className="h4 fw-bold text-dark">{detailPhrase.answer}</div>
               </div>
             )}
+            {detailPhrase.explanation && detailPhrase.explanation !== "-" && (
+              <div className="mb-4 fs-6 text-dark">{detailPhrase.explanation}</div>
+            )}
             <div className="mb-5">
               <button
                 onClick={repeatPhrase}

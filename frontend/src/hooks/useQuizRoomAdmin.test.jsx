@@ -38,6 +38,26 @@ window.Audio = vi.fn().mockImplementation(function (url) {
 
 window.scrollTo = vi.fn();
 
+// 注意（issue #712）: 各テスト内のMockWebSocketはsend()した内容を記録するのみで、
+// サーバー応答（judgeQuizRoomBuzzによる`points`/`roundReset`ブロードキャスト等）は
+// 自動生成されない。判定操作（正解/不正解ボタン押下）後の状態反映を検証する場合は、
+// judgeAndEcho()を使うか、対応するws.onmessage呼び出しを明示的に追加すること。
+// 模擬を書き忘れると「値が反映されない」という誤ったテスト失敗を引き当てる
+// （issue #698対応時の実例）。楽観的UI更新（issue #600）の一部の見た目は
+// この模擬が無くても正しく動作して見えるため、模擬漏れに気づきにくい点に注意する。
+function judgeAndEcho(ws, { correct, name, points, answerCounts }) {
+  fireEvent.click(screen.getByText(correct ? '正解' : '不正解'));
+  act(() => {
+    ws.onmessage?.({
+      data: JSON.stringify(
+        correct
+          ? { type: 'points', points, ...(answerCounts ? { answerCounts } : {}) }
+          : { type: 'roundReset', excludedName: name, ...(answerCounts ? { answerCounts } : {}) }
+      ),
+    });
+  });
+}
+
 describe('useQuizRoomAdmin (via App)', () => {
   beforeEach(() => {
     fetch.mockClear();
@@ -508,7 +528,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       if (url.includes('/get-phrase?')) {
-        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', explanation: '解説1', audioData: 'dummy' }) };
       }
       return { ok: false };
     });
@@ -542,6 +562,8 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     expect(screen.getByText('🔔 はなこ さんが回答中')).toBeInTheDocument();
     expect(screen.getByText('答え1')).toBeInTheDocument();
+    // issue #693: 判定モーダルにも解説を表示する
+    expect(screen.getByText('解説1')).toBeInTheDocument();
   }, 40000);
 
   it('reveals the result screen (and stops the elapsed-time measurement) as soon as a buzz is judged correct, instead of waiting for the admin to click 次の札, and broadcasts the winner\'s name (issue #600)', async () => {
@@ -740,33 +762,25 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     // たろうが早押しし、管理者が不正解と判定する。実際のバックエンド
     // （backend/quizRoomHandler.jsのjudgeQuizRoomBuzz）は判定結果をルーム内の
-    // 全接続（管理者自身を含む）へブロードキャストするため、ここでは
-    // そのブロードキャストをモックWebSocket経由で模擬する
+    // 全接続（管理者自身を含む）へブロードキャストするため、judgeAndEcho()で
+    // 判定ボタン押下とそのブロードキャストの模擬をワンセットで行う（issue #712）
     act(() => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'たろう', connectionId: 'conn-1' }) });
     });
-    fireEvent.click(screen.getByText('不正解'));
-    act(() => {
-      ws.onmessage?.({
-        data: JSON.stringify({
-          type: 'roundReset', excludedName: 'たろう',
-          answerCounts: { たろう: { attempts: 1, correct: 0 } },
-        }),
-      });
+    judgeAndEcho(ws, {
+      correct: false,
+      name: 'たろう',
+      answerCounts: { たろう: { attempts: 1, correct: 0 } },
     });
 
     // はなこが早押しし、管理者が正解と判定する
     act(() => {
       ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
     });
-    fireEvent.click(screen.getByText('正解'));
-    act(() => {
-      ws.onmessage?.({
-        data: JSON.stringify({
-          type: 'points', points: { はなこ: 1 },
-          answerCounts: { たろう: { attempts: 1, correct: 0 }, はなこ: { attempts: 1, correct: 1 } },
-        }),
-      });
+    judgeAndEcho(ws, {
+      correct: true,
+      points: { はなこ: 1 },
+      answerCounts: { たろう: { attempts: 1, correct: 0 }, はなこ: { attempts: 1, correct: 1 } },
     });
 
     await waitFor(() => {

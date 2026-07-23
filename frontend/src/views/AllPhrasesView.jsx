@@ -86,6 +86,9 @@ function AllPhrasesView({
                     <th scope="col" className="all-phrases-col-balanced" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('answer')} onClick={() => handleSort('answer')} onKeyDown={handleHeaderKeyDown('answer')}>
                       答え{renderSortArrow('answer')}
                     </th>
+                    <th scope="col" className="all-phrases-col-balanced">
+                      解説
+                    </th>
                     <th scope="col" style={{ cursor: "pointer" }} tabIndex={0} role="button" aria-sort={getAriaSort('level')} onClick={() => handleSort('level')} onKeyDown={handleHeaderKeyDown('level')}>
                       Lv{renderSortArrow('level')}
                     </th>
@@ -107,6 +110,7 @@ function AllPhrasesView({
                       <td className="ps-4 text-muted small">{p.category}</td>
                       <td className="fw-bold">{p.phrase}</td>
                       <td>{p.answer && p.answer !== "-" ? p.answer : ""}</td>
+                      <td>{p.explanation && p.explanation !== "-" ? p.explanation : ""}</td>
                       <td>{p.level !== "-" ? p.level : ""}</td>
                       <td>{p.readCount || 0}</td>
                       <td>{(p.averageTime || 0).toFixed(2)}s</td>
