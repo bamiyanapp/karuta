@@ -609,10 +609,15 @@ exports.resetQuizRoomPoints = async (event) => {
 
 // WebSocketカスタムルート"closeRoom"（issue #748）。管理者のみルームを明示的に終了できる。
 // ルームレコード自体を削除するため、以後の$connect試行は404で拒否される。ルーム内の
-// 全接続（参加者・管理者自身の他接続含む）へ終了をブロードキャストしたうえで、
-// 各接続をDeleteConnectionCommandで強制切断する。切断により$disconnectが呼ばれ、
-// 既存のdisconnectQuizRoom（接続レコード削除・予約名の解放）が自然に走るため、
-// このハンドラ側で接続レコードを個別に掃除する必要はない
+// 全接続へ終了をブロードキャストしたうえで、管理者自身以外の接続をDeleteConnectionCommand
+// で強制切断する。切断により$disconnectが呼ばれ、既存のdisconnectQuizRoom（接続レコード
+// 削除・予約名の解放）が自然に走るため、このハンドラ側で接続レコードを個別に掃除する必要はない。
+// 管理者自身の接続はここで強制切断しない（issue #576のE2E追加時に判明した不具合の修正）:
+// このLambda自身を呼び出している接続を、broadcast配信の直後に強制切断すると、配信メッセージが
+// ブラウザに届く前に接続が切断されてしまう競合が起こりうる（実際にE2Eで、管理者だけが
+// roomClosedを受け取れず画面遷移しない事象を複数回再現した）。管理者側はroomClosed受信後に
+// フロントエンドがroomIdをクリアし（useQuizRoomAdmin.js）、useQuizRoomSyncのeffectが
+// 依存値の変化で自然にWebSocketをクローズするため、ここで明示的に切断する必要はない
 exports.closeQuizRoom = async (event) => {
   try {
     const connectionId = event.requestContext.connectionId;
@@ -643,7 +648,9 @@ exports.closeQuizRoom = async (event) => {
       items.map((conn) => postToConnection(managementApi, conn.connectionId, { type: "roomClosed" }))
     );
     await Promise.allSettled(
-      items.map((conn) => managementApi.send(new DeleteConnectionCommand({ ConnectionId: conn.connectionId })).catch(() => {}))
+      items
+        .filter((conn) => conn.connectionId !== connectionId)
+        .map((conn) => managementApi.send(new DeleteConnectionCommand({ ConnectionId: conn.connectionId })).catch(() => {}))
     );
 
     return { statusCode: 200, body: "" };

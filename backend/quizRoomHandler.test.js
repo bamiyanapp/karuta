@@ -1125,7 +1125,7 @@ describe('closeQuizRoom', () => {
     expect(response.statusCode).toBe(403);
   });
 
-  it('deletes the room record, broadcasts roomClosed, and force-disconnects every connection (issue #748)', async () => {
+  it('deletes the room record, broadcasts roomClosed to everyone, and force-disconnects only the other connections (issue #748, #576)', async () => {
     ddbMock.on(GetCommand).resolves({
       Item: { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
     });
@@ -1152,11 +1152,14 @@ describe('closeQuizRoom', () => {
     const payload = JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8'));
     expect(payload).toEqual({ type: 'roomClosed' });
 
-    // 参加者・管理者自身の接続の両方を強制切断する（$disconnectで接続レコードの
-    // 掃除・予約名の解放が自然に走るため、このハンドラ側では個別に掃除しない）
+    // 参加者の接続のみ強制切断する（$disconnectで接続レコードの掃除・予約名の解放が
+    // 自然に走るため、このハンドラ側では個別に掃除しない）。管理者自身の接続は、
+    // broadcast配信直後に自分自身を強制切断すると配信メッセージが届く前に接続が
+    // 切れる競合が起こりうるため、強制切断の対象から除外する（issue #576のE2E追加で
+    // 判明した不具合の修正）。管理者側は受信後にフロントエンドが自然にクローズする
     const deleteConnectionCalls = managementApiMock.commandCalls(DeleteConnectionCommand);
-    expect(deleteConnectionCalls).toHaveLength(2);
-    expect(deleteConnectionCalls.map((c) => c.args[0].input.ConnectionId).sort()).toEqual(['conn-admin', 'conn-p']);
+    expect(deleteConnectionCalls).toHaveLength(1);
+    expect(deleteConnectionCalls.map((c) => c.args[0].input.ConnectionId)).toEqual(['conn-p']);
   });
 
   it('does not let one failed force-disconnect stop the others from being closed', async () => {
@@ -1167,7 +1170,8 @@ describe('closeQuizRoom', () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [
         { connectionId: 'conn-admin', roomId: 'ROOM01', role: 'admin' },
-        { connectionId: 'conn-p', roomId: 'ROOM01', role: 'participant' },
+        { connectionId: 'conn-p1', roomId: 'ROOM01', role: 'participant' },
+        { connectionId: 'conn-p2', roomId: 'ROOM01', role: 'participant' },
       ],
     });
     managementApiMock.on(PostToConnectionCommand).resolves({});
@@ -1178,6 +1182,7 @@ describe('closeQuizRoom', () => {
     const response = await closeQuizRoom(wsEvent({ connectionId: 'conn-admin' }));
 
     expect(response.statusCode).toBe(200);
+    // 管理者自身を除いた2件（conn-p1・conn-p2）が対象
     expect(managementApiMock.commandCalls(DeleteConnectionCommand)).toHaveLength(2);
   });
 
