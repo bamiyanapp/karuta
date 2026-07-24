@@ -67,7 +67,8 @@ describe('App', () => {
     expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
   });
 
-  it('shows a get-categories-specific error message when fetching categories fails, instead of the generic submit-failure message', async () => {
+  it('retries once before showing a get-categories-specific error message when fetching categories keeps failing (issue #758)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) throw new Error('network error');
       return { ok: false };
@@ -77,7 +78,42 @@ describe('App', () => {
       render(<App />);
     });
 
-    expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
+    // 1回目の失敗直後はまだアラートを出さず、1秒後の自動リトライを待つ
+    expect(window.alert).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
+    }, { timeout: 5000 });
+
+    const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
+    expect(categoriesCalls).toHaveLength(2);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('does not show an error when the automatic get-categories retry succeeds (issue #758)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let categoriesCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        categoriesCallCount += 1;
+        if (categoriesCallCount === 1) throw new Error('network error');
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    await screen.findByRole('button', { name: /Cat1/ });
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(categoriesCallCount).toBe(2);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('shows the matching category list after choosing a division', async () => {

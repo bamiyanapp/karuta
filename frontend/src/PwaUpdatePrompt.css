@@ -1,8 +1,11 @@
 .pwa-update-prompt {
   position: fixed;
-  bottom: 1rem;
+  /* 画面下部固定だと、入力欄フォーカスでソフトウェアキーボードが表示された際に
+     隠れて操作できなくなる（issue #759）ため、キーボードに覆われにくい
+     画面中央よりやや上の位置に固定する */
+  top: 40%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   z-index: 1000;
   display: flex;
   align-items: center;
