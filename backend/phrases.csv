@@ -432,46 +432,46 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 1138,Linuxコマンドかるた,-,W,コマンドの実行ファイルの場所を調べる,Find the location of a command's executable.,which,engineer,-
 1139,Linuxコマンドかるた,-,W,現在ログインしているユーザー名を表示する,Display the current logged-in user name.,whoami,engineer,-
 1140,Linuxコマンドかるた,-,H,コンピュータのホスト名を表示する,Display the computer's host name.,hostname,engineer,-
-1201,Git大ピンチ,10,I,「まずpushして」と言われたけどGitを始めてもいなかった,You were told to push before initializing Git.,git init,engineer,-
-1202,Git大ピンチ,11,C,URLだけ渡されて「触っといて」と言われた,You only received a repository URL.,git clone,engineer,-
-1203,Git大ピンチ,12,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer,-
-1204,Git大ピンチ,15,D,レビューで「何を変更したの？」と聞かれ固まった,Someone asked what changed.,git diff,engineer,-
-1205,Git大ピンチ,28,L,昨日から壊れてるらしい。いつ壊した？,The bug appeared yesterday. Which commit caused it?,git log,engineer,-
-1206,Git大ピンチ,16,B,mainで直接開発していたことに気付いた,You accidentally developed on main.,git switch -c,engineer,-
-1207,Git大ピンチ,20,M,レビューOK！でも取り込み方が分からない,The PR was approved. Now what?,git merge,engineer,-
-1208,Git大ピンチ,21,R,コミット履歴が「fix」「fix2」「fix3」だらけ,Your commit history is messy.,git rebase -i,engineer,-
-1209,Git大ピンチ,29,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,You must switch tasks immediately.,git stash,engineer,-
-1210,Git大ピンチ,22,P,自分だけ動く。みんなには見えない,Only your machine has the changes.,git push,engineer,-
-1211,Git大ピンチ,38,P,取り込みしないまま続けたら地獄のコンフリクト,You skipped pull before starting work.,git pull,engineer,-
-1212,Git大ピンチ,30,F,最新は見たい。でもまだ混ぜたくない,You only want the latest remote state.,git fetch,engineer,-
-1213,Git大ピンチ,39,R,昨日の作業全部なかったことにしたい,You want to discard yesterday's work.,git reset --hard,engineer,-
-1214,Git大ピンチ,44,R,本番に出したコミットだけ安全に取り消したい,Undo only one released commit.,git revert,engineer,-
-1215,Git大ピンチ,45,C,あのバグ修正だけ今のブランチにも欲しい,You only need one commit.,git cherry-pick,engineer,-
-1216,Git大ピンチ,40,B,「誰がこのバグ入れた？」会議室が静まり返る,Who introduced this bug?,git blame,engineer,-
-1217,Git大ピンチ,23,S,このコミット、本当に何を変更した？,What exactly changed in this commit?,git show,engineer,-
-1218,Git大ピンチ,31,R,リモートが増えすぎてpush先が分からない,Too many remotes. Which one am I using?,git remote -v,engineer,-
-1219,Git大ピンチ,17,C,知らない名前でコミットされていた,Your commit author is wrong.,git config --global,engineer,-
-1220,Git大ピンチ,32,T,v2.0ってどのコミット？誰も分からない,Nobody knows where version 2.0 is.,git tag,engineer,-
-1221,Git大ピンチ,24,R,間違えてファイルを削除してしまった,You deleted the wrong file.,git restore,engineer,-
-1222,Git大ピンチ,33,C,ブランチを切り替えたらファイルが消えた,Files disappeared after switching branches.,git checkout,engineer,-
-1223,Git大ピンチ,13,A,ファイルを追加したのにコミットに入っていなかった,The new file wasn't included.,git add,engineer,-
-1224,Git大ピンチ,25,C,コミットした瞬間、誤字を見つけた,You spotted a typo right after committing.,git commit --amend,engineer,-
-1225,Git大ピンチ,34,S,コンフリクトを直したつもりなのにまだ終わらない,"You resolved conflicts, but Git disagrees.",git status → git add → git commit,engineer,-
-1226,Git大ピンチ,41,S,コンフリクトを直したのに「まだ終わってない」と言われた,Git still thinks the merge isn't finished.,git status → git add → git commit,engineer,-
-1227,Git大ピンチ,50,R,間違えてmainへpushしてしまった,You accidentally pushed directly to main.,git revert,engineer,-
-1228,Git大ピンチ,35,S,ブランチを切り替えたいのに変更が邪魔して進めない,Uncommitted changes block switching branches.,git stash → git switch,engineer,-
-1229,Git大ピンチ,46,F,最新を取り込んだら大量コンフリクトになった,Pull caused a huge merge conflict.,git fetch → git merge,engineer,-
-1230,Git大ピンチ,47,L,「昨日動いてた版に戻して」と言われた,Go back to yesterday's version.,git log → git checkout <commit>,engineer,-
-1231,Git大ピンチ,14,S,どのブランチにいるのか分からなくなった,You forgot which branch you're on.,git status,engineer,-
-1232,Git大ピンチ,26,D,レビューで「差分が見えません」と言われた,The reviewer can't tell what changed.,git diff,engineer,-
-1233,Git大ピンチ,27,C,レビュー後に1文字だけ直したい,You only need to fix one typo after review.,git commit --amend,engineer,-
-1234,Git大ピンチ,42,T,リリース版がどのコミットか誰も覚えていない,Nobody knows which commit was released.,git tag,engineer,-
-1235,Git大ピンチ,36,B,「このコード誰が書いた？」全員目をそらした,Nobody admits writing the code.,git blame,engineer,-
-1236,Git大ピンチ,43,R,間違えて別ブランチで1時間作業してしまった,You worked on the wrong branch for an hour.,git stash → git switch → git stash pop,engineer,-
-1237,Git大ピンチ,48,C,「その修正だけ持ってきて」と言われた,Only bring over that one fix.,git cherry-pick,engineer,-
-1238,Git大ピンチ,49,S,マージした瞬間にビルドが壊れた,The build broke immediately after merging.,git show,engineer,-
-1239,Git大ピンチ,37,R,リモートが多すぎてpush先を間違えそう,Too many remotes to remember.,git remote -v,engineer,-
-1240,Git大ピンチ,18,G,新しいPCなのにコミットできない,Git isn't configured on the new PC.,git config --global,engineer,-
+1201,Git大ピンチ,10,I,「まずpushして」と言われたけどGitを始めてもいなかった,You were told to push before initializing Git.,git init,engineer,そもそもそのディレクトリがGitリポジトリになっていなければpushもできない。まず「git init」でGit管理を開始する必要がある。
+1202,Git大ピンチ,11,C,URLだけ渡されて「触っといて」と言われた,You only received a repository URL.,git clone,engineer,既存のリモートリポジトリのURLから、手元にまるごと複製して作業を始めるのが「git clone」。
+1203,Git大ピンチ,12,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer,変更した内容がステージング（コミット対象への登録）されていないと「nothing to commit」と表示される。「git status」で状態を確認し、「git add」でステージしてから「git commit」する必要がある。
+1204,Git大ピンチ,15,D,レビューで「何を変更したの？」と聞かれ固まった,Someone asked what changed.,git diff,engineer,変更前後の差分を具体的に示すのが「git diff」。これを確認していれば、何を変更したのかすぐに説明できる。
+1205,Git大ピンチ,28,L,昨日から壊れてるらしい。いつ壊した？,The bug appeared yesterday. Which commit caused it?,git log,engineer,これまでのコミットの履歴を時系列で確認できるのが「git log」。いつどんな変更が入ったかを遡って調べられる。
+1206,Git大ピンチ,16,B,mainで直接開発していたことに気付いた,You accidentally developed on main.,git switch -c,engineer,mainブランチで直接作業を続けるのは危険なため、気付いた時点で「git switch -c」により新しい作業用ブランチを作って切り替えるべき。
+1207,Git大ピンチ,20,M,レビューOK！でも取り込み方が分からない,The PR was approved. Now what?,git merge,engineer,レビューが通ったブランチの変更を、別のブランチ（main等）へ取り込むのが「git merge」。
+1208,Git大ピンチ,21,R,コミット履歴が「fix」「fix2」「fix3」だらけ,Your commit history is messy.,git rebase -i,engineer,細かすぎる・分かりにくいコミット履歴を、後からまとめたり整理したりできるのが「git rebase -i」（対話的リベース）。
+1209,Git大ピンチ,29,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,You must switch tasks immediately.,git stash,engineer,今の作業中の変更をコミットせずに一時的に退避させ、あとで元に戻せるようにするのが「git stash」。
+1210,Git大ピンチ,22,P,自分だけ動く。みんなには見えない,Only your machine has the changes.,git push,engineer,ローカルでコミットした変更は、「git push」でリモートリポジトリへ送らない限り他の人からは見えない。
+1211,Git大ピンチ,38,P,取り込みしないまま続けたら地獄のコンフリクト,You skipped pull before starting work.,git pull,engineer,リモートの最新の変更を「git pull」で定期的に取り込まずに作業を続けると、後でまとめて取り込む際に大量のコンフリクト（衝突）が起きやすくなる。
+1212,Git大ピンチ,30,F,最新は見たい。でもまだ混ぜたくない,You only want the latest remote state.,git fetch,engineer,リモートの最新情報だけを取得し、自分の作業には反映（マージ）しない、というのが「git fetch」。「git pull」と違い自動では取り込まない。
+1213,Git大ピンチ,39,R,昨日の作業全部なかったことにしたい,You want to discard yesterday's work.,git reset --hard,engineer,直近のコミット・変更内容を含めて、作業ディレクトリごと指定した状態へ強制的に戻すのが「git reset --hard」。
+1214,Git大ピンチ,44,R,本番に出したコミットだけ安全に取り消したい,Undo only one released commit.,git revert,engineer,履歴を書き換えずに、指定したコミットの変更内容を打ち消す新しいコミットを作るのが「git revert」。既に公開・本番反映済みの変更を安全に取り消す際に使う。
+1215,Git大ピンチ,45,C,あのバグ修正だけ今のブランチにも欲しい,You only need one commit.,git cherry-pick,engineer,別のブランチにある特定の1つのコミットだけを選んで、今のブランチに取り込むのが「git cherry-pick」。
+1216,Git大ピンチ,40,B,「誰がこのバグ入れた？」会議室が静まり返る,Who introduced this bug?,git blame,engineer,ファイルの各行が最後にどのコミット・誰によって変更されたかを表示するのが「git blame」。
+1217,Git大ピンチ,23,S,このコミット、本当に何を変更した？,What exactly changed in this commit?,git show,engineer,特定の1つのコミットの内容（変更差分やメッセージ）を詳しく確認できるのが「git show」。
+1218,Git大ピンチ,31,R,リモートが増えすぎてpush先が分からない,Too many remotes. Which one am I using?,git remote -v,engineer,登録されているリモートリポジトリの一覧とそのURLを確認できるのが「git remote -v」。
+1219,Git大ピンチ,17,C,知らない名前でコミットされていた,Your commit author is wrong.,git config --global,engineer,コミットに記録される名前やメールアドレスは「git config --global」で設定する。設定していないと意図しない名前でコミットされてしまう。
+1220,Git大ピンチ,32,T,v2.0ってどのコミット？誰も分からない,Nobody knows where version 2.0 is.,git tag,engineer,特定のコミットにバージョン名などの目印を付けて後から分かりやすくするのが「git tag」。
+1221,Git大ピンチ,24,R,間違えてファイルを削除してしまった,You deleted the wrong file.,git restore,engineer,誤って削除・変更してしまったファイルを、直前にコミットした状態へ戻すのが「git restore」。
+1222,Git大ピンチ,33,C,ブランチを切り替えたらファイルが消えた,Files disappeared after switching branches.,git checkout,engineer,ブランチを切り替える「git checkout」は作業ディレクトリの内容もそのブランチの状態に置き換えるため、コミットしていない変更やそのブランチに無いファイルは見えなくなる。
+1223,Git大ピンチ,13,A,ファイルを追加したのにコミットに入っていなかった,The new file wasn't included.,git add,engineer,新しいファイルもコミット対象にするには「git add」でステージングする必要があり、これを忘れるとコミットに含まれない。
+1224,Git大ピンチ,25,C,コミットした瞬間、誤字を見つけた,You spotted a typo right after committing.,git commit --amend,engineer,直前のコミットの内容やメッセージを修正したい場合は、新しくコミットし直すのではなく「git commit --amend」で直前のコミットを直接修正できる。
+1225,Git大ピンチ,34,S,コンフリクトを直したつもりなのにまだ終わらない,"You resolved conflicts, but Git disagrees.",git status → git add → git commit,engineer,コンフリクトを解消した後も、「git add」で解決済みであることを伝えてから「git commit」を行うまでがマージ完了の手順。「git status」で状態を確認しながら進めるとよい。
+1226,Git大ピンチ,41,S,コンフリクトを直したのに「まだ終わってない」と言われた,Git still thinks the merge isn't finished.,git status → git add → git commit,engineer,コンフリクトの解消はファイルを直すだけでは終わらず、「git add」で解決済みとマークし「git commit」まで行って初めて完了する。
+1227,Git大ピンチ,50,R,間違えてmainへpushしてしまった,You accidentally pushed directly to main.,git revert,engineer,誤ってpushしてしまった変更を、履歴を消さずに打ち消す新しいコミットで取り消すのが「git revert」。共有ブランチでは履歴を書き換えないこの方法が安全。
+1228,Git大ピンチ,35,S,ブランチを切り替えたいのに変更が邪魔して進めない,Uncommitted changes block switching branches.,git stash → git switch,engineer,コミットしていない変更が残っているとブランチを切り替えられないことがあるため、「git stash」で一旦退避してから「git switch」で切り替える。
+1229,Git大ピンチ,46,F,最新を取り込んだら大量コンフリクトになった,Pull caused a huge merge conflict.,git fetch → git merge,engineer,「git fetch」で取得したリモートの最新状態を「git merge」で取り込む際、自分の変更と競合する箇所が多いとコンフリクトも多くなる。
+1230,Git大ピンチ,47,L,「昨日動いてた版に戻して」と言われた,Go back to yesterday's version.,git log → git checkout <commit>,engineer,「git log」で過去のコミットを確認し、動いていた時点のコミットへ「git checkout <commit>」で戻ることで、以前の状態を再現できる。
+1231,Git大ピンチ,14,S,どのブランチにいるのか分からなくなった,You forgot which branch you're on.,git status,engineer,現在のブランチや変更状況を確認できるのが「git status」。作業前にまず確認する基本のコマンド。
+1232,Git大ピンチ,26,D,レビューで「差分が見えません」と言われた,The reviewer can't tell what changed.,git diff,engineer,変更内容の差分を表示する「git diff」を使えば、何がどう変わったのかをレビュアーに具体的に示せる。
+1233,Git大ピンチ,27,C,レビュー後に1文字だけ直したい,You only need to fix one typo after review.,git commit --amend,engineer,レビュー指摘のようなちょっとした修正は、新しいコミットを作らず「git commit --amend」で直前のコミットに含めてしまえる。
+1234,Git大ピンチ,42,T,リリース版がどのコミットか誰も覚えていない,Nobody knows which commit was released.,git tag,engineer,リリースのタイミングで「git tag」を付けておけば、後からどのコミットがそのバージョンかすぐに分かる。
+1235,Git大ピンチ,36,B,「このコード誰が書いた？」全員目をそらした,Nobody admits writing the code.,git blame,engineer,各行を最後に変更した人・コミットを表示する「git blame」を使えば、誰の変更かすぐに特定できる。
+1236,Git大ピンチ,43,R,間違えて別ブランチで1時間作業してしまった,You worked on the wrong branch for an hour.,git stash → git switch → git stash pop,engineer,気付いた時点で「git stash」で今の変更を退避し、「git switch」で本来のブランチへ移動してから「git stash pop」で変更を戻せば、作業内容を失わずに済む。
+1237,Git大ピンチ,48,C,「その修正だけ持ってきて」と言われた,Only bring over that one fix.,git cherry-pick,engineer,別のブランチにある特定のコミット1つだけを選んで取り込みたいときに使うのが「git cherry-pick」。
+1238,Git大ピンチ,49,S,マージした瞬間にビルドが壊れた,The build broke immediately after merging.,git show,engineer,「git show」でマージによって取り込まれたコミットの内容を確認すれば、どの変更がビルドを壊したのか特定しやすくなる。
+1239,Git大ピンチ,37,R,リモートが多すぎてpush先を間違えそう,Too many remotes to remember.,git remote -v,engineer,「git remote -v」で登録済みのリモート一覧とURLを確認しておけば、pushする先を間違えにくくなる。
+1240,Git大ピンチ,18,G,新しいPCなのにコミットできない,Git isn't configured on the new PC.,git config --global,engineer,新しい環境ではユーザー名やメールアドレスがGitに設定されておらず、「git config --global」で設定するまでコミットできないことがある。
 1301,SQLかるた,-,S,取得する列を指定する,Specify which columns to retrieve.,SELECT,engineer,-
 1302,SQLかるた,-,F,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM,engineer,-
 1303,SQLかるた,-,W,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE,engineer,-
@@ -534,35 +534,35 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 1428,AWSかるた,-,E,EC2にアタッチするブロックストレージ,Block storage attached to EC2 instances.,EBS,engineer,-
 1429,AWSかるた,-,A,高い性能を持つマネージドリレーショナルDB,A high-performance managed relational database.,Aurora,engineer,-
 1430,AWSかるた,-,R,大規模なデータウェアハウス,A large-scale data warehouse.,Redshift,engineer,-
-1501,Java大ピンチ,10,N,nullのはずの変数を当然のように呼び出してしまった,I called a method on something that turned out to be null.,NullPointerException,engineer,-
-1502,Java大ピンチ,15,I,ファイルを読み込もうとしたら途中で失敗した,Reading the file failed partway through.,IOException,engineer,-
-1503,Java大ピンチ,28,H,名前で検索したいのに配列だと毎回全部探してしまう,"I wanted to look things up by name, but the array made me scan everything.",HashMap,engineer,-
-1504,Java大ピンチ,11,A,配列の最後のつもりがその一個先を見ていた,"I thought I was at the last index, but I was already one past it.",ArrayIndexOutOfBoundsException,engineer,-
-1505,Java大ピンチ,35,C,そのクラスは実行時にはどこにも見つからなかった,"At runtime, that class was nowhere to be found.",ClassNotFoundException,engineer,-
-1506,Java大ピンチ,16,N,文字列を数値に変換しようとしたら数字になっていなかった,"I tried to convert a string to a number, but it wasn't numeric at all.",NumberFormatException,engineer,-
-1507,Java大ピンチ,17,I,渡された引数がそもそも受け取れない値だった,The argument I received was simply not acceptable.,IllegalArgumentException,engineer,-
-1508,Java大ピンチ,20,I,呼んではいけないタイミングでそのメソッドを呼んでしまった,I called that method at a moment it shouldn't have been called.,IllegalStateException,engineer,-
-1509,Java大ピンチ,12,A,0で割ってしまって計算がそこで止まった,"I divided by zero, and the calculation stopped right there.",ArithmeticException,engineer,-
-1510,Java大ピンチ,29,C,ループで回している最中にそのコレクションをいじってしまった,I modified the collection while still looping through it.,ConcurrentModificationException,engineer,-
-1511,Java大ピンチ,36,O,メモリを使い切ってJVMがついに音を上げた,"Memory ran out, and the JVM finally gave up.",OutOfMemoryError,engineer,-
-1512,Java大ピンチ,30,S,再帰呼び出しが終わる条件を見失って深くなりすぎた,The recursive calls lost their stopping point and went too deep.,StackOverflowError,engineer,-
-1513,Java大ピンチ,21,A,配列のつもりだったのに要素を増やしたり減らしたりしたくなった,"I started with a plain array, but then wanted to resize it freely.",ArrayList,engineer,-
-1514,Java大ピンチ,31,L,真ん中への挿入ばかりで配列のコピーに時間がかかっていた,Inserting in the middle kept forcing slow array copies.,LinkedList,engineer,-
-1515,Java大ピンチ,22,H,同じ値がリストの中に何個も紛れ込んでいた,The same value kept sneaking into the list multiple times.,HashSet,engineer,-
-1516,Java大ピンチ,32,T,キーの並び順がいつもバラバラで整列させたかった,"The key order was always scrambled, and I wanted it sorted.",TreeMap,engineer,-
-1517,Java大ピンチ,23,S,文字列を+で繋ぐたびに新しいオブジェクトが量産されていた,Every string concatenation quietly created a brand-new object.,StringBuilder,engineer,-
-1518,Java大ピンチ,33,O,戻り値がnullかもしれないのにそのまま呼び出してしまいそうだった,"The return value might be null, and I almost called it blindly.",Optional,engineer,-
-1519,Java大ピンチ,37,S,forループを何重にも書いていたらコードが読みにくくなった,Nested for-loops piled up until the code became unreadable.,Stream,engineer,-
-1520,Java大ピンチ,24,I,実装は持たずにメソッドの形だけ決めておきたかった,"I wanted to define only the method shapes, with no implementation.",Interface,engineer,-
-1521,Java大ピンチ,25,A,共通の処理だけ用意して残りは子クラスに任せたかった,I wanted to share some logic but leave the rest to subclasses.,Abstract Class,engineer,-
-1522,Java大ピンチ,38,G,同じクラスを型ごとにいくつも書きそうになった,I was about to duplicate the same class for every type.,Generics,engineer,-
-1523,Java大ピンチ,26,T,例外が起きても最後の後始末だけは必ずやりたかった,"Even if an exception occurs, the cleanup still has to run.",try-catch-finally,engineer,-
-1524,Java大ピンチ,40,S,複数のスレッドが同時に同じ値を書き換えにきた,Multiple threads tried to rewrite the same value at once.,synchronized,engineer,-
-1525,Java大ピンチ,39,T,重い処理のせいで画面が固まったように見えた,A heavy task made everything look frozen.,Thread,engineer,-
-1526,Java大ピンチ,27,O,親クラスと同じ動きしかせず子クラスらしい振る舞いに変えられなかった,"The subclass behaved just like its parent, and I needed to change that.",Override,engineer,-
-1527,Java大ピンチ,34,E,中身が同じはずのオブジェクトが別物として扱われてしまった,Two objects with identical content were treated as different.,equals/hashCode,engineer,-
-1528,Java大ピンチ,18,F,あとから値を変えられないように絶対に守りたかった,I wanted to make sure that value could never be changed again.,final,engineer,-
-1529,Java大ピンチ,19,S,インスタンスを作らなくてもその機能だけ使いたかった,I wanted to use that feature without ever creating an instance.,static,engineer,-
+1501,Java大ピンチ,10,N,nullのはずの変数を当然のように呼び出してしまった,I called a method on something that turned out to be null.,NullPointerException,engineer,値が入っていない（null）はずの変数のメソッドやフィールドを呼び出そうとすると、Javaでは実行時に「NullPointerException」が発生する。
+1502,Java大ピンチ,15,I,ファイルを読み込もうとしたら途中で失敗した,Reading the file failed partway through.,IOException,engineer,ファイルの読み書き中に何らかの理由で処理が失敗すると、入出力に関する例外である「IOException」が投げられる。
+1503,Java大ピンチ,28,H,名前で検索したいのに配列だと毎回全部探してしまう,"I wanted to look things up by name, but the array made me scan everything.",HashMap,engineer,配列から名前で探すと先頭から順に全件確認する必要があるが、キーと値を対応付けて管理する「HashMap」を使えばキー（名前）から直接高速に値を取り出せる。
+1504,Java大ピンチ,11,A,配列の最後のつもりがその一個先を見ていた,"I thought I was at the last index, but I was already one past it.",ArrayIndexOutOfBoundsException,engineer,配列の添字が実際の要素数を超えてアクセスすると「ArrayIndexOutOfBoundsException」が発生する。最後の要素のつもりで1つ先を指してしまうのは典型的な原因。
+1505,Java大ピンチ,35,C,そのクラスは実行時にはどこにも見つからなかった,"At runtime, that class was nowhere to be found.",ClassNotFoundException,engineer,プログラムの実行時に、必要なクラスファイルがクラスパス上に見つからないと「ClassNotFoundException」が発生する。
+1506,Java大ピンチ,16,N,文字列を数値に変換しようとしたら数字になっていなかった,"I tried to convert a string to a number, but it wasn't numeric at all.",NumberFormatException,engineer,数字以外の文字を含む文字列を数値へ変換しようとすると「NumberFormatException」が発生する。
+1507,Java大ピンチ,17,I,渡された引数がそもそも受け取れない値だった,The argument I received was simply not acceptable.,IllegalArgumentException,engineer,メソッドに渡された引数が、そのメソッドが想定していない不正な値だった場合に投げられるのが「IllegalArgumentException」。
+1508,Java大ピンチ,20,I,呼んではいけないタイミングでそのメソッドを呼んでしまった,I called that method at a moment it shouldn't have been called.,IllegalStateException,engineer,オブジェクトの状態がそのメソッドを呼ぶのにふさわしくないタイミングで呼び出すと「IllegalStateException」が発生する。
+1509,Java大ピンチ,12,A,0で割ってしまって計算がそこで止まった,"I divided by zero, and the calculation stopped right there.",ArithmeticException,engineer,整数を0で割る演算を行うと「ArithmeticException」が発生し、処理がそこで止まってしまう。
+1510,Java大ピンチ,29,C,ループで回している最中にそのコレクションをいじってしまった,I modified the collection while still looping through it.,ConcurrentModificationException,engineer,forループ等でコレクションを走査している最中に、そのコレクション自体へ要素の追加・削除を行うと「ConcurrentModificationException」が発生する。
+1511,Java大ピンチ,36,O,メモリを使い切ってJVMがついに音を上げた,"Memory ran out, and the JVM finally gave up.",OutOfMemoryError,engineer,JVMに割り当てられたメモリを使い切ってこれ以上確保できなくなると「OutOfMemoryError」が発生する。
+1512,Java大ピンチ,30,S,再帰呼び出しが終わる条件を見失って深くなりすぎた,The recursive calls lost their stopping point and went too deep.,StackOverflowError,engineer,再帰呼び出しが終了条件に達せず深くなりすぎると、呼び出しを積むためのスタック領域を使い切り「StackOverflowError」が発生する。
+1513,Java大ピンチ,21,A,配列のつもりだったのに要素を増やしたり減らしたりしたくなった,"I started with a plain array, but then wanted to resize it freely.",ArrayList,engineer,配列はサイズが固定だが、要素の追加・削除に応じて自動的にサイズが変わる可変長のリストが「ArrayList」。
+1514,Java大ピンチ,31,L,真ん中への挿入ばかりで配列のコピーに時間がかかっていた,Inserting in the middle kept forcing slow array copies.,LinkedList,engineer,配列（ArrayList）は途中への挿入のたびに後続要素をずらす必要があり時間がかかるが、要素同士を鎖のようにつなげて管理する「LinkedList」なら挿入・削除を効率的に行える。
+1515,Java大ピンチ,22,H,同じ値がリストの中に何個も紛れ込んでいた,The same value kept sneaking into the list multiple times.,HashSet,engineer,重複した値を許さずに集合として管理したい場合は、同じ値を自動的に1つにまとめてくれる「HashSet」を使う。
+1516,Java大ピンチ,32,T,キーの並び順がいつもバラバラで整列させたかった,"The key order was always scrambled, and I wanted it sorted.",TreeMap,engineer,通常のHashMapはキーの並び順が保証されないが、キーを常に順序付けて保持してくれるのが「TreeMap」。
+1517,Java大ピンチ,23,S,文字列を+で繋ぐたびに新しいオブジェクトが量産されていた,Every string concatenation quietly created a brand-new object.,StringBuilder,engineer,文字列（String）は+で連結するたびに新しいオブジェクトが作られてしまうため非効率で、内部バッファを使って効率よく文字列を組み立てられる「StringBuilder」を使うとよい。
+1518,Java大ピンチ,33,O,戻り値がnullかもしれないのにそのまま呼び出してしまいそうだった,"The return value might be null, and I almost called it blindly.",Optional,engineer,値が存在しないかもしれないことを型で表現し、nullチェックを強制することでNullPointerExceptionを防ぐ仕組みが「Optional」。
+1519,Java大ピンチ,37,S,forループを何重にも書いていたらコードが読みにくくなった,Nested for-loops piled up until the code became unreadable.,Stream,engineer,コレクションに対するループ処理を、フィルタや変換等の操作を連ねる形で簡潔に書けるようにするのが「Stream」API。
+1520,Java大ピンチ,24,I,実装は持たずにメソッドの形だけ決めておきたかった,"I wanted to define only the method shapes, with no implementation.",Interface,engineer,メソッドの中身（実装）は持たず、どんなメソッドを持つべきかという形（仕様）だけを定義するのが「Interface」。
+1521,Java大ピンチ,25,A,共通の処理だけ用意して残りは子クラスに任せたかった,I wanted to share some logic but leave the rest to subclasses.,Abstract Class,engineer,共通する処理はあらかじめ実装しておきつつ、一部の処理は子クラスでの実装を強制したい場合に使うのが「Abstract Class（抽象クラス）」。
+1522,Java大ピンチ,38,G,同じクラスを型ごとにいくつも書きそうになった,I was about to duplicate the same class for every type.,Generics,engineer,扱う型を後から指定できるようにすることで、型ごとに同じようなクラスを何個も書かずに済むようにする仕組みが「Generics（総称型）」。
+1523,Java大ピンチ,26,T,例外が起きても最後の後始末だけは必ずやりたかった,"Even if an exception occurs, the cleanup still has to run.",try-catch-finally,engineer,例外が発生してもしなくても必ず実行したい後始末の処理（リソースの解放等）を書くのが「try-catch-finally」の`finally`ブロック。
+1524,Java大ピンチ,40,S,複数のスレッドが同時に同じ値を書き換えにきた,Multiple threads tried to rewrite the same value at once.,synchronized,engineer,複数のスレッドが同時に同じデータへアクセス・変更すると不整合が起きるため、一度に1つのスレッドしか処理できないようにするのが「synchronized」。
+1525,Java大ピンチ,39,T,重い処理のせいで画面が固まったように見えた,A heavy task made everything look frozen.,Thread,engineer,時間のかかる処理を画面の更新と同じ流れ（メインスレッド）で行うと固まって見えてしまうため、別の処理の流れである「Thread」に任せて並行して実行させる。
+1526,Java大ピンチ,27,O,親クラスと同じ動きしかせず子クラスらしい振る舞いに変えられなかった,"The subclass behaved just like its parent, and I needed to change that.",Override,engineer,親クラスのメソッドを子クラス側で独自の処理に上書きすることを「Override（オーバーライド）」といい、これを行わないと親クラスと同じ動きのままになってしまう。
+1527,Java大ピンチ,34,E,中身が同じはずのオブジェクトが別物として扱われてしまった,Two objects with identical content were treated as different.,equals/hashCode,engineer,オブジェクト同士の「同じ」を中身の値で判定するには、比較方法を定義する「equals」（とセットで扱う「hashCode」）を実装する必要があり、これが無いと別物として扱われてしまう。
+1528,Java大ピンチ,18,F,あとから値を変えられないように絶対に守りたかった,I wanted to make sure that value could never be changed again.,final,engineer,一度設定した値やクラス・メソッドをあとから変更・上書きできないように固定するのが「final」修飾子。
+1529,Java大ピンチ,19,S,インスタンスを作らなくてもその機能だけ使いたかった,I wanted to use that feature without ever creating an instance.,static,engineer,インスタンス（オブジェクト）を生成しなくても、クラスに直接紐づく形でメソッドやフィールドを使えるようにするのが「static」修飾子。
 1601,コードレビューかるた,-,D,同じコードが複数箇所に存在する,The same code exists in multiple places.,DRY原則,engineer,-
 1602,コードレビューかるた,-,か,変数名から役割が分からない,It's unclear what a variable does from its name.,可読性,engineer,-
 1603,コードレビューかるた,-,た,1つのメソッドが長すぎる,A single method is too long.,単一責任の原則,engineer,-
@@ -585,83 +585,83 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 1620,コードレビューかるた,-,ば,入力値の検証が行われていない,Input values are not validated.,バリデーション漏れ,engineer,-
 1621,コードレビューかるた,-,れ,並行処理の実行順序によって結果が変わる不具合,A bug where the result depends on the timing of concurrent execution.,レースコンディション,engineer,-
 1622,コードレビューかるた,-,か,将来使うかもしれない機能を先に作り込んでいる,Building functionality preemptively for hypothetical future use.,過剰な抽象化,engineer,-
-1701,セキュリティ大ピンチ,10,は,アカウント全部　同じパスワードだった,I used the same password for every account.,パスワードリスト攻撃,engineer,-
-1702,セキュリティ大ピンチ,15,ふ,いそいで振り込め　メールを信じた,I trusted an urgent payment email.,フィッシング,engineer,-
-1703,セキュリティ大ピンチ,12,ま,USBを拾って　そのまま挿した,I plugged in a USB drive I found.,マルウェア,engineer,-
-1704,セキュリティ大ピンチ,40,し,APIキーを　GitHubで公開した,I exposed an API key on GitHub.,シークレット管理,engineer,-
-1705,セキュリティ大ピンチ,16,ふ,おなじログイン画面だと　思い込んだ,I assumed the login page was genuine.,フィッシングサイト,engineer,-
-1706,セキュリティ大ピンチ,21,て,開発用パスワードを　本番でも使った,I used a development password in production.,デフォルトパスワード,engineer,-
-1707,セキュリティ大ピンチ,27,し,きょうもパッチを　後回しにした,I postponed installing security patches again.,脆弱性,engineer,-
-1708,セキュリティ大ピンチ,28,ら,暗号化されても　バックアップがない,Everything was encrypted and I had no backup.,ランサムウェア,engineer,-
-1709,セキュリティ大ピンチ,41,え,検索欄から　データベースが壊れた,The database broke through the search box.,SQLインジェクション,engineer,-
-1710,セキュリティ大ピンチ,42,く,コメントを書いたら　勝手に画面が動いた,A comment caused unexpected script execution.,XSS,engineer,-
-1711,セキュリティ大ピンチ,45,し,サイトを見ただけで　退会していた,I was logged out or unsubscribed just by visiting a page.,CSRF,engineer,-
-1712,セキュリティ大ピンチ,35,に,知らない人まで　管理画面に入れた,Unauthorized users reached the admin screen.,認可不備,engineer,-
-1713,セキュリティ大ピンチ,22,あ,すでに退職した人が　まだログインしていた,A former employee could still log in.,アカウント管理,engineer,-
-1714,セキュリティ大ピンチ,30,さ,全員を管理者に　してしまった,I gave everyone administrator privileges.,最小権限の原則,engineer,-
-1715,セキュリティ大ピンチ,17,て,そのままHTTPで　ログインした,I logged in over HTTP.,TLS,engineer,-
-1716,セキュリティ大ピンチ,23,か,だれが操作したか　分からない,Nobody knew who performed the operation.,監査ログ,engineer,-
-1717,セキュリティ大ピンチ,36,せ,社内だから安全と　思い込んでいた,I assumed the internal network was safe.,ゼロトラスト,engineer,-
-1718,セキュリティ大ピンチ,43,あ,つうしんの異常に　誰も気付かなかった,Nobody noticed the suspicious traffic.,IDS,engineer,-
-1719,セキュリティ大ピンチ,46,あ,敵は見つけたのに　止められなかった,We detected the attack but couldn't stop it.,IPS,engineer,-
-1720,セキュリティ大ピンチ,44,え,取りつかれても　誰も気付かなかった,The endpoint was compromised without anyone noticing.,EDR,engineer,-
-1721,セキュリティ大ピンチ,24,せ,長いこと更新を　していなかった,The server hadn't been updated for a long time.,セキュリティパッチ,engineer,-
-1722,セキュリティ大ピンチ,18,た,認証が　パスワードだけだった,Only a password protected the account.,多要素認証,engineer,-
-1723,セキュリティ大ピンチ,37,せ,ぬすまれたCookieで　ログインされた,Someone logged in using my stolen cookie.,セッションハイジャック,engineer,-
-1724,セキュリティ大ピンチ,25,あ,ねだんより　個人情報を守れ,Personal data was stored without protection.,暗号化,engineer,-
-1725,セキュリティ大ピンチ,19,て,残っていた初期設定で　入られた,Someone logged in with default credentials.,デフォルト認証情報,engineer,-
-1726,セキュリティ大ピンチ,26,と,アクセスが急に　100万件来た,A million requests suddenly flooded the server.,DoS攻撃,engineer,-
-1727,セキュリティ大ピンチ,38,こ,秘密鍵を　メールで送ってしまった,I emailed a private key.,公開鍵暗号方式,engineer,-
-1728,セキュリティ大ピンチ,39,せ,古い設定をコピーしたら　穴だらけだった,I copied an insecure server configuration.,セキュア設定,engineer,-
-1729,セキュリティ大ピンチ,31,し,へいきだろうで　本番公開した,I released it to production assuming it was safe.,脆弱性診断,engineer,-
-1730,セキュリティ大ピンチ,20,さ,ほんとうに開いてよかった？　その添付ファイル,Should I really have opened that attachment?,サンドボックス,engineer,-
-1731,セキュリティ大ピンチ,70,え,まさか社内サーバが　外から操作された,The internal server was manipulated from outside.,SSRF,engineer,-
-1732,セキュリティ大ピンチ,80,え,見せるはずのない　サーバのファイルが見えた,Internal server files became visible.,XXE,engineer,-
-1733,セキュリティ大ピンチ,71,お,無害な入力のはずが　コマンドが動いた,A harmless input executed a command.,OSコマンドインジェクション,engineer,-
-1734,セキュリティ大ピンチ,85,し,メンバーなのに　管理者になっていた,A normal user became an administrator.,JWT,engineer,-
-1735,セキュリティ大ピンチ,65,お,もれたトークンで　勝手に操作された,A leaked token was used for unauthorized access.,OAuth,engineer,-
-1736,セキュリティ大ピンチ,55,に,やっぱり開発環境だからと　チェックを外した,I disabled authentication because it was only a development environment.,認証,engineer,-
-1737,セキュリティ大ピンチ,60,に,ユーザー画面だけで　権限チェックしていた,Authorization was checked only on the client side.,認可,engineer,-
-1801,Webアプリ大ピンチ,10,き,更新したのに昨日の画面のままだった,The page still showed yesterday's version after deployment.,キャッシュ,engineer,-
-1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション,engineer,-
-1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション,engineer,-
-1804,Webアプリ大ピンチ,16,く,これを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer,-
-1805,Webアプリ大ピンチ,21,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード,engineer,-
-1806,Webアプリ大ピンチ,30,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト,engineer,-
-1807,Webアプリ大ピンチ,31,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード,engineer,-
-1808,Webアプリ大ピンチ,22,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet,engineer,-
-1809,Webアプリ大ピンチ,32,J,コードを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer,-
-1810,Webアプリ大ピンチ,36,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式,engineer,-
-1811,Webアプリ大ピンチ,37,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL,engineer,-
-1812,Webアプリ大ピンチ,42,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC,engineer,-
-1813,Webアプリ大ピンチ,43,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC,engineer,-
-1814,Webアプリ大ピンチ,23,S,コードを書き換えたらデータが入っていない,Changing one SQL query broke everything.,SQL,engineer,-
-1815,Webアプリ大ピンチ,54,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス,engineer,-
-1816,Webアプリ大ピンチ,50,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール,engineer,-
-1817,Webアプリ大ピンチ,24,M,データベースが起動していなかった,The database server wasn't running.,MySQL,engineer,-
-1818,Webアプリ大ピンチ,38,P,再起動したら直った,Restarting the server fixed it.,Payara,engineer,-
-1819,Webアプリ大ピンチ,33,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR,engineer,-
-1820,Webアプリ大ピンチ,44,G,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle,engineer,-
-1821,Webアプリ大ピンチ,45,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係,engineer,-
-1822,Webアプリ大ピンチ,25,び,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド,engineer,-
-1823,Webアプリ大ピンチ,26,J,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript,engineer,-
-1824,Webアプリ大ピンチ,34,D,要素が見つからないと言われた,The browser says the element can't be found.,DOM,engineer,-
-1825,Webアプリ大ピンチ,17,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS,engineer,-
-1826,Webアプリ大ピンチ,39,J,APIの返却結果が読めない,I can't parse the API response.,JSON,engineer,-
-1827,Webアプリ大ピンチ,40,A,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX,engineer,-
-1828,Webアプリ大ピンチ,46,ば,入力したのに保存できない,The form won't save my input.,バリデーション,engineer,-
-1829,Webアプリ大ピンチ,47,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理,engineer,-
-1830,Webアプリ大ピンチ,27,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ,engineer,-
-1831,Webアプリ大ピンチ,48,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース,engineer,-
-1832,Webアプリ大ピンチ,28,で,調べたら動いてしまう,The bug disappears during debugging.,デバッグ,engineer,-
-1833,Webアプリ大ピンチ,41,も,文字が全部「???」になった,All the text turned into question marks.,文字コード,engineer,-
-1834,Webアプリ大ピンチ,35,U,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8,engineer,-
-1835,Webアプリ大ピンチ,29,G,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git,engineer,-
-1836,Webアプリ大ピンチ,51,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト,engineer,-
-1837,Webアプリ大ピンチ,52,C,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS,engineer,-
-1838,Webアプリ大ピンチ,55,N,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題,engineer,-
-1839,Webアプリ大ピンチ,53,ら,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック,engineer,-
-1840,Webアプリ大ピンチ,49,に,ログイン状態なのに403になった,I'm logged in but received a 403.,認可,engineer,-
+1701,セキュリティ大ピンチ,10,は,アカウント全部　同じパスワードだった,I used the same password for every account.,パスワードリスト攻撃,engineer,すべてのサービスで同じパスワードを使い回していると、どこか1つから漏れたID・パスワードの組み合わせが他のサービスへの不正ログインにそのまま使われてしまう。これが「パスワードリスト攻撃」。
+1702,セキュリティ大ピンチ,15,ふ,いそいで振り込め　メールを信じた,I trusted an urgent payment email.,フィッシング,engineer,「急いで振り込め」と急かすメールを本物だと信じ込んでしまうのは、金融機関や取引先になりすまして情報や金銭をだまし取る「フィッシング」の典型的な手口。
+1703,セキュリティ大ピンチ,12,ま,USBを拾って　そのまま挿した,I plugged in a USB drive I found.,マルウェア,engineer,落ちていたUSBメモリを疑わずにパソコンへ挿すと、中に仕込まれた「マルウェア」（悪意のあるソフトウェア）に感染してしまう危険がある。
+1704,セキュリティ大ピンチ,40,し,APIキーを　GitHubで公開した,I exposed an API key on GitHub.,シークレット管理,engineer,APIキーのような秘密情報をコードと一緒にGitHubへ公開してしまうのは、パスワードや鍵情報を安全に保管・管理する「シークレット管理」が徹底されていなかったために起きるミス。
+1705,セキュリティ大ピンチ,16,ふ,おなじログイン画面だと　思い込んだ,I assumed the login page was genuine.,フィッシングサイト,engineer,本物そっくりに作られた偽のログイン画面を、いつもと同じ画面だと思い込んでIDやパスワードを入力してしまうのが「フィッシングサイト」の被害。
+1706,セキュリティ大ピンチ,21,て,開発用パスワードを　本番でも使った,I used a development password in production.,デフォルトパスワード,engineer,開発環境用に設定した簡単なパスワードをそのまま本番環境でも使い続けると、初期設定のまま変更されていない「デフォルトパスワード」を突かれて不正アクセスされやすくなる。
+1707,セキュリティ大ピンチ,27,し,きょうもパッチを　後回しにした,I postponed installing security patches again.,脆弱性,engineer,セキュリティパッチの適用を先延ばしにし続けると、ソフトウェアに残る「脆弱性」（弱点）がそのまま放置され、攻撃者に悪用される隙を与えてしまう。
+1708,セキュリティ大ピンチ,28,ら,暗号化されても　バックアップがない,Everything was encrypted and I had no backup.,ランサムウェア,engineer,データを勝手に暗号化して身代金を要求する「ランサムウェア」に感染すると、バックアップが無ければ暗号化前の状態に戻す手段が無くなってしまう。
+1709,セキュリティ大ピンチ,41,え,検索欄から　データベースが壊れた,The database broke through the search box.,SQLインジェクション,engineer,検索欄に入力した文字がそのままSQL文の一部として実行されてしまい、データベースを不正に操作・破壊されるのが「SQLインジェクション」。
+1710,セキュリティ大ピンチ,42,く,コメントを書いたら　勝手に画面が動いた,A comment caused unexpected script execution.,XSS,engineer,投稿したコメントに仕込まれたスクリプトが、閲覧した他の利用者のブラウザ上で勝手に実行されてしまうのが「XSS（クロスサイトスクリプティング）」。
+1711,セキュリティ大ピンチ,45,し,サイトを見ただけで　退会していた,I was logged out or unsubscribed just by visiting a page.,CSRF,engineer,悪意のあるサイトを開いただけで、本人の意図しないリクエスト（退会処理など）が別サイトへ勝手に送られてしまうのが「CSRF（クロスサイトリクエストフォージェリ）」。
+1712,セキュリティ大ピンチ,35,に,知らない人まで　管理画面に入れた,Unauthorized users reached the admin screen.,認可不備,engineer,本来アクセスできないはずの人まで管理画面に入れてしまうのは、権限に応じたアクセス制御が正しく行われていない「認可不備」が原因。
+1713,セキュリティ大ピンチ,22,あ,すでに退職した人が　まだログインしていた,A former employee could still log in.,アカウント管理,engineer,退職者のアカウントを削除・無効化し忘れると、権限を持ったまま外部からログインできてしまう。これを防ぐのが日々の「アカウント管理」。
+1714,セキュリティ大ピンチ,30,さ,全員を管理者に　してしまった,I gave everyone administrator privileges.,最小権限の原則,engineer,全員に管理者権限を与えてしまうと、必要最小限の権限だけを与えるべきという「最小権限の原則」に反し、被害が広がりやすくなる。
+1715,セキュリティ大ピンチ,17,て,そのままHTTPで　ログインした,I logged in over HTTP.,TLS,engineer,暗号化されていないHTTPのままログイン情報を送信すると通信内容を盗み見られる恐れがあり、これを防ぐために通信を暗号化する仕組みが「TLS」。
+1716,セキュリティ大ピンチ,23,か,だれが操作したか　分からない,Nobody knew who performed the operation.,監査ログ,engineer,誰がいつ何を操作したかを後から追跡できないのは、操作の記録である「監査ログ」を残していなかったため。
+1717,セキュリティ大ピンチ,36,せ,社内だから安全と　思い込んでいた,I assumed the internal network was safe.,ゼロトラスト,engineer,社内ネットワークだから安全だと無条件に信頼するのではなく、内外を問わずすべてのアクセスを都度検証すべきという考え方が「ゼロトラスト」。
+1718,セキュリティ大ピンチ,43,あ,つうしんの異常に　誰も気付かなかった,Nobody noticed the suspicious traffic.,IDS,engineer,ネットワーク上の不審な通信を検知して知らせる仕組みが「IDS（侵入検知システム）」で、これが無いと異常に誰も気付けない。
+1719,セキュリティ大ピンチ,46,あ,敵は見つけたのに　止められなかった,We detected the attack but couldn't stop it.,IPS,engineer,不正な通信を検知するだけでなく、その場で自動的に遮断・防御するのが「IPS（侵入防止システム）」。検知（IDS）だけでは攻撃を止められない。
+1720,セキュリティ大ピンチ,44,え,取りつかれても　誰も気付かなかった,The endpoint was compromised without anyone noticing.,EDR,engineer,端末が既にマルウェアに侵入されていても気付けないのは、端末上の不審な挙動を検知・対応する「EDR」の仕組みが無かったため。
+1721,セキュリティ大ピンチ,24,せ,長いこと更新を　していなかった,The server hadn't been updated for a long time.,セキュリティパッチ,engineer,ソフトウェアの更新を長期間放置すると、既知の弱点を塞ぐための「セキュリティパッチ」が当たらないまま、危険な状態が続いてしまう。
+1722,セキュリティ大ピンチ,18,た,認証が　パスワードだけだった,Only a password protected the account.,多要素認証,engineer,パスワード1つだけに頼った認証は突破されやすく、パスワードに加えて別の要素（ワンタイムコード等）でも本人確認する「多要素認証」が求められる。
+1723,セキュリティ大ピンチ,37,せ,ぬすまれたCookieで　ログインされた,Someone logged in using my stolen cookie.,セッションハイジャック,engineer,ログイン中のセッションを識別するCookieが盗まれると、そのCookieを使って本人になりすましてログインされてしまう。これが「セッションハイジャック」。
+1724,セキュリティ大ピンチ,25,あ,ねだんより　個人情報を守れ,Personal data was stored without protection.,暗号化,engineer,個人情報のような大切なデータを守るために、値段以上に重視すべきなのがデータを読み取れない形に変換する「暗号化」。
+1725,セキュリティ大ピンチ,19,て,残っていた初期設定で　入られた,Someone logged in with default credentials.,デフォルト認証情報,engineer,機器やソフトの初期設定のID・パスワード（「デフォルト認証情報」）を変更し忘れていると、誰でも知っている情報のまま侵入を許してしまう。
+1726,セキュリティ大ピンチ,26,と,アクセスが急に　100万件来た,A million requests suddenly flooded the server.,DoS攻撃,engineer,大量のアクセスを一斉に送りつけてサービスを応答不能にするのが「DoS攻撃」。急激なアクセス増加はその兆候の一つ。
+1727,セキュリティ大ピンチ,38,こ,秘密鍵を　メールで送ってしまった,I emailed a private key.,公開鍵暗号方式,engineer,「公開鍵暗号方式」では公開鍵は共有してよいが秘密鍵は本人だけが持つべきもので、メールで送ってしまうと暗号の安全性が根本から崩れてしまう。
+1728,セキュリティ大ピンチ,39,せ,古い設定をコピーしたら　穴だらけだった,I copied an insecure server configuration.,セキュア設定,engineer,古い環境の設定をそのまま使い回すと、見直されていない不要なポートや権限が残ったままになりやすい。安全性を確保した状態に整えるのが「セキュア設定」。
+1729,セキュリティ大ピンチ,31,し,へいきだろうで　本番公開した,I released it to production assuming it was safe.,脆弱性診断,engineer,「大丈夫だろう」で確認を省いて公開すると弱点を見落としやすい。事前にシステムの弱点を洗い出す「脆弱性診断」を行うことでこれを防げる。
+1730,セキュリティ大ピンチ,20,さ,ほんとうに開いてよかった？　その添付ファイル,Should I really have opened that attachment?,サンドボックス,engineer,不審な添付ファイルは、実際の環境から隔離された安全な領域（「サンドボックス」）で開いて安全性を確認してから扱うべき。
+1731,セキュリティ大ピンチ,70,え,まさか社内サーバが　外から操作された,The internal server was manipulated from outside.,SSRF,engineer,外部からの入力をきっかけに、サーバ自身に本来アクセスできないはずの内部システムへ通信させられてしまうのが「SSRF（サーバサイドリクエストフォージェリ）」。
+1732,セキュリティ大ピンチ,80,え,見せるはずのない　サーバのファイルが見えた,Internal server files became visible.,XXE,engineer,XML文書の解析処理を悪用され、本来公開されるはずのないサーバ内のファイルまで読み取られてしまうのが「XXE（XML外部実体参照）」。
+1733,セキュリティ大ピンチ,71,お,無害な入力のはずが　コマンドが動いた,A harmless input executed a command.,OSコマンドインジェクション,engineer,一見無害な入力欄から、OSのコマンドとして実行されてしまう文字列を送り込まれるのが「OSコマンドインジェクション」。
+1734,セキュリティ大ピンチ,85,し,メンバーなのに　管理者になっていた,A normal user became an administrator.,JWT,engineer,JWT（JSON Web Token）はユーザーの権限情報を含めてやり取りする仕組みだが、検証が甘いとトークンの中身を書き換えられ、権限のないはずのメンバーが管理者として扱われてしまう。
+1735,セキュリティ大ピンチ,65,お,もれたトークンで　勝手に操作された,A leaked token was used for unauthorized access.,OAuth,engineer,OAuthは外部サービスに権限を委任する仕組みだが、発行されたトークンが漏れると、そのトークンを使って本人になりすまし勝手に操作されてしまう。
+1736,セキュリティ大ピンチ,55,に,やっぱり開発環境だからと　チェックを外した,I disabled authentication because it was only a development environment.,認証,engineer,開発環境だからと油断して本人確認の仕組み（「認証」）を無効にしたままにすると、誰でもアクセスできる状態になってしまう。
+1737,セキュリティ大ピンチ,60,に,ユーザー画面だけで　権限チェックしていた,Authorization was checked only on the client side.,認可,engineer,画面表示（見た目）だけで機能を制限しても、実際の操作権限があるかどうかを判定する「認可」の仕組みがサーバー側に無ければ、裏から直接操作されて突破されてしまう。
+1801,Webアプリ大ピンチ,10,き,更新したのに昨日の画面のままだった,The page still showed yesterday's version after deployment.,キャッシュ,engineer,ブラウザやサーバーが以前取得した内容を保存して使い回す「キャッシュ」が残っていると、実際には更新されていても古い画面がそのまま表示されてしまう。
+1802,Webアプリ大ピンチ,15,せ,ログインしたのにすぐログアウトされた,I was logged out right after logging in.,セッション,engineer,ログイン状態を維持するための「セッション」の管理（有効期限や保存場所の設定等）に問題があると、ログインしてもすぐに状態が失われてログアウトされてしまう。
+1803,Webアプリ大ピンチ,20,と,注文ボタンを連打したら二重登録された,Clicking the order button repeatedly created duplicate records.,トランザクション,engineer,一連の処理をひとまとまりとして扱い、途中で重複や不整合が起きないよう制御する仕組みが「トランザクション」。これが適切に効いていないと連打で二重登録が起きる。
+1804,Webアプリ大ピンチ,16,く,これを消したらログインできるようになった,Deleting cookies fixed the login problem.,Cookie,engineer,ログイン状態や認証情報の一部はブラウザの「Cookie」に保存されており、古い・壊れたCookieが残っていると逆にログインを妨げてしまうことがある。
+1805,Webアプリ大ピンチ,21,H,404しか返ってこない,Everything returned a 404 error.,HTTPステータスコード,engineer,「404」はリクエストされたページが見つからないことを表す「HTTPステータスコード」。処理の結果をこの数値で表現する仕組みがある。
+1806,Webアプリ大ピンチ,30,り,POSTしたのに画面が別ページへ飛んだ,"After POST, I was sent to another page.",リダイレクト,engineer,処理を受け取ったサーバーが、別のURLへ改めてアクセスさせる仕組みが「リダイレクト」。POST処理後に別ページへ飛ぶのはこの仕組みによるもの。
+1807,Webアプリ大ピンチ,31,ふ,画面遷移したら入力内容が消えなかった,The input remained after changing pages.,フォワード,engineer,サーバー内部で別の画面（JSP等）へそのまま処理を引き継ぐ「フォワード」では、リクエスト情報がそのまま維持されるため入力内容が保持される。
+1808,Webアプリ大ピンチ,22,さ,画面は開くのにデータが表示されない,The page loads but no data appears.,Servlet,engineer,画面（見た目）は表示できても、リクエストを受けてデータを処理・用意する役目の「Servlet」側の実装や連携に不備があると、肝心のデータが表示されない。
+1809,Webアプリ大ピンチ,32,J,コードを直したのに画面が変わらない,I edited a JSP but nothing changed.,JSP,engineer,画面の見た目を組み立てる「JSP」ファイルがビルド・デプロイに正しく反映されていないと、コードを直したはずでも画面が変わらないままになる。
+1810,Webアプリ大ピンチ,36,E,HTMLの中にJavaだらけで読めない,The JSP is full of Java code and unreadable.,EL式,engineer,JSP内にJavaのコードを直接書き込む代わりに、`${}`のようなシンプルな記法で値を埋め込めるようにするのが「EL式（Expression Language）」。
+1811,Webアプリ大ピンチ,37,J,同じ処理を何度もJSPに書いてしまった,I duplicated the same logic across JSPs.,JSTL,engineer,ループや条件分岐等の定型的な処理を、Javaコードを書かずにタグとして扱えるようにする「JSTL」を使えば、同じ処理をJSP内に重複して書かずに済む。
+1812,Webアプリ大ピンチ,42,え,DBにはあるのに画面には表示されない,The data exists in the database but isn't shown.,MVC,engineer,データ（Model）・画面（View）・処理の橋渡し（Controller）を分けて設計する「MVC」の各層の連携が崩れていると、DBにデータがあっても画面まで正しく届かないことがある。
+1813,Webアプリ大ピンチ,43,J,SQLは成功したのに画面が更新されない,The SQL succeeded but the screen didn't update.,JDBC,engineer,JavaからデータベースへSQLを実行するための仕組みが「JDBC」。SQL自体は成功していても、その結果を画面側へ正しく反映する処理に不備があると表示は更新されない。
+1814,Webアプリ大ピンチ,23,S,コードを書き換えたらデータが入っていない,Changing one SQL query broke everything.,SQL,engineer,データベースへの問い合わせ・登録内容を指示する「SQL」文自体を書き換えた際に条件や内容を誤ると、意図したデータが登録されなくなる。
+1815,Webアプリ大ピンチ,54,い,検索だけやたら遅い,Only searches are extremely slow.,インデックス,engineer,検索を高速化するための目印である「インデックス」が設定されていないと、データベースは該当データを探すために全件を確認することになり検索が遅くなる。
+1816,Webアプリ大ピンチ,50,こ,接続数がいっぱいでDBにつながらない,The database refused more connections.,コネクションプール,engineer,データベースへの接続をあらかじめ用意して使い回す仕組みが「コネクションプール」。この上限を使い切ると新たな接続ができなくなる。
+1817,Webアプリ大ピンチ,24,M,データベースが起動していなかった,The database server wasn't running.,MySQL,engineer,アプリケーションが使う「MySQL」等のデータベース自体が起動していないと、アプリからの接続はすべて失敗してしまう。
+1818,Webアプリ大ピンチ,38,P,再起動したら直った,Restarting the server fixed it.,Payara,engineer,Javaのアプリケーションサーバーである「Payara」は、設定変更やメモリ状態の異常等で不調になることがあり、再起動によって内部状態がリセットされ直ることがある。
+1819,Webアプリ大ピンチ,33,わ,デプロイしたのに反映されない,I deployed it but nothing changed.,WAR,engineer,Javaのウェブアプリケーションをまとめてパッケージ化したファイルが「WAR」ファイル。古いWARが残ったままだったり正しくデプロイされていないと、変更が反映されない。
+1820,Webアプリ大ピンチ,44,G,依存ライブラリを追加したのに読み込まれない,The dependency wasn't picked up after adding it.,Gradle,engineer,依存関係の定義・ビルドを管理する「Gradle」の設定ファイルに追加が反映されていなかったり再ビルドしていないと、追加したはずのライブラリが読み込まれない。
+1821,Webアプリ大ピンチ,45,い,昨日までビルドできたのに今日は失敗する,Yesterday's build worked but today's doesn't.,依存関係,engineer,ライブラリのバージョンが自動更新される等で「依存関係」が変わると、昨日まで動いていた組み合わせが崩れて突然ビルドできなくなることがある。
+1822,Webアプリ大ピンチ,25,び,ソースは変えていないのに実行できない,"I changed nothing, but it no longer runs.",ビルド,engineer,ソースコード自体は変えていなくても、コンパイルやパッケージ化を行う「ビルド」の環境・設定側に問題があると実行できないことがある。
+1823,Webアプリ大ピンチ,26,J,ボタンを押しても何も起きない,Clicking the button does nothing.,JavaScript,engineer,ブラウザ上でボタンのクリック等に応じて動作するのは「JavaScript」の役目で、これが読み込まれていない・エラーになっていると何も起きない。
+1824,Webアプリ大ピンチ,34,D,要素が見つからないと言われた,The browser says the element can't be found.,DOM,engineer,HTML文書の構造をプログラムから操作できるようにしたものが「DOM」。指定した要素がまだ存在しない・IDが間違っている等でDOM上から見つからないとエラーになる。
+1825,Webアプリ大ピンチ,17,し,画面レイアウトがぐちゃぐちゃになった,The page layout completely broke.,CSS,engineer,画面の見た目・レイアウトを指定する「CSS」が正しく読み込まれていない・記述が誤っていると、意図した見た目にならず崩れてしまう。
+1826,Webアプリ大ピンチ,39,J,APIの返却結果が読めない,I can't parse the API response.,JSON,engineer,APIのやり取りでよく使われるデータ形式が「JSON」。形式が崩れていたり想定と違う構造だと、受け取った結果を正しく読み取れない。
+1827,Webアプリ大ピンチ,40,A,画面はあるのにデータだけ取れない,The page loads but no data comes back.,AJAX,engineer,画面全体を再読み込みせずに裏側でサーバーと通信してデータだけ取得する仕組みが「AJAX」。この通信部分が失敗すると画面はあってもデータだけ表示されない。
+1828,Webアプリ大ピンチ,46,ば,入力したのに保存できない,The form won't save my input.,バリデーション,engineer,入力内容が条件を満たしているか事前にチェックする「バリデーション」で弾かれると、正しく入力したつもりでも保存できないことがある。
+1829,Webアプリ大ピンチ,47,れ,エラー画面しか出ない,Only an error page is displayed.,例外処理,engineer,想定外の事態が起きた際にどう振る舞うかを制御するのが「例外処理」。これが適切に行われていないと、詳細不明なエラー画面しか表示されなくなる。
+1830,Webアプリ大ピンチ,27,ろ,何が起きたのか全然分からない,I have no idea what happened.,ログ,engineer,処理の過程や発生した問題を記録として残す「ログ」が無いと、後から何が起きたのかを追跡する手がかりが得られない。
+1831,Webアプリ大ピンチ,48,す,エラーは出たけど原因が読めない,I see an error but can't identify the cause.,スタックトレース,engineer,エラーが発生するまでにどの処理を経由してきたかを順番に示すのが「スタックトレース」。これを読み解くことでエラーの発生箇所や原因を特定できる。
+1832,Webアプリ大ピンチ,28,で,調べたら動いてしまう,The bug disappears during debugging.,デバッグ,engineer,処理を1つずつ確認しながら不具合の原因を調べる「デバッグ」の最中はタイミングや環境が変わるため、本番では再現する不具合が調べている間だけ再現しなくなることがある。
+1833,Webアプリ大ピンチ,41,も,文字が全部「???」になった,All the text turned into question marks.,文字コード,engineer,文字をどのように数値へ変換するかを定めた規格が「文字コード」。送信側と受信側で扱う文字コードが一致していないと、正しく文字を表示できず「???」のような表示になる。
+1834,Webアプリ大ピンチ,35,U,日本語だけ文字化けした,Only Japanese characters are garbled.,UTF-8,engineer,多言語の文字を扱える文字コードの代表が「UTF-8」。これに統一されていないと、英数字は表示できても日本語だけ文字化けすることがある。
+1835,Webアプリ大ピンチ,29,G,最新コードを取ったら動かなくなった,Pulling the latest code broke everything.,Git,engineer,バージョン管理システムの「Git」で最新のコードを取り込んだ際、他の人の変更と自分の環境の差異が原因で動かなくなることがある。
+1836,Webアプリ大ピンチ,51,ま,同じファイルを編集して取り込めない,I can't merge because we edited the same file.,マージコンフリクト,engineer,複数人が同じファイルの同じ箇所を編集していると、Gitがどちらを採用すべきか自動で判断できず「マージコンフリクト」が発生する。
+1837,Webアプリ大ピンチ,52,C,ブラウザからだけAPIが呼べない,The API works elsewhere but not from the browser.,CORS,engineer,異なるオリジン（ドメイン等）間の通信を制限するブラウザの仕組みが「CORS」。サーバー側で許可設定がされていないと、ブラウザからのAPI呼び出しだけがブロックされる。
+1838,Webアプリ大ピンチ,55,N,SQLを1件取得するたびにSQLが増えていく,One query turns into hundreds of queries.,N+1問題,engineer,一覧を1件取得するごとに関連データを取得する追加のSQLを都度発行してしまい、件数分のSQLが積み重なってしまうのが「N+1問題」。
+1839,Webアプリ大ピンチ,53,ら,他の人が更新して保存できなかった,Someone else updated the record first.,楽観ロック,engineer,他の人が先に更新していないかをバージョン等で確認し、競合していれば保存を拒否する仕組みが「楽観ロック」。これにより古いデータでの上書きを防ぐ。
+1840,Webアプリ大ピンチ,49,に,ログイン状態なのに403になった,I'm logged in but received a 403.,認可,engineer,ログイン（認証）はできていても、その操作を行う権限があるかを判定する「認可」で弾かれると、ログイン済みでも403（アクセス拒否）になる。
 1901,Windows大ピンチ,10,C,コピーしたつもりが　できていなかった,I thought I copied it but it wasn't copied.,Ctrl+C,engineer,-
 1902,Windows大ピンチ,11,V,貼り付けたいのに　右クリックできない,I want to paste but can't use the mouse.,Ctrl+V,engineer,-
 1903,Windows大ピンチ,12,X,別の場所へ　移動したい,I want to move it somewhere else.,Ctrl+X,engineer,-
