@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.54.5",
+    "version": "1.54.6",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードで早押し発生時に管理者自身の読み上げを止める（issue [#788](https://github.com/bamiyanapp/karuta/issues/788)） ([#791](https://github.com/bamiyanapp/karuta/issues/791)) ([f5ef897](https://github.com/bamiyanapp/karuta/commit/f5ef8977a71bd4edc6891c4a7f97f5340d28c459))"
+  },
+  {
+    "version": "1.54.5",
+    "date": "2026/07/24 13:40",
     "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードの参加者側で最初の太鼓の音を再生する（issue [#786](https://github.com/bamiyanapp/karuta/issues/786)） ([#789](https://github.com/bamiyanapp/karuta/issues/789)) ([ec7e36e](https://github.com/bamiyanapp/karuta/commit/ec7e36e6931818b171e0980963c9df03d4fab0c1))"
   },
   {

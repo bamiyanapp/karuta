@@ -1,3 +1,10 @@
+## [1.54.6](https://github.com/bamiyanapp/karuta/compare/v1.54.5...v1.54.6) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会モードで早押し発生時に管理者自身の読み上げを止める（issue [#788](https://github.com/bamiyanapp/karuta/issues/788)） ([#791](https://github.com/bamiyanapp/karuta/issues/791)) ([f5ef897](https://github.com/bamiyanapp/karuta/commit/f5ef8977a71bd4edc6891c4a7f97f5340d28c459))
+
 ## [1.54.5](https://github.com/bamiyanapp/karuta/compare/v1.54.4...v1.54.5) (2026-07-24)
 
 
