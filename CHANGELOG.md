@@ -1,3 +1,10 @@
+## [1.54.5](https://github.com/bamiyanapp/karuta/compare/v1.54.4...v1.54.5) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会モードの参加者側で最初の太鼓の音を再生する（issue [#786](https://github.com/bamiyanapp/karuta/issues/786)） ([#789](https://github.com/bamiyanapp/karuta/issues/789)) ([ec7e36e](https://github.com/bamiyanapp/karuta/commit/ec7e36e6931818b171e0980963c9df03d4fab0c1))
+
 ## [1.54.4](https://github.com/bamiyanapp/karuta/compare/v1.54.3...v1.54.4) (2026-07-24)
 
 
