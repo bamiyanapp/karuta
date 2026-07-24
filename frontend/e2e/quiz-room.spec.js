@@ -282,6 +282,12 @@ test('joining with a room code that does not exist shows an immediate error inst
 // ルームを閉じた後、参加者側に「ホストによって終了されました」の案内が表示され、
 // 以後再接続を試みなくなることまで確認する
 test('admin resets participant points, then closes the room, and the participant sees a closed-by-host message (issue #615, #748)', async ({ browser }, testInfo) => {
+  // ルームを閉じる（closeRoomカスタムルート）は他のルートに比べ実行頻度が低く
+  // Lambdaコールドスタートの影響を受けやすいと考えられる（実際に2回連続のCI実行で
+  // 15秒以内にadminPage側の画面遷移が確認できずタイムアウトした）。個別timeoutの
+  // 底上げに加え、テスト全体のtimeoutも合わせて底上げする
+  test.setTimeout(120000);
+
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
@@ -339,11 +345,14 @@ test('admin resets participant points, then closes the room, and the participant
     // 管理者はquizRoomがnullになり、ルーム情報画面（このボタン自体が存在する画面）
     // から離れる。離脱後にどの画面へ遷移するか（保存済み管理者セッションの有無で
     // 「作成する」「再開する」いずれの文言になるか）はこのテストの主眼ではないため、
-    // より確実に検証できる「ルーム情報画面から離脱したこと」自体を確認する
-    await expect(adminPage.getByRole('button', { name: 'ルームを閉じる' })).not.toBeVisible({ timeout: 15000 });
+    // より確実に検証できる「ルーム情報画面から離脱したこと」自体を確認する。
+    // closeRoom処理（DynamoDBのルーム削除・全接続へのbroadcast・強制切断）の
+    // Lambdaコールドスタート分の余裕を持たせる（前回・前々回のCI実行で15秒では
+    // 不足し実際にタイムアウトした）
+    await expect(adminPage.getByRole('button', { name: 'ルームを閉じる' })).not.toBeVisible({ timeout: 45000 });
 
     // 参加者はホストによる終了を通知され、以後再接続を試みない
-    await expect(participantPage.getByText('このルームはホストによって終了されました。')).toBeVisible({ timeout: 15000 });
+    await expect(participantPage.getByText('このルームはホストによって終了されました。')).toBeVisible({ timeout: 30000 });
     await captureScreenshot(participantPage, testInfo, 'participant-room-closed-by-host', '参加者：ホストによってルームが終了されたことが通知された状態');
   } finally {
     await stopCoverage(adminPage, testInfo);
