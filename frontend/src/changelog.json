@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.52.1",
+    "version": "1.52.2",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **frontend:** カテゴリ取得の自動リトライとPWA更新プロンプトの表示位置を修正する ([#760](https://github.com/bamiyanapp/karuta/issues/760)) ([58d0aba](https://github.com/bamiyanapp/karuta/commit/58d0abafd3406a7a68461a9c3ea291040e2058dc))"
+  },
+  {
+    "version": "1.52.1",
+    "date": "2026/07/24 01:51",
     "body": "### Bug Fixes\n\n* **frontend:** 停止ボタン押下時に画面を準備完了画面へ強制的に戻さないようにする（issue [#755](https://github.com/bamiyanapp/karuta/issues/755)） ([#756](https://github.com/bamiyanapp/karuta/issues/756)) ([1b522e4](https://github.com/bamiyanapp/karuta/commit/1b522e44310d224c657255470b9fcee32b6b8ab3))"
   },
   {
