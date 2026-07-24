@@ -700,6 +700,15 @@ describe('useQuizRoomAdmin (via App)', () => {
       expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
     }, { timeout: 20000 });
 
+    // issue #781: 参加者へのブロードキャストが管理者自身のイントロ音声＋3秒待ち＋
+    // フェード演出より前に発生するようになったため、上のブロードキャスト到達を
+    // 待つだけでは読み上げ演出がまだ完了していない。「次の札」ボタンは残り1枚
+    // （最後の1枚）を読み上げている間disabledになる（issue #721）ため、
+    // 実際のユーザーと同様にボタンが再度押せる状態になるまで待ってから押す
+    await waitFor(() => {
+      expect(screen.getByText('次の札')).not.toBeDisabled();
+    }, { timeout: 20000 });
+
     // もう一度「次の札」を押すと、未読の札が無いため全て読了したと判定される
     fireEvent.click(screen.getByText('次の札'));
 

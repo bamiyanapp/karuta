@@ -33,6 +33,11 @@ export function useKarutaReading({
   isMultiCategorySelection,
 }) {
   const [currentPhrase, setCurrentPhrase] = useState(null);
+  // クイズ大会モード（issue #781）: 参加者への「次の札」ブロードキャストを、管理者自身の
+  // 画面演出（イントロ音声＋3秒待ち＋フェード）を待たずに行えるよう、その演出が始まる前の
+  // 時点（currentPhraseの更新と同時）で確定する値を別途保持する。displayContentの更新を
+  // 待つと、演出時間の分だけ参加者側の表示が管理者より遅れてしまっていた
+  const [broadcastPhrase, setBroadcastPhrase] = useState(null);
   const [displayContent, setDisplayContent] = useState({ type: "initial" });
   const [isFadingOut, setIsFadingOut] = useState(false);
   const nextContentRef = useRef(null);
@@ -171,6 +176,15 @@ export function useKarutaReading({
       if (phraseData) {
         // 読み上げ開始タイミングで計測開始（リピート再生時は計測中の開始点を上書きしない）
         startTimeRef.current = Date.now();
+
+        // クイズ大会モード（issue #781）: 参加者へのブロードキャストはここ（本編読み上げ・
+        // 経過時間計測の開始と同時）で確定する。setCurrentPhraseと同時（イントロ音声より前）
+        // に確定すると、revealCurrentResult()がstartTimeRef.currentを前提にしている
+        // （未設定なら早押し正解の即時結果確定が無視される）ため、参加者がイントロ音声の
+        // 再生中に早押しした場合に正解処理が効かなくなってしまう。startTimeRef.currentの
+        // 設定と同じタイミングにすることで、ブロードキャストを受け取った時点では常に
+        // 経過時間計測が開始済みであることを保証する
+        setBroadcastPhrase({ content: phraseData, playbackSettings });
 
         if (flipTimeoutRef.current) {
           clearTimeout(flipTimeoutRef.current);
@@ -465,6 +479,7 @@ export function useKarutaReading({
   // 必要な、このhookが持つ読み上げ進行状態のリセット
   const resetReadingState = () => {
     setCurrentPhrase(null);
+    setBroadcastPhrase(null);
     setDisplayContent({ type: "initial" });
     setIsAllRead(false);
     setIsFadingOut(false);
@@ -472,6 +487,7 @@ export function useKarutaReading({
 
   return {
     currentPhrase,
+    broadcastPhrase,
     displayContent,
     isFadingOut,
     isReading,

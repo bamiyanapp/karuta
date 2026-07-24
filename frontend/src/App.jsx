@@ -142,6 +142,7 @@ function App() {
   // useKarutaReadingへ切り出した（issue #607）
   const {
     currentPhrase,
+    broadcastPhrase,
     displayContent,
     isFadingOut,
     isReading,
@@ -539,6 +540,7 @@ function App() {
     view,
     selectedCategories,
     displayContent,
+    broadcastPhrase,
     isAllRead,
     repeatCount,
     speechRate,

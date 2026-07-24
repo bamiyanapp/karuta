@@ -49,6 +49,7 @@ export function useQuizRoomAdmin({
   view,
   selectedCategories,
   displayContent,
+  broadcastPhrase,
   isAllRead,
   repeatCount,
   speechRate,
@@ -223,51 +224,59 @@ export function useQuizRoomAdmin({
   };
 
   // 早押し機能（issue #510）: 新しい札が出題されたら、前のラウンドの回答者表示をリセット
-  // する（サーバー側もこの同じタイミングで早押し状態をリセットしている）。ラウンドキーで
-  // 判定するのは、設定変更等で同じ札が再ブロードキャストされた際に既に記録済みの回答者
-  // 表示を誤って消さないようにするため（resultの間はリセットしない）。
+  // する（サーバー側もこの同じタイミングで早押し状態をリセットしている）。
+  // issue #781: ラウンドキーの確定はdisplayContentではなくbroadcastPhrase（管理者自身の
+  // 画面演出より前に確定する値）を基準にする。これにより、管理者の画面がまだ演出中でも
+  // 参加者は新しい札に対して早押しできるようになる（下のブロードキャストと同じタイミング）。
+  // broadcastPhraseは次の札が出題されるたびに更新され、resetReadingState（ゲームリセット・
+  // カテゴリ選び直し）でnullへ戻るため、これだけでresult表示中の保持・リセット時のクリアの
+  // 両方が自然に成り立つ（displayContentの型を個別に見る必要がない）
   // レンダー中のstate調整パターン（QuizRoomView.jsxのbuzzRoundKey判定と同じ考え方）で、
   // 副作用を伴わないstate更新はuseEffectを介さずレンダー中に直接行う
   // （react-hooks/set-state-in-effect対策）
-  let nextQuizRoomBuzzRoundKey = quizRoomBuzzRoundKey;
-  if (quizRoom) {
-    if (displayContent.type === "phrase" && displayContent.content) {
-      nextQuizRoomBuzzRoundKey = `${displayContent.content.category}:${displayContent.content.id}`;
-    } else if (displayContent.type !== "result") {
-      nextQuizRoomBuzzRoundKey = null;
-    }
-  }
+  const nextQuizRoomBuzzRoundKey = quizRoom && broadcastPhrase
+    ? `${broadcastPhrase.content.category}:${broadcastPhrase.content.id}`
+    : null;
   if (nextQuizRoomBuzzRoundKey !== quizRoomBuzzRoundKey) {
     setQuizRoomBuzzRoundKey(nextQuizRoomBuzzRoundKey);
     setQuizRoomBuzzedBy(null);
   }
 
-  // 表示中の札・結果画面が変わるたびクイズ大会モードの参加者へ状態をブロードキャストする。
-  // audioData等の重量級フィールドは送らず、表示に必要な項目だけを抜き出す
-  // （サーバー側の状態サイズ上限にも抵触しないようにする）
+  // 次の札のブロードキャスト（issue #781）: 管理者自身の画面演出（イントロ音声＋3秒待ち＋
+  // フェード、useKarutaReading.js）を待たず、次の札が確定した時点（broadcastPhraseの
+  // 更新）で参加者へ先行してブロードキャストする。以前はdisplayContentの更新（演出完了後）
+  // を待っていたため、その分だけ参加者側の表示が管理者より遅れていた
   useEffect(() => {
-    if (!quizRoom) {
+    if (!quizRoom || !broadcastPhrase) {
       return;
     }
-    if (displayContent.type === "phrase" && displayContent.content) {
-      const p = displayContent.content;
-      // 読み上げ設定（issue #498）は、ブロードキャスト時点の最新設定ではなく、この札の
-      // 音声を実際に取得した時点の設定（playbackSettings）を使う。読み上げ開始まで数秒の
-      // 遅延があり、その間に管理者が設定を変更すると、最新設定を読んでしまうと「管理者が
-      // 実際に聞いている音声」とズレるため
-      const settings = displayContent.playbackSettings
-        ?? { repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection };
-      broadcastQuizRoomState({
-        type: "phrase",
-        content: {
-          // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
-          // 同じ札の音声を取得・再生できるようにするため
-          id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer,
-          repeatCount: settings.repeatCount, speechRate: settings.speechRate, lang: settings.lang,
-          voiceId: settings.voiceId, announceCategory: settings.announceCategory,
-        },
-      });
-    } else if (displayContent.type === "result" && displayContent.content) {
+    const p = broadcastPhrase.content;
+    // 読み上げ設定（issue #498）は、ブロードキャスト時点の最新設定ではなく、この札の
+    // 音声を実際に取得した時点の設定（playbackSettings）を使う。読み上げ開始まで数秒の
+    // 遅延があり、その間に管理者が設定を変更すると、最新設定を読んでしまうと「管理者が
+    // 実際に聞いている音声」とズレるため
+    const settings = broadcastPhrase.playbackSettings
+      ?? { repeatCount, speechRate, lang, voiceId, announceCategory: isMultiCategorySelection };
+    broadcastQuizRoomState({
+      type: "phrase",
+      content: {
+        // idを含めるのは、参加者側（issue #490）が自分自身で/get-phraseを呼び直し、
+        // 同じ札の音声を取得・再生できるようにするため
+        id: p.id, category: p.category, kana: p.kana, phrase: p.phrase, level: p.level, answer: p.answer,
+        repeatCount: settings.repeatCount, speechRate: settings.speechRate, lang: settings.lang,
+        voiceId: settings.voiceId, announceCategory: settings.announceCategory,
+      },
+    });
+  }, [quizRoom, broadcastPhrase, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+
+  // 結果画面・準備画面への切り替わりをクイズ大会モードの参加者へブロードキャストする。
+  // 「次の札」への切り替わり（"phrase"）は上のbroadcastPhrase側で既により早いタイミングで
+  // 処理済みのため、ここでは扱わない
+  useEffect(() => {
+    if (!quizRoom || displayContent.type === "phrase") {
+      return;
+    }
+    if (displayContent.type === "result" && displayContent.content) {
       const r = displayContent.content;
       broadcastQuizRoomState({
         type: "result",
@@ -283,7 +292,7 @@ export function useQuizRoomAdmin({
     } else {
       broadcastQuizRoomState({ type: "initial" });
     }
-  }, [quizRoom, displayContent, isAllRead, broadcastQuizRoomState, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+  }, [quizRoom, displayContent, isAllRead, broadcastQuizRoomState]);
 
   // クイズ大会モード（issue #470）: 通常のかるた読み上げ画面のフッターから直接ルームを作成する
   const createQuizRoom = async () => {
