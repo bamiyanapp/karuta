@@ -55,10 +55,15 @@ provider:
             - s3:GetObject
           Resource: !Sub "${EfudaPdfBucket.Arn}/*"
         - Effect: Allow # 追加（クイズ大会モード: ルーム・接続情報の読み書き、issue #489: トップページの一覧表示用にScanを追加）
+          # DeleteItemはissue #748の「ルームを閉じる」（closeQuizRoom）がルームレコードを
+          # 削除するために必要。issue #576のE2E追加で判明: この権限が漏れていたため、
+          # closeQuizRoomのDeleteCommandがAccessDeniedExceptionで失敗し、参加者・管理者の
+          # どちらもroomClosedの配信を受け取れずルームを閉じる操作全体が無反応になっていた
           Action:
             - dynamodb:GetItem
             - dynamodb:PutItem
             - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
             - dynamodb:Scan
           Resource:
             - !GetAtt QuizRoomsTable.Arn

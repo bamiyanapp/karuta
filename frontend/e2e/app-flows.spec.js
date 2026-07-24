@@ -165,6 +165,83 @@ test('engineer division: selects multiple categories, then prints combined efuda
   }
 });
 
+// issue #576対応: 設定フッター（テーマ・言語・声・順番・スピード・回数）、
+// 「取った人を記録する」参加者登録・スコア集計（issue #518）、これまでに読み上げた札の
+// 履歴表示（issue #548）、「もう一度」「停止」ボタンは、これまでのE2Eテストがいずれも
+// こども向けdivision（参加者登録UIが表示されない）か早押し判定フローの検証に終始しており
+// カバーできていなかった。エンジニア向けdivisionの単一カテゴリ選択で到達し、一連の
+// 操作をまとめて検証する
+test('engineer division: toggles settings, records a taker, views history, and uses repeat/stop (issue #576)', async ({ browser }, testInfo) => {
+  // 個別のtoBeVisible等のtimeout合計がグローバルの60秒を超えうる
+  // （Pollyコールドスタート待ち45秒+30秒 他）ため、テスト全体のtimeoutを底上げする
+  test.setTimeout(120000);
+
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await startCoverage(page);
+
+  try {
+    await page.goto('/');
+    await page.getByText('エンジニア向け').click();
+    await page.getByRole('button', { name: /Git大ピンチ/ }).click();
+    await page.getByRole('button', { name: 'かるたを始める' }).click();
+
+    const nextButton = page.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+
+    // 設定フッター（純粋な表示上のstate切り替えのみで、通信を伴わないもの）
+    await page.getByRole('button', { name: 'ダーク' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
+    await page.getByRole('button', { name: '難しい' }).click();
+    await page.getByRole('button', { name: 'ゆっくり' }).click();
+    await page.getByRole('button', { name: '2回' }).click();
+
+    // 参加者登録（issue #518）: division !== "kids" の場合のみ表示される
+    await page.getByText('取った人を記録する').click();
+    await page.getByPlaceholder('名前を入力').fill('けんじ');
+    await page.getByRole('button', { name: '追加', exact: true }).click();
+    await expect(page.getByText('けんじ', { exact: true })).toBeVisible();
+    await captureScreenshot(page, testInfo, 'player-registration', '参加者登録：1名登録した状態');
+
+    await nextButton.click();
+    // 他のカテゴリより実行頻度が低くPollyキャッシュがコールドになりやすいため
+    // （前回のCI実行で30秒では不足し実際にタイムアウトした）、余裕を持たせる
+    await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 45000 });
+
+    // 取った人を記録する（表示中の札に対して）。exact: trueを指定しないと、
+    // 参加者登録パネルの削除ボタン（aria-label="けんじを削除"）にも部分一致してしまい、
+    // 2要素にマッチしてstrict mode violationになる
+    await page.getByRole('button', { name: 'けんじ', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'けんじ', exact: true })).toHaveClass(/btn-dark/);
+    await captureScreenshot(page, testInfo, 'taker-recorded', '「取った人」としてけんじを記録した状態');
+
+    // もう一度（repeatPhrase）: 読み札カードをクリックして再生をキューに積む
+    await page.locator('.yomifuda').click();
+
+    // 停止（stopReading）: 読み上げ中に押しても画面が変わらないことを確認する
+    // （issue #755）。もう一度再生分の読み上げが始まっているタイミングで押す
+    const stopButton = page.getByRole('button', { name: '停止' });
+    await expect(stopButton).toBeEnabled({ timeout: 15000 });
+    await stopButton.click();
+    await expect(page.locator('.yomifuda-phrase')).toBeVisible();
+    // 次の操作前に、停止処理が完全に完了する（isReadingがfalseに戻る）のを待つ
+    await expect(stopButton).toBeDisabled({ timeout: 15000 });
+
+    // 次の札へ進めてから、これまでに読み上げた札の履歴を確認する。
+    // 直前の「停止」がstartTimeRefをリセットする（issue #755のコメント参照）ため、
+    // この遷移では結果画面（所要時間）を経由せず直接次の札へ進む
+    await nextButton.click();
+    await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+    await page.getByText(/これまでに読み上げた札を表示する/).click();
+    await expect(page.getByRole('heading', { name: 'これまでに読み上げた札' })).toBeVisible();
+    await expect(page.locator('.list-group-item').first()).toBeVisible();
+    await captureScreenshot(page, testInfo, 'history-view', 'これまでに読み上げた札の履歴を開いた状態');
+  } finally {
+    await stopCoverage(page, testInfo);
+    await closeContext(context);
+  }
+});
+
 // issue #474/#576対応: PrintEfudaViewの取得失敗・再試行の分岐は新規追加時点で
 // E2Eの実カバレッジが無かったため、page.routeでget-phrases-listを意図的に失敗
 // させて検証する（本番バックエンドを実際に落とすわけではなく、ブラウザ側の
