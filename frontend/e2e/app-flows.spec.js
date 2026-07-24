@@ -172,6 +172,10 @@ test('engineer division: selects multiple categories, then prints combined efuda
 // カバーできていなかった。エンジニア向けdivisionの単一カテゴリ選択で到達し、一連の
 // 操作をまとめて検証する
 test('engineer division: toggles settings, records a taker, views history, and uses repeat/stop (issue #576)', async ({ browser }, testInfo) => {
+  // 個別のtoBeVisible等のtimeout合計がグローバルの60秒を超えうる
+  // （Pollyコールドスタート待ち45秒+30秒 他）ため、テスト全体のtimeoutを底上げする
+  test.setTimeout(120000);
+
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
@@ -200,7 +204,9 @@ test('engineer division: toggles settings, records a taker, views history, and u
     await captureScreenshot(page, testInfo, 'player-registration', '参加者登録：1名登録した状態');
 
     await nextButton.click();
-    await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+    // 他のカテゴリより実行頻度が低くPollyキャッシュがコールドになりやすいため
+    // （前回のCI実行で30秒では不足し実際にタイムアウトした）、余裕を持たせる
+    await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 45000 });
 
     // 取った人を記録する（表示中の札に対して）。exact: trueを指定しないと、
     // 参加者登録パネルの削除ボタン（aria-label="けんじを削除"）にも部分一致してしまい、
