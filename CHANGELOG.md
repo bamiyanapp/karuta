@@ -1,3 +1,10 @@
+## [1.54.3](https://github.com/bamiyanapp/karuta/compare/v1.54.2...v1.54.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** クイズ大会モードの札めくりブロードキャストを早める（issue [#781](https://github.com/bamiyanapp/karuta/issues/781)） ([#783](https://github.com/bamiyanapp/karuta/issues/783)) ([80707f7](https://github.com/bamiyanapp/karuta/commit/80707f7bfc7369f4939f03edee44c658659a57ba)), closes [#600](https://github.com/bamiyanapp/karuta/issues/600) [#501](https://github.com/bamiyanapp/karuta/issues/501) [#695](https://github.com/bamiyanapp/karuta/issues/695)
+
 ## [1.54.2](https://github.com/bamiyanapp/karuta/compare/v1.54.1...v1.54.2) (2026-07-24)
 
 
