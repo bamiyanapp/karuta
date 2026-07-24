@@ -1,3 +1,10 @@
+## [1.54.7](https://github.com/bamiyanapp/karuta/compare/v1.54.6...v1.54.7) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** 参加者側で太鼓の音と読み上げが重ならないよう、太鼓の後に読み上げを開始する（issue [#796](https://github.com/bamiyanapp/karuta/issues/796)） ([#797](https://github.com/bamiyanapp/karuta/issues/797)) ([0f20c71](https://github.com/bamiyanapp/karuta/commit/0f20c7126b1b20917ae9261453c124a2d04f45b4))
+
 ## [1.54.6](https://github.com/bamiyanapp/karuta/compare/v1.54.5...v1.54.6) (2026-07-24)
 
 
