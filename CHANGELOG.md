@@ -1,3 +1,10 @@
+## [1.52.3](https://github.com/bamiyanapp/karuta/compare/v1.52.2...v1.52.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* /get-phraseのexplanation欠落を修正し、全札一覧の解説列を削除する（issue [#763](https://github.com/bamiyanapp/karuta/issues/763)） ([#765](https://github.com/bamiyanapp/karuta/issues/765)) ([dc9fdda](https://github.com/bamiyanapp/karuta/commit/dc9fddaf8fc1c0ef1be100f59d9a926ce12cd059))
+
 ## [1.52.2](https://github.com/bamiyanapp/karuta/compare/v1.52.1...v1.52.2) (2026-07-24)
 
 
