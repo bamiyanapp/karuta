@@ -23,7 +23,7 @@
     },
     {
       "matchPackageNames": ["osls"],
-      "allowedVersions": "<4.0.0",
+      "allowedVersions": ">=3.0.0 <4.0.0",
       "description": "Serverless Framework v4以降はCLI起動時にSaaSへのサインインが必須になりCIでのデプロイが失敗するため、サインイン不要なOSSフォークosls（oss-serverless/serverless、issue #611）へ移行した。osls自体もv4系はServerless Framework v4向けの破壊的変更を含むため、serverless.ymlがv3形式のままの間はosls v3系（ドロップイン互換）に固定する"
     },
     {
