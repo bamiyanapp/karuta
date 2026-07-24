@@ -20,8 +20,8 @@ let sharedAudio = null;
 // issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）は、読み上げ音声
 // （sharedAudio）が再生中でも同時に鳴らす必要があるため、sharedAudioとは別に
 // 名前ごとの共有<audio>要素を持つ（同じ理由でシングルトン・解錠が必要）。
-// "intro"は参加者側のイントロ音（太鼓の音、issue #786）用。同じ理由（読み札本編の
-// 音声取得・再生と重なっても止めずに鳴らしたい、fire-and-forgetで使う）でここに含める
+// "intro"は参加者側のイントロ音（太鼓の音、issue #786）用。sharedAudio（本編音声）とは
+// 別の要素が必要な理由は同じ（本編音声の取得と並行して鳴らしたいため、issue #796）
 const sharedSfxAudio = {};
 const QUIZ_SFX_NAMES = ["buzz", "correct", "incorrect", "intro"];
 
@@ -74,12 +74,38 @@ export function stopSharedAudio() {
 }
 
 // issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）を再生する。
-// nameは"buzz"|"correct"|"incorrect"のいずれか
+// nameは"buzz"|"correct"|"incorrect"|"intro"のいずれか
 export function playQuizSfx(name, src) {
   const audio = getSharedSfxAudio(name);
   audio.pause();
   audio.src = src;
   return audio.play();
+}
+
+// issue #796: イントロ音（太鼓の音）の再生完了を待てるバージョン。play()が返す
+// Promiseは再生「開始」時点で解決されるため（完了を待つには別途onendedの監視が必要、
+// useKarutaReading.jsのplayAudioと同じ理由）、参加者側で「太鼓の音の後に読み上げを
+// 始める」（管理者側と同じ順序にする）ために使う。onended/onerrorのどちらも発火せず
+// ハングする環境向けに、上限時間で強制的に諦めて先へ進める（同じ理由でuseKarutaReading.js
+// のplayAudioにも上限時間がある。太鼓の音は短い効果音のため、本編音声用の15秒より
+// 短い上限にする）
+const INTRO_SFX_TIMEOUT_MS = 5000;
+export function playQuizSfxAndWait(name, src) {
+  const audio = getSharedSfxAudio(name);
+  audio.pause();
+  audio.src = src;
+  return new Promise((resolve) => {
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      resolve();
+    };
+    const timeoutId = setTimeout(settle, INTRO_SFX_TIMEOUT_MS);
+    audio.onended = settle;
+    audio.play().catch(settle);
+  });
 }
 
 // テスト専用: モジュールスコープのシングルトンをテスト間で共有してしまわないようにリセットする

@@ -106,7 +106,18 @@ let audioPlayImpl = () => Promise.resolve();
 // App.test.jsxと同様の理由でアロー関数ではなく通常の関数式を使う（newで呼び出すため）
 window.Audio = vi.fn().mockImplementation(function (src) {
   this.src = src;
-  this.play = vi.fn(() => audioPlayImpl());
+  this.play = vi.fn(() => {
+    const result = audioPlayImpl();
+    // issue #796: playQuizSfxAndWait（audioUnlock.js）はonendedの発火を待って解決する。
+    // 実際のHTMLAudioElementは再生開始（play()の解決）後、再生し終えてからended相当が
+    // 発火するが、テストでは再生時間を待てないため、play()の解決に続けて即座にonendedも
+    // 発火させて模倣する。onendedはこの呼び出し時点のものを束縛しておく（このplay()より後に
+    // 別の再生でonendedが上書きされても、この再生自身の完了通知が新しい方を誤って
+    // 呼んでしまわないようにするため）
+    const onendedAtCallTime = this.onended;
+    result.then(() => onendedAtCallTime?.()).catch(() => {});
+    return result;
+  });
   this.pause = vi.fn();
   audioInstances.push(this);
 });
@@ -967,6 +978,46 @@ describe('QuizRoomView', () => {
       emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
 
       expect(audioInstances.find((a) => a.src === 'wadodon.mp3')).toBeUndefined();
+    });
+
+    it('waits for the intro sound to finish before starting the narration, instead of playing them at the same time (issue #796)', async () => {
+      fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,NEWDATA' }) });
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+      confirmName();
+
+      // 「決定」ボタンのクリックによる解錠（unlockAudioPlayback）はここまでの
+      // デフォルトのaudioPlayImplで解決済み。ここから先、太鼓の音の再生完了を
+      // 手動で制御できるようにする
+      let resolveIntroPlayback;
+      audioPlayImpl = () => new Promise((resolve) => { resolveIntroPlayback = resolve; });
+
+      emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+      const narrationAudio = audioInstances[0];
+      const introAudio = audioInstances.find((a) => a.src === 'wadodon.mp3');
+      expect(introAudio).toBeDefined();
+
+      // フレーズ取得（/get-phrase）自体は太鼓の音の再生と並行して進む
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(audioFetchCalls().length).toBeGreaterThan(0);
+      // 太鼓の音がまだ鳴り終わっていないため、読み上げ本編（narrationAudio）はまだ
+      // 差し替わっていない（解錠時の無音データのまま）
+      expect(narrationAudio.src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+
+      // 太鼓の音の再生完了（onended相当）を発火させる
+      await act(async () => {
+        resolveIntroPlayback();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(narrationAudio.src).toBe('data:audio/mp3;base64,NEWDATA');
     });
   });
 });

@@ -1262,7 +1262,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     // 別々のAudioインスタンスを使っていると、解錠の効果が実際の再生に及ばずSafari等で
     // ブロックされ続けてしまう
     const participantWs = MockWebSocket.instances[MockWebSocket.instances.length - 1];
-    await act(async () => {
+    act(() => {
       participantWs.onmessage?.({
         data: JSON.stringify({
           type: 'state',
@@ -1270,11 +1270,14 @@ describe('useQuizRoomAdmin (via App)', () => {
           role: 'participant',
         }),
       });
-      await Promise.resolve();
-      await Promise.resolve();
     });
 
-    expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
+    // issue #796: 読み上げ本編の再生は太鼓の音の再生完了（onended）を待ってから始まる。
+    // このモックのonendedは`set src`内のsetTimeout(0)を2段（oncanplaythrough確認→onended）
+    // 経て発火する実タイマーのため、固定時間のawaitではなくwaitForで待つ
+    await waitFor(() => {
+      expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
+    }, { timeout: 10000 });
     // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
     // （issue #613, #786）で計5要素
     expect(window.Audio).toHaveBeenCalledTimes(5);
