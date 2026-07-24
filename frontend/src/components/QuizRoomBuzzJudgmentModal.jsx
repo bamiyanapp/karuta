@@ -4,6 +4,11 @@
 // 描画されず、参加者が早押ししても管理者が気づけない不具合があった（issue #613）。
 // ゲーム画面・ルーム情報画面の両方から共通で呼び出せるよう、独立したコンポーネントへ
 // 切り出した
+// issue #782: 解説文（explanation）が長い場合、スマートフォンの縦画面のような
+// 狭いビューポートではモーダル全体の高さが画面をはみ出し、内容が読めなくなったり
+// ボタンが隠れてしまうことがあった。Bootstrapの`modal-dialog-scrollable`を付与し、
+// モーダルの高さをビューポート内に収めたうえで、内容が収まらない場合は
+// `.modal-body`内でスクロールできるようにする
 function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, explanation, onJudge }) {
   if (!buzzedBy) {
     return null;
@@ -11,7 +16,7 @@ function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, explanation, onJudge }) {
 
   return (
     <div className="modal fade show d-block modal-overlay" tabIndex="-1">
-      <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content rounded-4 border-0 shadow">
           <div className="modal-body p-5 text-center">
             <h3 className="h5 mb-4 fw-bold">🔔 {buzzedBy.name} さんが回答中</h3>
