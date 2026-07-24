@@ -100,8 +100,6 @@ function App() {
   const [lang, setLang] = useLocalStorageState("lang", "ja");
   const [voiceId, setVoiceId] = useLocalStorageState("voiceId", "Mizuki");
   const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
-  const [autoAdvance, setAutoAdvance] = useLocalStorageState("autoAdvance", false, (v) => v === "true");
-  const [autoAdvanceInterval, setAutoAdvanceInterval] = useLocalStorageState("autoAdvanceInterval", 10, (v) => parseInt(v, 10));
   const [themeSetting, setThemeSetting] = useLocalStorageState("theme", "system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -132,7 +130,6 @@ function App() {
   const currentAudioRef = useRef(null);
   const stopRequestedRef = useRef(false);
   const prefetchedNextRef = useRef(null);
-  const autoAdvanceTimeoutRef = useRef(null);
   // 「次の札」連打対策（issue #590）: loadingは処理の後半（フェードアウト待ち完了後）に
   // ならないとtrueにならず、押下直後の連打を防げないため、押下と同時に同期的に
   // 立てられる再入防止用のrefを別途持つ
@@ -500,11 +497,11 @@ function App() {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioData);
       let settled = false;
-      // モバイルブラウザでは、ユーザー操作を伴わない呼び出し（自動で次への
-      // setTimeout起点）でaudio.play()のPromiseが拒否も解決もされないまま
-      // 待機し続けることがある（issue #729）。onended/onerrorのどちらも発火せず
-      // ハングすると、これを直列でawaitしている読み上げ進行全体（次の札の表示・
-      // 読み上げ）が永久に止まってしまうため、上限時間で強制的に諦めて先へ進める。
+      // モバイルブラウザ等の環境によっては、audio.play()のPromiseが拒否も解決も
+      // されないまま待機し続けることがある（issue #729）。onended/onerrorの
+      // どちらも発火せずハングすると、これを直列でawaitしている読み上げ進行全体
+      // （次の札の表示・読み上げ）が永久に止まってしまうため、上限時間で強制的に
+      // 諦めて先へ進める。
       // stopReading()がcurrentAudioRef.current.resolve()を直接呼ぶ経路も
       // このsettleResolve経由にし、タイマー解除とsettledフラグを確実に揃える
       const AUDIO_TIMEOUT_MS = 15000;
@@ -834,56 +831,6 @@ function App() {
       playKarutaInFlightRef.current = false;
     }
   };
-
-  // 自動読み上げモード：札の読み上げが完了し「次の札」を待っている状態
-  // （手動なら次の札ボタンを押すタイミング）で一定時間経過したら自動で次へ進む。
-  // このアプリでは「次の札」への1回の操作が、直前の札の結果表示と次の札の
-  // 読み上げ開始を両方まとめて行う設計になっているため、result表示中ではなく
-  // 直前の札のphrase表示中（読み上げ完了後の待機状態）を起点にする。
-  useEffect(() => {
-    if (autoAdvanceTimeoutRef.current) {
-      clearTimeout(autoAdvanceTimeoutRef.current);
-      autoAdvanceTimeoutRef.current = null;
-    }
-
-    if (!autoAdvance || isAllRead || isReading || loading || displayContent.type !== "phrase") {
-      return;
-    }
-
-    autoAdvanceTimeoutRef.current = setTimeout(() => {
-      autoAdvanceTimeoutRef.current = null;
-      playKaruta();
-    }, autoAdvanceInterval * 1000);
-
-    return () => {
-      if (autoAdvanceTimeoutRef.current) {
-        clearTimeout(autoAdvanceTimeoutRef.current);
-        autoAdvanceTimeoutRef.current = null;
-      }
-    };
-    // playKarutaは毎レンダーで再生成される関数であり、選択カテゴリや読み上げ設定
-    // （sortOrder/repeatCount/speechRate/lang等）をクロージャで参照している。
-    // playKaruta自体を依存配列に含めると無関係な再レンダーでもタイマーが
-    // 再設定されてしまうため、代わりにplayKarutaが参照する状態を依存配列に
-    // 列挙する（プリフェッチ用useEffectと同じ考え方）。これにより待機中に
-    // 設定が変わった場合も最新の設定でタイマーが張り直される
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    autoAdvance,
-    autoAdvanceInterval,
-    displayContent,
-    isReading,
-    loading,
-    isAllRead,
-    selectedCategories,
-    allPhrasesForCategory,
-    currentHistory,
-    sortOrder,
-    repeatCount,
-    speechRate,
-    lang,
-    isMultiCategorySelection,
-  ]);
 
   const repeatPhrase = async () => {
     const target = detailPhrase || currentPhrase;
@@ -1622,26 +1569,12 @@ function App() {
               <button onClick={() => setSpeechRate("100%")} className={`btn ${speechRate === "100%" ? 'btn-dark' : 'btn-outline-dark'}`}>はやい</button>
             </div>
           </div>
-          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
+          <div className="d-flex align-items-center justify-content-center gap-3">
             <span className="fw-bold text-dark small">回数:</span>
             <div className="btn-group btn-group-sm" role="group">
               <button onClick={() => setRepeatCount(1)} className={`btn ${repeatCount === 1 ? 'btn-dark' : 'btn-outline-dark'}`}>1回</button>
               <button onClick={() => setRepeatCount(2)} className={`btn ${repeatCount === 2 ? 'btn-dark' : 'btn-outline-dark'}`}>2回</button>
             </div>
-          </div>
-          <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap">
-            <span className="fw-bold text-dark small">自動で次へ:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setAutoAdvance(false)} className={`btn ${!autoAdvance ? 'btn-dark' : 'btn-outline-dark'}`}>オフ</button>
-              <button onClick={() => setAutoAdvance(true)} className={`btn ${autoAdvance ? 'btn-dark' : 'btn-outline-dark'}`}>オン</button>
-            </div>
-            {autoAdvance && (
-              <div className="btn-group btn-group-sm" role="group">
-                <button onClick={() => setAutoAdvanceInterval(10)} className={`btn ${autoAdvanceInterval === 10 ? 'btn-dark' : 'btn-outline-dark'}`}>10秒</button>
-                <button onClick={() => setAutoAdvanceInterval(20)} className={`btn ${autoAdvanceInterval === 20 ? 'btn-dark' : 'btn-outline-dark'}`}>20秒</button>
-                <button onClick={() => setAutoAdvanceInterval(30)} className={`btn ${autoAdvanceInterval === 30 ? 'btn-dark' : 'btn-outline-dark'}`}>30秒</button>
-              </div>
-            )}
           </div>
         </section>
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
