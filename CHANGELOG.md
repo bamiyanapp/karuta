@@ -1,3 +1,10 @@
+# [1.53.0](https://github.com/bamiyanapp/karuta/compare/v1.52.3...v1.53.0) (2026-07-24)
+
+
+### Features
+
+* セキュリティ・Webアプリ・Java・Gitのかるたに解説データを追加する（issue [#764](https://github.com/bamiyanapp/karuta/issues/764)） ([#767](https://github.com/bamiyanapp/karuta/issues/767)) ([112b3aa](https://github.com/bamiyanapp/karuta/commit/112b3aa7980edaa9f0f4365c211c4b3804d126c1))
+
 ## [1.52.3](https://github.com/bamiyanapp/karuta/compare/v1.52.2...v1.52.3) (2026-07-24)
 
 
