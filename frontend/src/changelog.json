@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.54.0",
+    "version": "1.54.1",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **backend:** oslsのバージョン固定ルールに下限を明示する（issue [#611](https://github.com/bamiyanapp/karuta/issues/611)） ([#775](https://github.com/bamiyanapp/karuta/issues/775)) ([fa1fabe](https://github.com/bamiyanapp/karuta/commit/fa1fabea3994b74df607fbef619b4f83ad33721c))"
+  },
+  {
+    "version": "1.54.0",
+    "date": "2026/07/24 04:59",
     "body": "### Features\n\n* **frontend:** 自動読み上げモード（自動で次へ）を廃止する（issue [#729](https://github.com/bamiyanapp/karuta/issues/729)） ([#769](https://github.com/bamiyanapp/karuta/issues/769)) ([5c5c21b](https://github.com/bamiyanapp/karuta/commit/5c5c21b2e29f236136d830b0ea228d81775c8a3f))"
   },
   {

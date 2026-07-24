@@ -1,3 +1,10 @@
+## [1.54.1](https://github.com/bamiyanapp/karuta/compare/v1.54.0...v1.54.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **backend:** oslsのバージョン固定ルールに下限を明示する（issue [#611](https://github.com/bamiyanapp/karuta/issues/611)） ([#775](https://github.com/bamiyanapp/karuta/issues/775)) ([fa1fabe](https://github.com/bamiyanapp/karuta/commit/fa1fabea3994b74df607fbef619b4f83ad33721c))
+
 # [1.54.0](https://github.com/bamiyanapp/karuta/compare/v1.53.0...v1.54.0) (2026-07-24)
 
 
