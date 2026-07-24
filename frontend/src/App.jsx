@@ -905,9 +905,11 @@ function App() {
     // 中断された読み上げの計測を、次回の記録に誤って持ち越さないようにする
     startTimeRef.current = null;
 
+    // 停止は音声・タイマーの中断のみを行い、画面表示は変更しない（issue #755）。
+    // 以前はここで表示を強制的にinitial（準備完了画面）へ戻していたが、読み上げ中の
+    // 画面を見ながら停止したユーザーが、押した瞬間に画面が切り替わってしまうのは
+    // 不適切な挙動だった
     setIsFadingOut(false);
-    nextContentRef.current = { type: "initial" };
-    setDisplayContent({ type: "initial" });
     setAudioQueue([]);
     setIsReading(false);
   };
