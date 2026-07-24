@@ -1,3 +1,10 @@
+# [1.54.0](https://github.com/bamiyanapp/karuta/compare/v1.53.0...v1.54.0) (2026-07-24)
+
+
+### Features
+
+* **frontend:** 自動読み上げモード（自動で次へ）を廃止する（issue [#729](https://github.com/bamiyanapp/karuta/issues/729)） ([#769](https://github.com/bamiyanapp/karuta/issues/769)) ([5c5c21b](https://github.com/bamiyanapp/karuta/commit/5c5c21b2e29f236136d830b0ea228d81775c8a3f))
+
 # [1.53.0](https://github.com/bamiyanapp/karuta/compare/v1.52.3...v1.53.0) (2026-07-24)
 
 
