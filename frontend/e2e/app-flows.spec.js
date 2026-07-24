@@ -202,9 +202,11 @@ test('engineer division: toggles settings, records a taker, views history, and u
     await nextButton.click();
     await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
 
-    // 取った人を記録する（表示中の札に対して）
-    await page.getByRole('button', { name: 'けんじ' }).click();
-    await expect(page.getByRole('button', { name: 'けんじ' })).toHaveClass(/btn-dark/);
+    // 取った人を記録する（表示中の札に対して）。exact: trueを指定しないと、
+    // 参加者登録パネルの削除ボタン（aria-label="けんじを削除"）にも部分一致してしまい、
+    // 2要素にマッチしてstrict mode violationになる
+    await page.getByRole('button', { name: 'けんじ', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'けんじ', exact: true })).toHaveClass(/btn-dark/);
     await captureScreenshot(page, testInfo, 'taker-recorded', '「取った人」としてけんじを記録した状態');
 
     // もう一度（repeatPhrase）: 読み札カードをクリックして再生をキューに積む
