@@ -7,9 +7,11 @@ import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useKarutaReading } from "./hooks/useKarutaReading";
+import { usePlayerScores } from "./hooks/usePlayerScores";
 import { useQuizRoomAdmin } from "./hooks/useQuizRoomAdmin";
-import { CONNECTION_STATUS_LABEL } from "./hooks/useQuizRoomSync";
 import DetailView from "./views/DetailView";
+import DivisionSelectView from "./views/DivisionSelectView";
+import CategorySelectView from "./views/CategorySelectView";
 import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
@@ -19,11 +21,10 @@ import QuizRoomInfoView from "./views/QuizRoomInfoView";
 import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
 import ResultCard from "./components/ResultCard";
 import QuizCompletionScreen from "./components/QuizCompletionScreen";
+import SettingsFooter from "./components/SettingsFooter";
+import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
-const PLAYERS_STORAGE_KEY = "players";
-const SCORES_STORAGE_KEY = "scoresByCategory";
-const MAX_PLAYERS = 6;
 
 // 絵札印刷時に選択できる合計読み札数の上限。PDF生成はバックエンド（renderEfudaPdfWorker、
 // ヘッドレスChromiumのpage.pdf()）で行うため、クライアント端末のメモリには依存しなくなった。
@@ -83,19 +84,9 @@ function App() {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
   const [historyByCategory, setHistoryByCategory] = useSessionStorageState(HISTORY_STORAGE_KEY, {});
-  const [players, setPlayers] = useSessionStorageState(PLAYERS_STORAGE_KEY, []);
-  const [newPlayerName, setNewPlayerName] = useState("");
-  // 「取った人を記録する」参加者登録は、カテゴリ確定時のモーダルではなく読み札画面の
-  // ボタンから任意に開閉する（issue #518）
-  const [showPlayerRegistration, setShowPlayerRegistration] = useState(false);
   // 「これまでに読み上げた札」一覧は、件数が増えると画面が長くなるためデフォルト非表示にし、
   // ボタンを押したときだけ開く（issue #548）
   const [showHistory, setShowHistory] = useState(false);
-  const [scoresByCategory, setScoresByCategory] = useSessionStorageState(SCORES_STORAGE_KEY, {});
-  const [currentRoundTakenBy, setCurrentRoundTakenBy] = useState(null);
-  // currentRoundTakenByのレンダー中state調整（下記）で、ラウンド切り替えを検知するための
-  // 直前値の追跡用
-  const [lastPhraseForTakenByReset, setLastPhraseForTakenByReset] = useState(null);
 
   const [draftCategories, setDraftCategories] = useState([]);
 
@@ -147,10 +138,6 @@ function App() {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
   }, [categoryKey, historyByCategory]);
 
-  const currentScores = useMemo(() => {
-    return categoryKey ? (scoresByCategory[categoryKey] || {}) : {};
-  }, [categoryKey, scoresByCategory]);
-
   // 読み上げ・札めくり進行（音声再生・タイマー・フェード演出・結果確定）は
   // useKarutaReadingへ切り出した（issue #607）
   const {
@@ -180,14 +167,22 @@ function App() {
     isMultiCategorySelection,
   });
 
-  // 読了時のスコア集計（参加者が1人以上登録されている場合のみ表示する）
-  const scoreSummary = useMemo(() => {
-    if (!isAllRead || division === "kids" || players.length === 0) return null;
-    const entries = players.map(name => ({ name, count: currentScores[name] || 0 }));
-    const maxCount = Math.max(0, ...entries.map(e => e.count));
-    const winners = maxCount > 0 ? entries.filter(e => e.count === maxCount).map(e => e.name) : [];
-    return { entries, winners };
-  }, [isAllRead, division, players, currentScores]);
+  // 「取った人を記録する」参加者登録・スコア集計（issue #518）はusePlayerScoresへ
+  // 切り出した（issue #607）
+  const {
+    players,
+    newPlayerName,
+    setNewPlayerName,
+    showPlayerRegistration,
+    setShowPlayerRegistration,
+    currentRoundTakenBy,
+    scoreSummary,
+    addPlayer,
+    removePlayer,
+    recordTaken,
+    resetCategoryScores,
+    maxPlayers,
+  } = usePlayerScores({ categoryKey, currentPhrase, isAllRead, division });
 
   // 読了時のセッションサマリー（合計所要時間・最速/最遅の札）
   const sessionSummary = useMemo(() => {
@@ -572,14 +567,6 @@ function App() {
     }
   }, [categoryLabel, detailPhraseId, detailPhrase, view]);
 
-  // ラウンドが切り替わったら「取った人」の選択状態をリセットする
-  // （もう一度再生（phraseDataなしのキュー投入）ではcurrentPhraseが変わらないため反応しない）。
-  // レンダー中のstate調整パターン（react-hooks/set-state-in-effect対策）
-  if (currentPhrase !== lastPhraseForTakenByReset) {
-    setLastPhraseForTakenByReset(currentPhrase);
-    setCurrentRoundTakenBy(null);
-  }
-
   useEffect(() => {
     document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
   }, [resolvedTheme]);
@@ -605,47 +592,8 @@ function App() {
       ...prev,
       [categoryKey]: []
     }));
-    setScoresByCategory(prev => ({
-      ...prev,
-      [categoryKey]: {}
-    }));
+    resetCategoryScores();
     resetReadingState();
-  };
-
-  const addPlayer = () => {
-    const trimmed = newPlayerName.trim();
-    if (!trimmed || players.includes(trimmed) || players.length >= MAX_PLAYERS) return;
-    setPlayers(prev => [...prev, trimmed]);
-    setNewPlayerName("");
-  };
-
-  const removePlayer = (name) => {
-    setPlayers(prev => prev.filter(p => p !== name));
-    setScoresByCategory(prev => {
-      const next = {};
-      for (const [catKey, scores] of Object.entries(prev)) {
-        const catScores = { ...scores };
-        delete catScores[name];
-        next[catKey] = catScores;
-      }
-      return next;
-    });
-  };
-
-  // 取った人を記録する（同じ人を再度タップした場合は取り消し扱いにする）
-  const recordTaken = (name) => {
-    if (!currentPhrase) return;
-    setScoresByCategory(prev => {
-      const catScores = { ...(prev[categoryKey] || {}) };
-      if (currentRoundTakenBy) {
-        catScores[currentRoundTakenBy] = Math.max(0, (catScores[currentRoundTakenBy] || 0) - 1);
-      }
-      if (name !== currentRoundTakenBy) {
-        catScores[name] = (catScores[name] || 0) + 1;
-      }
-      return { ...prev, [categoryKey]: catScores };
-    });
-    setCurrentRoundTakenBy(prev => (prev === name ? null : name));
   };
 
   const selectDivision = (div) => {
@@ -825,164 +773,31 @@ function App() {
 
   if (selectedCategories.length === 0 && !division) {
     return (
-      <div className="container py-5 mx-auto">
-        <header className="text-center mb-5">
-          <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
-          <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
-        </header>
-
-        <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-          <h2 className="h4 text-center mb-4 text-dark">どなた向けに遊びますか？</h2>
-          <div className="d-flex flex-wrap gap-3 justify-content-center">
-            <button
-              onClick={() => selectDivision("kids")}
-              className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
-            >
-              こども向け
-            </button>
-            <button
-              onClick={() => selectDivision("engineer")}
-              className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
-            >
-              エンジニア向け
-            </button>
-          </div>
-        </main>
-
-        {openQuizRooms.length > 0 && (
-          <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
-            <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
-            <div className="list-group shadow-sm rounded">
-              {openQuizRooms.map((room) => (
-                <button
-                  key={room.roomId}
-                  onClick={() => joinQuizRoom(room.roomId)}
-                  className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
-                >
-                  <span className="fw-bold notranslate">{room.roomId}</span>
-                  <span className="d-flex align-items-center gap-2">
-                    <span className={`badge rounded-pill ${
-                      room.status === "進行中" ? "text-bg-success"
-                        : room.status === "終了" ? "text-bg-dark"
-                          : "text-bg-secondary"
-                    }`}
-                    >
-                      {room.status}
-                    </span>
-                    {room.category && <span className="text-muted small notranslate">{room.category}</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="text-center mt-4">
-          <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
-            {openQuizRooms.length > 0 ? "他のクイズ大会に参加する" : "クイズ大会に参加する"}
-          </button>
-        </div>
-
-        <div className="text-center d-flex flex-column gap-2 mt-4">
-          <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
-            全札一覧を見る →
-          </button>
-          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-            指摘された内容を確認する
-          </button>
-          <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
-            更新履歴を見る
-          </button>
-        </div>
-      </div>
+      <DivisionSelectView
+        openQuizRooms={openQuizRooms}
+        joinQuizRoom={joinQuizRoom}
+        selectDivision={selectDivision}
+        setView={setView}
+      />
     );
   }
 
   if (selectedCategories.length === 0) {
     return (
-      <div className="container py-5 mx-auto">
-      <header className="text-center mb-5">
-        <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
-        <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
-      </header>
-
-      <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <div className="d-flex justify-content-start mb-3">
-          <button onClick={goBackToDivisionSelect} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-        </div>
-        <h2 className="h4 text-center mb-4 text-dark">
-          かるたの種類を選んでね{division === "engineer" ? "（複数選択可）" : ""}
-        </h2>
-        <div className="d-flex flex-wrap gap-3 justify-content-center">
-            {categories.length === 0 ? (
-              <div className="text-success fw-bold p-3">読み込み中...</div>
-            ) : categoriesForDivision.length === 0 ? (
-              <div className="text-muted p-3">このかるたはまだありません。</div>
-            ) : (
-              categoriesForDivision.map(cat => {
-                const isSelected = draftCategories.includes(cat.name);
-                // 選択済みの解除は常に可能。未選択のものだけ、追加すると上限を超える場合に無効化する
-                const wouldExceedCap = !isSelected && draftCardCount + (cat.count || 0) > MAX_EFUDA_PRINT_CARDS;
-                return (
-                  <button
-                    key={cat.name}
-                    onClick={() => toggleDraftCategory(cat.name)}
-                    disabled={wouldExceedCap}
-                    title={wouldExceedCap ? `印刷できる上限（${MAX_EFUDA_PRINT_CARDS}枚）を超えるため選択できません` : undefined}
-                    className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${isSelected ? 'selected' : ''}`}
-                    aria-pressed={isSelected}
-                  >
-                    {isSelected ? '✓ ' : ''}{cat.name}
-                  </button>
-                );
-              })
-            )}
-          </div>
-          {division === "engineer" && categoriesForDivision.length > 0 && (
-            <div className="text-center mt-4">
-              {draftCardCount > 0 && (
-                <p className="text-muted small mb-2">
-                  選択中の合計: {draftCardCount}枚 / 印刷可能な上限: {MAX_EFUDA_PRINT_CARDS}枚
-                  {draftCardCount >= MAX_EFUDA_PRINT_CARDS && "（上限に達しました）"}
-                </p>
-              )}
-              {draftCategoriesRequiringPossessionCheck.length > 0 && (
-                <p className="text-muted small mb-2">
-                  {draftCategoriesRequiringPossessionCheck.map(cat => `「${cat}」`).join("")}をお手元にご用意ください
-                </p>
-              )}
-              <div className="d-flex flex-column align-items-center gap-2">
-                <button
-                  onClick={handleDecideClick}
-                  disabled={draftCategories.length === 0}
-                  className="btn btn-success btn-lg px-5 py-2 fw-bold rounded-pill shadow"
-                >
-                  かるたを始める
-                </button>
-                <button
-                  onClick={handlePrintEfudaClick}
-                  disabled={draftCategories.length === 0}
-                  className="btn btn-outline-dark px-4 rounded-pill"
-                >
-                  絵札を印刷する
-                </button>
-              </div>
-            </div>
-          )}
-        </main>
-
-        <div className="text-center d-flex flex-column gap-2">
-          <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
-            全札一覧を見る →
-          </button>
-          <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-            指摘された内容を確認する
-          </button>
-          <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
-            更新履歴を見る
-          </button>
-        </div>
-      </div>
+      <CategorySelectView
+        division={division}
+        categories={categories}
+        categoriesForDivision={categoriesForDivision}
+        draftCategories={draftCategories}
+        draftCardCount={draftCardCount}
+        draftCategoriesRequiringPossessionCheck={draftCategoriesRequiringPossessionCheck}
+        maxEfudaPrintCards={MAX_EFUDA_PRINT_CARDS}
+        goBackToDivisionSelect={goBackToDivisionSelect}
+        toggleDraftCategory={toggleDraftCategory}
+        handleDecideClick={handleDecideClick}
+        handlePrintEfudaClick={handlePrintEfudaClick}
+        setView={setView}
+      />
     );
   }
 
@@ -1118,57 +933,20 @@ function App() {
       )}
 
       <footer className="text-center mt-5 pt-4 border-top">
-        <section className="settings-container mb-4 p-3 mx-auto shadow-sm rounded-4 bg-light border" style={{ maxWidth: "500px" }}>
-          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
-            <span className="fw-bold text-dark small">テーマ:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setThemeSetting("system")} className={`btn ${themeSetting === "system" ? 'btn-dark' : 'btn-outline-dark'}`}>自動</button>
-              <button onClick={() => setThemeSetting("light")} className={`btn ${themeSetting === "light" ? 'btn-dark' : 'btn-outline-dark'}`}>ライト</button>
-              <button onClick={() => setThemeSetting("dark")} className={`btn ${themeSetting === "dark" ? 'btn-dark' : 'btn-outline-dark'}`}>ダーク</button>
-            </div>
-          </div>
-          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
-            <span className="fw-bold text-dark small">言語:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setLang("ja")} className={`btn ${lang === "ja" ? 'btn-dark' : 'btn-outline-dark'}`}>日本語</button>
-              <button onClick={() => setLang("en")} className={`btn ${lang === "en" ? 'btn-dark' : 'btn-outline-dark'}`}>English</button>
-            </div>
-          </div>
-          {lang === "ja" && (
-            <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2 flex-wrap">
-              <span className="fw-bold text-dark small">声:</span>
-              <div className="btn-group btn-group-sm" role="group">
-                <button onClick={() => setVoiceId("Mizuki")} className={`btn ${voiceId === "Mizuki" ? 'btn-dark' : 'btn-outline-dark'}`}>Mizuki</button>
-                <button onClick={() => setVoiceId("Takumi")} className={`btn ${voiceId === "Takumi" ? 'btn-dark' : 'btn-outline-dark'}`}>Takumi</button>
-                <button onClick={() => setVoiceId("Kazuha")} className={`btn ${voiceId === "Kazuha" ? 'btn-dark' : 'btn-outline-dark'}`}>Kazuha</button>
-                <button onClick={() => setVoiceId("Tomoko")} className={`btn ${voiceId === "Tomoko" ? 'btn-dark' : 'btn-outline-dark'}`}>Tomoko</button>
-              </div>
-            </div>
-          )}
-          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
-            <span className="fw-bold text-dark small">順番:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setSortOrder("random")} className={`btn ${sortOrder === "random" ? 'btn-dark' : 'btn-outline-dark'}`}>ランダム</button>
-              <button onClick={() => setSortOrder("easy")} className={`btn ${sortOrder === "easy" ? 'btn-dark' : 'btn-outline-dark'}`}>簡単</button>
-              <button onClick={() => setSortOrder("hard")} className={`btn ${sortOrder === "hard" ? 'btn-dark' : 'btn-outline-dark'}`}>難しい</button>
-            </div>
-          </div>
-          <div className="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2">
-            <span className="fw-bold text-dark small">スピード:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setSpeechRate("70%")} className={`btn ${speechRate === "70%" ? 'btn-dark' : 'btn-outline-dark'}`}>ゆっくり</button>
-              <button onClick={() => setSpeechRate("80%")} className={`btn ${speechRate === "80%" ? 'btn-dark' : 'btn-outline-dark'}`}>ふつう</button>
-              <button onClick={() => setSpeechRate("100%")} className={`btn ${speechRate === "100%" ? 'btn-dark' : 'btn-outline-dark'}`}>はやい</button>
-            </div>
-          </div>
-          <div className="d-flex align-items-center justify-content-center gap-3">
-            <span className="fw-bold text-dark small">回数:</span>
-            <div className="btn-group btn-group-sm" role="group">
-              <button onClick={() => setRepeatCount(1)} className={`btn ${repeatCount === 1 ? 'btn-dark' : 'btn-outline-dark'}`}>1回</button>
-              <button onClick={() => setRepeatCount(2)} className={`btn ${repeatCount === 2 ? 'btn-dark' : 'btn-outline-dark'}`}>2回</button>
-            </div>
-          </div>
-        </section>
+        <SettingsFooter
+          themeSetting={themeSetting}
+          setThemeSetting={setThemeSetting}
+          lang={lang}
+          setLang={setLang}
+          voiceId={voiceId}
+          setVoiceId={setVoiceId}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          speechRate={speechRate}
+          setSpeechRate={setSpeechRate}
+          repeatCount={repeatCount}
+          setRepeatCount={setRepeatCount}
+        />
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         {division === "kids" && (
           // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
@@ -1178,121 +956,31 @@ function App() {
         )}
         <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
       </div>
-      {quizRoom ? (
-        <div className="mb-4">
-          {/* issue #614: 管理者側は従来connectionStatusを受け取ってすらおらず、
-              切断されたことが画面のどこにも表示されなかった（切断に気づかず
-              読み上げを進めると参加者に札が配信されない不具合があった）。
-              接続状態が悪い場合のみ警告として表示し、平常時は表示を増やさない */}
-          {quizRoomConnectionStatus !== "connected" && (
-            <p className="text-danger small mb-2">
-              <span>
-                クイズ大会の接続状態: {CONNECTION_STATUS_LABEL[quizRoomConnectionStatus] || quizRoomConnectionStatus}
-                （参加者に札が届いていない可能性があります）
-              </span>
-              {quizRoomConnectionStatus === "error" && (
-                <button
-                  type="button"
-                  onClick={reconnectQuizRoom}
-                  className="btn btn-sm btn-outline-danger rounded-pill ms-2"
-                >
-                  再接続
-                </button>
-              )}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => setView("quiz-room-info")}
-            className="btn btn-outline-dark px-4 rounded-pill mb-4"
-          >
-            ルーム情報を表示（クイズ大会モード）
-          </button>
-          <QuizRoomBuzzJudgmentModal
-            buzzedBy={quizRoomBuzzedBy}
-            answer={currentPhrase?.answer}
-            explanation={currentPhrase?.explanation}
-            onJudge={judgeQuizRoomBuzz}
-          />
-        </div>
-      ) : (
-        <div className="mb-4 d-flex flex-wrap gap-3 justify-content-center align-items-start">
-          <div>
-            {/* 管理者セッション復帰（issue #697）: ブラウザを閉じて読み上げ画面へ戻ってきた
-                場合でも、保存済みの管理者セッションがあれば新規作成の前に再開できるようにする
-                （issue #744: 従来はこの画面に再開の導線が無く、常に新規ルームを作ってしまっていた）。
-                再開できる場合は、誤って別の新しいルームを作ってしまわないよう、新規作成ボタン自体を
-                隠す（issue #748）。作成ボタンが必要な場合は先にルーム詳細画面から現在のルームを
-                閉じることで再開できない状態にできる（issue #748） */}
-            {adminSessionRoomId ? (
-              <button
-                type="button"
-                onClick={() => switchToAdminMode(adminSessionRoomId)}
-                disabled={isRestoringAdminSession}
-                className="btn btn-outline-dark px-4 rounded-pill"
-              >
-                {isRestoringAdminSession ? "再開中..." : "クイズ大会のルームを再開する"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={createQuizRoom}
-                disabled={creatingQuizRoom}
-                className="btn btn-outline-dark px-4 rounded-pill"
-              >
-                {creatingQuizRoom ? "作成中..." : "クイズ大会のルームを作成する"}
-              </button>
-            )}
-            {quizRoomCreateError && <p className="text-danger small">{quizRoomCreateError}</p>}
-            {adminSessionRestoreError && <p className="text-danger small">{adminSessionRestoreError}</p>}
-          </div>
-          {division !== "kids" && (
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowPlayerRegistration(prev => !prev)}
-                className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-              >
-                {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する"}
-              </button>
-              {showPlayerRegistration && (
-                <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>
-                  {players.length > 0 && (
-                    <div className="d-flex flex-wrap gap-2 mb-2">
-                      {players.map(name => (
-                        <span key={name} className="badge bg-secondary d-flex align-items-center gap-1 py-2 px-3 fs-6">
-                          {name}
-                          <button
-                            type="button"
-                            onClick={() => removePlayer(name)}
-                            className="btn-close btn-close-white"
-                            style={{ fontSize: "0.6rem" }}
-                            aria-label={`${name}を削除`}
-                          ></button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {players.length < MAX_PLAYERS && (
-                    <div className="d-flex gap-2">
-                      <input
-                        type="text"
-                        value={newPlayerName}
-                        onChange={(e) => setNewPlayerName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPlayer(); } }}
-                        placeholder="名前を入力"
-                        className="form-control"
-                        maxLength={20}
-                      />
-                      <button type="button" onClick={addPlayer} disabled={!newPlayerName.trim()} className="btn btn-outline-primary">追加</button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <QuizRoomActionsPanel
+        quizRoom={quizRoom}
+        quizRoomConnectionStatus={quizRoomConnectionStatus}
+        reconnectQuizRoom={reconnectQuizRoom}
+        setView={setView}
+        quizRoomBuzzedBy={quizRoomBuzzedBy}
+        currentPhrase={currentPhrase}
+        judgeQuizRoomBuzz={judgeQuizRoomBuzz}
+        division={division}
+        adminSessionRoomId={adminSessionRoomId}
+        isRestoringAdminSession={isRestoringAdminSession}
+        switchToAdminMode={switchToAdminMode}
+        createQuizRoom={createQuizRoom}
+        creatingQuizRoom={creatingQuizRoom}
+        quizRoomCreateError={quizRoomCreateError}
+        adminSessionRestoreError={adminSessionRestoreError}
+        showPlayerRegistration={showPlayerRegistration}
+        setShowPlayerRegistration={setShowPlayerRegistration}
+        players={players}
+        removePlayer={removePlayer}
+        newPlayerName={newPlayerName}
+        setNewPlayerName={setNewPlayerName}
+        addPlayer={addPlayer}
+        maxPlayers={maxPlayers}
+      />
     </footer>
     </div>
   );
