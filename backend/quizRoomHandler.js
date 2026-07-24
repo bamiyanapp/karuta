@@ -608,16 +608,19 @@ exports.resetQuizRoomPoints = async (event) => {
 };
 
 // WebSocketカスタムルート"closeRoom"（issue #748）。管理者のみルームを明示的に終了できる。
-// ルームレコード自体を削除するため、以後の$connect試行は404で拒否される。ルーム内の
-// 全接続へ終了をブロードキャストしたうえで、管理者自身以外の接続をDeleteConnectionCommand
-// で強制切断する。切断により$disconnectが呼ばれ、既存のdisconnectQuizRoom（接続レコード
-// 削除・予約名の解放）が自然に走るため、このハンドラ側で接続レコードを個別に掃除する必要はない。
-// 管理者自身の接続はここで強制切断しない（issue #576のE2E追加時に判明した不具合の修正）:
+// ルームレコード自体を削除するため、以後の$connect試行は404で拒否される（issue #576の
+// E2E追加で判明: このDeleteCommandに必要なdynamodb:DeleteItem権限がserverless.ymlの
+// QuizRoomsTable向けIAMステートメントに漏れており、AccessDeniedExceptionで処理全体が
+// 失敗し、誰もroomClosedを受け取れずルームを閉じる操作が無反応になっていた。IAM側を修正済み）。
+// ルーム内の全接続へ終了をブロードキャストしたうえで、管理者自身以外の接続を
+// DeleteConnectionCommandで強制切断する。切断により$disconnectが呼ばれ、既存の
+// disconnectQuizRoom（接続レコード削除・予約名の解放）が自然に走るため、このハンドラ側で
+// 接続レコードを個別に掃除する必要はない。管理者自身の接続はここで強制切断しない:
 // このLambda自身を呼び出している接続を、broadcast配信の直後に強制切断すると、配信メッセージが
-// ブラウザに届く前に接続が切断されてしまう競合が起こりうる（実際にE2Eで、管理者だけが
-// roomClosedを受け取れず画面遷移しない事象を複数回再現した）。管理者側はroomClosed受信後に
-// フロントエンドがroomIdをクリアし（useQuizRoomAdmin.js）、useQuizRoomSyncのeffectが
-// 依存値の変化で自然にWebSocketをクローズするため、ここで明示的に切断する必要はない
+// ブラウザに届く前に接続が切断されてしまう競合が理論上あり得るため、念のため対象から除外する。
+// 管理者側はroomClosed受信後にフロントエンドがroomIdをクリアし（useQuizRoomAdmin.js）、
+// useQuizRoomSyncのeffectが依存値の変化で自然にWebSocketをクローズするため、ここで
+// 明示的に切断しなくても問題ない
 exports.closeQuizRoom = async (event) => {
   try {
     const connectionId = event.requestContext.connectionId;
