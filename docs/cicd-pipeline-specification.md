@@ -64,7 +64,7 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 `release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。
 
 - `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ
-- `deploy-backend`: backend を Serverless Framework を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する
+- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する
 
 ## 環境変数（karuta固有）
 
