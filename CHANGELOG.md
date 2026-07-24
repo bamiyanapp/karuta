@@ -1,3 +1,10 @@
+## [1.54.4](https://github.com/bamiyanapp/karuta/compare/v1.54.3...v1.54.4) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** 早押し判定モーダルの解説がはみ出る不具合を修正する（issue [#782](https://github.com/bamiyanapp/karuta/issues/782)） ([#785](https://github.com/bamiyanapp/karuta/issues/785)) ([5d3925a](https://github.com/bamiyanapp/karuta/commit/5d3925a205387b89b6e6da5d864726b1a980c2dd))
+
 ## [1.54.3](https://github.com/bamiyanapp/karuta/compare/v1.54.2...v1.54.3) (2026-07-24)
 
 
