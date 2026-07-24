@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.54.2",
+    "version": "1.54.3",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードの札めくりブロードキャストを早める（issue [#781](https://github.com/bamiyanapp/karuta/issues/781)） ([#783](https://github.com/bamiyanapp/karuta/issues/783)) ([80707f7](https://github.com/bamiyanapp/karuta/commit/80707f7bfc7369f4939f03edee44c658659a57ba)), closes [#600](https://github.com/bamiyanapp/karuta/issues/600) [#501](https://github.com/bamiyanapp/karuta/issues/501) [#695](https://github.com/bamiyanapp/karuta/issues/695)"
+  },
+  {
+    "version": "1.54.2",
+    "date": "2026/07/24 10:10",
     "body": "### Bug Fixes\n\n* **frontend:** PWA更新通知の表示位置を画面最上部へ変更する（issue [#776](https://github.com/bamiyanapp/karuta/issues/776)） ([#777](https://github.com/bamiyanapp/karuta/issues/777)) ([1ca9e48](https://github.com/bamiyanapp/karuta/commit/1ca9e4880b2a1ae153ed6181675c4a9cbac6f035))"
   },
   {
