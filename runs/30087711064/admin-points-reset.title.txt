@@ -1,0 +1,1 @@
+admin resets participant points, then closes the room, and the participant sees a closed-by-host message (issue #615, #748)
