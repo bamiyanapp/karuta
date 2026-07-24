@@ -1,3 +1,10 @@
+## [1.52.2](https://github.com/bamiyanapp/karuta/compare/v1.52.1...v1.52.2) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** カテゴリ取得の自動リトライとPWA更新プロンプトの表示位置を修正する ([#760](https://github.com/bamiyanapp/karuta/issues/760)) ([58d0aba](https://github.com/bamiyanapp/karuta/commit/58d0abafd3406a7a68461a9c3ea291040e2058dc))
+
 ## [1.52.1](https://github.com/bamiyanapp/karuta/compare/v1.52.0...v1.52.1) (2026-07-24)
 
 
