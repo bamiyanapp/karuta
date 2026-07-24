@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.53.0",
+    "version": "1.54.0",
     "date": "2026/07/24",
+    "body": "### Features\n\n* **frontend:** 自動読み上げモード（自動で次へ）を廃止する（issue [#729](https://github.com/bamiyanapp/karuta/issues/729)） ([#769](https://github.com/bamiyanapp/karuta/issues/769)) ([5c5c21b](https://github.com/bamiyanapp/karuta/commit/5c5c21b2e29f236136d830b0ea228d81775c8a3f))"
+  },
+  {
+    "version": "1.53.0",
+    "date": "2026/07/24 03:28",
     "body": "### Features\n\n* セキュリティ・Webアプリ・Java・Gitのかるたに解説データを追加する（issue [#764](https://github.com/bamiyanapp/karuta/issues/764)） ([#767](https://github.com/bamiyanapp/karuta/issues/767)) ([112b3aa](https://github.com/bamiyanapp/karuta/commit/112b3aa7980edaa9f0f4365c211c4b3804d126c1))"
   },
   {
