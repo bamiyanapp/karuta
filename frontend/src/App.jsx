@@ -333,9 +333,12 @@ function App() {
       return <span style={{ opacity: 0.3 }}> ⇅</span>;
   };
 
-  // カテゴリ一覧を取得
+  // カテゴリ一覧を取得。PWA更新直後（Service Workerがclients.claim()で制御を握った
+  // 直後のページリロード等）はfetch自体が一過性で失敗しやすいため（issue #758）、
+  // 例外発生時は即座にアラートを出さず、1秒後に1回だけ自動で再試行する
   useEffect(() => {
-    const fetchCategories = async () => {
+    let cancelled = false;
+    const fetchCategories = async (isRetry = false) => {
       try {
         const response = await fetch(`${API_BASE_URL}/get-categories`);
         const data = await response.json();
@@ -352,11 +355,22 @@ function App() {
             });
           }
         }
-    } catch {
+    } catch (error) {
+      if (cancelled) return;
+      if (!isRetry) {
+        console.error("Error fetching categories, retrying once:", error);
+        setTimeout(() => {
+          if (!cancelled) fetchCategories(true);
+        }, 1000);
+        return;
+      }
       alert("カテゴリの取得に失敗しました。");
     }
     };
     fetchCategories();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。
