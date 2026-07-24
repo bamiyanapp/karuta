@@ -2363,6 +2363,72 @@ describe('App', () => {
     window.Audio = originalAudio;
   }, 25000);
 
+  it('keeps the currently displayed phrase card visible after pressing stop, instead of jumping back to the initial screen (issue #755)', async () => {
+    const originalAudio = window.Audio;
+    // イントロ音（wadodon.mp3）はすぐ完了させ、本編音声だけは意図的にonendedを
+    // 発火させないままにして、読み札がフリップ表示された後も「読み上げ中」の
+    // 状態（isReading）を維持したまま停止ボタンを押せるようにする
+    window.Audio = vi.fn().mockImplementation(function (url) {
+      const audio = {
+        play: vi.fn().mockResolvedValue(),
+        pause: vi.fn(),
+        load: vi.fn(),
+        _src: undefined,
+        get src() {
+          return this._src;
+        },
+        set src(u) {
+          this._src = u;
+          if (u === 'wadodon.mp3') {
+            setTimeout(() => {
+              if (this.onended) this.onended();
+            }, 0);
+          }
+          // 本編音声（dummy）はonendedを意図的に発火させない
+        },
+      };
+      if (url) audio.src = url;
+      return audio;
+    });
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy' }) };
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+      await waitFor(() => screen.getByText('次の札'));
+      fireEvent.click(screen.getByText('次の札'));
+
+      // フリップ演出（3秒待機＋フェード）を経て読み札が実際に表示されるまで待つ
+      await waitFor(() => {
+        expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+      }, { timeout: 15000 });
+
+      const stopButton = screen.getByRole('button', { name: '停止' });
+      expect(stopButton).not.toBeDisabled();
+      fireEvent.click(stopButton);
+
+      // 停止直後も読み札の表示はそのまま残り、準備完了画面へは切り替わらない
+      await waitFor(() => {
+        expect(stopButton).toBeDisabled();
+      });
+      expect(screen.getByText('読み札1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
+      expect(screen.queryByText('準備完了')).not.toBeInTheDocument();
+    } finally {
+      window.Audio = originalAudio;
+    }
+  }, 25000);
+
   it('recovers isReading (does not get stuck) after stopping mid-intro-sound and starting the next card (issue #262)', async () => {
     const originalAudio = window.Audio;
     const pauseMock = vi.fn();
