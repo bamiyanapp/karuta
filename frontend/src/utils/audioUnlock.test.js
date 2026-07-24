@@ -23,8 +23,8 @@ describe('audioUnlock', () => {
   it('unlockAudioPlayback creates the shared narration element plus one shared element per quiz sound effect, and plays a silent clip on each', () => {
     unlockAudioPlayback();
 
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）
-    expect(audioInstances).toHaveLength(4);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用（issue #613, #786）
+    expect(audioInstances).toHaveLength(5);
     for (const instance of audioInstances) {
       expect(instance.src).toMatch(/^data:audio\/wav/);
       expect(instance.play).toHaveBeenCalled();
@@ -35,7 +35,7 @@ describe('audioUnlock', () => {
     unlockAudioPlayback();
     unlockAudioPlayback();
 
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
   });
 
   it('playSharedAudio reuses the element that was already unlocked, pausing it and swapping the src, instead of creating a new Audio (issue #514)', async () => {
@@ -44,7 +44,7 @@ describe('audioUnlock', () => {
 
     await playSharedAudio('data:audio/mp3;base64,DUMMY');
 
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0]).toBe(unlockedInstance);
     expect(unlockedInstance.pause).toHaveBeenCalled();
     expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
@@ -69,7 +69,7 @@ describe('audioUnlock', () => {
     resetSharedAudioForTests();
     unlockAudioPlayback();
 
-    expect(audioInstances).toHaveLength(8);
+    expect(audioInstances).toHaveLength(10);
   });
 
   describe('stopSharedAudio (issue #696)', () => {
@@ -96,7 +96,7 @@ describe('audioUnlock', () => {
 
       await playQuizSfx('buzz', '/quiz-buzz.mp3');
 
-      expect(audioInstances).toHaveLength(4);
+      expect(audioInstances).toHaveLength(5);
       expect(audioInstances[1]).toBe(unlockedBuzzInstance);
       expect(unlockedBuzzInstance.src).toBe('/quiz-buzz.mp3');
     });

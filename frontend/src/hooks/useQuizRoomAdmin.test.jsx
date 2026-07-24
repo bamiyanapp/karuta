@@ -1198,8 +1198,9 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
-    expect(window.Audio).toHaveBeenCalledTimes(4);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
+    // （issue #613, #786）で計5要素
+    expect(window.Audio).toHaveBeenCalledTimes(5);
   });
 
   it('does not show the open-room list section when there are no open quiz rooms', async () => {

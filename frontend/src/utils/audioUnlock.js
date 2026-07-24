@@ -19,9 +19,11 @@ const SILENT_AUDIO_DATA_URI = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAA
 let sharedAudio = null;
 // issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）は、読み上げ音声
 // （sharedAudio）が再生中でも同時に鳴らす必要があるため、sharedAudioとは別に
-// 名前ごとの共有<audio>要素を持つ（同じ理由でシングルトン・解錠が必要）
+// 名前ごとの共有<audio>要素を持つ（同じ理由でシングルトン・解錠が必要）。
+// "intro"は参加者側のイントロ音（太鼓の音、issue #786）用。同じ理由（読み札本編の
+// 音声取得・再生と重なっても止めずに鳴らしたい、fire-and-forgetで使う）でここに含める
 const sharedSfxAudio = {};
-const QUIZ_SFX_NAMES = ["buzz", "correct", "incorrect"];
+const QUIZ_SFX_NAMES = ["buzz", "correct", "incorrect", "intro"];
 
 function getSharedAudio() {
   if (!sharedAudio) {
