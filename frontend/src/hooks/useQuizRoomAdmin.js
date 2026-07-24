@@ -58,6 +58,7 @@ export function useQuizRoomAdmin({
   isMultiCategorySelection,
   setView,
   revealCurrentResult,
+  stopReading,
 }) {
   // 管理者としてルームを開設した場合のみ設定される
   const [quizRoom, setQuizRoom] = useState(null); // { roomId, adminToken } | null
@@ -149,6 +150,14 @@ export function useQuizRoomAdmin({
       // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
       // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
       playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
+      // issue #788: 参加者側（issue #696のstopSharedAudio）と同様、早押し発生時点で
+      // 管理者自身の読み上げ音声・演出も止める。止めないと、参加者の誰かが早押しした
+      // 後も管理者の本編音声・3秒待ち・フェード演出がそのまま進行し続けてしまう。
+      // keepElapsedTime: trueは必須。早押しは読み上げの中断ではなく一時停止であり、
+      // 正解判定時のrevealCurrentResult（issue #600）・不正解時に「次の札」まで続く
+      // 経過時間計測のどちらも、経過時間の起点（startTimeRef.current）が消えずに
+      // 残っていることを前提にしている
+      stopReading({ keepElapsedTime: true });
       setQuizRoomBuzzedBy(buzzedBy);
     },
     onPoints: (points, answerCounts) => {

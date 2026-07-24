@@ -549,6 +549,7 @@ function App() {
     isMultiCategorySelection,
     setView,
     revealCurrentResult,
+    stopReading,
   });
 
   useEffect(() => {
