@@ -1,3 +1,10 @@
+## [1.54.2](https://github.com/bamiyanapp/karuta/compare/v1.54.1...v1.54.2) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** PWA更新通知の表示位置を画面最上部へ変更する（issue [#776](https://github.com/bamiyanapp/karuta/issues/776)） ([#777](https://github.com/bamiyanapp/karuta/issues/777)) ([1ca9e48](https://github.com/bamiyanapp/karuta/commit/1ca9e4880b2a1ae153ed6181675c4a9cbac6f035))
+
 ## [1.54.1](https://github.com/bamiyanapp/karuta/compare/v1.54.0...v1.54.1) (2026-07-24)
 
 
