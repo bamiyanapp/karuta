@@ -576,6 +576,25 @@ describe('getPhrase', () => {
         expect(putParams.Item.ttl).toBeCloseTo(expectedTtl, -1);
     });
 
+    it('includes explanation in the response, along with answer (issue #763)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1', answer: 'answer 1', explanation: 'explanation 1' }],
+        });
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+        ddbMock.on(PutCommand).resolves({});
+
+        const audioStream = new Readable();
+        audioStream.push('audio data');
+        audioStream.push(null);
+        pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+
+        const event = { queryStringParameters: { id: 'p1' } };
+        const response = await getPhrase(event);
+        const body = JSON.parse(response.body);
+        expect(body.answer).toBe('answer 1');
+        expect(body.explanation).toBe('explanation 1');
+    });
+
     it('should return a phrase with audio from cache', async () => {
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
