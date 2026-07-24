@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.54.1",
+    "version": "1.54.2",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **frontend:** PWA更新通知の表示位置を画面最上部へ変更する（issue [#776](https://github.com/bamiyanapp/karuta/issues/776)） ([#777](https://github.com/bamiyanapp/karuta/issues/777)) ([1ca9e48](https://github.com/bamiyanapp/karuta/commit/1ca9e4880b2a1ae153ed6181675c4a9cbac6f035))"
+  },
+  {
+    "version": "1.54.1",
+    "date": "2026/07/24 10:04",
     "body": "### Bug Fixes\n\n* **backend:** oslsのバージョン固定ルールに下限を明示する（issue [#611](https://github.com/bamiyanapp/karuta/issues/611)） ([#775](https://github.com/bamiyanapp/karuta/issues/775)) ([fa1fabe](https://github.com/bamiyanapp/karuta/commit/fa1fabea3994b74df607fbef619b4f83ad33721c))"
   },
   {
