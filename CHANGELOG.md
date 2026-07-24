@@ -1,3 +1,10 @@
+## [1.52.1](https://github.com/bamiyanapp/karuta/compare/v1.52.0...v1.52.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **frontend:** 停止ボタン押下時に画面を準備完了画面へ強制的に戻さないようにする（issue [#755](https://github.com/bamiyanapp/karuta/issues/755)） ([#756](https://github.com/bamiyanapp/karuta/issues/756)) ([1b522e4](https://github.com/bamiyanapp/karuta/commit/1b522e44310d224c657255470b9fcee32b6b8ab3))
+
 # [1.52.0](https://github.com/bamiyanapp/karuta/compare/v1.51.0...v1.52.0) (2026-07-23)
 
 
