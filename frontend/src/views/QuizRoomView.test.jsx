@@ -703,9 +703,10 @@ describe('QuizRoomView', () => {
     expect(requestedUrl).toContain('speechRate=70%25');
     expect(requestedUrl).toContain('voiceId=Takumi');
     expect(requestedUrl).toContain('announceCategory=true');
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素。
-    // 「決定」ボタンのクリックが共有<audio>要素の解錠（issue #497/#514）を引き起こすため
-    expect(audioInstances).toHaveLength(4);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
+    // （issue #613, #786）で計5要素。「決定」ボタンのクリックが共有<audio>要素の
+    // 解錠（issue #497/#514）を引き起こすため
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
     expect(audioInstances[0].play).toHaveBeenCalled();
   });
@@ -752,8 +753,9 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
-    expect(audioInstances).toHaveLength(4);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
+    // （issue #613, #786）で計5要素
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY1');
 
     emitState({ type: 'phrase', content: { id: 'p2', category: 'Cat1', phrase: '読み札2', level: '3' } });
@@ -764,7 +766,7 @@ describe('QuizRoomView', () => {
 
     // 新しいAudioインスタンスを作るのではなく、同じ（ユーザー操作で解錠済みの）要素を
     // 使い回すことで、非同期文脈からの再生でもSafari等でブロックされないようにしている
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].pause).toHaveBeenCalled();
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY2');
   });
@@ -787,7 +789,8 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
+    // （issue #613, #786）で計5要素
     const narrationAudio = audioInstances[0];
     narrationAudio.pause.mockClear();
 
@@ -817,16 +820,16 @@ describe('QuizRoomView', () => {
     // 名前を確定しても、確定前から進行中だった同じラウンドの音声が遡って
     // 再生されることはない（「次の札」からの再生という要望どおりの挙動）。
     // 「決定」ボタンのクリック自体が共有<audio>要素の解錠（issue #497/#514）を
-    // 引き起こすため、audioInstancesは（sharedAudio+buzz/correct/incorrectの計）4件に
-    // なるが、フレーズの取得（fetch）は行われておらず、再生される音声も無音の
-    // 解錠用データのままであることを確認する
+    // 引き起こすため、audioInstancesは（sharedAudio+buzz/correct/incorrect/introの計、
+    // issue #786）5件になるが、フレーズの取得（fetch）は行われておらず、再生される
+    // 音声も無音の解錠用データのままであることを確認する
     confirmName();
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
     expect(audioFetchCalls()).toHaveLength(0);
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
 
     // 名前確定後に届いた次の札からは通常どおり再生される（同じ共有要素のsrcが
@@ -837,7 +840,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
     expect(audioFetchCalls()).toHaveLength(1);
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].src).toBe('data:audio/mp3;base64,DUMMY');
   });
 
@@ -870,7 +873,7 @@ describe('QuizRoomView', () => {
       await Promise.resolve();
     });
 
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(screen.queryByText('🔊 タップして音声を有効にする')).not.toBeInTheDocument();
     expect(screen.queryByText('🔊 音声ON')).not.toBeInTheDocument();
   });
@@ -883,8 +886,9 @@ describe('QuizRoomView', () => {
 
     fireEvent.click(document.body);
 
-    // sharedAudio（読み上げ用）+ buzz/correct/incorrectの効果音用（issue #613）で計4要素
-    expect(audioInstances).toHaveLength(4);
+    // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
+    // （issue #613, #786）で計5要素
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].play).toHaveBeenCalled();
   });
 
@@ -894,7 +898,7 @@ describe('QuizRoomView', () => {
     fireEvent.change(screen.getByPlaceholderText('ルームコード'), { target: { value: 'xyz789' } });
     fireEvent.click(screen.getByText('参加する'));
 
-    expect(audioInstances).toHaveLength(4);
+    expect(audioInstances).toHaveLength(5);
     expect(audioInstances[0].play).toHaveBeenCalled();
   });
 
@@ -942,6 +946,27 @@ describe('QuizRoomView', () => {
       const incorrectAudio = audioInstances.find((a) => a.src === 'quiz-incorrect.mp3');
       expect(incorrectAudio).toBeDefined();
       expect(incorrectAudio.play).toHaveBeenCalled();
+    });
+
+    it('plays the intro sound (wadodon.mp3) when a new phrase is broadcast, mirroring the admin\'s own reading flow (issue #786)', () => {
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+      confirmName();
+
+      emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+      const introAudio = audioInstances.find((a) => a.src === 'wadodon.mp3');
+      expect(introAudio).toBeDefined();
+      expect(introAudio.play).toHaveBeenCalled();
+    });
+
+    it('does not play the intro sound while still on the name entry screen (issue #530と同じ理由)', () => {
+      window.history.pushState({}, '', '?roomId=ABC123');
+      render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+
+      emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+      expect(audioInstances.find((a) => a.src === 'wadodon.mp3')).toBeUndefined();
     });
   });
 });

@@ -377,6 +377,14 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
       return;
     }
 
+    // イントロ音（太鼓の音、issue #786）: 管理者は次の札ごとにwadodon.mp3を再生してから
+    // 読み上げを始める（useKarutaReading.jsのplayIntroSound）が、参加者側には従来この
+    // 演出が無かった。早押し効果音（issue #613）と同じ仕組みの共有<audio>要素を使い、
+    // 読み札本編の音声取得・再生とは別に鳴らす。完了を待たないfire-and-forgetにするのは、
+    // 厳密に待って直列化すると参加者側の音声再生開始が管理者よりさらに遅れてしまい、
+    // issue #781で縮めた体感タイミングのズレを再び広げてしまうため
+    playQuizSfx("intro", "wadodon.mp3").catch(() => {});
+
     let cancelled = false;
     (async () => {
       try {
