@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.54.4",
+    "version": "1.54.5",
     "date": "2026/07/24",
+    "body": "### Bug Fixes\n\n* **frontend:** クイズ大会モードの参加者側で最初の太鼓の音を再生する（issue [#786](https://github.com/bamiyanapp/karuta/issues/786)） ([#789](https://github.com/bamiyanapp/karuta/issues/789)) ([ec7e36e](https://github.com/bamiyanapp/karuta/commit/ec7e36e6931818b171e0980963c9df03d4fab0c1))"
+  },
+  {
+    "version": "1.54.4",
+    "date": "2026/07/24 13:05",
     "body": "### Bug Fixes\n\n* **frontend:** 早押し判定モーダルの解説がはみ出る不具合を修正する（issue [#782](https://github.com/bamiyanapp/karuta/issues/782)） ([#785](https://github.com/bamiyanapp/karuta/issues/785)) ([5d3925a](https://github.com/bamiyanapp/karuta/commit/5d3925a205387b89b6e6da5d864726b1a980c2dd))"
   },
   {
