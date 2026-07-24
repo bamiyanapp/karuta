@@ -1852,42 +1852,9 @@ describe('App', () => {
     // 読み札列・答え列の幅バランスが崩れないよう、同じ幅指定クラスを共有していることを確認する
     expect(screen.getByText('読み札', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
     expect(screen.getByText('答え', { selector: 'th' })).toHaveClass('all-phrases-col-balanced');
-  });
 
-  it('shows an explanation column with data and blank fallback in all-phrases view (issue #693)', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ categories: [] }),
-    });
-    await act(async () => {
-      render(<App />);
-    });
-
-    fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) {
-        return { ok: true, json: async () => ({ categories: [] }) };
-      }
-      if (url.includes('get-phrases-list')) {
-        return {
-          ok: true,
-          json: async () => ({
-            phrases: [
-              { id: 'p1', category: 'Cat1', phrase: '読み札A', level: '-', answer: '回答A', explanation: '解説A' },
-              { id: 'p2', category: 'Cat1', phrase: '読み札B', level: '-', answer: '-', explanation: '-' },
-            ],
-          }),
-        };
-      }
-      return { ok: false };
-    });
-
-    fireEvent.click(screen.getByText(/全札一覧を見る/i));
-
-    await waitFor(() => {
-      expect(screen.getByText('解説')).toBeInTheDocument();
-      expect(screen.getByText('解説A')).toBeInTheDocument();
-      expect(screen.getByText('読み札B').closest('tr')).not.toHaveTextContent('-');
-    });
+    // 解説列は一覧表示の項目からは削除している（issue #763）
+    expect(screen.queryByText('解説', { selector: 'th' })).not.toBeInTheDocument();
   });
 
   it('shows existing comments for the phrase on the detail screen (issue #223)', async () => {

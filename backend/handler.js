@@ -436,6 +436,7 @@ exports.getPhrase = async (event) => {
       level: selectedItem.level,
       kana: selectedItem.kana,
       answer: selectedItem.answer,
+      explanation: selectedItem.explanation,
       audioData: audioData,
       readCount: stats.readCount || 0,
       averageTime: stats.averageTime || 0,
