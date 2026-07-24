@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, stopSharedAudio } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, stopSharedAudio } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
@@ -380,10 +380,12 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     // イントロ音（太鼓の音、issue #786）: 管理者は次の札ごとにwadodon.mp3を再生してから
     // 読み上げを始める（useKarutaReading.jsのplayIntroSound）が、参加者側には従来この
     // 演出が無かった。早押し効果音（issue #613）と同じ仕組みの共有<audio>要素を使い、
-    // 読み札本編の音声取得・再生とは別に鳴らす。完了を待たないfire-and-forgetにするのは、
-    // 厳密に待って直列化すると参加者側の音声再生開始が管理者よりさらに遅れてしまい、
-    // issue #781で縮めた体感タイミングのズレを再び広げてしまうため
-    playQuizSfx("intro", "wadodon.mp3").catch(() => {});
+    // 読み札本編の音声取得・再生とは別に鳴らす。
+    // issue #796: 太鼓の音の再生完了を待たずに本編音声の取得・再生を始めていたため、
+    // 太鼓の音と読み上げが重なって聞こえてしまっていた。本編音声の「取得」は太鼓の音の
+    // 再生と並行して進め（余計な遅延を増やさないため）、「再生開始」だけを太鼓の音の
+    // 完了後まで遅らせることで、管理者側（太鼓の音の後に読み上げを始める）と同じ順序にする
+    const introPromise = playQuizSfxAndWait("intro", "wadodon.mp3");
 
     let cancelled = false;
     (async () => {
@@ -395,6 +397,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
         }
         const data = await response.json();
         if (cancelled || !data.audioData) {
+          return;
+        }
+        await introPromise;
+        if (cancelled) {
           return;
         }
         await playSharedAudio(data.audioData);
