@@ -439,7 +439,14 @@ export function useKarutaReading({
     setAudioQueue(prev => [...prev, { phraseData: null, audioData }]);
   };
 
-  const stopReading = () => {
+  // keepElapsedTime: クイズ大会モードで早押しが発生した際（issue #788）に
+  // useQuizRoomAdminのonBuzzから呼ぶ場合はtrueにする。早押しは読み上げの中断
+  // ではなく一時停止（judgeQuizRoomBuzzが正解と判定すればrevealCurrentResultで
+  // 経過時間を確定し、不正解ならそのまま「次の札」まで計測を続ける）であり、
+  // startTimeRef.currentを消してしまうとどちらの経路でも経過時間が確定できなくなる。
+  // 通常の「停止」ボタン（読み上げ自体を打ち切る操作）ではfalseのまま、
+  // 中断された計測を次回の記録に持ち越さないようにする
+  const stopReading = ({ keepElapsedTime = false } = {}) => {
     if (!isReading) return;
 
     // playNextInQueue内のawaitチェーンを、次の工程（本編読み上げ・フェード）に
@@ -463,8 +470,10 @@ export function useKarutaReading({
       animationResolveRef.current = null;
     }
 
-    // 中断された読み上げの計測を、次回の記録に誤って持ち越さないようにする
-    startTimeRef.current = null;
+    if (!keepElapsedTime) {
+      // 中断された読み上げの計測を、次回の記録に誤って持ち越さないようにする
+      startTimeRef.current = null;
+    }
 
     // 停止は音声・タイマーの中断のみを行い、画面表示は変更しない（issue #755）。
     // 以前はここで表示を強制的にinitial（準備完了画面）へ戻していたが、読み上げ中の

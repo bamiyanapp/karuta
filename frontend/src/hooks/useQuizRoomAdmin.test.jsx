@@ -646,6 +646,83 @@ describe('useQuizRoomAdmin (via App)', () => {
     }, { timeout: 20000 });
   }, 40000);
 
+  it('stops the admin\'s own reading progression when a participant buzzes in, without discarding the elapsed-time measurement needed for the next 次の札 press (issue #788)', async () => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.sent = [];
+        MockWebSocket.instances.push(this);
+      }
+      send(data) {
+        this.sent.push(data);
+      }
+      close() {}
+    }
+    MockWebSocket.OPEN = 1;
+    MockWebSocket.instances = [];
+    window.WebSocket = MockWebSocket;
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', answer: '答え1', audioData: 'dummy' }) };
+      }
+      if (url.includes('/record-time')) return { ok: true, json: async () => ({}) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws.readyState = MockWebSocket.OPEN;
+      ws.onopen?.();
+    });
+
+    fireEvent.click(screen.getByText('次の札'));
+    await waitFor(() => {
+      expect(ws.sent.find((msg) => msg.includes('"type":"phrase"'))).toBeDefined();
+    }, { timeout: 20000 });
+
+    act(() => {
+      ws.onmessage?.({ data: JSON.stringify({ type: 'buzz', name: 'はなこ', connectionId: 'conn-2' }) });
+    });
+
+    // issue #788: 早押し発生時点で管理者自身の読み上げ（本編音声の再生・3秒待ちの
+    // フェード演出）が打ち切られ、isReadingがfalseに戻る。この時点ではまだ
+    // 演出中の3秒待ちタイマー（実タイマー）は経過していないため、打ち切られて
+    // いなければ「次の札」ボタンはisReadingLastPhrase（issue #721）によって
+    // まだ無効化されたままのはず
+    fireEvent.click(screen.getByText('不正解'));
+
+    expect(screen.getByText('次の札').closest('button')).not.toBeDisabled();
+
+    // 不正解のため経過時間の確定（revealCurrentResult）は行われないが、計測自体は
+    // 打ち切られていない。もしstopReadingがstartTimeRef.currentを消してしまうと、
+    // 次に「次の札」を押した時にrevealCurrentResultが何もせず、この札の所要時間の
+    // 記録（record-time）が失われてしまう
+    fireEvent.click(screen.getByText('次の札'));
+
+    await waitFor(() => {
+      const recordTimeCall = fetch.mock.calls.find(([callUrl]) => callUrl.includes('/record-time'));
+      expect(recordTimeCall).toBeDefined();
+    }, { timeout: 20000 });
+  }, 40000);
+
   it('broadcasts isAllRead:true once the selected category\'s last phrase has been read, so the top-page room list can show a "終了" status (issue #501)', async () => {
     class MockWebSocket {
       constructor(url) {
