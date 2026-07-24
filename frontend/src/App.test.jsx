@@ -1595,19 +1595,6 @@ describe('App', () => {
 
     fireEvent.click(screen.getByText('はやい'));
     expect(localStorage.getItem('speechRate')).toBe('100%');
-
-    // 自動で次への設定はデフォルトでオフで、間隔ボタンは表示されない
-    expect(screen.queryByText('10秒')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('オン'));
-    expect(localStorage.getItem('autoAdvance')).toBe('true');
-
-    fireEvent.click(await screen.findByText('20秒'));
-    expect(localStorage.getItem('autoAdvanceInterval')).toBe('20');
-
-    // 後続のテストに自動読み上げ設定が引き継がれないようにする
-    localStorage.removeItem('autoAdvance');
-    localStorage.removeItem('autoAdvanceInterval');
   });
 
   it('shows the voice selector only for Japanese, updates the setting, and includes voiceId in the phrase request (issue #217)', async () => {
@@ -1665,56 +1652,6 @@ describe('App', () => {
     randomSpy.mockRestore();
   });
 
-  it('automatically advances to the next phrase after the configured interval when auto-advance is on', async () => {
-    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
-    // UIが提示する最短の間隔（10秒）だと実時間のかかるテストになってしまうため、
-    // 実際のUIには無い短い間隔をlocalStorageに直接設定して機構自体を検証する
-    localStorage.setItem('autoAdvance', 'true');
-    localStorage.setItem('autoAdvanceInterval', '1');
-
-    fetch.mockImplementation(async (url) => {
-      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
-      if (url.includes('get-phrases-list')) {
-        return {
-          ok: true,
-          json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }, { id: 'p2', category: 'Cat1' }] }),
-        };
-      }
-      if (url.includes('/get-phrase?')) {
-        const id = new URL(url).searchParams.get('id');
-        return { ok: true, json: async () => ({ id, category: 'Cat1', phrase: `読み札${id}`, audioData: 'dummy' }) };
-      }
-      return { ok: false };
-    });
-
-    await act(async () => {
-      render(<App />);
-    });
-
-    fireEvent.click(await screen.findByText('こども向け'));
-    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
-
-    await waitFor(() => screen.getByText('次の札'));
-    fireEvent.click(screen.getByText('次の札'));
-
-    // p1の読み上げが完了し「次の札」を待つ状態（自動読み上げの起点）になるまで待つ
-    // （プリフェッチ機能によりp2のget-phraseはこの時点で既に裏で呼ばれ得るため、
-    // 実際にp2の読み上げまで進むかどうかで自動読み上げ自体を検証する）
-    await waitFor(() => {
-      expect(screen.getByText('読み札p1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 20000 });
-
-    // 「次の札」ボタンを一切押さずに、設定した間隔後の自動読み上げでp2の読み上げに進むのを待つ
-    await waitFor(() => {
-      expect(screen.getByText('読み札p2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
-    }, { timeout: 20000 });
-
-    randomSpy.mockRestore();
-    // 後続のテストに自動読み上げ設定が引き継がれないようにする
-    localStorage.removeItem('autoAdvance');
-    localStorage.removeItem('autoAdvanceInterval');
-  }, 40000);
-
   it('recovers and advances to the next phrase even if audio.play() never settles (issue #729)', async () => {
     const originalAudio = window.Audio;
     // モバイルブラウザのオートプレイポリシー等により、audio.play()のPromiseが
@@ -1733,8 +1670,6 @@ describe('App', () => {
     });
 
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
-    localStorage.setItem('autoAdvance', 'true');
-    localStorage.setItem('autoAdvanceInterval', '1');
 
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
@@ -1769,15 +1704,15 @@ describe('App', () => {
         expect(screen.getByText('読み札p1', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
       }, { timeout: 45000 });
 
-      // 「次の札」ボタンを一切押さずに、自動読み上げでp2まで進むことを確認する
-      // （p1と同様にp2側もaudio.play()がハングするため、さらにタイムアウト分待つ）
+      // 「次の札」ボタンを押してp2まで進めても、同様にハングから復帰することを確認する
+      await waitFor(() => screen.getByText('次の札'), { timeout: 45000 });
+      fireEvent.click(screen.getByText('次の札'));
+
       await waitFor(() => {
         expect(screen.getByText('読み札p2', { selector: '.yomifuda-phrase' })).toBeInTheDocument();
       }, { timeout: 45000 });
 
       randomSpy.mockRestore();
-      localStorage.removeItem('autoAdvance');
-      localStorage.removeItem('autoAdvanceInterval');
     } finally {
       window.Audio = originalAudio;
     }
