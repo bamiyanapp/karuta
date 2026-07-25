@@ -14,7 +14,10 @@ export default defineConfig({
   timeout: 60000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // issue #820: Pollyコールドキャッシュ起因で稀に発生するタイムアウト（特に
+  // 実行頻度の低いカテゴリでの音声合成待ち）が、1回のリトライでも解消しない
+  // ことが複数回観測されたため、CI実行時のリトライ回数を1→2へ引き上げる
+  retries: process.env.CI ? 2 : 0,
   reporter: [
     // issue #711: CI用のhtmlレポーターは失敗の詳細（アサーション差分・エラー
     // メッセージ）をコンソール（GitHub Actionsのジョブログ）へ一切出力しない。
