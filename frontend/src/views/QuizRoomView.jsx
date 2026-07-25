@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
+import { useValueChange } from "../hooks/useValueChange";
 import { API_BASE_URL } from "../config";
 import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, playJudgmentSfx, stopSharedAudio } from "../utils/audioUnlock";
 import { phraseKey } from "../utils/phraseKey";
@@ -132,14 +133,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   };
 
   // ルームコードの事前確認（issue #616）: joinRoomIdが変わるたびに、前回の
-  // 「存在しない」判定を持ち越さないようリセットする。レンダー中のstate調整
-  // パターン（下記のcurrentBuzzRoundKey判定と同じ考え方）で行い、useEffect内での
-  // 無条件setState（react-hooks/set-state-in-effect）を避ける
-  const [lastCheckedRoomId, setLastCheckedRoomId] = useState(joinRoomId);
-  if (joinRoomId !== lastCheckedRoomId) {
-    setLastCheckedRoomId(joinRoomId);
+  // 「存在しない」判定を持ち越さないようリセットする
+  useValueChange(joinRoomId, () => {
     setRoomInvalid(false);
-  }
+  });
 
   // 実際にWebSocket接続を試みる前にGET /quiz-roomで存在確認する
   useEffect(() => {
@@ -228,7 +225,11 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // - それ以外（"initial"等）: ラウンドなし（null）とし、管理者がゲームをリセットした
   //   場合等に、古い回答者情報が次のラウンドへ持ち越されないようにする
   // レンダー中に前回値と比較して直接更新する、Reactが推奨する「レンダー中のstate調整」
-  // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）
+  // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）。
+  // issue #800: 同種のパターンはuseValueChangeへ共通化したが、このキーの導出自体が
+  // 「直前のラウンドキー（lastBuzzRoundKey）を参照して"result"中は維持する」という
+  // 前回値への依存を持つため、値の変化だけを検知するuseValueChangeにはそのまま乗らず、
+  // ここでは個別に扱う
   let currentBuzzRoundKey = lastBuzzRoundKey;
   if (roomState?.type === "phrase" && roomState.content?.id) {
     currentBuzzRoundKey = phraseKey(roomState.content);
