@@ -4,19 +4,9 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import sonarjs from 'eslint-plugin-sonarjs'
 import { defineConfig, globalIgnores } from 'eslint/config'
+import { buildSonarjsWarnRules } from '../eslint-sonarjs-warn.cjs'
 
-// eslint-plugin-sonarjsのrecommended設定は全ルールerror severityだが、
-// 既存コードに対して一度に適用すると60件のエラーが発生し（複雑度の高い
-// App.jsx/QuizRoomView.jsx等の大規模なリファクタが即座に必須になってしまう）、
-// SonarCloud導入検討（issue #806）が意図した「低コストな導入」から外れる。
-// warnへ一括ダウングレードして導入し、実際に手を入れる際の指標として使う
-// （coverage_threshold・jscpdのduplication_thresholdと同様、既定は非ゲート）
-const sonarjsWarnRules = Object.fromEntries(
-  Object.entries(sonarjs.configs.recommended.rules).map(([rule, severity]) => [
-    rule,
-    Array.isArray(severity) ? ['warn', ...severity.slice(1)] : severity === 'error' ? 'warn' : severity,
-  ])
-)
+const sonarjsWarnRules = buildSonarjsWarnRules(sonarjs)
 
 export default defineConfig([
   globalIgnores(['dist', 'src/changelog.json', 'coverage']),
