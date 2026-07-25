@@ -1,3 +1,5 @@
+import AnswerAndExplanation from "./AnswerAndExplanation";
+
 // 1札の読み上げ結果画面。App.jsxのdisplayContent.type === 'result'時に表示する
 // （issue #607: App.jsx肥大化解消のためコンポーネントとして切り出し）
 function ResultCard({ result, division }) {
@@ -21,19 +23,7 @@ function ResultCard({ result, division }) {
           </>
         )}
 
-        {result.answer && result.answer !== "-" && (
-          <>
-            <div className="text-muted mt-4 mb-2">答え</div>
-            <div className="h4 fw-bold text-dark">{result.answer}</div>
-          </>
-        )}
-
-        {result.explanation && result.explanation !== "-" && (
-          <>
-            <div className="text-muted mt-4 mb-2">解説</div>
-            <div className="fs-6 text-dark">{result.explanation}</div>
-          </>
-        )}
+        <AnswerAndExplanation answer={result.answer} explanation={result.explanation} />
       </div>
     </div>
   );

@@ -3,9 +3,10 @@ import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSy
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { API_BASE_URL } from "../config";
 import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, playJudgmentSfx, stopSharedAudio } from "../utils/audioUnlock";
-import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
 import { phraseKey } from "../utils/phraseKey";
 import { clearRoomIdParam } from "../utils/quizRoomUrl";
+import AnswerAndExplanation from "../components/AnswerAndExplanation";
+import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -49,18 +50,7 @@ function renderParticipantContent(roomState) {
           )}
           <div className="text-muted mb-2">所要時間</div>
           <div className="display-4 fw-bold text-dark mb-2">{r.time?.toFixed(2)}<span className="fs-4">秒</span></div>
-          {r.answer && r.answer !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">答え</div>
-              <div className="h4 fw-bold text-dark">{r.answer}</div>
-            </>
-          )}
-          {r.explanation && r.explanation !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">解説</div>
-              <div className="fs-6 text-dark">{r.explanation}</div>
-            </>
-          )}
+          <AnswerAndExplanation answer={r.answer} explanation={r.explanation} />
         </div>
       </div>
     );
@@ -549,40 +539,16 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
             </button>
           </div>
         )}
-        {(() => {
-          // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
-          // 1つのリストに統合して表示する（管理者画面と同じ並び順）。
-          // 表形式・接続ステータス表示、回答ボタンより下への配置はissue #599で対応。
-          // 回答数（issue #698）: 早押しして正誤判定された累計回数（attempts）も併せて表示する
-          const participantList = mergeParticipantsWithPoints(participants, points, answerCounts);
-          return participantList.length > 0 && (
-            <div className="mx-auto mt-4 text-start" style={{ maxWidth: "360px" }}>
-              <p className="text-muted small mb-2">参加者一覧</p>
-              <table className="table table-sm table-bordered bg-white mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">名前</th>
-                    <th scope="col">接続</th>
-                    <th scope="col" className="text-end">回答数</th>
-                    <th scope="col" className="text-end">正答数</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participantList.map(({ name, points: pt, attempts, connected }) => (
-                    <tr key={name}>
-                      <td className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</td>
-                      <td className={connected ? "text-success" : "text-muted"}>
-                        {connected ? "接続中" : "切断済み"}
-                      </td>
-                      <td className="text-end">{attempts}</td>
-                      <td className="text-end">{pt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })()}
+        {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
+            統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
+            より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
+            累計回数（attempts）も併せて表示する */}
+        <QuizRoomParticipantTable
+          participantNames={participants}
+          points={points}
+          answerCounts={answerCounts}
+          highlightName={confirmedName}
+        />
         {phraseHistory.length > 0 && (
           <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
             <button

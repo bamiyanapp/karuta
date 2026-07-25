@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
+import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 
 // クイズ大会モード（issue #470）の管理者向けルーム情報画面（issue #547）。
 // 以前は通常のゲーム画面にインラインで展開する折りたたみパネル
@@ -19,12 +19,6 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
       .then(setQrDataUrl)
       .catch((error) => console.error("Failed to generate QR code:", error));
   }, [inviteUrl]);
-
-  // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
-  // 統合して表示する。以前は通常のゲーム画面にインラインで表示していたが、ルーム情報
-  // 画面（この画面）の下部へ移動し、表形式に変更した（issue #587）。
-  // 回答数（issue #698）: 早押しして正誤判定された累計回数（attempts）も併せて表示する
-  const participantList = mergeParticipantsWithPoints(quizRoomParticipants, quizRoomPoints, quizRoomAnswerCounts);
 
   // ポイントリセット（issue #615）: 同じルームで2ゲーム目を始める際、前のゲームの
   // ポイントを引き継がずに再スタートしたい場合に管理者が明示的に実行する。取り消せない
@@ -80,38 +74,19 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
           </button>
         </div>
       </div>
-      {participantList.length > 0 && (
-        <div className="mx-auto mt-5 text-start" style={{ maxWidth: "360px" }}>
-          <p className="text-muted small mb-2">参加者一覧</p>
-          <table className="table table-sm table-bordered bg-white mb-0">
-            <thead>
-              <tr>
-                <th scope="col">名前</th>
-                <th scope="col">接続</th>
-                <th scope="col" className="text-end">回答数</th>
-                <th scope="col" className="text-end">正答数</th>
-              </tr>
-            </thead>
-            <tbody>
-              {participantList.map(({ name, points, attempts, connected }) => (
-                <tr key={name}>
-                  <td className="notranslate">{name}</td>
-                  <td className={connected ? "text-success" : "text-muted"}>
-                    {connected ? "接続中" : "切断済み"}
-                  </td>
-                  <td className="text-end">{attempts}</td>
-                  <td className="text-end">{points}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <QuizRoomParticipantTable
+        participantNames={quizRoomParticipants}
+        points={quizRoomPoints}
+        answerCounts={quizRoomAnswerCounts}
+        className="mt-5"
+        footer={(
           <div className="text-end mt-2">
             <button type="button" onClick={handleResetPoints} className="btn btn-sm btn-outline-danger">
               ポイントをリセット
             </button>
           </div>
-        </div>
-      )}
+        )}
+      />
       <div className="mt-5">
         <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
           ルームを閉じる

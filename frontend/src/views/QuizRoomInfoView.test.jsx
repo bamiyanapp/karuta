@@ -27,52 +27,21 @@ describe('QuizRoomInfoView', () => {
     expect(urlInput).toBeInTheDocument();
   });
 
-  it('shows the participant list as a table at the bottom of the screen, sorted by points descending, with a connection status column (issue #587, #599)', () => {
+  // 参加者一覧テーブルの並び順・接続状態・回答数/正答数の詳細な検証は
+  // QuizRoomParticipantTable.test.jsx（issue #800で共通化）に集約した。ここでは
+  // 「この画面がテーブルへ正しくpropsを渡していること」だけを薄く確認する
+  it('shows the participant list as a table at the bottom of the screen (issue #587, #599)', () => {
     render(
       <QuizRoomInfoView
         setView={vi.fn()}
         roomId="ABC123"
-        quizRoomParticipants={['たろう', 'はなこ', 'じろう']}
+        quizRoomParticipants={['たろう']}
         quizRoomPoints={{ たろう: 3 }}
       />
     );
 
     expect(screen.getByText('参加者一覧')).toBeInTheDocument();
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    // たろう(3pt)がまだ得点していないじろう・はなこ(0pt)より先（降順、同点は名前昇順）
-    expect(rows).toEqual(['たろう接続中03', 'じろう接続中00', 'はなこ接続中00']);
-  });
-
-  it('shows a participant as disconnected when they are no longer in the connected-participants list, while keeping their earned points visible (issue #599, #602)', () => {
-    render(
-      <QuizRoomInfoView
-        setView={vi.fn()}
-        roomId="ABC123"
-        quizRoomParticipants={['はなこ']}
-        quizRoomPoints={{ たろう: 2 }}
-      />
-    );
-
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み02', 'はなこ接続中00']);
-  });
-
-  it('shows the attempt count (回答数) and correct count (正答数) as separate columns, keeping them after a participant disconnects (issue #698)', () => {
-    render(
-      <QuizRoomInfoView
-        setView={vi.fn()}
-        roomId="ABC123"
-        quizRoomParticipants={['はなこ']}
-        quizRoomPoints={{ たろう: 2 }}
-        quizRoomAnswerCounts={{ たろう: { attempts: 3, correct: 2 }, はなこ: { attempts: 1, correct: 0 } }}
-      />
-    );
-
-    expect(screen.getByText('回答数')).toBeInTheDocument();
-    expect(screen.getByText('正答数')).toBeInTheDocument();
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    // たろうは切断済みでも回答数・正答数がpointsと同様に保持され続ける
-    expect(rows).toEqual(['たろう切断済み32', 'はなこ接続中10']);
+    expect(screen.getByText('たろう')).toBeInTheDocument();
   });
 
   it('does not show the participant list section when there are no participants yet', () => {
