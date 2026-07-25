@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, WS_BASE_URL } from "../config";
 import { useQuizRoomSync } from "./useQuizRoomSync";
-import { unlockAudioPlayback, playQuizSfx } from "../utils/audioUnlock";
+import { useValueChange } from "./useValueChange";
+import { unlockAudioPlayback, playQuizSfx, playJudgmentSfx } from "../utils/audioUnlock";
+import { phraseKey } from "../utils/phraseKey";
+import { setRoomIdParam } from "../utils/quizRoomUrl";
 
 // クイズ大会モード（issue #470）でuseQuizRoomSyncにonStateを渡す際の既定値。
 // 管理者側は自身のゲーム状態が唯一の正であり、サーバーから送り返される状態を
@@ -77,10 +80,9 @@ export function useQuizRoomAdmin({
   // トップページ下部に表示する、開設中のクイズ大会ルーム一覧（issue #489）
   const [openQuizRooms, setOpenQuizRooms] = useState([]);
   // 早押し機能（issue #510）: 現在のラウンドで最初に回答した参加者名。次の札が
-  // 出題されたらリセットする（下記のブロードキャストeffect内。quizRoomBuzzRoundKeyは
-  // QuizRoomView.jsxのbuzzRoundKeyと同じ考え方で、resultの間はリセットしない）
+  // 出題されたらリセットする（下記のquizRoomBuzzRoundKey判定。QuizRoomView.jsxの
+  // buzzRoundKeyと同じ考え方で、resultの間はリセットしない）
   const [quizRoomBuzzedBy, setQuizRoomBuzzedBy] = useState(null);
-  const [quizRoomBuzzRoundKey, setQuizRoomBuzzRoundKey] = useState(null);
   // ポイント制（issue #519）: 名前→累計ポイントのマップ。管理者には参加者ごとの
   // ポイントを一覧表示する
   const [quizRoomPoints, setQuizRoomPoints] = useState({});
@@ -146,10 +148,7 @@ export function useQuizRoomAdmin({
     onState: noop,
     onBuzz: (buzzedBy) => {
       // issue #613: 参加者の早押しを管理者側にも音で通知する
-      // issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
-      // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
-      // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
-      playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
+      playQuizSfx("buzz").catch(() => {});
       // issue #788: 参加者側（issue #696のstopSharedAudio）と同様、早押し発生時点で
       // 管理者自身の読み上げ音声・演出も止める。止めないと、参加者の誰かが早押しした
       // 後も管理者の本編音声・3秒待ち・フェード演出がそのまま進行し続けてしまう。
@@ -189,17 +188,12 @@ export function useQuizRoomAdmin({
   // 管理者セッション復帰（issue #697）: switchToAdminModeで保存済みトークンを使った
   // 復帰を試みている間、接続が確立できれば復帰成功とみなして監視を終了する。
   // 逆に接続がエラーになった場合は、トークンが無効（ルーム失効・削除済み等）と
-  // 判断し、保存済みトークンを破棄したうえで通常の参加者フローへフォールバックする。
-  // レンダー中のstate調整パターン（QuizRoomView.jsxのbuzzRoundKey判定と同じ考え方）で、
-  // 副作用を伴わないstate更新はuseEffectを介さずレンダー中に直接行う
-  // （react-hooks/set-state-in-effect対策）
-  const [lastRestoreCheckedStatus, setLastRestoreCheckedStatus] = useState(quizRoomConnectionStatus);
-  if (quizRoomConnectionStatus !== lastRestoreCheckedStatus) {
-    setLastRestoreCheckedStatus(quizRoomConnectionStatus);
+  // 判断し、保存済みトークンを破棄したうえで通常の参加者フローへフォールバックする
+  useValueChange(quizRoomConnectionStatus, (nextStatus) => {
     if (isRestoringAdminSession) {
-      if (quizRoomConnectionStatus === "connected") {
+      if (nextStatus === "connected") {
         setIsRestoringAdminSession(false);
-      } else if (quizRoomConnectionStatus === "error") {
+      } else if (nextStatus === "error") {
         setIsRestoringAdminSession(false);
         clearStoredAdminSession();
         setAdminSessionRoomId(null);
@@ -210,7 +204,7 @@ export function useQuizRoomAdmin({
         setView("quiz-room");
       }
     }
-  }
+  });
 
   // 早押し正誤判定（issue #546）: 「正解」「不正解」を選んだら判定結果をサーバーへ
   // 送信し、モーダルはローカルで即座に閉じる（roundResetのブロードキャストは
@@ -226,7 +220,7 @@ export function useQuizRoomAdmin({
     // issue #613: 正誤判定した瞬間に管理者側でも結果を音で確認できるようにする。
     // ボタン押下という実際のユーザー操作の中で呼ぶため、事前のunlockAudioPlayback()
     // なしでも再生できる
-    playQuizSfx(correct ? "correct" : "incorrect", correct ? "quiz-correct.mp3" : "quiz-incorrect.mp3").catch(() => {});
+    playJudgmentSfx(correct).catch(() => {});
     if (correct) {
       await revealCurrentResult(winner);
     }
@@ -240,16 +234,12 @@ export function useQuizRoomAdmin({
   // broadcastPhraseは次の札が出題されるたびに更新され、resetReadingState（ゲームリセット・
   // カテゴリ選び直し）でnullへ戻るため、これだけでresult表示中の保持・リセット時のクリアの
   // 両方が自然に成り立つ（displayContentの型を個別に見る必要がない）
-  // レンダー中のstate調整パターン（QuizRoomView.jsxのbuzzRoundKey判定と同じ考え方）で、
-  // 副作用を伴わないstate更新はuseEffectを介さずレンダー中に直接行う
-  // （react-hooks/set-state-in-effect対策）
-  const nextQuizRoomBuzzRoundKey = quizRoom && broadcastPhrase
-    ? `${broadcastPhrase.content.category}:${broadcastPhrase.content.id}`
+  const quizRoomBuzzRoundKey = quizRoom && broadcastPhrase
+    ? phraseKey(broadcastPhrase.content)
     : null;
-  if (nextQuizRoomBuzzRoundKey !== quizRoomBuzzRoundKey) {
-    setQuizRoomBuzzRoundKey(nextQuizRoomBuzzRoundKey);
+  useValueChange(quizRoomBuzzRoundKey, () => {
     setQuizRoomBuzzedBy(null);
-  }
+  });
 
   // 次の札のブロードキャスト（issue #781）: 管理者自身の画面演出（イントロ音声＋3秒待ち＋
   // フェード、useKarutaReading.js）を待たず、次の札が確定した時点（broadcastPhraseの
@@ -340,9 +330,7 @@ export function useQuizRoomAdmin({
     // ブラウザの自動再生ポリシー対策（issue #497）: この参加操作（クリック）に
     // 便乗して無音再生しておき、参加後の自動再生が通りやすくする
     unlockAudioPlayback();
-    const params = new URLSearchParams(window.location.search);
-    params.set("roomId", roomId);
-    window.history.pushState({}, "", `?${params.toString()}`);
+    setRoomIdParam(roomId);
     setView("quiz-room");
   };
 

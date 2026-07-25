@@ -530,49 +530,21 @@ describe('QuizRoomView', () => {
     expect(screen.getByText('獲得ポイント: 2')).toBeInTheDocument();
   });
 
-  it('shows a combined participant list as a table (including 0pt participants), highlighting the confirmed participant\'s own name (issue #545, #599)', () => {
-    window.history.pushState({}, '', '?roomId=ABC123');
-    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
-    confirmName('はなこ');
-
-    emitParticipants(['はなこ', 'たろう', 'じろう']);
-    emitPoints({ たろう: 5 });
-
-    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう接続中05', 'じろう接続中00', 'はなこ接続中00']);
-
-    const ownEntry = screen.getByText('はなこ', { selector: 'td.fw-bold' });
-    expect(ownEntry).toBeInTheDocument();
-  });
-
-  it('shows a participant as disconnected once they leave, while keeping their earned points visible (issue #599, #602)', () => {
+  // 参加者一覧テーブルの並び順・接続状態・回答数/正答数の詳細な検証は
+  // QuizRoomParticipantTable.test.jsx（issue #800で共通化）に集約した。ここでは
+  // 「この画面がテーブルへ正しくpropsを渡していること」（自分の名前がhighlightNameとして
+  // 渡り太字になること）だけを確認する
+  it('shows a combined participant list as a table, highlighting the confirmed participant\'s own name (issue #545, #599)', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
     confirmName('はなこ');
 
     emitParticipants(['はなこ', 'たろう']);
-    emitPoints({ たろう: 2 });
 
-    // たろうが切断（participants一覧から名前が消える）。得点は残る
-    emitParticipants(['はなこ']);
-
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み02', 'はなこ接続中00']);
-  });
-
-  it('shows the attempt count (回答数) and correct count (正答数) as separate columns in the participant list, keeping them after a participant disconnects (issue #698)', () => {
-    window.history.pushState({}, '', '?roomId=ABC123');
-    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
-    confirmName('はなこ');
-
-    emitParticipants(['はなこ']);
-    emitPoints({ たろう: 2 }, { たろう: { attempts: 3, correct: 2 }, はなこ: { attempts: 1, correct: 0 } });
-
-    expect(screen.getByText('回答数')).toBeInTheDocument();
-    expect(screen.getByText('正答数')).toBeInTheDocument();
-    const rows = screen.getAllByRole('row').slice(1).map((row) => row.textContent);
-    expect(rows).toEqual(['たろう切断済み32', 'はなこ接続中10']);
+    expect(screen.getByText('参加者一覧')).toBeInTheDocument();
+    const ownEntry = screen.getByText('はなこ', { selector: 'td.fw-bold' });
+    expect(ownEntry).toBeInTheDocument();
+    expect(screen.getByText('たろう').className).not.toContain('fw-bold');
   });
 
   it('sends the participant back to the name entry screen with an error when the server rejects a duplicate name (issue #519)', () => {
@@ -809,6 +781,33 @@ describe('QuizRoomView', () => {
 
     expect(narrationAudio.pause).toHaveBeenCalled();
     expect(buzzMock).toHaveBeenCalled();
+  });
+
+  it('also stops the currently-playing narration audio when a different participant buzzes in, not only when this participant buzzes (issue #800)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const narrationAudio = audioInstances[0];
+    narrationAudio.pause.mockClear();
+
+    // 自分ではなく他の参加者が早押しした場合
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+
+    expect(narrationAudio.pause).toHaveBeenCalled();
   });
 
   it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {

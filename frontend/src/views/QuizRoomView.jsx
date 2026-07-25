@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
+import { useValueChange } from "../hooks/useValueChange";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, stopSharedAudio } from "../utils/audioUnlock";
-import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, playJudgmentSfx, stopSharedAudio } from "../utils/audioUnlock";
+import { phraseKey } from "../utils/phraseKey";
+import { clearRoomIdParam } from "../utils/quizRoomUrl";
+import AnswerAndExplanation from "../components/AnswerAndExplanation";
+import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -47,18 +51,7 @@ function renderParticipantContent(roomState) {
           )}
           <div className="text-muted mb-2">所要時間</div>
           <div className="display-4 fw-bold text-dark mb-2">{r.time?.toFixed(2)}<span className="fs-4">秒</span></div>
-          {r.answer && r.answer !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">答え</div>
-              <div className="h4 fw-bold text-dark">{r.answer}</div>
-            </>
-          )}
-          {r.explanation && r.explanation !== "-" && (
-            <>
-              <div className="text-muted mt-4 mb-2">解説</div>
-              <div className="fs-6 text-dark">{r.explanation}</div>
-            </>
-          )}
+          <AnswerAndExplanation answer={r.answer} explanation={r.explanation} />
         </div>
       </div>
     );
@@ -125,10 +118,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // ルームコード入力画面ではなく以前のルームへ入室しようとする画面になってしまう。
   // そのため離脱時に明示的にクエリから取り除く（他のクエリパラメータは保持する）
   const goBack = () => {
-    const params = new URLSearchParams(window.location.search);
-    params.delete("roomId");
-    const query = params.toString();
-    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    clearRoomIdParam();
     setView("game");
   };
 
@@ -136,24 +126,17 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // goBackと同様にURLの?roomId=を取り除きつつ、通常のゲーム画面へは戻らず
   // この画面のルームコード入力欄に留まる
   const retryRoomCode = () => {
-    const params = new URLSearchParams(window.location.search);
-    params.delete("roomId");
-    const query = params.toString();
-    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    clearRoomIdParam();
     setRoomInvalid(false);
     setJoinRoomId(null);
     setManualRoomId("");
   };
 
   // ルームコードの事前確認（issue #616）: joinRoomIdが変わるたびに、前回の
-  // 「存在しない」判定を持ち越さないようリセットする。レンダー中のstate調整
-  // パターン（下記のcurrentBuzzRoundKey判定と同じ考え方）で行い、useEffect内での
-  // 無条件setState（react-hooks/set-state-in-effect）を避ける
-  const [lastCheckedRoomId, setLastCheckedRoomId] = useState(joinRoomId);
-  if (joinRoomId !== lastCheckedRoomId) {
-    setLastCheckedRoomId(joinRoomId);
+  // 「存在しない」判定を持ち越さないようリセットする
+  useValueChange(joinRoomId, () => {
     setRoomInvalid(false);
-  }
+  });
 
   // 実際にWebSocket接続を試みる前にGET /quiz-roomで存在確認する
   useEffect(() => {
@@ -191,10 +174,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   const handleRoundReset = ({ excludedName, answerCounts: nextAnswerCounts }) => {
     // issue #613: 不正解の判定結果を参加者全員に音で伝える（除外された本人以外にとっては
     // 「次に早押しできるようになった」合図でもあるが、判定内容自体は不正解のため同じ音を使う）
-    // issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
-    // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
-    // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
-    playQuizSfx("incorrect", "quiz-incorrect.mp3").catch(() => {});
+    playJudgmentSfx(false).catch(() => {});
     // issue #680: 除外された本人はbuzzedByを残したままにするとexcludedThisRoundが
     // trueになっても表示分岐（下記JSX）でbuzzedByが優先され、「〇〇さんが回答中」の
     // 表示が次の札が届くまで残り続けてしまう。自分自身が不正解と判定されたことを
@@ -217,7 +197,12 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     onState: setRoomState,
     onBuzz: (buzzedByParam) => {
       // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
-      playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
+      playQuizSfx("buzz").catch(() => {});
+      // issue #800: 従来はhandleBuzz（自分が押した場合のみ）でしか読み上げを
+      // 止めておらず、他の参加者が早押ししてもこの端末の読み上げは流れ続けて
+      // いた。管理者側（issue #788、誰の早押しでも止める）と揃え、早押しの
+      // ブロードキャストを受け取った時点（自分・他の参加者いずれも）で止める
+      stopSharedAudio();
       setBuzzedBy(buzzedByParam);
     },
     onPoints: (nextPoints, nextAnswerCounts) => {
@@ -240,10 +225,14 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // - それ以外（"initial"等）: ラウンドなし（null）とし、管理者がゲームをリセットした
   //   場合等に、古い回答者情報が次のラウンドへ持ち越されないようにする
   // レンダー中に前回値と比較して直接更新する、Reactが推奨する「レンダー中のstate調整」
-  // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）
+  // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）。
+  // issue #800: 同種のパターンはuseValueChangeへ共通化したが、このキーの導出自体が
+  // 「直前のラウンドキー（lastBuzzRoundKey）を参照して"result"中は維持する」という
+  // 前回値への依存を持つため、値の変化だけを検知するuseValueChangeにはそのまま乗らず、
+  // ここでは個別に扱う
   let currentBuzzRoundKey = lastBuzzRoundKey;
   if (roomState?.type === "phrase" && roomState.content?.id) {
-    currentBuzzRoundKey = `${roomState.content.category}:${roomState.content.id}`;
+    currentBuzzRoundKey = phraseKey(roomState.content);
   } else if (roomState?.type !== "result") {
     currentBuzzRoundKey = null;
   }
@@ -267,7 +256,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // 後から届くbuzzブロードキャスト（自分の勝ち・他の参加者の勝ちいずれも）が
   // この仮の値を正しい値で上書きする
   const handleBuzz = () => {
-    // issue #696: 読み上げ中に回答ボタンが押された場合、読み上げを中断する
+    // issue #696: 読み上げ中に回答ボタンが押された場合、読み上げを中断する。
+    // サーバーへのbuzz送信・ブロードキャスト受信（onBuzz、issue #800で追加）を
+    // 待たず、押した瞬間に即座に止めるためここでも呼ぶ（onBuzz側の呼び出しと
+    // 二重になるがstopSharedAudioは冪等なので問題ない）
     stopSharedAudio();
     setBuzzedBy({ name: confirmedName });
     buzz();
@@ -301,7 +293,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // なった瞬間にだけ再生されるようdepsをshowCelebrationのみにする
   useEffect(() => {
     if (showCelebration) {
-      playQuizSfx("correct", "quiz-correct.mp3").catch(() => {});
+      playQuizSfx("correct").catch(() => {});
     }
   }, [showCelebration]);
 
@@ -363,7 +355,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
       return;
     }
     const { id, category, repeatCount, speechRate, lang, voiceId, announceCategory } = roomState.content;
-    const key = `${category}:${id}`;
+    const key = phraseKey(roomState.content);
     if (lastPlayedKeyRef.current === key) {
       return;
     }
@@ -385,7 +377,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     // 太鼓の音と読み上げが重なって聞こえてしまっていた。本編音声の「取得」は太鼓の音の
     // 再生と並行して進め（余計な遅延を増やさないため）、「再生開始」だけを太鼓の音の
     // 完了後まで遅らせることで、管理者側（太鼓の音の後に読み上げを始める）と同じ順序にする
-    const introPromise = playQuizSfxAndWait("intro", "wadodon.mp3");
+    const introPromise = playQuizSfxAndWait("intro");
 
     let cancelled = false;
     (async () => {
@@ -548,40 +540,16 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
             </button>
           </div>
         )}
-        {(() => {
-          // 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた
-          // 1つのリストに統合して表示する（管理者画面と同じ並び順）。
-          // 表形式・接続ステータス表示、回答ボタンより下への配置はissue #599で対応。
-          // 回答数（issue #698）: 早押しして正誤判定された累計回数（attempts）も併せて表示する
-          const participantList = mergeParticipantsWithPoints(participants, points, answerCounts);
-          return participantList.length > 0 && (
-            <div className="mx-auto mt-4 text-start" style={{ maxWidth: "360px" }}>
-              <p className="text-muted small mb-2">参加者一覧</p>
-              <table className="table table-sm table-bordered bg-white mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">名前</th>
-                    <th scope="col">接続</th>
-                    <th scope="col" className="text-end">回答数</th>
-                    <th scope="col" className="text-end">正答数</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participantList.map(({ name, points: pt, attempts, connected }) => (
-                    <tr key={name}>
-                      <td className={`notranslate ${name === confirmedName ? "fw-bold" : ""}`}>{name}</td>
-                      <td className={connected ? "text-success" : "text-muted"}>
-                        {connected ? "接続中" : "切断済み"}
-                      </td>
-                      <td className="text-end">{attempts}</td>
-                      <td className="text-end">{pt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })()}
+        {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
+            統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
+            より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
+            累計回数（attempts）も併せて表示する */}
+        <QuizRoomParticipantTable
+          participantNames={participants}
+          points={points}
+          answerCounts={answerCounts}
+          highlightName={confirmedName}
+        />
         {phraseHistory.length > 0 && (
           <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
             <button

@@ -1,3 +1,5 @@
+import AnswerAndExplanation from "./AnswerAndExplanation";
+
 // 早押し正誤判定モーダル（issue #546）。管理者が参加者の早押しを正誤判定するための
 // ポップアップで、以前はApp.jsxのゲーム画面のレンダー内にのみ存在していた。
 // ルーム情報画面（QuizRoomInfoView）を開いている間はこの分岐を通らずモーダルが
@@ -20,15 +22,7 @@ function QuizRoomBuzzJudgmentModal({ buzzedBy, answer, explanation, onJudge }) {
         <div className="modal-content rounded-4 border-0 shadow">
           <div className="modal-body p-5 text-center">
             <h3 className="h5 mb-4 fw-bold">🔔 {buzzedBy.name} さんが回答中</h3>
-            {answer && answer !== "-" && (
-              <>
-                <div className="text-muted mb-2">答え</div>
-                <div className="h4 fw-bold text-dark mb-4">{answer}</div>
-              </>
-            )}
-            {explanation && explanation !== "-" && (
-              <div className="fs-6 text-dark mb-4">{explanation}</div>
-            )}
+            <AnswerAndExplanation answer={answer} explanation={explanation} variant="modal" />
             <div className="d-flex gap-2 justify-content-center">
               <button onClick={() => onJudge(true)} className="btn btn-primary btn-lg px-4 rounded-pill shadow-sm fs-6">正解</button>
               <button onClick={() => onJudge(false)} className="btn btn-outline-secondary btn-lg px-4 rounded-pill fs-6">不正解</button>

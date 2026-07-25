@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE_URL } from "../config";
+import { phraseKey } from "../utils/phraseKey";
 
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
@@ -65,8 +66,8 @@ export function useKarutaReading({
   // この最後の1枚を読み上げている間だけ「次の札」を無効化する
   const isReadingLastPhrase = useMemo(() => {
     if (!isReading) return false;
-    const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
-    return allPhrasesForCategory.every(p => readKeys.has(`${p.category}:${p.id}`));
+    const readKeys = new Set(currentHistory.map(phraseKey));
+    return allPhrasesForCategory.every(p => readKeys.has(phraseKey(p)));
   }, [isReading, currentHistory, allPhrasesForCategory]);
 
   useEffect(() => {
@@ -239,8 +240,8 @@ export function useKarutaReading({
       return;
     }
 
-    const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
-    const unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(`${p.category}:${p.id}`));
+    const readKeys = new Set(currentHistory.map(phraseKey));
+    const unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(phraseKey(p)));
     if (unreadPhrases.length === 0) {
       return;
     }
@@ -367,8 +368,8 @@ export function useKarutaReading({
     if (selectedCategories.length === 0 || allPhrasesForCategory.length === 0) return;
 
     try {
-      const readKeys = new Set(currentHistory.map(p => `${p.category}:${p.id}`));
-      let unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(`${p.category}:${p.id}`));
+      const readKeys = new Set(currentHistory.map(phraseKey));
+      let unreadPhrases = allPhrasesForCategory.filter(p => !readKeys.has(phraseKey(p)));
 
       if (unreadPhrases.length === 0) {
         setIsAllRead(true);
