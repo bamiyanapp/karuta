@@ -1,3 +1,10 @@
+# [1.56.0](https://github.com/bamiyanapp/karuta/compare/v1.55.0...v1.56.0) (2026-07-25)
+
+
+### Features
+
+* **lint:** ESLintのcomplexityルール・eslint-plugin-sonarjsを導入する（issue [#806](https://github.com/bamiyanapp/karuta/issues/806)） ([#813](https://github.com/bamiyanapp/karuta/issues/813)) ([29ff6b0](https://github.com/bamiyanapp/karuta/commit/29ff6b031dd9f108edcda49f361e220ae2dae0ba)), closes [bamiyanapp/dev-standards#113](https://github.com/bamiyanapp/dev-standards/issues/113)
+
 # [1.55.0](https://github.com/bamiyanapp/karuta/compare/v1.54.8...v1.55.0) (2026-07-25)
 
 
