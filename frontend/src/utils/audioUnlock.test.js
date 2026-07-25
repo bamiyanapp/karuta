@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, stopSharedAudio, resetSharedAudioForTests } from './audioUnlock';
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playJudgmentSfx, playQuizSfxAndWait, stopSharedAudio, resetSharedAudioForTests } from './audioUnlock';
 
 const audioInstances = [];
 let audioPlayImpl = () => Promise.resolve();
@@ -7,7 +7,15 @@ let audioPlayImpl = () => Promise.resolve();
 // App.test.jsxと同様の理由でアロー関数ではなく通常の関数式を使う（newで呼び出すため）
 window.Audio = vi.fn().mockImplementation(function (src) {
   this.src = src;
-  this.play = vi.fn(() => audioPlayImpl());
+  this.play = vi.fn(() => {
+    const result = audioPlayImpl();
+    // issue #796: playQuizSfxAndWaitはonendedの発火を待って解決するため、play()の
+    // 解決に続けて即座にonendedも発火させて模倣する。onendedはこの呼び出し時点の
+    // ものを束縛しておく（QuizRoomView.test.jsxと同じ理由）
+    const onendedAtCallTime = this.onended;
+    result.then(() => onendedAtCallTime?.()).catch(() => {});
+    return result;
+  });
   this.pause = vi.fn();
   audioInstances.push(this);
 });
@@ -87,38 +95,91 @@ describe('audioUnlock', () => {
     });
   });
 
-  describe('playQuizSfx (issue #613)', () => {
-    it('reuses the element that was already unlocked for the given name, pausing it and swapping the src', async () => {
+  describe('playQuizSfx (issue #613, #800)', () => {
+    it('reuses the element that was already unlocked for the given name, pausing it and swapping the src (issue #800: ファイル名はQUIZ_SFX_SOURCESから引く)', async () => {
       unlockAudioPlayback();
       // unlockAudioPlayback内ではsharedAudio(narration)の直後にbuzz/correct/incorrectの
       // 順で生成されるため、audioInstances[1]が"buzz"の共有要素になる
       const unlockedBuzzInstance = audioInstances[1];
 
-      await playQuizSfx('buzz', '/quiz-buzz.mp3');
+      await playQuizSfx('buzz');
 
       expect(audioInstances).toHaveLength(5);
       expect(audioInstances[1]).toBe(unlockedBuzzInstance);
-      expect(unlockedBuzzInstance.src).toBe('/quiz-buzz.mp3');
+      expect(unlockedBuzzInstance.src).toBe('quiz-buzz.mp3');
     });
 
     it('lazily creates a shared element per name if unlockAudioPlayback was never called', async () => {
-      await playQuizSfx('correct', '/quiz-correct.mp3');
+      await playQuizSfx('correct');
 
       expect(audioInstances).toHaveLength(1);
-      expect(audioInstances[0].src).toBe('/quiz-correct.mp3');
+      expect(audioInstances[0].src).toBe('quiz-correct.mp3');
       expect(audioInstances[0].play).toHaveBeenCalled();
     });
 
     it('keeps buzz/correct/incorrect on separate elements so playing one does not touch another', async () => {
-      await playQuizSfx('buzz', '/quiz-buzz.mp3');
-      await playQuizSfx('correct', '/quiz-correct.mp3');
+      await playQuizSfx('buzz');
+      await playQuizSfx('correct');
 
       // 名前ごとに別要素が作られ、互いのsrc/play呼び出し回数に影響しないこと
       expect(audioInstances).toHaveLength(2);
-      expect(audioInstances[0].src).toBe('/quiz-buzz.mp3');
+      expect(audioInstances[0].src).toBe('quiz-buzz.mp3');
       expect(audioInstances[0].play).toHaveBeenCalledTimes(1);
-      expect(audioInstances[1].src).toBe('/quiz-correct.mp3');
+      expect(audioInstances[1].src).toBe('quiz-correct.mp3');
       expect(audioInstances[1].play).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('playJudgmentSfx (issue #800)', () => {
+    it('plays the correct sound effect when correct is true', async () => {
+      await playJudgmentSfx(true);
+
+      expect(audioInstances).toHaveLength(1);
+      expect(audioInstances[0].src).toBe('quiz-correct.mp3');
+    });
+
+    it('plays the incorrect sound effect when correct is false', async () => {
+      await playJudgmentSfx(false);
+
+      expect(audioInstances).toHaveLength(1);
+      expect(audioInstances[0].src).toBe('quiz-incorrect.mp3');
+    });
+  });
+
+  describe('playQuizSfxAndWait (issue #796)', () => {
+    it('resolves once the audio finishes playing (onended), not merely once playback starts', async () => {
+      let resolvePlay;
+      audioPlayImpl = () => new Promise((resolve) => { resolvePlay = resolve; });
+
+      let settled = false;
+      const promise = playQuizSfxAndWait('intro').then(() => { settled = true; });
+
+      expect(audioInstances).toHaveLength(1);
+      expect(audioInstances[0].src).toBe('wadodon.mp3');
+      // まだ再生完了（onended相当）していないので解決していない
+      expect(settled).toBe(false);
+
+      resolvePlay();
+      await promise;
+
+      expect(settled).toBe(true);
+    });
+
+    it('falls back to resolving after a timeout if onended never fires', async () => {
+      vi.useFakeTimers();
+      try {
+        // onendedもonerrorも発火しない（play()が解決も拒否もしない）環境を模倣する
+        audioPlayImpl = () => new Promise(() => {});
+
+        let settled = false;
+        playQuizSfxAndWait('intro').then(() => { settled = true; });
+
+        await vi.advanceTimersByTimeAsync(5000);
+
+        expect(settled).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

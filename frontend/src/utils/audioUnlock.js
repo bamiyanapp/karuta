@@ -23,7 +23,20 @@ let sharedAudio = null;
 // "intro"は参加者側のイントロ音（太鼓の音、issue #786）用。sharedAudio（本編音声）とは
 // 別の要素が必要な理由は同じ（本編音声の取得と並行して鳴らしたいため、issue #796）
 const sharedSfxAudio = {};
-const QUIZ_SFX_NAMES = ["buzz", "correct", "incorrect", "intro"];
+// issue #800: 論理名とファイル名の対応を1箇所にまとめる。以前は呼び出し側
+// （playQuizSfx(name, ファイル名)）が毎回両方を手書きしており、ファイル名を
+// 変える際（issue #679の相対パス修正等）に全呼び出し箇所を漏れなく直す必要が
+// あった。
+// issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
+// 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
+// NotSupportedErrorになる。favicon.png等と同じ相対パスにする
+const QUIZ_SFX_SOURCES = {
+  buzz: "quiz-buzz.mp3",
+  correct: "quiz-correct.mp3",
+  incorrect: "quiz-incorrect.mp3",
+  intro: "wadodon.mp3",
+};
+const QUIZ_SFX_NAMES = Object.keys(QUIZ_SFX_SOURCES);
 
 function getSharedAudio() {
   if (!sharedAudio) {
@@ -74,12 +87,21 @@ export function stopSharedAudio() {
 }
 
 // issue #613: 早押し関連の効果音（回答ボタン/正解/不正解）を再生する。
-// nameは"buzz"|"correct"|"incorrect"|"intro"のいずれか
-export function playQuizSfx(name, src) {
+// nameは"buzz"|"correct"|"incorrect"|"intro"のいずれか。再生するファイルは
+// QUIZ_SFX_SOURCESから引く
+export function playQuizSfx(name) {
   const audio = getSharedSfxAudio(name);
   audio.pause();
-  audio.src = src;
+  audio.src = QUIZ_SFX_SOURCES[name];
   return audio.play();
+}
+
+// issue #800: 早押し正誤判定の効果音（correct/incorrect）は、管理者側
+// （judgeQuizRoomBuzz）・参加者側（handleRoundReset/showCelebration）の
+// どちらも「correctかどうかのbooleanから対応する効果音名を選んでplayQuizSfxを
+// 呼ぶ」という同型の呼び出しだったため、ヘルパーとしてまとめる
+export function playJudgmentSfx(correct) {
+  return playQuizSfx(correct ? "correct" : "incorrect");
 }
 
 // issue #796: イントロ音（太鼓の音）の再生完了を待てるバージョン。play()が返す
@@ -90,10 +112,10 @@ export function playQuizSfx(name, src) {
 // のplayAudioにも上限時間がある。太鼓の音は短い効果音のため、本編音声用の15秒より
 // 短い上限にする）
 const INTRO_SFX_TIMEOUT_MS = 5000;
-export function playQuizSfxAndWait(name, src) {
+export function playQuizSfxAndWait(name) {
   const audio = getSharedSfxAudio(name);
   audio.pause();
-  audio.src = src;
+  audio.src = QUIZ_SFX_SOURCES[name];
   return new Promise((resolve) => {
     let settled = false;
     const settle = () => {

@@ -811,6 +811,33 @@ describe('QuizRoomView', () => {
     expect(buzzMock).toHaveBeenCalled();
   });
 
+  it('also stops the currently-playing narration audio when a different participant buzzes in, not only when this participant buzzes (issue #800)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const narrationAudio = audioInstances[0];
+    narrationAudio.pause.mockClear();
+
+    // 自分ではなく他の参加者が早押しした場合
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+
+    expect(narrationAudio.pause).toHaveBeenCalled();
+  });
+
   it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
     window.history.pushState({}, '', '?roomId=ABC123');

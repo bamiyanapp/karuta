@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { API_BASE_URL } from "../config";
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, stopSharedAudio } from "../utils/audioUnlock";
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, playJudgmentSfx, stopSharedAudio } from "../utils/audioUnlock";
 import { mergeParticipantsWithPoints } from "../utils/quizRoomParticipants";
+import { phraseKey } from "../utils/phraseKey";
+import { clearRoomIdParam } from "../utils/quizRoomUrl";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -125,10 +127,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // ルームコード入力画面ではなく以前のルームへ入室しようとする画面になってしまう。
   // そのため離脱時に明示的にクエリから取り除く（他のクエリパラメータは保持する）
   const goBack = () => {
-    const params = new URLSearchParams(window.location.search);
-    params.delete("roomId");
-    const query = params.toString();
-    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    clearRoomIdParam();
     setView("game");
   };
 
@@ -136,10 +135,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // goBackと同様にURLの?roomId=を取り除きつつ、通常のゲーム画面へは戻らず
   // この画面のルームコード入力欄に留まる
   const retryRoomCode = () => {
-    const params = new URLSearchParams(window.location.search);
-    params.delete("roomId");
-    const query = params.toString();
-    window.history.pushState({}, "", query ? `?${query}` : window.location.pathname);
+    clearRoomIdParam();
     setRoomInvalid(false);
     setJoinRoomId(null);
     setManualRoomId("");
@@ -191,10 +187,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   const handleRoundReset = ({ excludedName, answerCounts: nextAnswerCounts }) => {
     // issue #613: 不正解の判定結果を参加者全員に音で伝える（除外された本人以外にとっては
     // 「次に早押しできるようになった」合図でもあるが、判定内容自体は不正解のため同じ音を使う）
-    // issue #679: base: "./"（vite.config.js）でサブパス配下にデプロイされるため、
-    // 絶対パス（先頭スラッシュ）だとドメインルート宛になり音声ファイルが見つからず
-    // NotSupportedErrorになる。favicon.png等と同じ相対パスにする
-    playQuizSfx("incorrect", "quiz-incorrect.mp3").catch(() => {});
+    playJudgmentSfx(false).catch(() => {});
     // issue #680: 除外された本人はbuzzedByを残したままにするとexcludedThisRoundが
     // trueになっても表示分岐（下記JSX）でbuzzedByが優先され、「〇〇さんが回答中」の
     // 表示が次の札が届くまで残り続けてしまう。自分自身が不正解と判定されたことを
@@ -217,7 +210,12 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     onState: setRoomState,
     onBuzz: (buzzedByParam) => {
       // issue #613: 早押し発生（自分・他の参加者いずれの場合も）を音で通知する
-      playQuizSfx("buzz", "quiz-buzz.mp3").catch(() => {});
+      playQuizSfx("buzz").catch(() => {});
+      // issue #800: 従来はhandleBuzz（自分が押した場合のみ）でしか読み上げを
+      // 止めておらず、他の参加者が早押ししてもこの端末の読み上げは流れ続けて
+      // いた。管理者側（issue #788、誰の早押しでも止める）と揃え、早押しの
+      // ブロードキャストを受け取った時点（自分・他の参加者いずれも）で止める
+      stopSharedAudio();
       setBuzzedBy(buzzedByParam);
     },
     onPoints: (nextPoints, nextAnswerCounts) => {
@@ -243,7 +241,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // パターン（useEffect内でのsetStateはeslintのreact-hooks/set-state-in-effectに抵触するため使わない）
   let currentBuzzRoundKey = lastBuzzRoundKey;
   if (roomState?.type === "phrase" && roomState.content?.id) {
-    currentBuzzRoundKey = `${roomState.content.category}:${roomState.content.id}`;
+    currentBuzzRoundKey = phraseKey(roomState.content);
   } else if (roomState?.type !== "result") {
     currentBuzzRoundKey = null;
   }
@@ -267,7 +265,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // 後から届くbuzzブロードキャスト（自分の勝ち・他の参加者の勝ちいずれも）が
   // この仮の値を正しい値で上書きする
   const handleBuzz = () => {
-    // issue #696: 読み上げ中に回答ボタンが押された場合、読み上げを中断する
+    // issue #696: 読み上げ中に回答ボタンが押された場合、読み上げを中断する。
+    // サーバーへのbuzz送信・ブロードキャスト受信（onBuzz、issue #800で追加）を
+    // 待たず、押した瞬間に即座に止めるためここでも呼ぶ（onBuzz側の呼び出しと
+    // 二重になるがstopSharedAudioは冪等なので問題ない）
     stopSharedAudio();
     setBuzzedBy({ name: confirmedName });
     buzz();
@@ -301,7 +302,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // なった瞬間にだけ再生されるようdepsをshowCelebrationのみにする
   useEffect(() => {
     if (showCelebration) {
-      playQuizSfx("correct", "quiz-correct.mp3").catch(() => {});
+      playQuizSfx("correct").catch(() => {});
     }
   }, [showCelebration]);
 
@@ -363,7 +364,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
       return;
     }
     const { id, category, repeatCount, speechRate, lang, voiceId, announceCategory } = roomState.content;
-    const key = `${category}:${id}`;
+    const key = phraseKey(roomState.content);
     if (lastPlayedKeyRef.current === key) {
       return;
     }
@@ -385,7 +386,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     // 太鼓の音と読み上げが重なって聞こえてしまっていた。本編音声の「取得」は太鼓の音の
     // 再生と並行して進め（余計な遅延を増やさないため）、「再生開始」だけを太鼓の音の
     // 完了後まで遅らせることで、管理者側（太鼓の音の後に読み上げを始める）と同じ順序にする
-    const introPromise = playQuizSfxAndWait("intro", "wadodon.mp3");
+    const introPromise = playQuizSfxAndWait("intro");
 
     let cancelled = false;
     (async () => {
