@@ -1,3 +1,10 @@
+## [1.54.8](https://github.com/bamiyanapp/karuta/compare/v1.54.7...v1.54.8) (2026-07-25)
+
+
+### Bug Fixes
+
+* **frontend:** E2Eの更新履歴画面スクリーンショットが長くなりすぎる問題を修正する（issue [#795](https://github.com/bamiyanapp/karuta/issues/795)） ([#802](https://github.com/bamiyanapp/karuta/issues/802)) ([d20bdad](https://github.com/bamiyanapp/karuta/commit/d20bdad2988bc2c54bdbc5f6396bc9d297cb5b15))
+
 ## [1.54.7](https://github.com/bamiyanapp/karuta/compare/v1.54.6...v1.54.7) (2026-07-24)
 
 
