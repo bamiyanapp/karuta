@@ -3,5 +3,15 @@
     "sourceFile": "docs/cicd-pipeline-specification.md",
     "index": 1,
     "fileName": "cicd-pipeline-specification.svg"
+  },
+  {
+    "sourceFile": "README.md",
+    "index": 1,
+    "fileName": "README-1.svg"
+  },
+  {
+    "sourceFile": "README.md",
+    "index": 2,
+    "fileName": "README-2.svg"
   }
 ]
