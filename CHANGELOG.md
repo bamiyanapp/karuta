@@ -1,3 +1,10 @@
+# [1.55.0](https://github.com/bamiyanapp/karuta/compare/v1.54.8...v1.55.0) (2026-07-25)
+
+
+### Features
+
+* **ci:** CodeQLによる静的解析を導入する（issue [#808](https://github.com/bamiyanapp/karuta/issues/808)） ([#809](https://github.com/bamiyanapp/karuta/issues/809)) ([4101ac4](https://github.com/bamiyanapp/karuta/commit/4101ac4c5bffed2e11f4d0eaeb65bb01f3f97729))
+
 ## [1.54.8](https://github.com/bamiyanapp/karuta/compare/v1.54.7...v1.54.8) (2026-07-25)
 
 
