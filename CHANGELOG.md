@@ -1,3 +1,10 @@
+# [1.57.0](https://github.com/bamiyanapp/karuta/compare/v1.56.1...v1.57.0) (2026-07-25)
+
+
+### Features
+
+* **ci:** docs内のmermaid図をSVG事前レンダリングして常時確認できるようにする（issue [#824](https://github.com/bamiyanapp/karuta/issues/824)） ([#829](https://github.com/bamiyanapp/karuta/issues/829)) ([a29da41](https://github.com/bamiyanapp/karuta/commit/a29da4187eab857e359ad8432b8141ba171965b1)), closes [bamiyanapp/dev-standards#116](https://github.com/bamiyanapp/dev-standards/issues/116) [#117](https://github.com/bamiyanapp/karuta/issues/117)
+
 ## [1.56.1](https://github.com/bamiyanapp/karuta/compare/v1.56.0...v1.56.1) (2026-07-25)
 
 

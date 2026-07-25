@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.56.1",
+    "version": "1.57.0",
     "date": "2026/07/25",
+    "body": "### Features\n\n* **ci:** docs内のmermaid図をSVG事前レンダリングして常時確認できるようにする（issue [#824](https://github.com/bamiyanapp/karuta/issues/824)） ([#829](https://github.com/bamiyanapp/karuta/issues/829)) ([a29da41](https://github.com/bamiyanapp/karuta/commit/a29da4187eab857e359ad8432b8141ba171965b1)), closes [bamiyanapp/dev-standards#116](https://github.com/bamiyanapp/dev-standards/issues/116) [#117](https://github.com/bamiyanapp/karuta/issues/117)"
+  },
+  {
+    "version": "1.56.1",
+    "date": "2026/07/25 04:46",
     "body": "### Bug Fixes\n\n* **e2e:** Pollyコールドキャッシュ起因のE2E断続的失敗を緩和する（issue [#820](https://github.com/bamiyanapp/karuta/issues/820)） ([#822](https://github.com/bamiyanapp/karuta/issues/822)) ([7439c70](https://github.com/bamiyanapp/karuta/commit/7439c7066762d99bb5c4f5b02b0e37c68ea997e5))"
   },
   {
