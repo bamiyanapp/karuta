@@ -64,6 +64,10 @@ graph TD
     I -->|クイズ大会モード| P;
 ```
 
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、以下は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](./docs/cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+![System Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-1.svg)
+
 ### Screen Transitions
 
 ```mermaid
@@ -111,6 +115,10 @@ graph TD
 
     J -->|戻る| Z
 ```
+
+同様に、上記図もCIが再レンダリングし`docs-diagrams`ブランチの`latest/`へ公開している画像。
+
+![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-2.svg)
 
 ### Backend API (AWS Lambda)
 

@@ -44,10 +44,11 @@ jobs:
       # ままにする）
       coverage_threshold: 80
       coverage_metrics: "statements,functions,lines"
-      # issue #824: docs/cicd-pipeline-specification.mdのArchitecture図を
-      # SVGへ事前レンダリングし、PR差分ビュー・API経由でのファイル取得等で
-      # mermaidがネイティブレンダリングされない場面でも確認できるようにする
+      # issue #824: docs/cicd-pipeline-specification.mdおよびREADME.md（System
+      # Architecture／Screen Transitionsの2図）のmermaid図をSVGへ事前レンダリング
+      # し、PR差分ビュー・API経由でのファイル取得等でmermaidがネイティブ
+      # レンダリングされない場面でも確認できるようにする
       enable_mermaid_render: true
-      mermaid_doc_paths: "docs/cicd-pipeline-specification.md"
+      mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md"
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
