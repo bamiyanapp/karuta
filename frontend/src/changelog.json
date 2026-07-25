@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.57.0",
+    "version": "1.58.0",
     "date": "2026/07/25",
+    "body": "### Features\n\n* **ci:** mermaid図の対象拡張とcomplexity/sonarjs/jscpdのゲート化 ([#832](https://github.com/bamiyanapp/karuta/issues/832)) ([ecb269f](https://github.com/bamiyanapp/karuta/commit/ecb269fdb2b824ccc3c3dca79b2c6bafc2aba8e5)), closes [#833](https://github.com/bamiyanapp/karuta/issues/833)"
+  },
+  {
+    "version": "1.57.0",
+    "date": "2026/07/25 22:50",
     "body": "### Features\n\n* **ci:** docs内のmermaid図をSVG事前レンダリングして常時確認できるようにする（issue [#824](https://github.com/bamiyanapp/karuta/issues/824)） ([#829](https://github.com/bamiyanapp/karuta/issues/829)) ([a29da41](https://github.com/bamiyanapp/karuta/commit/a29da4187eab857e359ad8432b8141ba171965b1)), closes [bamiyanapp/dev-standards#116](https://github.com/bamiyanapp/dev-standards/issues/116) [#117](https://github.com/bamiyanapp/karuta/issues/117)"
   },
   {
