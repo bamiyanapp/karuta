@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.56.0",
+    "version": "1.56.1",
     "date": "2026/07/25",
+    "body": "### Bug Fixes\n\n* **e2e:** Pollyコールドキャッシュ起因のE2E断続的失敗を緩和する（issue [#820](https://github.com/bamiyanapp/karuta/issues/820)） ([#822](https://github.com/bamiyanapp/karuta/issues/822)) ([7439c70](https://github.com/bamiyanapp/karuta/commit/7439c7066762d99bb5c4f5b02b0e37c68ea997e5))"
+  },
+  {
+    "version": "1.56.0",
+    "date": "2026/07/25 02:57",
     "body": "### Features\n\n* **lint:** ESLintのcomplexityルール・eslint-plugin-sonarjsを導入する（issue [#806](https://github.com/bamiyanapp/karuta/issues/806)） ([#813](https://github.com/bamiyanapp/karuta/issues/813)) ([29ff6b0](https://github.com/bamiyanapp/karuta/commit/29ff6b031dd9f108edcda49f361e220ae2dae0ba)), closes [bamiyanapp/dev-standards#113](https://github.com/bamiyanapp/dev-standards/issues/113)"
   },
   {
