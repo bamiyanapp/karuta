@@ -20,7 +20,7 @@ graph TD
 
 semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）で行われる。以前はPRの作業ブランチ上でマージ前に実行する方式だったが、GitHub Actionsの`pull_request`イベントで自動設定される`GITHUB_REF`（ワークフローYAMLの`env:`では上書き不可）により常にリリースが発行されない不具合があったため、`main`への実pushイベント上で実行する方式に修正した（[dev-standards#43](https://github.com/bamiyanapp/dev-standards/pull/43)）。
 
-karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)）。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#3-リリース運用)を参照。
+karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)）。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
 
 ## E2Eテスト（`ci.yml` 固有）
 
@@ -58,6 +58,13 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 ルートの`.gitignore`は`standards-check`の`copies`対象（dev-standards側と内容が完全一致している必要がある）。GitHubの制約上symlinkにできないため、dev-standards側の`.gitignore`が更新された場合はこのファイルを手動で同期する必要がある。
 
 **プロジェクト固有のignoreルールはルートの`.gitignore`に追加せず、`frontend/.gitignore`・`backend/.gitignore`等、対象ディレクトリのgitignoreに追加すること**（gitのネストされた`.gitignore`は親ディレクトリのルールより優先されるため、`!`による打ち消しも問題なく機能する）。ルートに直接追記すると`standards-check`が内容乾離として検知し、CIが失敗する（issue #461で実際に`!.env.example`がルートに直接追記されており、これが原因でCIが失敗する状態になっていたため、`frontend/.gitignore`側へ移設した）。
+
+## CodeQLワークフロー（`codeql.yml`固有、issue #808）
+
+`.github/workflows/codeql.yml`（karuta固有、`reusable-ci.yml`/`reusable-cd.yml`とは別のトップレベルワークフローファイル）から dev-standards の `reusable-codeql.yml` を呼び出し、frontend/backend（いずれもJavaScript）を対象にCodeQLによる静的解析を行う。結果はGitHub Securityタブへ表示され、スマートフォンのブラウザからも閲覧できる（「開発環境の制約（スマホオンリー）」参照）。
+
+- **トリガー**: `push`（`main`）・`pull_request`・`schedule`（毎週月曜日 03:00 UTC）。`schedule`はコード変更が無い期間もCodeQLのクエリセット更新を検知するために設定している
+- **`reusable-ci.yml`との関係**: 独立したワークフローであり、`merge` jobのマージ可否ゲートには関与しない。必須チェックにするかどうかはリポジトリのブランチ保護設定側で判断する（本ドキュメント作成時点では未設定）
 
 ## デプロイジョブ（`cd.yml` 固有）
 

@@ -1,0 +1,22 @@
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # コード変更が無い期間もCodeQLのクエリセット自体の更新を検知するための定期実行
+    - cron: "0 3 * * 1"
+
+permissions:
+  # SARIFをGitHub Securityタブへアップロードするためにreusable-codeql.yml側が要求する権限。
+  # 呼び出し元（このワークフロー）で明示しない場合、リポジトリ既定のGITHUB_TOKEN権限
+  # （securityevents:writeを含まない）が上限になりアップロードが失敗するため必須
+  security-events: write
+  actions: read
+  contents: read
+
+jobs:
+  codeql:
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v1.8.0
