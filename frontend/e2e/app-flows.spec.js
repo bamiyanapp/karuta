@@ -173,44 +173,17 @@ test('engineer division: selects multiple categories, then prints combined efuda
 // こども向けdivision（参加者登録UIが表示されない）か早押し判定フローの検証に終始しており
 // カバーできていなかった。エンジニア向けdivisionの単一カテゴリ選択で到達し、一連の
 // 操作をまとめて検証する
-// issue #820: 「設定変更・参加者登録」（通信を伴わず高速・安定）と「repeat/stop・
-// 履歴表示」（Pollyコールドキャッシュの影響を受けやすい札表示待ちを含む）を
-// 2つのテストに分離した。従来は1つの長大なテストだったため、後段の札表示待ちが
-// タイムアウトすると前段の設定変更・参加者登録の検証結果まで道連れで失敗扱いになり、
-// リトライのたびに（本質的には安定している）前段の操作を毎回やり直す無駄があった
-test('engineer division: toggles settings and records a taker (issue #576)', async ({ browser }, testInfo) => {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await startCoverage(page);
-
-  try {
-    await page.goto('/');
-    await page.getByText('エンジニア向け').click();
-    await page.getByRole('button', { name: /Git大ピンチ/ }).click();
-    await page.getByRole('button', { name: 'かるたを始める' }).click();
-
-    await expect(page.getByRole('button', { name: '次の札' })).toBeVisible();
-
-    // 設定フッター（純粋な表示上のstate切り替えのみで、通信を伴わないもの）
-    await page.getByRole('button', { name: 'ダーク' }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
-    await page.getByRole('button', { name: '難しい' }).click();
-    await page.getByRole('button', { name: 'ゆっくり' }).click();
-    await page.getByRole('button', { name: '2回' }).click();
-
-    // 参加者登録（issue #518）: division !== "kids" の場合のみ表示される
-    await page.getByText('取った人を記録する').click();
-    await page.getByPlaceholder('名前を入力').fill('けんじ');
-    await page.getByRole('button', { name: '追加', exact: true }).click();
-    await expect(page.getByText('けんじ', { exact: true })).toBeVisible();
-    await captureScreenshot(page, testInfo, 'player-registration', '参加者登録：1名登録した状態');
-  } finally {
-    await stopCoverage(page, testInfo);
-    await closeContext(context);
-  }
-});
-
-test('engineer division: uses repeat/stop and views phrase history (issue #576)', async ({ browser }, testInfo) => {
+// issue #820: 一時的に「設定変更・参加者登録」と「repeat/stop・履歴表示」の
+// 2テストに分離したが、CIで新たに3回連続の.yomifuda-phraseタイムアウトが
+// 発生し差し戻した。原因は、useKarutaReading.jsのプリフェッチ機構
+// （prefetchedNextRef、次の札の音声を裏で先読みする）が、設定変更後の
+// settingsSignature変化を受けて再フェッチされる際、分離前は設定変更～
+// 参加者登録という一連の操作の間にプリフェッチが完了する時間的猶予が
+// あったのに対し、分離後は参加者登録のみで即座に「次へ」を押すため、
+// プリフェッチが完了する前に「次の札」へ進んでしまい、Pollyコールド
+// スタートの同期待ちを毎回踏み抜くようになったためと考えられる。
+// 「テストの分離」自体はやり直す前提でこの1テストへ戻した
+test('engineer division: toggles settings, records a taker, views history, and uses repeat/stop (issue #576)', async ({ browser }, testInfo) => {
   // 個別のtoBeVisible等のtimeout合計がグローバルの60秒を超えうる
   // （Pollyコールドスタート待ち60秒+30秒 他）ため、テスト全体のtimeoutを底上げする
   test.setTimeout(150000);
@@ -228,12 +201,19 @@ test('engineer division: uses repeat/stop and views phrase history (issue #576)'
     const nextButton = page.getByRole('button', { name: '次の札' });
     await expect(nextButton).toBeVisible();
 
-    // 「取った人を記録する」の対象にするため、このテスト内でも参加者登録は必要
-    // （上のテストとは別のブラウザコンテキストで動くため状態は引き継がれない）
+    // 設定フッター（純粋な表示上のstate切り替えのみで、通信を伴わないもの）
+    await page.getByRole('button', { name: 'ダーク' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
+    await page.getByRole('button', { name: '難しい' }).click();
+    await page.getByRole('button', { name: 'ゆっくり' }).click();
+    await page.getByRole('button', { name: '2回' }).click();
+
+    // 参加者登録（issue #518）: division !== "kids" の場合のみ表示される
     await page.getByText('取った人を記録する').click();
     await page.getByPlaceholder('名前を入力').fill('けんじ');
     await page.getByRole('button', { name: '追加', exact: true }).click();
     await expect(page.getByText('けんじ', { exact: true })).toBeVisible();
+    await captureScreenshot(page, testInfo, 'player-registration', '参加者登録：1名登録した状態');
 
     await nextButton.click();
     // 他のカテゴリより実行頻度が低くPollyキャッシュがコールドになりやすいため
