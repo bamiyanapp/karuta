@@ -173,6 +173,16 @@ test('engineer division: selects multiple categories, then prints combined efuda
 // こども向けdivision（参加者登録UIが表示されない）か早押し判定フローの検証に終始しており
 // カバーできていなかった。エンジニア向けdivisionの単一カテゴリ選択で到達し、一連の
 // 操作をまとめて検証する
+// issue #820: 一時的に「設定変更・参加者登録」と「repeat/stop・履歴表示」の
+// 2テストに分離したが、CIで新たに3回連続の.yomifuda-phraseタイムアウトが
+// 発生し差し戻した。原因は、useKarutaReading.jsのプリフェッチ機構
+// （prefetchedNextRef、次の札の音声を裏で先読みする）が、設定変更後の
+// settingsSignature変化を受けて再フェッチされる際、分離前は設定変更～
+// 参加者登録という一連の操作の間にプリフェッチが完了する時間的猶予が
+// あったのに対し、分離後は参加者登録のみで即座に「次へ」を押すため、
+// プリフェッチが完了する前に「次の札」へ進んでしまい、Pollyコールド
+// スタートの同期待ちを毎回踏み抜くようになったためと考えられる。
+// 「テストの分離」自体はやり直す前提でこの1テストへ戻した
 test('engineer division: toggles settings, records a taker, views history, and uses repeat/stop (issue #576)', async ({ browser }, testInfo) => {
   // 個別のtoBeVisible等のtimeout合計がグローバルの60秒を超えうる
   // （Pollyコールドスタート待ち60秒+30秒 他）ため、テスト全体のtimeoutを底上げする
