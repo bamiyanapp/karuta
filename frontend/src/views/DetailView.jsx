@@ -1,3 +1,5 @@
+import ViewHeader from "../components/ViewHeader";
+
 function DetailView({
   detailPhrase,
   detailPhraseCategory,
@@ -12,13 +14,11 @@ function DetailView({
 }) {
   return (
     <div className="container py-4 mx-auto">
-      <header className="text-center mb-4 border-bottom pb-3">
-        <div className="d-flex justify-content-between align-items-center">
-          <button onClick={closeDetail} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-          <h1 className="h4 m-0 fw-bold notranslate">{detailPhrase ? detailPhrase.category : (detailPhraseCategory || categoryLabel)} の詳細</h1>
-          <div style={{ width: "60px" }}></div>
-        </div>
-      </header>
+      <ViewHeader
+        onBack={closeDetail}
+        title={`${detailPhrase ? detailPhrase.category : (detailPhraseCategory || categoryLabel)} の詳細`}
+        headingClassName="h4 m-0 fw-bold notranslate"
+      />
 
       <main className="text-center py-4">
         {!detailPhrase ? (

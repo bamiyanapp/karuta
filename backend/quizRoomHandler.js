@@ -1,7 +1,18 @@
 const crypto = require("crypto");
-const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { ApiGatewayManagementApiClient, PostToConnectionCommand, DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
+const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { docClient, resolveAllowedOrigin } = require("./handler");
+const { jsonResponse, badRequest, serverError } = require("./httpResponse");
+const {
+  getConnection,
+  queryRoomConnections,
+  buildManagementApiClient,
+  postToConnection,
+  broadcastToRoom,
+  collectParticipantNames,
+  withRoleGuard,
+  withCatchAll,
+} = require("./quizRoomStore");
 
 // issue #470: クイズ大会モード（管理者ルーム開設＋複数端末同期）の最小構成。
 // 音声の同期再生・参加者一覧表示等は初回リリースのスコープ外とし、
@@ -48,11 +59,9 @@ exports.createQuizRoom = async (event) => {
       }
     }
     if (!roomId) {
-      return {
-        statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "ルームコードの採番に失敗しました。もう一度お試しください。" }),
-      };
+      return jsonResponse(allowedOrigin, 500, {
+        message: "ルームコードの採番に失敗しました。もう一度お試しください。",
+      });
     }
 
     const adminToken = crypto.randomUUID();
@@ -68,18 +77,9 @@ exports.createQuizRoom = async (event) => {
       },
     }));
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ roomId, adminToken }),
-    };
+    return jsonResponse(allowedOrigin, 200, { roomId, adminToken });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
@@ -131,13 +131,8 @@ exports.listQuizRooms = async (event) => {
     // 気にしなくてよい利点がある
     const roomsWithAdminPresence = await Promise.all(
       candidates.map(async (room) => {
-        const connections = await docClient.send(new QueryCommand({
-          TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-          IndexName: "roomId-index",
-          KeyConditionExpression: "roomId = :roomId",
-          ExpressionAttributeValues: { ":roomId": room.roomId },
-        }));
-        const hasAdmin = (connections.Items || []).some((conn) => conn.role === "admin");
+        const connections = await queryRoomConnections(room.roomId);
+        const hasAdmin = connections.some((conn) => conn.role === "admin");
         return hasAdmin ? room : null;
       })
     );
@@ -146,18 +141,9 @@ exports.listQuizRooms = async (event) => {
       .filter((room) => room !== null)
       .slice(0, MAX_OPEN_ROOMS_DISPLAYED);
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ rooms }),
-    };
+    return jsonResponse(allowedOrigin, 200, { rooms });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
@@ -171,11 +157,7 @@ exports.checkQuizRoom = async (event) => {
   try {
     const roomId = event.queryStringParameters?.roomId;
     if (!roomId) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "roomId is required" }),
-      };
+      return badRequest(allowedOrigin, "roomId is required");
     }
 
     const room = await docClient.send(new GetCommand({
@@ -187,289 +169,189 @@ exports.checkQuizRoom = async (event) => {
     // 生じ得るため、レコードが残っていてもttlを過ぎていれば存在しない扱いにする
     const exists = !!room.Item && (!room.Item.ttl || room.Item.ttl > now);
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ exists }),
-    };
+    return jsonResponse(allowedOrigin, 200, { exists });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
 // WebSocket $connect。roomId（必須）はクエリパラメータで受け取り、
 // adminTokenの有無・一致で管理者/参加者の役割を判定する
-exports.connectQuizRoom = async (event) => {
-  try {
-    const params = event.queryStringParameters || {};
-    const { roomId, adminToken } = params;
-    if (!roomId) {
-      return { statusCode: 400, body: "roomId is required" };
-    }
-
-    const room = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId },
-    }));
-    if (!room.Item) {
-      return { statusCode: 404, body: "Room not found" };
-    }
-
-    let role = "participant";
-    if (adminToken) {
-      if (hashToken(adminToken) !== room.Item.adminTokenHash) {
-        return { statusCode: 403, body: "Invalid admin token" };
-      }
-      role = "admin";
-    }
-
-    const now = Date.now();
-    await docClient.send(new PutCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Item: {
-        connectionId: event.requestContext.connectionId,
-        roomId,
-        role,
-        connectedAt: now,
-        ttl: Math.floor(now / 1000) + CONNECTION_TTL_SECONDS,
-      },
-    }));
-
-    return { statusCode: 200, body: "Connected" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
+exports.connectQuizRoom = withCatchAll(async (event) => {
+  const params = event.queryStringParameters || {};
+  const { roomId, adminToken } = params;
+  if (!roomId) {
+    return { statusCode: 400, body: "roomId is required" };
   }
-};
+
+  const room = await docClient.send(new GetCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+  }));
+  if (!room.Item) {
+    return { statusCode: 404, body: "Room not found" };
+  }
+
+  let role = "participant";
+  if (adminToken) {
+    if (hashToken(adminToken) !== room.Item.adminTokenHash) {
+      return { statusCode: 403, body: "Invalid admin token" };
+    }
+    role = "admin";
+  }
+
+  const now = Date.now();
+  await docClient.send(new PutCommand({
+    TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+    Item: {
+      connectionId: event.requestContext.connectionId,
+      roomId,
+      role,
+      connectedAt: now,
+      ttl: Math.floor(now / 1000) + CONNECTION_TTL_SECONDS,
+    },
+  }));
+
+  return { statusCode: 200, body: "Connected" };
+});
 
 // WebSocket $disconnect
-exports.disconnectQuizRoom = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    await docClient.send(new DeleteCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
+exports.disconnectQuizRoom = withCatchAll(async (event) => {
+  const connectionId = event.requestContext.connectionId;
+  const connection = await getConnection(connectionId);
+  await docClient.send(new DeleteCommand({
+    TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+    Key: { connectionId },
+  }));
 
-    // 参加者一覧（issue #545）: 切断は参加者一覧からも即座に消す。残りの接続へ
-    // 更新後の一覧をブロードキャストする（削除済みなので自分自身は含まれない）
-    if (connection.Item?.roomId) {
-      const { roomId, name } = connection.Item;
-      // 名前の重複予約（issue #618）を解放し、同じ名前で他の参加者・自分自身の
-      // 再入室が再びできるようにする
-      if (name) {
-        await releaseQuizRoomName(roomId, name);
-      }
-      const connections = await docClient.send(new QueryCommand({
-        TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-        IndexName: "roomId-index",
-        KeyConditionExpression: "roomId = :roomId",
-        ExpressionAttributeValues: { ":roomId": roomId },
-      }));
-      const remaining = connections.Items || [];
-      const participantNames = remaining
-        .filter((conn) => conn.role === "participant" && conn.name)
-        .map((conn) => conn.name);
-      const managementApi = buildManagementApiClient(event);
-      await Promise.allSettled(
-        remaining.map((conn) => postToConnection(managementApi, conn.connectionId, {
-          type: "participants",
-          names: participantNames,
-        }))
-      );
+  // 参加者一覧（issue #545）: 切断は参加者一覧からも即座に消す。残りの接続へ
+  // 更新後の一覧をブロードキャストする（削除済みなので自分自身は含まれない）
+  if (connection?.roomId) {
+    const { roomId, name } = connection;
+    // 名前の重複予約（issue #618）を解放し、同じ名前で他の参加者・自分自身の
+    // 再入室が再びできるようにする
+    if (name) {
+      await releaseQuizRoomName(roomId, name);
     }
-
-    return { statusCode: 200, body: "Disconnected" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
+    const remaining = await queryRoomConnections(roomId);
+    const participantNames = collectParticipantNames(remaining);
+    await broadcastToRoom(event, remaining, { type: "participants", names: participantNames });
   }
-};
 
-function buildManagementApiClient(event) {
-  const { domainName, stage } = event.requestContext;
-  return new ApiGatewayManagementApiClient({ endpoint: `https://${domainName}/${stage}` });
-}
-
-// 切断済み接続（GoneException/410）への送信は接続レコードを掃除し、他の接続への
-// ブロードキャストは継続できるよう例外を投げずfalseを返す
-async function postToConnection(managementApi, connectionId, payload) {
-  try {
-    await managementApi.send(new PostToConnectionCommand({
-      ConnectionId: connectionId,
-      Data: Buffer.from(JSON.stringify(payload)),
-    }));
-    return true;
-  } catch (error) {
-    if (error.name === "GoneException" || error.$metadata?.httpStatusCode === 410) {
-      await docClient.send(new DeleteCommand({
-        TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-        Key: { connectionId },
-      }));
-      return false;
-    }
-    throw error;
-  }
-}
+  return { statusCode: 200, body: "Disconnected" };
+});
 
 // WebSocketカスタムルート"sync"（routeSelectionExpression: $request.body.action）。
 // 接続直後にクライアント側から呼ばれ、現在のルーム状態を呼び出し元1件にだけ返す
-exports.syncQuizRoom = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item) {
-      return { statusCode: 200, body: "" };
-    }
-
-    const room = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId: connection.Item.roomId },
-    }));
-    if (!room.Item) {
-      return { statusCode: 200, body: "" };
-    }
-
-    const managementApi = buildManagementApiClient(event);
-    await postToConnection(managementApi, connectionId, {
-      type: "state",
-      state: room.Item.state || {},
-      role: connection.Item.role,
-    });
-
-    // 早押し機能（issue #510）: 再接続・遅れて参加した端末でも、現在のラウンドで
-    // 既に誰かが早押し済みであることが分かるようにする
-    if (room.Item.buzz) {
-      await postToConnection(managementApi, connectionId, {
-        type: "buzz",
-        name: room.Item.buzz.name,
-        connectionId: room.Item.buzz.connectionId,
-      });
-    }
-
-    // ポイント制（issue #519）・回答数集計（issue #698）: 再接続・遅れて参加した
-    // 端末にも現在の集計を伝える
-    if (room.Item.points || room.Item.answerCounts) {
-      await postToConnection(managementApi, connectionId, {
-        type: "points",
-        points: room.Item.points || {},
-        answerCounts: room.Item.answerCounts || {},
-      });
-    }
-
-    // 参加者一覧（issue #545）: 再接続・遅れて参加した端末にも現在の参加者一覧を伝える
-    const roomConnections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": connection.Item.roomId },
-    }));
-    const participantNames = (roomConnections.Items || [])
-      .filter((conn) => conn.role === "participant" && conn.name)
-      .map((conn) => conn.name);
-    await postToConnection(managementApi, connectionId, {
-      type: "participants",
-      names: participantNames,
-    });
-
+exports.syncQuizRoom = withCatchAll(async (event) => {
+  const connectionId = event.requestContext.connectionId;
+  const connection = await getConnection(connectionId);
+  if (!connection) {
     return { statusCode: 200, body: "" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
   }
-};
+
+  const room = await docClient.send(new GetCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId: connection.roomId },
+  }));
+  if (!room.Item) {
+    return { statusCode: 200, body: "" };
+  }
+
+  const managementApi = buildManagementApiClient(event);
+  await postToConnection(managementApi, connectionId, {
+    type: "state",
+    state: room.Item.state || {},
+    role: connection.role,
+  });
+
+  // 早押し機能（issue #510）: 再接続・遅れて参加した端末でも、現在のラウンドで
+  // 既に誰かが早押し済みであることが分かるようにする
+  if (room.Item.buzz) {
+    await postToConnection(managementApi, connectionId, {
+      type: "buzz",
+      name: room.Item.buzz.name,
+      connectionId: room.Item.buzz.connectionId,
+    });
+  }
+
+  // ポイント制（issue #519）・回答数集計（issue #698）: 再接続・遅れて参加した
+  // 端末にも現在の集計を伝える
+  if (room.Item.points || room.Item.answerCounts) {
+    await postToConnection(managementApi, connectionId, {
+      type: "points",
+      points: room.Item.points || {},
+      answerCounts: room.Item.answerCounts || {},
+    });
+  }
+
+  // 参加者一覧（issue #545）: 再接続・遅れて参加した端末にも現在の参加者一覧を伝える
+  const roomConnections = await queryRoomConnections(connection.roomId);
+  const participantNames = collectParticipantNames(roomConnections);
+  await postToConnection(managementApi, connectionId, {
+    type: "participants",
+    names: participantNames,
+  });
+
+  return { statusCode: 200, body: "" };
+});
 
 // WebSocketカスタムルート"updateState"。管理者のみが状態を更新でき、
 // 更新後はルーム内の全接続（管理者自身を含む）へブロードキャストする
-exports.updateQuizRoomState = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item || connection.Item.role !== "admin") {
-      return { statusCode: 403, body: "Forbidden" };
-    }
-
-    const body = JSON.parse(event.body || "{}");
-    const newState = body.state;
-    const stateJson = JSON.stringify(newState ?? null);
-    if (!newState || typeof newState !== "object" || Array.isArray(newState) || stateJson.length > MAX_STATE_JSON_LENGTH) {
-      return { statusCode: 400, body: "Invalid state" };
-    }
-
-    const { roomId } = connection.Item;
-
-    const room = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId },
-    }));
-
-    // 読み上げ設定の変更等で、ラウンドが進んだわけではなく同じ札のphraseが
-    // 再ブロードキャストされることがある（App.jsxのbroadcast effect参照）。
-    // このケースを新しいラウンドの開始と誤認すると、まだ判定が済んでいない
-    // 早押し記録を消してしまうため、直前の状態と札のidを比較して区別する
-    const isSamePhraseRebroadcast = newState.type === "phrase"
-      && room.Item?.state?.type === "phrase"
-      && room.Item?.state?.content?.id === newState.content?.id;
-
-    // 早押し正誤判定（issue #546）: ポイント付与は管理者の正誤判定
-    // （judgeQuizRoomBuzz）でのみ行う。「次の札」へ進んだ時点でまだ判定されて
-    // いない早押しがあっても加点しない（未判定は無効試行として扱う）。
-    // 新しい札（次の問題）や、ゲームのリセット等で"initial"に戻った場合は、
-    // 前のラウンドの早押し・除外状態をリセットする。result表示中や、同じ札の
-    // 再ブロードキャスト中は、まだそのラウンドの判定を確定させたくないため
-    // リセットしない
-    const resetRound = newState.type !== "result" && !isSamePhraseRebroadcast;
-    const updateExpression = resetRound
-      ? "SET #state = :state, #ttl = :ttl REMOVE buzz, excludedNames"
-      : "SET #state = :state, #ttl = :ttl";
-    await docClient.send(new UpdateCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
-      ExpressionAttributeValues: {
-        ":state": newState,
-        ":ttl": Math.floor(Date.now() / 1000) + ROOM_TTL_SECONDS,
-      },
-    }));
-
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
-    }));
-
-    const managementApi = buildManagementApiClient(event);
-    await Promise.allSettled(
-      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-        type: "state",
-        state: newState,
-        role: conn.role,
-      }))
-    );
-
-    return { statusCode: 200, body: "" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
+exports.updateQuizRoomState = withRoleGuard("admin", async (event, connection) => {
+  const body = JSON.parse(event.body || "{}");
+  const newState = body.state;
+  const stateJson = JSON.stringify(newState ?? null);
+  if (!newState || typeof newState !== "object" || Array.isArray(newState) || stateJson.length > MAX_STATE_JSON_LENGTH) {
+    return { statusCode: 400, body: "Invalid state" };
   }
-};
+
+  const { roomId } = connection;
+
+  const room = await docClient.send(new GetCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+  }));
+
+  // 読み上げ設定の変更等で、ラウンドが進んだわけではなく同じ札のphraseが
+  // 再ブロードキャストされることがある（App.jsxのbroadcast effect参照）。
+  // このケースを新しいラウンドの開始と誤認すると、まだ判定が済んでいない
+  // 早押し記録を消してしまうため、直前の状態と札のidを比較して区別する
+  const isSamePhraseRebroadcast = newState.type === "phrase"
+    && room.Item?.state?.type === "phrase"
+    && room.Item?.state?.content?.id === newState.content?.id;
+
+  // 早押し正誤判定（issue #546）: ポイント付与は管理者の正誤判定
+  // （judgeQuizRoomBuzz）でのみ行う。「次の札」へ進んだ時点でまだ判定されて
+  // いない早押しがあっても加点しない（未判定は無効試行として扱う）。
+  // 新しい札（次の問題）や、ゲームのリセット等で"initial"に戻った場合は、
+  // 前のラウンドの早押し・除外状態をリセットする。result表示中や、同じ札の
+  // 再ブロードキャスト中は、まだそのラウンドの判定を確定させたくないため
+  // リセットしない
+  const resetRound = newState.type !== "result" && !isSamePhraseRebroadcast;
+  const updateExpression = resetRound
+    ? "SET #state = :state, #ttl = :ttl REMOVE buzz, excludedNames"
+    : "SET #state = :state, #ttl = :ttl";
+  await docClient.send(new UpdateCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+    UpdateExpression: updateExpression,
+    ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
+    ExpressionAttributeValues: {
+      ":state": newState,
+      ":ttl": Math.floor(Date.now() / 1000) + ROOM_TTL_SECONDS,
+    },
+  }));
+
+  const connections = await queryRoomConnections(roomId);
+  await broadcastToRoom(event, connections, (conn) => ({
+    type: "state",
+    state: newState,
+    role: conn.role,
+  }));
+
+  return { statusCode: 200, body: "" };
+});
 
 // WebSocketカスタムルート"judgeBuzz"（issue #546）。管理者のみが早押しの正誤を
 // 判定できる。正解の場合はその参加者に1ポイント加点し、buzz/excludedNamesを
@@ -477,135 +359,85 @@ exports.updateQuizRoomState = async (event) => {
 // 不正解の場合はbuzzのみリセットして他の参加者が再度早押しできるようにしつつ、
 // 誤答した本人は今ラウンドの早押し対象から除外し、ルーム内の全接続へ
 // ラウンドリセットを通知する
-exports.judgeQuizRoomBuzz = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item || connection.Item.role !== "admin") {
-      return { statusCode: 403, body: "Forbidden" };
-    }
+exports.judgeQuizRoomBuzz = withRoleGuard("admin", async (event, connection) => {
+  const body = JSON.parse(event.body || "{}");
+  const correct = body.correct === true;
+  const { roomId } = connection;
 
-    const body = JSON.parse(event.body || "{}");
-    const correct = body.correct === true;
-    const { roomId } = connection.Item;
+  const room = await docClient.send(new GetCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+  }));
+  const buzzedName = room.Item?.buzz?.name;
+  if (!buzzedName) {
+    // 判定対象の早押しが既に無い（タイミングのズレ等）。何もしない
+    return { statusCode: 200, body: "" };
+  }
 
-    const room = await docClient.send(new GetCommand({
+  const connections = await queryRoomConnections(roomId);
+
+  // 回答数集計（issue #698）: 早押しして正誤判定された累計回数（attempts）と、
+  // そのうち正解と判定された累計回数（correct）を、正解・不正解いずれの
+  // 判定でも記録する。pointsと同様にDynamoDBのルームアイテムへ保持するため、
+  // 切断・退室後も（pointsと同じ寿命で）残り続ける
+  const updatedAnswerCounts = { ...(room.Item.answerCounts || {}) };
+  const previousCount = updatedAnswerCounts[buzzedName] || { attempts: 0, correct: 0 };
+  updatedAnswerCounts[buzzedName] = {
+    attempts: previousCount.attempts + 1,
+    correct: previousCount.correct + (correct ? 1 : 0),
+  };
+
+  if (correct) {
+    const updatedPoints = { ...(room.Item.points || {}) };
+    updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
+    await docClient.send(new UpdateCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
+      UpdateExpression: "SET points = :points, answerCounts = :answerCounts REMOVE buzz, excludedNames",
+      ExpressionAttributeValues: { ":points": updatedPoints, ":answerCounts": updatedAnswerCounts },
     }));
-    const buzzedName = room.Item?.buzz?.name;
-    if (!buzzedName) {
-      // 判定対象の早押しが既に無い（タイミングのズレ等）。何もしない
-      return { statusCode: 200, body: "" };
-    }
-
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
+    await broadcastToRoom(event, connections, {
+      type: "points",
+      points: updatedPoints,
+      answerCounts: updatedAnswerCounts,
+    });
+  } else {
+    await docClient.send(new UpdateCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+      UpdateExpression: "SET answerCounts = :answerCounts REMOVE buzz ADD excludedNames :names",
+      ExpressionAttributeValues: { ":answerCounts": updatedAnswerCounts, ":names": new Set([buzzedName]) },
     }));
-    const managementApi = buildManagementApiClient(event);
-
-    // 回答数集計（issue #698）: 早押しして正誤判定された累計回数（attempts）と、
-    // そのうち正解と判定された累計回数（correct）を、正解・不正解いずれの
-    // 判定でも記録する。pointsと同様にDynamoDBのルームアイテムへ保持するため、
-    // 切断・退室後も（pointsと同じ寿命で）残り続ける
-    const updatedAnswerCounts = { ...(room.Item.answerCounts || {}) };
-    const previousCount = updatedAnswerCounts[buzzedName] || { attempts: 0, correct: 0 };
-    updatedAnswerCounts[buzzedName] = {
-      attempts: previousCount.attempts + 1,
-      correct: previousCount.correct + (correct ? 1 : 0),
-    };
-
-    if (correct) {
-      const updatedPoints = { ...(room.Item.points || {}) };
-      updatedPoints[buzzedName] = (updatedPoints[buzzedName] || 0) + 1;
-      await docClient.send(new UpdateCommand({
-        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-        Key: { roomId },
-        UpdateExpression: "SET points = :points, answerCounts = :answerCounts REMOVE buzz, excludedNames",
-        ExpressionAttributeValues: { ":points": updatedPoints, ":answerCounts": updatedAnswerCounts },
-      }));
-      await Promise.allSettled(
-        (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-          type: "points",
-          points: updatedPoints,
-          answerCounts: updatedAnswerCounts,
-        }))
-      );
-    } else {
-      await docClient.send(new UpdateCommand({
-        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-        Key: { roomId },
-        UpdateExpression: "SET answerCounts = :answerCounts REMOVE buzz ADD excludedNames :names",
-        ExpressionAttributeValues: { ":answerCounts": updatedAnswerCounts, ":names": new Set([buzzedName]) },
-      }));
-      await Promise.allSettled(
-        (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-          type: "roundReset",
-          excludedName: buzzedName,
-          answerCounts: updatedAnswerCounts,
-        }))
-      );
-    }
-
-    return { statusCode: 200, body: "" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
+    await broadcastToRoom(event, connections, {
+      type: "roundReset",
+      excludedName: buzzedName,
+      answerCounts: updatedAnswerCounts,
+    });
   }
-};
+
+  return { statusCode: 200, body: "" };
+});
 
 // WebSocketカスタムルート"resetPoints"（issue #615）。管理者のみがポイント集計を
 // 初期化できる。同じルームで2ゲーム目を始める際、前のゲームのポイントを引き継がずに
 // 再スタートしたい場合に使う。ゲームリセット（"initial"へ戻る）のたびに自動では
 // リセットしない。カテゴリを切り替えても通算得点で戦い続けたいユースケースもあり、
 // 自動リセットにするとそれを一律に壊してしまうため、管理者の明示操作のみで行う
-exports.resetQuizRoomPoints = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item || connection.Item.role !== "admin") {
-      return { statusCode: 403, body: "Forbidden" };
-    }
+exports.resetQuizRoomPoints = withRoleGuard("admin", async (event, connection) => {
+  const { roomId } = connection;
+  // 回答数集計（issue #698）: 同じルームで2ゲーム目を始める際の再スタートなので、
+  // pointsと同じタイミングでanswerCountsもリセットする
+  await docClient.send(new UpdateCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+    UpdateExpression: "REMOVE points, answerCounts",
+  }));
 
-    const { roomId } = connection.Item;
-    // 回答数集計（issue #698）: 同じルームで2ゲーム目を始める際の再スタートなので、
-    // pointsと同じタイミングでanswerCountsもリセットする
-    await docClient.send(new UpdateCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId },
-      UpdateExpression: "REMOVE points, answerCounts",
-    }));
+  const connections = await queryRoomConnections(roomId);
+  await broadcastToRoom(event, connections, { type: "points", points: {}, answerCounts: {} });
 
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
-    }));
-    const managementApi = buildManagementApiClient(event);
-    await Promise.allSettled(
-      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-        type: "points",
-        points: {},
-        answerCounts: {},
-      }))
-    );
-
-    return { statusCode: 200, body: "" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
-  }
-};
+  return { statusCode: 200, body: "" };
+});
 
 // WebSocketカスタムルート"closeRoom"（issue #748）。管理者のみルームを明示的に終了できる。
 // ルームレコード自体を削除するため、以後の$connect試行は404で拒否される（issue #576の
@@ -621,47 +453,26 @@ exports.resetQuizRoomPoints = async (event) => {
 // 管理者側はroomClosed受信後にフロントエンドがroomIdをクリアし（useQuizRoomAdmin.js）、
 // useQuizRoomSyncのeffectが依存値の変化で自然にWebSocketをクローズするため、ここで
 // 明示的に切断しなくても問題ない
-exports.closeQuizRoom = async (event) => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item || connection.Item.role !== "admin") {
-      return { statusCode: 403, body: "Forbidden" };
-    }
+exports.closeQuizRoom = withRoleGuard("admin", async (event, connection, connectionId) => {
+  const { roomId } = connection;
 
-    const { roomId } = connection.Item;
+  await docClient.send(new DeleteCommand({
+    TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+    Key: { roomId },
+  }));
 
-    await docClient.send(new DeleteCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Key: { roomId },
-    }));
+  const connections = await queryRoomConnections(roomId);
+  await broadcastToRoom(event, connections, { type: "roomClosed" });
 
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
-    }));
-    const managementApi = buildManagementApiClient(event);
-    const items = connections.Items || [];
-    await Promise.allSettled(
-      items.map((conn) => postToConnection(managementApi, conn.connectionId, { type: "roomClosed" }))
-    );
-    await Promise.allSettled(
-      items
-        .filter((conn) => conn.connectionId !== connectionId)
-        .map((conn) => managementApi.send(new DeleteConnectionCommand({ ConnectionId: conn.connectionId })).catch(() => {}))
-    );
+  const managementApi = buildManagementApiClient(event);
+  await Promise.allSettled(
+    connections
+      .filter((conn) => conn.connectionId !== connectionId)
+      .map((conn) => managementApi.send(new DeleteConnectionCommand({ ConnectionId: conn.connectionId })).catch(() => {}))
+  );
 
-    return { statusCode: 200, body: "" };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
-  }
-};
+  return { statusCode: 200, body: "" };
+});
 
 // WebSocketカスタムルート"setName"（早押し機能、issue #510）。参加者（管理者含む、
 // ただし実際に使うのは参加者のみ）が自分の表示名を接続情報へ保存する
@@ -702,18 +513,15 @@ exports.setQuizRoomName = async (event) => {
       return { statusCode: 400, body: "Invalid name" };
     }
 
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
-    }));
-    if (!connection.Item) {
+    const connection = await getConnection(connectionId);
+    if (!connection) {
       // 接続情報が既に無い（切断済み等）。名前の保存自体は無意味なので何もしない
       return { statusCode: 200, body: "" };
     }
 
     // ポイント制（issue #519）はnameを集計キーにするため、同一ルーム内で名前が
     // 重複すると他人のポイントと混ざってしまう。参加時点で重複を禁止する
-    const { roomId, name: previousName } = connection.Item;
+    const { roomId, name: previousName } = connection;
     const isRenaming = previousName !== name;
 
     if (isRenaming) {
@@ -758,23 +566,9 @@ exports.setQuizRoomName = async (event) => {
 
     // 参加者一覧（issue #545）: 名前が確定したら、ルーム内の全接続（管理者含む）へ
     // 更新後の参加者一覧をブロードキャストする
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
-    }));
-    const managementApi = buildManagementApiClient(event);
-    const participantNames = (connections.Items || [])
-      .filter((conn) => conn.role === "participant")
-      .map((conn) => (conn.connectionId === connectionId ? name : conn.name))
-      .filter(Boolean);
-    await Promise.allSettled(
-      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-        type: "participants",
-        names: participantNames,
-      }))
-    );
+    const connections = await queryRoomConnections(roomId);
+    const participantNames = collectParticipantNames(connections, { renameConnectionId: connectionId, renameTo: name });
+    await broadcastToRoom(event, connections, { type: "participants", names: participantNames });
 
     return { statusCode: 200, body: "" };
   } catch (error) {
@@ -792,60 +586,33 @@ exports.setQuizRoomName = async (event) => {
 // 回答者名をブロードキャストする（早押し結果のリセットはupdateQuizRoomState側で行う）。
 // 正誤判定（issue #546）で不正解と判定された参加者は、そのラウンド中は
 // 再度早押しできない（excludedNamesに含まれる名前を条件付き書き込みで弾く）
-exports.buzzQuizRoom = async (event) => {
+exports.buzzQuizRoom = withRoleGuard("participant", async (event, connection, connectionId) => {
+  const { roomId, name } = connection;
+  const buzz = {
+    connectionId,
+    name: name || "名無しさん",
+    buzzedAt: Date.now(),
+  };
+
   try {
-    const connectionId = event.requestContext.connectionId;
-    const connection = await docClient.send(new GetCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      Key: { connectionId },
+    await docClient.send(new UpdateCommand({
+      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+      Key: { roomId },
+      UpdateExpression: "SET buzz = :buzz",
+      ConditionExpression: "attribute_not_exists(buzz) AND (attribute_not_exists(excludedNames) OR NOT contains(excludedNames, :name))",
+      ExpressionAttributeValues: { ":buzz": buzz, ":name": buzz.name },
     }));
-    if (!connection.Item || connection.Item.role !== "participant") {
-      return { statusCode: 403, body: "Forbidden" };
-    }
-
-    const { roomId, name } = connection.Item;
-    const buzz = {
-      connectionId,
-      name: name || "名無しさん",
-      buzzedAt: Date.now(),
-    };
-
-    try {
-      await docClient.send(new UpdateCommand({
-        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-        Key: { roomId },
-        UpdateExpression: "SET buzz = :buzz",
-        ConditionExpression: "attribute_not_exists(buzz) AND (attribute_not_exists(excludedNames) OR NOT contains(excludedNames, :name))",
-        ExpressionAttributeValues: { ":buzz": buzz, ":name": buzz.name },
-      }));
-    } catch (error) {
-      if (error.name === "ConditionalCheckFailedException") {
-        // 既に他の参加者が先に押している、またはこのラウンドで不正解判定済みで
-        // 除外されている。いずれも早押しの結果は変えず、何もしない
-        return { statusCode: 200, body: "" };
-      }
-      throw error;
-    }
-
-    const connections = await docClient.send(new QueryCommand({
-      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-      IndexName: "roomId-index",
-      KeyConditionExpression: "roomId = :roomId",
-      ExpressionAttributeValues: { ":roomId": roomId },
-    }));
-
-    const managementApi = buildManagementApiClient(event);
-    await Promise.allSettled(
-      (connections.Items || []).map((conn) => postToConnection(managementApi, conn.connectionId, {
-        type: "buzz",
-        name: buzz.name,
-        connectionId: buzz.connectionId,
-      }))
-    );
-
-    return { statusCode: 200, body: "" };
   } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: "Internal Server Error" };
+    if (error.name === "ConditionalCheckFailedException") {
+      // 既に他の参加者が先に押している、またはこのラウンドで不正解判定済みで
+      // 除外されている。いずれも早押しの結果は変えず、何もしない
+      return { statusCode: 200, body: "" };
+    }
+    throw error;
   }
-};
+
+  const connections = await queryRoomConnections(roomId);
+  await broadcastToRoom(event, connections, { type: "buzz", name: buzz.name, connectionId: buzz.connectionId });
+
+  return { statusCode: 200, body: "" };
+});

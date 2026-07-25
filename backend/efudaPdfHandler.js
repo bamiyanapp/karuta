@@ -4,6 +4,7 @@ const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
 const { S3Client, PutObjectCommand, HeadObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { docClient, resolveAllowedOrigin, streamToBuffer } = require("./handler");
+const { jsonResponse, badRequest, serverError } = require("./httpResponse");
 // @sparticuz/chromium・puppeteer-coreはESM専用パッケージ（"type": "module"）のため、
 // このファイル（CommonJS）からはrequire()できず、使用箇所（renderEfudaPdfWorker内）で
 // 動的import()する
@@ -51,11 +52,7 @@ exports.generateEfudaPdf = async (event) => {
     const categories = parseCategoryParam(categoryParam);
 
     if (categories.length === 0 || (side !== "front" && side !== "back")) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Invalid input" }),
-      };
+      return badRequest(allowedOrigin, "Invalid input");
     }
 
     // クライアント側（App.jsxのMAX_EFUDA_PRINT_CARDS）でも上限チェックしているが、
@@ -65,13 +62,10 @@ exports.generateEfudaPdf = async (event) => {
     const totalCount = counts.reduce((sum, count) => sum + count, 0);
 
     if (totalCount > MAX_EFUDA_PRINT_CARDS_SERVER) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({
-          message: `選択された読み札数（${totalCount}枚）が上限（${MAX_EFUDA_PRINT_CARDS_SERVER}枚）を超えています`,
-        }),
-      };
+      return badRequest(
+        allowedOrigin,
+        `選択された読み札数（${totalCount}枚）が上限（${MAX_EFUDA_PRINT_CARDS_SERVER}枚）を超えています`
+      );
     }
 
     const jobId = crypto.randomUUID();
@@ -84,18 +78,9 @@ exports.generateEfudaPdf = async (event) => {
       Payload: JSON.stringify({ jobId, categoryParam, side }),
     }));
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ jobId }),
-    };
+    return jsonResponse(allowedOrigin, 200, { jobId });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
@@ -175,11 +160,7 @@ exports.getEfudaPdfStatus = async (event) => {
     const { jobId, categoryLabel, side } = params;
 
     if (!jobId) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Invalid input" }),
-      };
+      return badRequest(allowedOrigin, "Invalid input");
     }
 
     try {
@@ -201,11 +182,7 @@ exports.getEfudaPdfStatus = async (event) => {
         { expiresIn: 300 }
       );
 
-      return {
-        statusCode: 200,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ status: "DONE", url }),
-      };
+      return jsonResponse(allowedOrigin, 200, { status: "DONE", url });
     } catch (headError) {
       if (!isNotFoundError(headError)) {
         throw headError;
@@ -220,28 +197,15 @@ exports.getEfudaPdfStatus = async (event) => {
       const errorBuffer = await streamToBuffer(errorObject.Body);
       const parsedError = JSON.parse(errorBuffer.toString("utf-8"));
 
-      return {
-        statusCode: 200,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ status: "FAILED", message: parsedError.message }),
-      };
+      return jsonResponse(allowedOrigin, 200, { status: "FAILED", message: parsedError.message });
     } catch (getError) {
       if (!isNotFoundError(getError)) {
         throw getError;
       }
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ status: "IN_PROGRESS" }),
-    };
+    return jsonResponse(allowedOrigin, 200, { status: "IN_PROGRESS" });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };

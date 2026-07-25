@@ -1,3 +1,5 @@
+import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
+
 function CategorySelectView({
   division,
   categories,
@@ -14,10 +16,7 @@ function CategorySelectView({
 }) {
   return (
     <div className="container py-5 mx-auto">
-      <header className="text-center mb-5">
-        <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
-        <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
-      </header>
+      <HeroHeader />
 
       <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
         <div className="d-flex justify-content-start mb-3">
@@ -84,17 +83,7 @@ function CategorySelectView({
         )}
       </main>
 
-      <div className="text-center d-flex flex-column gap-2">
-        <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
-          全札一覧を見る →
-        </button>
-        <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-          指摘された内容を確認する
-        </button>
-        <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
-          更新履歴を見る
-        </button>
-      </div>
+      <TopViewFooterLinks setView={setView} />
     </div>
   );
 }
