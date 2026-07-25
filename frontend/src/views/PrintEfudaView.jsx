@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config";
 import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
 import { setPrintScreenActive } from "../pdfExportStatus";
+import ViewHeader from "../components/ViewHeader";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
@@ -134,13 +135,12 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
 
   return (
     <div className="container efuda-print-container py-4 mx-auto">
-      <header className="text-center mb-4 border-bottom pb-3 no-print">
-        <div className="d-flex justify-content-between align-items-center">
-          <button onClick={onBack} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-          <h1 className="h4 m-0 fw-bold notranslate">{categoryLabel}の絵札印刷</h1>
-          <div style={{ width: "60px" }}></div>
-        </div>
-      </header>
+      <ViewHeader
+        onBack={onBack}
+        title={`${categoryLabel}の絵札印刷`}
+        headingClassName="h4 m-0 fw-bold notranslate"
+        noPrint
+      />
 
       {selectedCategories.length === 0 ? (
         <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>

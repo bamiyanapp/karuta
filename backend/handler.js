@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
+const { jsonResponse, badRequest, notFound, serverError } = require("./httpResponse");
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -119,11 +120,7 @@ exports.recordTime = async (event) => {
       time <= 0 ||
       time > MAX_ELAPSED_SECONDS
     ) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Invalid input" }),
-      };
+      return badRequest(allowedOrigin, "Invalid input");
     }
 
     let updateExpression = "ADD readCount :one, totalTime :time";
@@ -148,27 +145,14 @@ exports.recordTime = async (event) => {
       }));
     } catch (error) {
       if (error.name === "ConditionalCheckFailedException") {
-        return {
-          statusCode: 404,
-          headers: { "Access-Control-Allow-Origin": allowedOrigin },
-          body: JSON.stringify({ message: "Phrase not found" }),
-        };
+        return notFound(allowedOrigin, "Phrase not found");
       }
       throw error;
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Time recorded successfully" }),
-    };
+    return jsonResponse(allowedOrigin, 200, { message: "Time recorded successfully" });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error" }),
-    };
+    return serverError(allowedOrigin, error);
   }
 }
 
@@ -187,11 +171,7 @@ exports.postComment = async (event) => {
       typeof comment !== 'string' ||
       comment.length > MAX_COMMENT_LENGTH
     ) {
-      return {
-        statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Invalid input" }),
-      };
+      return badRequest(allowedOrigin, "Invalid input");
     }
 
     const item = {
@@ -208,18 +188,9 @@ exports.postComment = async (event) => {
       Item: item,
     }));
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Comment posted successfully" }),
-    };
+    return jsonResponse(allowedOrigin, 200, { message: "Comment posted successfully" });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error" }),
-    };
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -234,18 +205,9 @@ exports.getComments = async (event) => {
 
     items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ comments: items }),
-    };
+    return jsonResponse(allowedOrigin, 200, { comments: items });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error" }),
-    };
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -276,23 +238,14 @@ exports.getCongratulationAudio = async (event) => {
     const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
     const base64Audio = audioBuffer.toString("base64");
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Credentials": true,
-      },
-      body: JSON.stringify({
-        audioData: `data:audio/mp3;base64,${base64Audio}`,
-      }),
-    };
+    return jsonResponse(
+      allowedOrigin,
+      200,
+      { audioData: `data:audio/mp3;base64,${base64Audio}` },
+      { credentials: true }
+    );
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
@@ -350,11 +303,7 @@ exports.getPhrase = async (event) => {
     }
 
     if (!selectedItem) {
-      return {
-        statusCode: 404,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ message: "Phrase not found" }),
-      };
+      return notFound(allowedOrigin, "Phrase not found");
     }
 
     targetId = selectedItem.id;
@@ -443,21 +392,9 @@ exports.getPhrase = async (event) => {
       averageDifficulty: stats.averageDifficulty || 0,
     };
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Credentials": true,
-      },
-      body: JSON.stringify(responseBody),
-    };
+    return jsonResponse(allowedOrigin, 200, responseBody, { credentials: true });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 
@@ -493,18 +430,9 @@ exports.getPhrasesList = async (event) => {
       items = scanResult.Items || [];
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ phrases: items.map(computePhraseStats) }),
-    };
+    return jsonResponse(allowedOrigin, 200, { phrases: items.map(computePhraseStats) });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error" }),
-    };
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -556,21 +484,9 @@ exports.getCategories = async (event) => {
       categories = [{ name: "大ピンチずかん", group: "kids", requiresPossessionCheck: true, count: 0, readCount: 0 }];
     }
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Credentials": true,
-      },
-      body: JSON.stringify({ categories }),
-    };
+    return jsonResponse(allowedOrigin, 200, { categories }, { credentials: true });
   } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
-    };
+    return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
 

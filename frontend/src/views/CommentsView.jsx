@@ -1,13 +1,9 @@
+import ViewHeader from "../components/ViewHeader";
+
 function CommentsView({ allComments, setView }) {
   return (
     <div className="container py-4 mx-auto">
-      <header className="text-center mb-5 border-bottom pb-3">
-        <div className="d-flex justify-content-between align-items-center">
-          <button onClick={() => setView("game")} className="btn btn-sm btn-outline-secondary rounded-pill">← 戻る</button>
-          <h1 className="h2 fw-bold m-0 text-dark">指摘された内容一覧</h1>
-          <div style={{ width: "60px" }}></div>
-        </div>
-      </header>
+      <ViewHeader onBack={() => setView("game")} title="指摘された内容一覧" marginBottom="mb-5" />
 
       <main className="mx-auto" style={{ maxWidth: "800px" }}>
         {allComments.length === 0 ? (

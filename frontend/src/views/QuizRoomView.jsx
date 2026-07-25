@@ -8,6 +8,8 @@ import { phraseKey } from "../utils/phraseKey";
 import { clearRoomIdParam } from "../utils/quizRoomUrl";
 import AnswerAndExplanation from "../components/AnswerAndExplanation";
 import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
+import Confetti from "../components/Confetti";
+import { buildConfettiPieces } from "../utils/confetti";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -265,28 +267,16 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     buzz();
   };
 
-  // 早押し正解時の紙吹雪演出（issue #600）。App.jsxの読了時演出と同じ
-  // pseudoRandom(seed)パターンを流用し、useMemoファクトリ内でのMath.random()
-  // 呼び出し（react-hooks/purity）を避ける。showCelebrationはresult表示かつ
+  // 早押し正解時の紙吹雪演出（issue #600）。QuizCompletionScreenの読了時演出と
+  // 同じComponents/Confetti.jsxを流用する。showCelebrationはresult表示かつ
   // winner（正解と判定された回答者名）がある間だけtrueになり、次のラウンドの
   // 札が届く（roomState.typeが"phrase"に変わる）とfalseに戻るため、ラウンドが
   // 変わるたびに演出が再生成される
   const showCelebration = roomState?.type === "result" && !!roomState.content?.winner;
-  const confettiPieces = useMemo(() => {
-    if (!showCelebration) return [];
-    const emojis = ["🎉", "✨", "🎊", "⭐"];
-    const pseudoRandom = (seed) => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-    return Array.from({ length: 24 }, (_, i) => ({
-      id: i,
-      emoji: emojis[i % emojis.length],
-      left: pseudoRandom(i) * 100,
-      delay: pseudoRandom(i + 100) * 0.6,
-      duration: 2.2 + pseudoRandom(i + 200) * 1.2,
-    }));
-  }, [showCelebration]);
+  const confettiPieces = useMemo(
+    () => (showCelebration ? buildConfettiPieces() : []),
+    [showCelebration]
+  );
 
   // issue #613: 正解時の演出（紙吹雪）と同じタイミングで、正解の音も鳴らす。
   // showCelebrationはラウンドが変わるたびfalse→trueと切り替わるため、trueに
@@ -484,19 +474,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   if (joinRoomId) {
     return (
       <div className="container py-5 mx-auto text-center">
-        {showCelebration && (
-          <div className="confetti-container" aria-hidden="true">
-            {confettiPieces.map(c => (
-              <span
-                key={c.id}
-                className="confetti-piece"
-                style={{ left: `${c.left}%`, animationDelay: `${c.delay}s`, animationDuration: `${c.duration}s` }}
-              >
-                {c.emoji}
-              </span>
-            ))}
-          </div>
-        )}
+        <Confetti pieces={confettiPieces} />
         <header className="mb-4">
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
