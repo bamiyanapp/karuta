@@ -1,3 +1,10 @@
+## [1.56.1](https://github.com/bamiyanapp/karuta/compare/v1.56.0...v1.56.1) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** Pollyコールドキャッシュ起因のE2E断続的失敗を緩和する（issue [#820](https://github.com/bamiyanapp/karuta/issues/820)） ([#822](https://github.com/bamiyanapp/karuta/issues/822)) ([7439c70](https://github.com/bamiyanapp/karuta/commit/7439c7066762d99bb5c4f5b02b0e37c68ea997e5))
+
 # [1.56.0](https://github.com/bamiyanapp/karuta/compare/v1.55.0...v1.56.0) (2026-07-25)
 
 
