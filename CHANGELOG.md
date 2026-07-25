@@ -1,3 +1,10 @@
+# [1.58.0](https://github.com/bamiyanapp/karuta/compare/v1.57.0...v1.58.0) (2026-07-25)
+
+
+### Features
+
+* **ci:** mermaid図の対象拡張とcomplexity/sonarjs/jscpdのゲート化 ([#832](https://github.com/bamiyanapp/karuta/issues/832)) ([ecb269f](https://github.com/bamiyanapp/karuta/commit/ecb269fdb2b824ccc3c3dca79b2c6bafc2aba8e5)), closes [#833](https://github.com/bamiyanapp/karuta/issues/833)
+
 # [1.57.0](https://github.com/bamiyanapp/karuta/compare/v1.56.1...v1.57.0) (2026-07-25)
 
 
