@@ -15,9 +15,12 @@ export const SCREENSHOT_DIR = path.resolve(__dirname, '..', 'e2e-screenshots');
 // 添付、(2) CI側が公開できるようSCREENSHOT_DIRへのファイル書き出し、の両方を行う。
 // nameはファイル名（URLの一部になるため引き続きASCII安全な識別子を渡すこと）、
 // captionはPRコメント・Job Summaryの見出しに使われる日本語の説明文（issue #601）。
-// captionを省略した場合はCI側（dev-standards）がnameをそのまま見出しとして使う
-export async function captureScreenshot(page, testInfo, name, caption) {
-  const body = await page.screenshot({ fullPage: true });
+// captionを省略した場合はCI側（dev-standards）がnameをそのまま見出しとして使う。
+// issue #795: 既定はfullPage: true（ページ全体）だが、更新履歴画面のように
+// エントリの増加でページが際限なく長くなっていく画面では、fullPage: falseを
+// 明示的に渡すことでビューポート内（画面上部）だけを撮影できるようにする
+export async function captureScreenshot(page, testInfo, name, caption, { fullPage = true } = {}) {
+  const body = await page.screenshot({ fullPage });
   await testInfo.attach(name, { body, contentType: 'image/png' });
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
   fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.png`), body);

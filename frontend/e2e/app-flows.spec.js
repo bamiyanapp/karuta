@@ -74,7 +74,9 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // （例: 本機能自体の追加を記録したエントリ）、getByTextでは複数要素にマッチして
     // strict mode violationになる。見出し要素に限定する
     await expect(page.getByRole('heading', { name: '更新履歴' })).toBeVisible();
-    await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面');
+    // issue #795: エントリの増加でページ全体の縦幅が際限なく長くなるため、
+    // 画面上部（ビューポート内）のみを撮影する
+    await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面', { fullPage: false });
     await page.getByText('← 戻る').click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
