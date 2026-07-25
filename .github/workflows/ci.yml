@@ -25,11 +25,13 @@ jobs:
       enable_standards_check: true
       workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
       # SonarCloud相当の静的解析（issue #806）のうち、コード重複検知（jscpd）を有効化する。
-      # duplication_thresholdは既定0（レポート表示のみ、ゲートなし）のまま据え置く。
-      # 試験実行時点の重複率は約22%あり、いきなりしきい値でゲートすると即座にCIが
-      # 赤くなるため、まずはJob Summaryでの可視化のみ行い、具体的なしきい値・ゲート化の
-      # 要否は実際のレポートを見ながら別途検討する
+      # 導入直後はduplication_threshold未指定（レポート表示のみ、ゲートなし）としていたが、
+      # 検出しても何も強制されない状態が放置されていたため、現状の重複率
+      # （2026-07-25時点で実測20.31%、行ベース）をベースラインとしたラチェット方式で
+      # ゲートを有効化する。既存の重複はすぐには解消せず、今後の増加のみを防ぐ
+      # （個別の削減はissue #833で追跡する）
       enable_duplication_check: true
+      duplication_threshold: 21
       # 分岐(branches)カバレッジ80%必須化（issue #459）のうち、branches指標のみ
       # 引き続き見送る。backend側で、複数のテストファイルが同一のソースファイル
       # （例: backend/handler.js）をimportする構成において、@vitest/coverage-v8の
@@ -44,10 +46,11 @@ jobs:
       # ままにする）
       coverage_threshold: 80
       coverage_metrics: "statements,functions,lines"
-      # issue #824: docs/cicd-pipeline-specification.mdのArchitecture図を
-      # SVGへ事前レンダリングし、PR差分ビュー・API経由でのファイル取得等で
-      # mermaidがネイティブレンダリングされない場面でも確認できるようにする
+      # issue #824: docs/cicd-pipeline-specification.mdおよびREADME.md（System
+      # Architecture／Screen Transitionsの2図）のmermaid図をSVGへ事前レンダリング
+      # し、PR差分ビュー・API経由でのファイル取得等でmermaidがネイティブ
+      # レンダリングされない場面でも確認できるようにする
       enable_mermaid_render: true
-      mermaid_doc_paths: "docs/cicd-pipeline-specification.md"
+      mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md"
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
