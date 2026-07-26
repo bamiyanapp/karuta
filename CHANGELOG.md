@@ -1,3 +1,10 @@
+## [1.58.1](https://github.com/bamiyanapp/karuta/compare/v1.58.0...v1.58.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* **quality:** issue [#806](https://github.com/bamiyanapp/karuta/issues/806)の静的解析指摘・重複を解消しゲートを引き下げる（issue [#833](https://github.com/bamiyanapp/karuta/issues/833)） ([#838](https://github.com/bamiyanapp/karuta/issues/838)) ([257647d](https://github.com/bamiyanapp/karuta/commit/257647de9576b1be5be16a7f87a0cbaec900a084))
+
 # [1.58.0](https://github.com/bamiyanapp/karuta/compare/v1.57.0...v1.58.0) (2026-07-25)
 
 
