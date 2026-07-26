@@ -856,7 +856,14 @@ function App() {
   const renderPhrase = (phrase) => {
     if (!phrase) return null;
     return (
-        <div className={`yomifuda ${division === "kids" ? "yomifuda-kids" : ""}`} onClick={repeatPhrase} role="button" aria-label="もう一度">
+        <div
+          className={`yomifuda ${division === "kids" ? "yomifuda-kids" : ""}`}
+          onClick={repeatPhrase}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); repeatPhrase(); } }}
+          role="button"
+          tabIndex={0}
+          aria-label="もう一度"
+        >
             <div className="yomifuda-kana"><span>{phrase.kana || (phrase.phrase && phrase.phrase[0])}</span></div>
             <div className="yomifuda-phrase">{phrase.phrase}</div>
             {division !== "kids" && phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}

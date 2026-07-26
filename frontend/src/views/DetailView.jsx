@@ -15,7 +15,13 @@ function renderDetailContent({
   return (
     <div className="mx-auto" style={{ maxWidth: "600px" }}>
       <div className="d-flex justify-content-center mb-4">
-        <div className="yomifuda-container mb-4" onClick={repeatPhrase} role="button">
+        <div
+          className="yomifuda-container mb-4"
+          onClick={repeatPhrase}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); repeatPhrase(); } }}
+          role="button"
+          tabIndex={0}
+        >
           <div className="yomifuda shadow-lg">
             <div className="yomifuda-kana"><span>{detailPhrase.kana || (detailPhrase.phrase && detailPhrase.phrase[0])}</span></div>
             <div className="yomifuda-phrase">{detailPhrase.phrase}</div>

@@ -1933,12 +1933,14 @@ describe('App', () => {
 
     const getBodyRows = () => screen.getAllByRole('row').slice(1); // 先頭はヘッダー行
     const getPhraseOrder = () => getBodyRows().map(row => within(row).getByText(/^ぱ\d$/).textContent);
-    // AllPhrasesView.jsxのソート可能な列見出しはaria-sort等の都合上role="button"を
-    // 明示指定しているため（既定のcolumnheaderではない）、role="button"かつ名前で絞り込む
-    const levelHeader = screen.getByRole('button', { name: /^Lv/ });
-    const readCountHeader = screen.getByRole('button', { name: /^回数/ });
-    const answerHeader = screen.getByRole('button', { name: /^答え/ });
-    const categoryHeader = screen.getByRole('button', { name: /^カテゴリ/ });
+    // AllPhrasesView.jsxのソート可能な列見出しは<th scope="col">の暗黙ロール
+    // （columnheader）のまま、tabIndex・onClick・onKeyDownで操作可能にしている
+    // （issue #857: aria-sortはcolumnheader/rowheaderにのみ許可される属性のため、
+    // role="button"で上書きしない）
+    const levelHeader = screen.getByRole('columnheader', { name: /^Lv/ });
+    const readCountHeader = screen.getByRole('columnheader', { name: /^回数/ });
+    const answerHeader = screen.getByRole('columnheader', { name: /^答え/ });
+    const categoryHeader = screen.getByRole('columnheader', { name: /^カテゴリ/ });
 
     // Lv列でソート（"初級"/"上級"の特別扱い、"-"同士・"-"と実値の比較、非数値文字列を網羅）
     fireEvent.click(levelHeader);
