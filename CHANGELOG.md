@@ -1,3 +1,10 @@
+## [1.58.6](https://github.com/bamiyanapp/karuta/compare/v1.58.5...v1.58.6) (2026-07-26)
+
+
+### Bug Fixes
+
+* **eslint:** sonarjs/complexityルールのseverityをwarnからerrorへ揃える ([#866](https://github.com/bamiyanapp/karuta/issues/866)) ([0375adb](https://github.com/bamiyanapp/karuta/commit/0375adbaf6da0fc487bd27bad0bfd5f7592e8c01))
+
 ## [1.58.5](https://github.com/bamiyanapp/karuta/compare/v1.58.4...v1.58.5) (2026-07-26)
 
 
