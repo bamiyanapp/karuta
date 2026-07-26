@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.58.5",
+    "version": "1.58.6",
     "date": "2026/07/26",
+    "body": "### Bug Fixes\n\n* **eslint:** sonarjs/complexityルールのseverityをwarnからerrorへ揃える ([#866](https://github.com/bamiyanapp/karuta/issues/866)) ([0375adb](https://github.com/bamiyanapp/karuta/commit/0375adbaf6da0fc487bd27bad0bfd5f7592e8c01))"
+  },
+  {
+    "version": "1.58.5",
+    "date": "2026/07/26 09:22",
     "body": "### Bug Fixes\n\n* **quiz-room:** 早押しタイミングの読み上げ体験を改善する（issue [#861](https://github.com/bamiyanapp/karuta/issues/861), [#860](https://github.com/bamiyanapp/karuta/issues/860)） ([#864](https://github.com/bamiyanapp/karuta/issues/864)) ([1839b81](https://github.com/bamiyanapp/karuta/commit/1839b81275e03c5c6b84102c5e3807af78de4d0d))"
   },
   {
