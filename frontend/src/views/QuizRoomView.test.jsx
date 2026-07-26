@@ -810,6 +810,94 @@ describe('QuizRoomView', () => {
     expect(narrationAudio.pause).toHaveBeenCalled();
   });
 
+  it('does not start the narration audio if the participant presses the buzz button before it has started playing (issue #860: stopSharedAudio pauses nothing if playback has not begun yet, so the still-pending playSharedAudio call must be suppressed separately)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    // 「決定」ボタンのクリックによる解錠はデフォルトのaudioPlayImplで解決済み。
+    // ここから先、太鼓の音（イントロ）の再生完了を手動で制御できるようにする
+    // （issue #796のテストと同じ手法）
+    let resolveIntroPlayback;
+    audioPlayImpl = () => new Promise((resolve) => { resolveIntroPlayback = resolve; });
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+    const narrationAudio = audioInstances[0];
+
+    // 本編音声の取得（/get-phrase）はイントロ音の再生と並行して進み、ここで完了する。
+    // しかしイントロ音自体はまだ鳴り終わっていない（本編再生はまだ開始前）
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(audioFetchCalls().length).toBeGreaterThan(0);
+    expect(narrationAudio.src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+
+    // 本編再生がまだ始まっていないこのタイミングで回答ボタンを押す
+    fireEvent.click(screen.getByText('回答する'));
+    expect(buzzMock).toHaveBeenCalled();
+
+    // その後にイントロ音の再生が完了しても、本編音声（narrationAudio）へは
+    // 差し替わらない（従来はstopSharedAudio()がまだ再生開始前の音声には効かず、
+    // このタイミングで押しても結局本編が再生されてしまっていた）
+    await act(async () => {
+      resolveIntroPlayback();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(narrationAudio.src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+  });
+
+  it('also suppresses the not-yet-started narration audio when a different participant buzzes in before it has started playing (issue #860, mirroring issue #800)', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-room?')) {
+        return { ok: true, json: async () => ({ exists: true }) };
+      }
+      return { ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) };
+    });
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    let resolveIntroPlayback;
+    audioPlayImpl = () => new Promise((resolve) => { resolveIntroPlayback = resolve; });
+
+    emitState({ type: 'phrase', content: { id: 'p1', category: 'Cat1', phrase: '読み札1', level: '3' } });
+
+    const narrationAudio = audioInstances[0];
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(audioFetchCalls().length).toBeGreaterThan(0);
+
+    // 自分ではなく他の参加者が、本編再生開始前のこのタイミングで早押しした場合
+    emitBuzz({ name: 'はなこ', connectionId: 'conn-2' });
+
+    await act(async () => {
+      resolveIntroPlayback();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(narrationAudio.src).toBe('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+  });
+
   it('does not play audio for a phrase that was already in progress when joining, while still on the name entry screen, and does not play it retroactively once the name is confirmed (issue #530)', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ audioData: 'data:audio/mp3;base64,DUMMY' }) });
     window.history.pushState({}, '', '?roomId=ABC123');

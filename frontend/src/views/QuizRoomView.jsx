@@ -357,6 +357,23 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // 毎回`new Audio(...)`していると、その要素自体はユーザー操作中に一度も再生されておらず、
   // Safari等では再生がブロックされ続けてしまうため
   const lastPlayedKeyRef = useRef(null);
+  // issue #860: 早押しボタン押下時にstopSharedAudio()を呼んでも、その時点で本編音声が
+  // まだ再生開始前（フレーズ取得中・イントロ音再生中）だと何も止まらず、その後に
+  // 開始される再生を止める手段が無かった。ラウンドごとにリセットするこのフラグへ
+  // 早押し発生（自分・他の参加者いずれも）を記録し、本編再生を開始する直前に
+  // 確認することで、開始前の早押しも確実に読み上げを止められるようにする
+  const buzzStoppedRef = useRef(false);
+
+  // issue #860: buzzedByは自分の早押し（handleBuzz）・他の参加者の早押し（onBuzz）の
+  // いずれでもセットされるため、その変化を検知してbuzzStoppedRefへ反映する。
+  // handleBuzz/onBuzz内で直接refへ書き込まないのは、handleBuzzがrenderJoinedRoom()
+  // 経由でレンダー中に到達可能なコールパスとして扱われ、react-hooks/refsルール
+  // （レンダー中のref書き込み禁止）に抵触するため
+  useEffect(() => {
+    if (buzzedBy) {
+      buzzStoppedRef.current = true;
+    }
+  }, [buzzedBy]);
 
   useEffect(() => {
     if (!wsBaseUrl) {
@@ -384,6 +401,9 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
       return;
     }
     lastPlayedKeyRef.current = key;
+    // issue #860: 新しいラウンドの再生開始前に、前のラウンドの早押し停止フラグを
+    // 必ずリセットする
+    buzzStoppedRef.current = false;
 
     // 名前入力画面（confirmedName未確定）の間は再生しない（issue #530）。
     // 上のlastPlayedKeyRef更新は先に行っているため、名前確定後にこの同じ
@@ -416,7 +436,10 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
           return;
         }
         await introPromise;
-        if (cancelled) {
+        // issue #860: このawait中（フレーズ取得・イントロ音再生の間）に早押しされて
+        // いた場合、stopSharedAudio()はまだ再生されていない音声には効かないため、
+        // buzzStoppedRefで再生開始自体を取りやめる
+        if (cancelled || buzzStoppedRef.current) {
           return;
         }
         await playSharedAudio(data.audioData);
