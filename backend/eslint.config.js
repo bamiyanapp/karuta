@@ -1,9 +1,6 @@
 const js = require("@eslint/js");
 const globals = require("globals");
 const sonarjs = require("eslint-plugin-sonarjs");
-const { buildSonarjsWarnRules } = require("../eslint-sonarjs-warn.cjs");
-
-const sonarjsWarnRules = buildSonarjsWarnRules(sonarjs);
 
 module.exports = [
   {
@@ -23,9 +20,11 @@ module.exports = [
     rules: {
       "no-unused-vars": ["error", { args: "none" }],
       // ESLint組み込み。循環的複雑度の代替（issue #806）。sonarjsの
-      // cognitive-complexityと閾値を揃え、両観点で警告する
-      complexity: ["warn", 15],
-      ...sonarjsWarnRules,
+      // cognitive-complexityと閾値を揃え、両観点でerrorとする（issue #856。
+      // lintスクリプトの`--max-warnings 0`により、warn severityにしても
+      // 実質errorと同じ強制力になっていたため、severity自体もerrorへ揃えた）
+      complexity: ["error", 15],
+      ...sonarjs.configs.recommended.rules,
     },
   },
   {

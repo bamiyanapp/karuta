@@ -4,9 +4,6 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import sonarjs from 'eslint-plugin-sonarjs'
 import { defineConfig, globalIgnores } from 'eslint/config'
-import { buildSonarjsWarnRules } from '../eslint-sonarjs-warn.cjs'
-
-const sonarjsWarnRules = buildSonarjsWarnRules(sonarjs)
 
 export default defineConfig([
   globalIgnores(['dist', 'src/changelog.json', 'coverage']),
@@ -30,9 +27,11 @@ export default defineConfig([
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       // ESLint組み込み。循環的複雑度の代替（issue #806）。sonarjsの
-      // cognitive-complexityと閾値を揃え、両観点で警告する
-      complexity: ['warn', 15],
-      ...sonarjsWarnRules,
+      // cognitive-complexityと閾値を揃え、両観点でerrorとする（issue #856。
+      // lintスクリプトの`--max-warnings 0`により、warn severityにしても
+      // 実質errorと同じ強制力になっていたため、severity自体もerrorへ揃えた）
+      complexity: ['error', 15],
+      ...sonarjs.configs.recommended.rules,
     },
   },
   {
