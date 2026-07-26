@@ -116,7 +116,7 @@ function expectedKana(target) {
   if (!target) return null;
   const first = target[0];
   if (/^[A-Za-z]$/.test(first)) return first.toUpperCase(); // 英字 → 大文字
-  if (/^[0-9]$/.test(first)) return first;                  // 数字 → 完全一致
+  if (/^\d$/.test(first)) return first;                      // 数字 → 完全一致
   if (/^[ぁ-ゖ]$/.test(first)) return first;        // ひらがな → 完全一致
   if (/^[ァ-ヶ]$/.test(first)) return katakanaToHiragana(first); // カタカナ → ひらがな
   return null; // 漢字・その他 → テスト省略
@@ -200,7 +200,8 @@ describe('大ピンチレベルの整合性', () => {
     for (const r of records) {
       if (r.level === '-') continue;
       if (!POSITIVE_INT_RE.test(r.level) || parseInt(r.level, 10) <= 0) continue; // 初級・上級など非整数はスキップ
-      (byCategory[r.category] ??= []).push(r.level);
+      byCategory[r.category] ??= [];
+      byCategory[r.category].push(r.level);
     }
     expect(
       Object.keys(byCategory).length,

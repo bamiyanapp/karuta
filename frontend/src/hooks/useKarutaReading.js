@@ -10,8 +10,22 @@ const pickTargetPhrase = (unreadPhrases, sortOrder) => {
   if (sortOrder === "hard") {
     return [...unreadPhrases].sort((a, b) => (b.averageDifficulty || 0) - (a.averageDifficulty || 0))[0];
   }
+  // eslint-disable-next-line sonarjs/pseudo-random -- かるたの札をランダムに選ぶだけの用途で暗号学的な強度は不要
   const randomIndex = Math.floor(Math.random() * unreadPhrases.length);
   return unreadPhrases[randomIndex];
+};
+
+// 履歴（カテゴリ別）へ既読の札を追加する。同じ札が既に記録済みなら何もしない
+const appendToHistory = (historyByCategory, categoryKey, phraseData) => {
+  const currentList = historyByCategory[categoryKey] || [];
+  const alreadyRecorded = currentList.some(p => p.id === phraseData.id && p.category === phraseData.category);
+  if (alreadyRecorded) {
+    return historyByCategory;
+  }
+  return {
+    ...historyByCategory,
+    [categoryKey]: [phraseData, ...currentList]
+  };
 };
 
 // 読み上げ・札めくり進行（音声再生・タイマー・フェード演出・結果確定）をまとめた
@@ -152,16 +166,7 @@ export function useKarutaReading({
       if (phraseData) {
         setCurrentPhrase(phraseData);
 
-        setHistoryByCategory(prev => {
-          const currentList = prev[categoryKey] || [];
-          if (currentList.find(p => p.id === phraseData.id && p.category === phraseData.category)) {
-            return prev;
-          }
-          return {
-            ...prev,
-            [categoryKey]: [phraseData, ...currentList]
-          };
-        });
+        setHistoryByCategory(prev => appendToHistory(prev, categoryKey, phraseData));
       }
 
       await playIntroSound();
@@ -380,7 +385,6 @@ export function useKarutaReading({
       const announceCategory = isMultiCategorySelection;
       const settingsSignature = JSON.stringify({ repeatCount, speechRate, lang, voiceId, announceCategory, sortOrder });
       const prefetched = prefetchedNextRef.current;
-      let targetPhrase;
       let data;
 
       if (
@@ -389,11 +393,10 @@ export function useKarutaReading({
         unreadPhrases.some(p => p.id === prefetched.phrase.id && p.category === prefetched.phrase.category)
       ) {
         // プリフェッチ済みの音声データをそのまま使い、取得待ちをスキップする
-        targetPhrase = prefetched.phrase;
         data = prefetched.data;
         prefetchedNextRef.current = null;
       } else {
-        targetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
+        const targetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
 
         const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${announceCategory}`;
         const response = await fetch(apiUrl);

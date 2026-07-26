@@ -34,6 +34,80 @@ const HISTORY_STORAGE_KEY = "historyByCategory";
 // バックエンド側はURL直叩き等を弾く二次防御
 const MAX_EFUDA_PRINT_CARDS = 500;
 
+// カテゴリ一覧の再取得後、選択中のカテゴリのうち引き続き存在するものだけへ絞り込む
+function filterStillValidCategories(prev, availableNames) {
+  if (prev.length === 0) return prev;
+  const stillValid = prev.filter(cat => availableNames.includes(cat));
+  return stillValid.length !== prev.length ? stillValid : prev;
+}
+
+// 指定したカテゴリ名一覧について、対応するcount（枚数）の合計を求める
+// （絵札印刷の上限バリデーション用）
+function sumCategoryCounts(categoryNames, categories) {
+  return categoryNames.reduce((total, name) => {
+    const info = categories.find(c => c.name === name);
+    return total + (info?.count || 0);
+  }, 0);
+}
+
+// 初級=1000000、上級=1000001 として数値化し一貫したソートを保証
+function toLevelNum(v) {
+  if (v === '初級') return 1_000_000;
+  if (v === '上級') return 1_000_001;
+  const n = parseInt(v, 10);
+  return isNaN(n) ? 1_000_002 : n;
+}
+
+// レベル列は未設定('-')を常に末尾へ固定するため、direction に関わらない順序を
+// 早期に返す。該当しない場合はnullを返し、呼び出し側の通常比較へフォールバックする
+function compareByLevelPresence(aValue, bValue) {
+  if (aValue === '-' && bValue !== '-') return 1;
+  if (aValue !== '-' && bValue === '-') return -1;
+  if (aValue === '-' && bValue === '-') return 0;
+  return null;
+}
+
+// answer列は未設定（市販品で答えデータが無い）を常に末尾へ固定する
+function compareByAnswerPresence(aValue, bValue) {
+  const aMissing = !aValue || aValue === '-';
+  const bMissing = !bValue || bValue === '-';
+  if (aMissing && !bMissing) return 1;
+  if (!aMissing && bMissing) return -1;
+  if (aMissing && bMissing) return 0;
+  return null;
+}
+
+const NUMERIC_FALLBACK_ZERO_KEYS = new Set(['readCount', 'averageDifficulty', 'averageTime']);
+
+function normalizeSortValues(sortKey, aValue, bValue) {
+  if (sortKey === 'level') return [toLevelNum(aValue), toLevelNum(bValue)];
+  if (NUMERIC_FALLBACK_ZERO_KEYS.has(sortKey)) return [aValue || 0, bValue || 0];
+  if (sortKey === 'answer' || typeof aValue === 'string') {
+    return [(aValue || '').toLowerCase(), (bValue || '').toLowerCase()];
+  }
+  return [aValue, bValue];
+}
+
+function comparePhraseValues(a, b, sortConfig) {
+  const sortKey = sortConfig.key;
+  let aValue = a[sortKey];
+  let bValue = b[sortKey];
+
+  if (sortKey === 'level') {
+    const presenceResult = compareByLevelPresence(aValue, bValue);
+    if (presenceResult !== null) return presenceResult;
+  } else if (sortKey === 'answer') {
+    const presenceResult = compareByAnswerPresence(aValue, bValue);
+    if (presenceResult !== null) return presenceResult;
+  }
+
+  [aValue, bValue] = normalizeSortValues(sortKey, aValue, bValue);
+
+  if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+  if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+  return 0;
+}
+
 function App() {
   const [categories, setCategories] = useState([]);
   const [division, setDivision] = useState(() => {
@@ -95,7 +169,8 @@ function App() {
   const [postingComment, setPostingComment] = useState(false);
 
   const resolvedTheme = useMemo(() => {
-    return themeSetting === "system" ? (systemPrefersDark ? "dark" : "light") : themeSetting;
+    if (themeSetting !== "system") return themeSetting;
+    return systemPrefersDark ? "dark" : "light";
   }, [themeSetting, systemPrefersDark]);
 
   const categoryKey = useMemo(() => {
@@ -219,47 +294,7 @@ function App() {
   const sortedPhrases = useMemo(() => {
     let sortableItems = [...allPhrases];
     if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
-        
-        if (sortConfig.key === 'level') {
-            if (aValue === '-' && bValue !== '-') return 1;
-            if (aValue !== '-' && bValue === '-') return -1;
-            if (aValue === '-' && bValue === '-') return 0;
-            // 初級=1000000、上級=1000001 として数値化し一貫したソートを保証
-            const toLevelNum = (v) => {
-              if (v === '初級') return 1_000_000;
-              if (v === '上級') return 1_000_001;
-              const n = parseInt(v, 10);
-              return isNaN(n) ? 1_000_002 : n;
-            };
-            aValue = toLevelNum(aValue);
-            bValue = toLevelNum(bValue);
-        } else if (sortConfig.key === 'readCount' || sortConfig.key === 'averageDifficulty' || sortConfig.key === 'averageTime') {
-            aValue = aValue || 0;
-            bValue = bValue || 0;
-        } else if (sortConfig.key === 'answer') {
-            const aMissing = !aValue || aValue === '-';
-            const bMissing = !bValue || bValue === '-';
-            if (aMissing && !bMissing) return 1;
-            if (!aMissing && bMissing) return -1;
-            if (aMissing && bMissing) return 0;
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
-        } else if (typeof aValue === 'string') {
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
+      sortableItems.sort((a, b) => comparePhraseValues(a, b, sortConfig));
     }
     return sortableItems;
   }, [allPhrases, sortConfig]);
@@ -327,11 +362,7 @@ function App() {
 
           if (availableCategories.length > 0 && viewRef.current === "game") {
             const availableNames = availableCategories.map(cat => cat.name);
-            setSelectedCategories(prev => {
-              if (prev.length === 0) return prev;
-              const stillValid = prev.filter(cat => availableNames.includes(cat));
-              return stillValid.length !== prev.length ? stillValid : prev;
-            });
+            setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
           }
         }
     } catch (error) {
@@ -623,10 +654,7 @@ function App() {
       // 追加後の合計枚数が上限を超える場合は選択自体をブロックする
       // （PDF出力が破綻しない範囲に選択可能な種別を制限するバリデーション）
       const catInfo = categories.find(c => c.name === cat);
-      const currentCount = prev.reduce((total, name) => {
-        const info = categories.find(c => c.name === name);
-        return total + (info?.count || 0);
-      }, 0);
+      const currentCount = sumCategoryCounts(prev, categories);
       if (currentCount + (catInfo?.count || 0) > MAX_EFUDA_PRINT_CARDS) {
         return prev;
       }
@@ -670,6 +698,10 @@ function App() {
     setDetailPhraseCategory(null);
   };
 
+  // ゲーム画面以外の各画面（詳細・絵札印刷・全札一覧・指摘一覧・更新履歴・クイズ大会・
+  // division/カテゴリ選択）へのルーティング。Appコンポーネント本体の複雑度を抑えるため、
+  // 該当する画面が無ければnullを返すだけの即時実行関数へ分岐をまとめている
+  const routedView = (() => {
   if (detailPhraseId) {
     return (
       <DetailView
@@ -804,6 +836,10 @@ function App() {
     );
   }
 
+  return null;
+  })();
+  if (routedView) return routedView;
+
   const renderPhrase = (phrase) => {
     if (!phrase) return null;
     return (
@@ -825,6 +861,55 @@ function App() {
       </div>
     )
   }
+
+  // ゲーム画面本体（読了後のお祝い画面 or 読み札カード＋操作ボタン）。
+  // Appコンポーネント本体の複雑度を抑えるため、別関数として切り出している
+  const renderGameMain = () => {
+    if (isAllRead) {
+      return (
+        <QuizCompletionScreen
+          sessionSummary={sessionSummary}
+          scoreSummary={scoreSummary}
+          restartCategory={restartCategory}
+        />
+      );
+    }
+    return (
+      <>
+        <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
+          {displayContent.type === 'phrase' && renderPhrase(displayContent.content)}
+          {displayContent.type === 'result' && <ResultCard result={displayContent.content} division={division} />}
+          {displayContent.type === 'initial' && renderInitial()}
+        </div>
+
+        {displayContent.type === 'phrase' && division !== "kids" && players.length > 0 && (
+          <div className="mb-4">
+            <div className="text-muted small mb-2">取った人:</div>
+            <div className="d-flex flex-wrap gap-2 justify-content-center">
+              {players.map(name => (
+                <button
+                  key={name}
+                  onClick={() => recordTaken(name)}
+                  className={`btn btn-sm rounded-pill px-3 ${currentRoundTakenBy === name ? 'btn-dark' : 'btn-outline-dark'}`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
+          <button onClick={playKaruta} disabled={loading || isReadingLastPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
+            {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
+            {loading ? "読み込み中..." : "次の札"}
+          </button>
+          <button onClick={repeatPhrase} disabled={isReading || !currentPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-dark bg-white text-dark shadow-sm">もう一度</button>
+          <button onClick={stopReading} disabled={!isReading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-danger bg-white text-danger shadow-sm">停止</button>
+        </div>
+      </>
+    );
+  };
 
   return (
     <div className="container py-4 mx-auto">
@@ -857,47 +942,7 @@ function App() {
       </header>
 
       <main className="text-center">
-        {isAllRead ? (
-          <QuizCompletionScreen
-            sessionSummary={sessionSummary}
-            scoreSummary={scoreSummary}
-            restartCategory={restartCategory}
-          />
-        ) : (
-          <>
-            <div className={`yomifuda-container mb-4 ${isFadingOut ? 'fade-out' : 'fade-in'}`}>
-              {displayContent.type === 'phrase' && renderPhrase(displayContent.content)}
-              {displayContent.type === 'result' && <ResultCard result={displayContent.content} division={division} />}
-              {displayContent.type === 'initial' && renderInitial()}
-            </div>
-
-            {displayContent.type === 'phrase' && division !== "kids" && players.length > 0 && (
-              <div className="mb-4">
-                <div className="text-muted small mb-2">取った人:</div>
-                <div className="d-flex flex-wrap gap-2 justify-content-center">
-                  {players.map(name => (
-                    <button
-                      key={name}
-                      onClick={() => recordTaken(name)}
-                      className={`btn btn-sm rounded-pill px-3 ${currentRoundTakenBy === name ? 'btn-dark' : 'btn-outline-dark'}`}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-              <button onClick={playKaruta} disabled={loading || isReadingLastPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow btn-karuta">
-                {loading && <span className="spinner-border spinner-border-sm me-2"></span>}
-                {loading ? "読み込み中..." : "次の札"}
-              </button>
-              <button onClick={repeatPhrase} disabled={isReading || !currentPhrase} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-dark bg-white text-dark shadow-sm">もう一度</button>
-              <button onClick={stopReading} disabled={!isReading} className="btn btn-lg px-4 py-3 fw-bold rounded-pill border-3 border-danger bg-white text-danger shadow-sm">停止</button>
-            </div>
-          </>
-        )}
+        {renderGameMain()}
       </main>
 
       {currentHistory.length > 0 && (

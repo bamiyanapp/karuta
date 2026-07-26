@@ -14,6 +14,13 @@ function CategorySelectView({
   handlePrintEfudaClick,
   setView,
 }) {
+  let categoryListContent = null;
+  if (categories.length === 0) {
+    categoryListContent = <div className="text-success fw-bold p-3">読み込み中...</div>;
+  } else if (categoriesForDivision.length === 0) {
+    categoryListContent = <div className="text-muted p-3">このかるたはまだありません。</div>;
+  }
+
   return (
     <div className="container py-5 mx-auto">
       <HeroHeader />
@@ -26,29 +33,23 @@ function CategorySelectView({
           かるたの種類を選んでね{division === "engineer" ? "（複数選択可）" : ""}
         </h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
-          {categories.length === 0 ? (
-            <div className="text-success fw-bold p-3">読み込み中...</div>
-          ) : categoriesForDivision.length === 0 ? (
-            <div className="text-muted p-3">このかるたはまだありません。</div>
-          ) : (
-            categoriesForDivision.map(cat => {
-              const isSelected = draftCategories.includes(cat.name);
-              // 選択済みの解除は常に可能。未選択のものだけ、追加すると上限を超える場合に無効化する
-              const wouldExceedCap = !isSelected && draftCardCount + (cat.count || 0) > maxEfudaPrintCards;
-              return (
-                <button
-                  key={cat.name}
-                  onClick={() => toggleDraftCategory(cat.name)}
-                  disabled={wouldExceedCap}
-                  title={wouldExceedCap ? `印刷できる上限（${maxEfudaPrintCards}枚）を超えるため選択できません` : undefined}
-                  className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${isSelected ? 'selected' : ''}`}
-                  aria-pressed={isSelected}
-                >
-                  {isSelected ? '✓ ' : ''}{cat.name}
-                </button>
-              );
-            })
-          )}
+          {categoryListContent ?? categoriesForDivision.map(cat => {
+            const isSelected = draftCategories.includes(cat.name);
+            // 選択済みの解除は常に可能。未選択のものだけ、追加すると上限を超える場合に無効化する
+            const wouldExceedCap = !isSelected && draftCardCount + (cat.count || 0) > maxEfudaPrintCards;
+            return (
+              <button
+                key={cat.name}
+                onClick={() => toggleDraftCategory(cat.name)}
+                disabled={wouldExceedCap}
+                title={wouldExceedCap ? `印刷できる上限（${maxEfudaPrintCards}枚）を超えるため選択できません` : undefined}
+                className={`btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm notranslate btn-karuta ${isSelected ? 'selected' : ''}`}
+                aria-pressed={isSelected}
+              >
+                {isSelected ? '✓ ' : ''}{cat.name}
+              </button>
+            );
+          })}
         </div>
         {division === "engineer" && categoriesForDivision.length > 0 && (
           <div className="text-center mt-4">

@@ -1,5 +1,11 @@
 import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
 
+function roomStatusBadgeClass(status) {
+  if (status === "進行中") return "text-bg-success";
+  if (status === "終了") return "text-bg-dark";
+  return "text-bg-secondary";
+}
+
 function DivisionSelectView({
   openQuizRooms,
   joinQuizRoom,
@@ -40,12 +46,7 @@ function DivisionSelectView({
               >
                 <span className="fw-bold notranslate">{room.roomId}</span>
                 <span className="d-flex align-items-center gap-2">
-                  <span className={`badge rounded-pill ${
-                    room.status === "進行中" ? "text-bg-success"
-                      : room.status === "終了" ? "text-bg-dark"
-                        : "text-bg-secondary"
-                  }`}
-                  >
+                  <span className={`badge rounded-pill ${roomStatusBadgeClass(room.status)}`}>
                     {room.status}
                   </span>
                   {room.category && <span className="text-muted small notranslate">{room.category}</span>}

@@ -18,6 +18,44 @@ const ERROR_RETRY_INTERVAL_MS = 15000;
 const SYNC_POLL_BASE_INTERVAL_MS = 45000;
 const SYNC_POLL_JITTER_MS = 15000;
 
+// issue #619: 固定間隔のsetIntervalではなく、送信のたびにジッターを加えて
+// 次回をスケジュールし直すsetTimeoutチェーンにする。あわせて、タブが
+// 非表示（document.hidden）の間は送信自体をスキップしてコストを抑える
+// （フォアグラウンド復帰時はvisibilitychangeハンドラが即座に1回同期する）
+function scheduleNextSyncPoll(ws, pollTimerRef) {
+  // eslint-disable-next-line sonarjs/pseudo-random -- ポーリング間隔のジッター用途で暗号学的な強度は不要
+  const delay = SYNC_POLL_BASE_INTERVAL_MS + Math.random() * SYNC_POLL_JITTER_MS;
+  pollTimerRef.current = setTimeout(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        ws.send(JSON.stringify({ action: "sync" }));
+      }
+      scheduleNextSyncPoll(ws, pollTimerRef);
+    }
+  }, delay);
+}
+
+// WebSocketで届いたメッセージのtypeごとに対応するコールバックへ振り分ける。
+// useQuizRoomSync本体（ws.onmessage）の複雑度を抑えるため、if/elseの連鎖ではなく
+// typeをキーとしたディスパッチテーブルにしている
+const QUIZ_ROOM_MESSAGE_HANDLERS = {
+  state: (data, refs) => refs.onStateRef.current?.(data.state, data.role),
+  buzz: (data, refs) => refs.onBuzzRef.current?.({ name: data.name, connectionId: data.connectionId }),
+  // 回答数集計（issue #698）: answerCountsは名前→{attempts, correct}のマップ
+  points: (data, refs) => refs.onPointsRef.current?.(data.points, data.answerCounts),
+  nameError: (data, refs) => refs.onNameErrorRef.current?.(data.message),
+  // 回答数集計（issue #698）: 不正解判定でもattemptsが増えるため、roundResetブロード
+  // キャストにも更新後のanswerCountsを含めて配信する
+  roundReset: (data, refs) => refs.onRoundResetRef.current?.({ excludedName: data.excludedName, answerCounts: data.answerCounts }),
+  participants: (data, refs) => refs.onParticipantsRef.current?.(data.names),
+  roomClosed: (_data, refs) => refs.onRoomClosedRef.current?.(),
+};
+
+function dispatchQuizRoomMessage(data, refs) {
+  const handler = QUIZ_ROOM_MESSAGE_HANDLERS[data?.type];
+  handler?.(data, refs);
+}
+
 // connectionStatusの値ごとの表示ラベル。参加者画面（QuizRoomView.jsx）・
 // 管理者画面（App.jsx、issue #614で追加）の両方で同じ表記を使うため共有する
 export const CONNECTION_STATUS_LABEL = {
@@ -129,45 +167,21 @@ export function useQuizRoomSync({ wsBaseUrl, roomId, adminToken, onState, onBuzz
         if (pendingNameRef.current !== null) {
           ws.send(JSON.stringify({ action: "setName", name: pendingNameRef.current }));
         }
-        // issue #619: 固定間隔のsetIntervalではなく、送信のたびにジッターを加えて
-        // 次回をスケジュールし直すsetTimeoutチェーンにする。あわせて、タブが
-        // 非表示（document.hidden）の間は送信自体をスキップしてコストを抑える
-        // （フォアグラウンド復帰時は下記のvisibilitychangeハンドラが即座に1回同期する）
-        const scheduleNextSyncPoll = () => {
-          const delay = SYNC_POLL_BASE_INTERVAL_MS + Math.random() * SYNC_POLL_JITTER_MS;
-          pollTimerRef.current = setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-              if (typeof document === "undefined" || document.visibilityState === "visible") {
-                ws.send(JSON.stringify({ action: "sync" }));
-              }
-              scheduleNextSyncPoll();
-            }
-          }, delay);
-        };
-        scheduleNextSyncPoll();
+        scheduleNextSyncPoll(ws, pollTimerRef);
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data?.type === "state") {
-            onStateRef.current?.(data.state, data.role);
-          } else if (data?.type === "buzz") {
-            onBuzzRef.current?.({ name: data.name, connectionId: data.connectionId });
-          } else if (data?.type === "points") {
-            // 回答数集計（issue #698）: answerCountsは名前→{attempts, correct}のマップ
-            onPointsRef.current?.(data.points, data.answerCounts);
-          } else if (data?.type === "nameError") {
-            onNameErrorRef.current?.(data.message);
-          } else if (data?.type === "roundReset") {
-            // 回答数集計（issue #698）: 不正解判定でもattemptsが増えるため、
-            // roundResetブロードキャストにも更新後のanswerCountsを含めて配信する
-            onRoundResetRef.current?.({ excludedName: data.excludedName, answerCounts: data.answerCounts });
-          } else if (data?.type === "participants") {
-            onParticipantsRef.current?.(data.names);
-          } else if (data?.type === "roomClosed") {
-            onRoomClosedRef.current?.();
-          }
+          dispatchQuizRoomMessage(data, {
+            onStateRef,
+            onBuzzRef,
+            onPointsRef,
+            onNameErrorRef,
+            onRoundResetRef,
+            onParticipantsRef,
+            onRoomClosedRef,
+          });
         } catch (error) {
           console.error("Failed to parse quiz room message:", error);
         }

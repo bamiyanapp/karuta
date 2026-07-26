@@ -44,7 +44,7 @@ describe('backfillTotalStats', () => {
 
     expect(updatedCount).toBe(2);
     const scanCalls = ddbMock.commandCalls(ScanCommand);
-    expect(scanCalls.length).toBe(2);
+    expect(scanCalls).toHaveLength(2);
     expect(scanCalls[1].args[0].input.ExclusiveStartKey).toEqual({ category: 'c1', id: 'p1' });
     const updatedIds = ddbMock.commandCalls(UpdateCommand).map(call => call.args[0].input.Key.id);
     expect(updatedIds).toEqual(['p1', 'p2']);
@@ -84,6 +84,6 @@ describe('backfillTotalStats', () => {
     const updatedCount = await backfillTotalStats();
 
     expect(updatedCount).toBe(0);
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
   });
 });

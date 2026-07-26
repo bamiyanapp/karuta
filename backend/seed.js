@@ -18,6 +18,105 @@ const CATEGORY_RENAMES = {
   "大ピンチ法則かるた": ["法則と効果かるた"],
 };
 
+function trimOrDefault(value, defaultValue) {
+  return value ? value.trim() : defaultValue;
+}
+
+// 既存アイテムが無い（=新規レコード）場合は各統計を0で初期化する
+function extractStats(existingItem) {
+  if (!existingItem) {
+    return { readCount: 0, averageTime: 0, averageDifficulty: 0, totalTime: 0, totalDifficulty: 0 };
+  }
+  return {
+    readCount: existingItem.readCount,
+    averageTime: existingItem.averageTime,
+    averageDifficulty: existingItem.averageDifficulty || 0,
+    totalTime: existingItem.totalTime || 0,
+    totalDifficulty: existingItem.totalDifficulty || 0,
+  };
+}
+
+// CSVのlevel列を、数字文字列なら数値に、それ以外（初級/上級/"-"等）はそのまま文字列で扱う
+function parseLevel(levelRaw) {
+  if (levelRaw !== "-" && !isNaN(parseInt(levelRaw, 10)) && /^\d+$/.test(levelRaw)) {
+    return parseInt(levelRaw, 10);
+  }
+  return levelRaw;
+}
+
+// カテゴリ名が変更されていても、CATEGORY_RENAMESを辿って過去の統計（readCount等）を引き継ぐ
+function findExistingItem(existingItemsMap, category, id) {
+  const direct = existingItemsMap.get(`${category}-${id}`);
+  if (direct) return direct;
+  return (CATEGORY_RENAMES[category] || [])
+    .map((oldCategory) => existingItemsMap.get(`${oldCategory}-${id}`))
+    .find((item) => item !== undefined);
+}
+
+// CSVの1レコードと既存データ（統計の引き継ぎ元）から、新しいアイテムを組み立てる。
+// seed本体の複雑度を抑えるため分離している
+function buildMergedItem(record, existingItemsMap) {
+  const category = trimOrDefault(record.category, "大ピンチずかん");
+  const id = record.id;
+  const level = parseLevel(trimOrDefault(record.level, "-"));
+  const existingItem = findExistingItem(existingItemsMap, category, id);
+  const group = trimOrDefault(record.group, "") === "engineer" ? "engineer" : "kids";
+
+  return {
+    key: `${category}-${id}`,
+    item: {
+      id,
+      category,
+      group,
+      level,
+      kana: trimOrDefault(record.kana, "-"),
+      phrase: trimOrDefault(record.phrase, ""),
+      phrase_en: trimOrDefault(record.phrase_en, ""),
+      answer: trimOrDefault(record.answer, "-"),
+      explanation: trimOrDefault(record.explanation, "-"),
+      ...extractStats(existingItem),
+    },
+  };
+}
+
+// CSVデータと既存のDynamoDBデータをマージして新しいアイテムマップを作成する
+function buildNewItemsMap(records, existingItemsMap) {
+  const newItemsMap = new Map(); // key: `${category}-${id}`
+  for (const record of records) {
+    const { key, item } = buildMergedItem(record, existingItemsMap);
+    newItemsMap.set(key, item);
+  }
+  return newItemsMap;
+}
+
+// 新しいCSVに存在しなくなったレコードを削除する
+async function deleteObsoleteItems(existingItemsMap, newItemsMap) {
+  let deleteCount = 0;
+  for (const existingItem of existingItemsMap.values()) {
+    if (!newItemsMap.has(`${existingItem.category}-${existingItem.id}`)) {
+      await docClient.send(new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: { category: existingItem.category, id: existingItem.id },
+      }));
+      deleteCount++;
+    }
+  }
+  if (deleteCount > 0) console.log(`Deleted ${deleteCount} obsolete records.`);
+}
+
+// 新しいデータを投入・更新する（Upsert方式）
+async function upsertItems(newItemsMap) {
+  let upsertCount = 0;
+  for (const item of newItemsMap.values()) {
+    await docClient.send(new PutCommand({
+      TableName: TABLE_NAME,
+      Item: item,
+    }));
+    upsertCount++;
+  }
+  console.log(`Upserted ${upsertCount} records.`);
+}
+
 async function seed() {
   try {
     // 1. CSVファイルを読み込んでパース
@@ -28,9 +127,6 @@ async function seed() {
     });
     console.log(`Read ${records.length} records from CSV.`);
 
-    // 2. CSVデータと既存のDynamoDBデータをマージして新しいアイテムマップを作成
-    const newItemsMap = new Map(); // key: `${category}-${id}`
-
     // 既存の全アイテムを一度取得 (readCountとaverageTimeを保持するため)
     console.log("Fetching existing data from DynamoDB...");
     const existingItemsScan = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
@@ -40,66 +136,14 @@ async function seed() {
     });
     console.log(`Found ${existingItemsMap.size} existing items in DB.`);
 
-    for (const record of records) {
-      const category = record.category ? record.category.trim() : "大ピンチずかん";
-      const id = record.id;
-      
-      const levelRaw = record.level ? record.level.trim() : "-";
-      let level;
-      if (levelRaw !== "-" && !isNaN(parseInt(levelRaw, 10)) && /^\d+$/.test(levelRaw)) {
-        level = parseInt(levelRaw, 10);
-      } else {
-        level = levelRaw;
-      }
-
-      const existingItem = existingItemsMap.get(`${category}-${id}`)
-        ?? (CATEGORY_RENAMES[category] || [])
-          .map((oldCategory) => existingItemsMap.get(`${oldCategory}-${id}`))
-          .find((item) => item !== undefined);
-      const groupRaw = record.group ? record.group.trim() : "";
-      const group = groupRaw === "engineer" ? "engineer" : "kids";
-
-      newItemsMap.set(`${category}-${id}`, {
-        id,
-        category,
-        group,
-        level,
-        kana: record.kana ? record.kana.trim() : "-",
-        phrase: record.phrase ? record.phrase.trim() : "",
-        phrase_en: record.phrase_en ? record.phrase_en.trim() : "",
-        answer: record.answer ? record.answer.trim() : "-",
-        explanation: record.explanation ? record.explanation.trim() : "-",
-        readCount: existingItem ? existingItem.readCount : 0,
-        averageTime: existingItem ? existingItem.averageTime : 0,
-        averageDifficulty: existingItem ? (existingItem.averageDifficulty || 0) : 0,
-        totalTime: existingItem ? (existingItem.totalTime || 0) : 0,
-        totalDifficulty: existingItem ? (existingItem.totalDifficulty || 0) : 0
-      });
-    }
+    // 2. CSVデータと既存のDynamoDBデータをマージして新しいアイテムマップを作成
+    const newItemsMap = buildNewItemsMap(records, existingItemsMap);
 
     // 3. 不要なデータを削除
-    let deleteCount = 0;
-    for (const existingItem of existingItemsMap.values()) {
-      if (!newItemsMap.has(`${existingItem.category}-${existingItem.id}`)) {
-        await docClient.send(new DeleteCommand({
-          TableName: TABLE_NAME,
-          Key: { category: existingItem.category, id: existingItem.id },
-        }));
-        deleteCount++;
-      }
-    }
-    if (deleteCount > 0) console.log(`Deleted ${deleteCount} obsolete records.`);
+    await deleteObsoleteItems(existingItemsMap, newItemsMap);
 
     // 4. 新しいデータを投入・更新（Upsert方式）
-    let upsertCount = 0;
-    for (const item of newItemsMap.values()) {
-      await docClient.send(new PutCommand({
-        TableName: TABLE_NAME,
-        Item: item,
-      }));
-      upsertCount++;
-    }
-    console.log(`Upserted ${upsertCount} records.`);
+    await upsertItems(newItemsMap);
 
     console.log("Seeding completed successfully (Incremental Sync with statistics).");
   } catch (error) {

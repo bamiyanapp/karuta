@@ -19,7 +19,7 @@ describe('resetStats', () => {
     await resetStats('c1', 'p1');
 
     const calls = ddbMock.commandCalls(UpdateCommand);
-    expect(calls.length).toBe(1);
+    expect(calls).toHaveLength(1);
     const input = calls[0].args[0].input;
     expect(input.Key).toEqual({ category: 'c1', id: 'p1' });
     expect(input.ExpressionAttributeValues[':zero']).toBe(0);
@@ -32,7 +32,7 @@ describe('resetStats', () => {
   it('does not call DynamoDB and sets a non-zero exit code when category or id is missing', async () => {
     await resetStats(undefined, 'p1');
 
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
     expect(process.exitCode).toBe(1);
   });
 

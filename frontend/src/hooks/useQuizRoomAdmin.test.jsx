@@ -38,6 +38,45 @@ window.Audio = vi.fn().mockImplementation(function (url) {
 
 window.scrollTo = vi.fn();
 
+// 各テストで使うMockWebSocket（sent配列に送信内容を記録する標準版）を新規に組み立て、
+// window.WebSocketへ差し込む。テストごとにinstancesを空にした新しいクラスが必要なため
+// （前のテストの接続が残っていると数え上げがずれる）、呼び出しのたびに新規定義する
+function installMockWebSocket() {
+  class MockWebSocket {
+    constructor(url) {
+      this.url = url;
+      this.readyState = 0;
+      this.sent = [];
+      MockWebSocket.instances.push(this);
+    }
+    send(data) {
+      this.sent.push(data);
+    }
+    close() {}
+  }
+  MockWebSocket.OPEN = 1;
+  MockWebSocket.instances = [];
+  window.WebSocket = MockWebSocket;
+  return MockWebSocket;
+}
+
+// send()した内容を記録しない最小版（送信内容の検証が不要なテスト用）
+function installMinimalMockWebSocket() {
+  class MockWebSocket {
+    constructor(url) {
+      this.url = url;
+      this.readyState = 0;
+      MockWebSocket.instances.push(this);
+    }
+    send() {}
+    close() {}
+  }
+  MockWebSocket.OPEN = 1;
+  MockWebSocket.instances = [];
+  window.WebSocket = MockWebSocket;
+  return MockWebSocket;
+}
+
 // 注意（issue #712）: 各テスト内のMockWebSocketはsend()した内容を記録するのみで、
 // サーバー応答（judgeQuizRoomBuzzによる`points`/`roundReset`ブロードキャスト等）は
 // 自動生成されない。判定操作（正解/不正解ボタン押下）後の状態反映を検証する場合は、
@@ -76,21 +115,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   });
 
   it('places the player-registration button next to the quiz-room button, and hides it once a quiz room has been created (issue #549)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -157,21 +182,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     localStorage.setItem('lang', 'ja');
     localStorage.setItem('voiceId', 'Mizuki');
 
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -320,21 +331,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 20000);
 
   it('shows the responder\'s name to the admin when a participant buzzes in, and resets it once the next card is shown (issue #510)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -379,21 +376,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows a judgment modal with 正解/不正解 buttons when a participant buzzes in, and sends the judgment over the WebSocket while closing the modal (issue #546)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -441,21 +424,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows the buzz judgment modal even while the admin is on the room info screen (issue #613)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -510,21 +479,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows the current phrase\'s answer in the judgment modal, so the admin can tell whether the response was correct (issue #586)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -572,21 +527,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('reveals the result screen (and stops the elapsed-time measurement) as soon as a buzz is judged correct, instead of waiting for the admin to click 次の札, and broadcasts the winner\'s name (issue #600)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -647,21 +588,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('stops the admin\'s own reading progression when a participant buzzes in, without discarding the elapsed-time measurement needed for the next 次の札 press (issue #788)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -724,21 +651,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('broadcasts isAllRead:true once the selected category\'s last phrase has been read, so the top-page room list can show a "終了" status (issue #501)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -796,21 +709,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows the winner\'s name in the "これまでに読み上げた札" history once a buzz is judged correct (issue #695)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -862,21 +761,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('reflects both attempts (回答数) and correct (正答数) counts in the room-info participant table after an incorrect judgment followed by a different participant\'s correct judgment (issue #698)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -951,21 +836,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('does not clear the responder shown to the admin when the same card is re-broadcast (e.g. a settings change re-sends the same phrase), only when the round actually changes (issue #510)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1014,21 +885,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows each participant\'s points to the admin as a "points" message arrives, sorted from highest to lowest (issue #519)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1074,21 +931,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows participants who have not scored yet as 0pt in the same list once a "participants" message arrives (issue #545)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1139,21 +982,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     localStorage.setItem('lang', 'ja');
     localStorage.setItem('voiceId', 'Mizuki');
 
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1200,18 +1029,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('shows the list of open quiz rooms on the top page and lets a participant join directly from it (issue #489)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        MockWebSocket.instances.push(this);
-      }
-      send() {}
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMinimalMockWebSocket();
 
     fetch.mockImplementation(async (url) => {
       if (url.includes('/quiz-rooms')) {
@@ -1353,18 +1171,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   });
 
   it('re-fetches the open quiz room list every time the top page is shown again, not just on first mount (issue #531)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        MockWebSocket.instances.push(this);
-      }
-      send() {}
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    installMinimalMockWebSocket();
 
     let quizRoomsCallCount = 0;
     fetch.mockImplementation(async (url) => {
@@ -1482,21 +1289,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   });
 
   it('persists the admin token on room creation, then lets a fresh session (e.g. after closing the tab) restore admin mode from the participant screen using the saved token (issue #697)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1557,21 +1350,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('offers to resume the saved admin session from the reading screen itself, instead of only via the participant URL (issue #744)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1630,21 +1409,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('discards the saved admin token and falls back to the participant screen with an error when the saved token fails to connect (issue #697)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     // 事前に（失効済み・無効化された）管理者トークンが保存されている状況を模す
     localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'XYZ999', adminToken: 'stale-token' }));
@@ -1687,21 +1452,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('closes the room from the room-info screen, clears the saved admin session, and returns to the reading screen (issue #748)', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {
@@ -1753,21 +1504,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   }, 40000);
 
   it('does not close the room when the confirmation dialog is dismissed', async () => {
-    class MockWebSocket {
-      constructor(url) {
-        this.url = url;
-        this.readyState = 0;
-        this.sent = [];
-        MockWebSocket.instances.push(this);
-      }
-      send(data) {
-        this.sent.push(data);
-      }
-      close() {}
-    }
-    MockWebSocket.OPEN = 1;
-    MockWebSocket.instances = [];
-    window.WebSocket = MockWebSocket;
+    const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
       if (url.includes('/quiz-room') && options?.method === 'POST') {

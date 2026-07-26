@@ -32,7 +32,7 @@ vi.mock('puppeteer-core', () => ({
 vi.mock('@sparticuz/chromium', () => ({
   default: {
     args: ['--chromium-arg'],
-    executablePath: vi.fn().mockResolvedValue('/tmp/chromium'),
+    executablePath: vi.fn().mockResolvedValue('/opt/mock-chromium/chromium'),
   },
 }));
 

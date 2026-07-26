@@ -9,6 +9,10 @@ import { buildConfettiPieces } from "../utils/confetti";
 function QuizCompletionScreen({ sessionSummary, scoreSummary, restartCategory }) {
   const confettiPieces = useMemo(() => buildConfettiPieces(), []);
 
+  let winnerHeading = "取った札の記録はありません";
+  if (scoreSummary?.winners.length === 1) winnerHeading = `🏆 優勝: ${scoreSummary.winners[0]}`;
+  else if (scoreSummary?.winners.length > 1) winnerHeading = `🏆 優勝: ${scoreSummary.winners.join('・')}（同点）`;
+
   return (
     <>
       <Confetti pieces={confettiPieces} />
@@ -41,13 +45,7 @@ function QuizCompletionScreen({ sessionSummary, scoreSummary, restartCategory })
         )}
         {scoreSummary && (
           <div className="mb-4 text-dark">
-            <h3 className="h5 fw-bold mb-3">
-              {scoreSummary.winners.length === 1
-                ? `🏆 優勝: ${scoreSummary.winners[0]}`
-                : scoreSummary.winners.length > 1
-                ? `🏆 優勝: ${scoreSummary.winners.join('・')}（同点）`
-                : "取った札の記録はありません"}
-            </h3>
+            <h3 className="h5 fw-bold mb-3">{winnerHeading}</h3>
             <div className="d-flex flex-wrap gap-2 justify-content-center">
               {scoreSummary.entries.map(e => (
                 <div key={e.name} className="bg-white rounded-3 shadow-sm px-3 py-2">
