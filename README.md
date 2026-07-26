@@ -71,7 +71,7 @@ graph TD
 
 </details>
 
-![System Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-1.svg)
+![System Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-1.png)
 
 ### Screen Transitions
 
@@ -128,7 +128,7 @@ graph TD
 
 </details>
 
-![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-2.svg)
+![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-2.png)
 
 ### Backend API (AWS Lambda)
 
