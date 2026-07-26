@@ -1,3 +1,10 @@
+## [1.58.3](https://github.com/bamiyanapp/karuta/compare/v1.58.2...v1.58.3) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** mermaid埋め込み画像をPNGへ切り替える（issue [#837](https://github.com/bamiyanapp/karuta/issues/837)） ([#845](https://github.com/bamiyanapp/karuta/issues/845)) ([68f408f](https://github.com/bamiyanapp/karuta/commit/68f408fb2365297414874435c1f2af39418313a5)), closes [dev-standards#122](https://github.com/dev-standards/issues/122)
+
 ## [1.58.2](https://github.com/bamiyanapp/karuta/compare/v1.58.1...v1.58.2) (2026-07-26)
 
 

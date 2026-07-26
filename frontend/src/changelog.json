@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.58.2",
+    "version": "1.58.3",
     "date": "2026/07/26",
+    "body": "### Bug Fixes\n\n* **ci:** mermaid埋め込み画像をPNGへ切り替える（issue [#837](https://github.com/bamiyanapp/karuta/issues/837)） ([#845](https://github.com/bamiyanapp/karuta/issues/845)) ([68f408f](https://github.com/bamiyanapp/karuta/commit/68f408fb2365297414874435c1f2af39418313a5)), closes [dev-standards#122](https://github.com/dev-standards/issues/122)"
+  },
+  {
+    "version": "1.58.2",
+    "date": "2026/07/26 01:08",
     "body": "### Bug Fixes\n\n* **deps:** npm auditで検出された安全に修正可能な脆弱性を解消する（issue [#831](https://github.com/bamiyanapp/karuta/issues/831)） ([#841](https://github.com/bamiyanapp/karuta/issues/841)) ([b812849](https://github.com/bamiyanapp/karuta/commit/b812849225c762331eb53905c4ab9c4a06d2500c))"
   },
   {
