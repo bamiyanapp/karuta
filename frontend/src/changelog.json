@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.58.6",
+    "version": "1.59.0",
     "date": "2026/07/26",
+    "body": "### Features\n\n* **eslint:** jsx-a11y・import・n系ルールを追加し実指摘を解消する ([#868](https://github.com/bamiyanapp/karuta/issues/868)) ([805ebcf](https://github.com/bamiyanapp/karuta/commit/805ebcfaffb1c98bc000012d4f287993c99ef2cf)), closes [#857](https://github.com/bamiyanapp/karuta/issues/857) [#858](https://github.com/bamiyanapp/karuta/issues/858)"
+  },
+  {
+    "version": "1.58.6",
+    "date": "2026/07/26 10:17",
     "body": "### Bug Fixes\n\n* **eslint:** sonarjs/complexityルールのseverityをwarnからerrorへ揃える ([#866](https://github.com/bamiyanapp/karuta/issues/866)) ([0375adb](https://github.com/bamiyanapp/karuta/commit/0375adbaf6da0fc487bd27bad0bfd5f7592e8c01))"
   },
   {

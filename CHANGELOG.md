@@ -1,3 +1,10 @@
+# [1.59.0](https://github.com/bamiyanapp/karuta/compare/v1.58.6...v1.59.0) (2026-07-26)
+
+
+### Features
+
+* **eslint:** jsx-a11y・import・n系ルールを追加し実指摘を解消する ([#868](https://github.com/bamiyanapp/karuta/issues/868)) ([805ebcf](https://github.com/bamiyanapp/karuta/commit/805ebcfaffb1c98bc000012d4f287993c99ef2cf)), closes [#857](https://github.com/bamiyanapp/karuta/issues/857) [#858](https://github.com/bamiyanapp/karuta/issues/858)
+
 ## [1.58.6](https://github.com/bamiyanapp/karuta/compare/v1.58.5...v1.58.6) (2026-07-26)
 
 
