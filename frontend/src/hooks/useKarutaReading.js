@@ -46,6 +46,7 @@ export function useKarutaReading({
   lang,
   voiceId,
   isMultiCategorySelection,
+  quizRoomActiveRef,
 }) {
   const [currentPhrase, setCurrentPhrase] = useState(null);
   // クイズ大会モード（issue #781）: 参加者への「次の札」ブロードキャストを、管理者自身の
@@ -206,6 +207,22 @@ export function useKarutaReading({
           nextContentRef.current = { type: "phrase", content: phraseData, playbackSettings };
           setIsFadingOut(true);
         }, 3000); // 待機時間
+
+        // クイズ大会モード（issue #861）: 参加者側はWebSocketブロードキャストの受信・
+        // 画面反映（ネットワーク往復＋バックエンドのpostToConnection処理）に一定の
+        // 時間がかかるため、上のsetBroadcastPhraseの直後に管理者自身の本編読み上げを
+        // 開始すると、参加者側の札めくりが管理者の読み上げより体感で遅れて見える。
+        // ブロードキャスト自体を早める恒久対応は経過時間計測（startTimeRef.current、
+        // 上のコメント参照）と絡み合い難しいため、暫定対応として管理者自身の読み上げ
+        // 開始だけを3秒遅らせ、参加者側が追いつく猶予を設ける
+        if (quizRoomActiveRef?.current) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          if (stopRequestedRef.current) {
+            stopRequestedRef.current = false;
+            setIsReading(false);
+            return;
+          }
+        }
       }
 
       await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
@@ -237,7 +254,7 @@ export function useKarutaReading({
     return () => {
       if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
-  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, setHistoryByCategory]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, setHistoryByCategory, quizRoomActiveRef]);
 
   // 現在の札を読み上げている間に、次に読み上げる予定の札の音声を先読みしておく
   useEffect(() => {

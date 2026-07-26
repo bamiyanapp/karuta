@@ -213,6 +213,11 @@ function App() {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
   }, [categoryKey, historyByCategory]);
 
+  // クイズ大会モードかどうかを、useKarutaReading（useQuizRoomAdminより前に呼ぶ
+  // 必要があり、quizRoomをまだ参照できない）へrefで伝える（issue #861）。
+  // useQuizRoomAdmin呼び出し後にこのrefへ書き込む
+  const quizRoomActiveRef = useRef(false);
+
   // 読み上げ・札めくり進行（音声再生・タイマー・フェード演出・結果確定）は
   // useKarutaReadingへ切り出した（issue #607）
   const {
@@ -241,6 +246,7 @@ function App() {
     lang,
     voiceId,
     isMultiCategorySelection,
+    quizRoomActiveRef,
   });
 
   // 「取った人を記録する」参加者登録・スコア集計（issue #518）はusePlayerScoresへ
@@ -582,6 +588,13 @@ function App() {
     revealCurrentResult,
     stopReading,
   });
+
+  // useKarutaReading（quizRoomActiveRef、issue #861）へ最新のクイズ大会モード状態を
+  // 伝える。useKarutaReadingはuseQuizRoomAdminより前に呼ぶ必要があり（useQuizRoomAdmin
+  // はuseKarutaReadingの戻り値に依存するため）quizRoomを直接propsとして渡せない
+  useEffect(() => {
+    quizRoomActiveRef.current = !!quizRoom;
+  }, [quizRoom]);
 
   useEffect(() => {
     if (view === "comments") {
