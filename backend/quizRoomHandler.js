@@ -113,7 +113,10 @@ exports.listQuizRooms = async (event) => {
         // 結果表示（result）の間はcontentに含まれず一時的にnullへ戻ることがあるため、
         // ステータスの判定にはtype自体を使い、categoryの有無には依存させない
         const isAllRead = content?.isAllRead === true;
-        const status = isAllRead ? "終了" : (type === "phrase" || type === "result") ? "進行中" : "開始前";
+        const isInProgress = type === "phrase" || type === "result";
+        let status = "開始前";
+        if (isAllRead) status = "終了";
+        else if (isInProgress) status = "進行中";
         return {
           roomId: item.roomId,
           createdAt: item.createdAt,
@@ -296,13 +299,42 @@ exports.syncQuizRoom = withCatchAll(async (event) => {
   return { statusCode: 200, body: "" };
 });
 
+// updateQuizRoomState用: 状態データが妥当か（未指定・非オブジェクト・配列・肥大化のいずれでもないか）
+function isValidRoomState(newState, stateJson) {
+  if (!newState || typeof newState !== "object" || Array.isArray(newState)) {
+    return false;
+  }
+  return stateJson.length <= MAX_STATE_JSON_LENGTH;
+}
+
+// updateQuizRoomState用: 読み上げ設定の変更等で、ラウンドが進んだわけではなく
+// 同じ札のphraseが再ブロードキャストされることがある（App.jsxのbroadcast
+// effect参照）。このケースを新しいラウンドの開始と誤認すると、まだ判定が
+// 済んでいない早押し記録を消してしまうため、直前の状態と札のidを比較して区別する
+function isSamePhraseRebroadcast(existingState, newState) {
+  return newState.type === "phrase"
+    && existingState?.type === "phrase"
+    && existingState?.content?.id === newState.content?.id;
+}
+
+// updateQuizRoomState用: 早押し正誤判定（issue #546）: ポイント付与は管理者の
+// 正誤判定（judgeQuizRoomBuzz）でのみ行う。「次の札」へ進んだ時点でまだ判定
+// されていない早押しがあっても加点しない（未判定は無効試行として扱う）。
+// 新しい札（次の問題）や、ゲームのリセット等で"initial"に戻った場合は、
+// 前のラウンドの早押し・除外状態をリセットする。result表示中や、同じ札の
+// 再ブロードキャスト中は、まだそのラウンドの判定を確定させたくないため
+// リセットしない
+function shouldResetRoundOnStateUpdate(existingState, newState) {
+  return newState.type !== "result" && !isSamePhraseRebroadcast(existingState, newState);
+}
+
 // WebSocketカスタムルート"updateState"。管理者のみが状態を更新でき、
 // 更新後はルーム内の全接続（管理者自身を含む）へブロードキャストする
 exports.updateQuizRoomState = withRoleGuard("admin", async (event, connection) => {
   const body = JSON.parse(event.body || "{}");
   const newState = body.state;
   const stateJson = JSON.stringify(newState ?? null);
-  if (!newState || typeof newState !== "object" || Array.isArray(newState) || stateJson.length > MAX_STATE_JSON_LENGTH) {
+  if (!isValidRoomState(newState, stateJson)) {
     return { statusCode: 400, body: "Invalid state" };
   }
 
@@ -313,22 +345,7 @@ exports.updateQuizRoomState = withRoleGuard("admin", async (event, connection) =
     Key: { roomId },
   }));
 
-  // 読み上げ設定の変更等で、ラウンドが進んだわけではなく同じ札のphraseが
-  // 再ブロードキャストされることがある（App.jsxのbroadcast effect参照）。
-  // このケースを新しいラウンドの開始と誤認すると、まだ判定が済んでいない
-  // 早押し記録を消してしまうため、直前の状態と札のidを比較して区別する
-  const isSamePhraseRebroadcast = newState.type === "phrase"
-    && room.Item?.state?.type === "phrase"
-    && room.Item?.state?.content?.id === newState.content?.id;
-
-  // 早押し正誤判定（issue #546）: ポイント付与は管理者の正誤判定
-  // （judgeQuizRoomBuzz）でのみ行う。「次の札」へ進んだ時点でまだ判定されて
-  // いない早押しがあっても加点しない（未判定は無効試行として扱う）。
-  // 新しい札（次の問題）や、ゲームのリセット等で"initial"に戻った場合は、
-  // 前のラウンドの早押し・除外状態をリセットする。result表示中や、同じ札の
-  // 再ブロードキャスト中は、まだそのラウンドの判定を確定させたくないため
-  // リセットしない
-  const resetRound = newState.type !== "result" && !isSamePhraseRebroadcast;
+  const resetRound = shouldResetRoundOnStateUpdate(room.Item?.state, newState);
   const updateExpression = resetRound
     ? "SET #state = :state, #ttl = :ttl REMOVE buzz, excludedNames"
     : "SET #state = :state, #ttl = :ttl";
@@ -504,6 +521,50 @@ async function releaseQuizRoomName(roomId, name) {
   }));
 }
 
+// setQuizRoomName用: 名前を予約する。他人と重複していた場合はnameErrorを
+// 本人へ通知し、呼び出し側へ「衝突した（続行不可）」ことを伝える
+async function tryReserveNameOrNotify(event, roomId, name, connectionId) {
+  try {
+    await reserveQuizRoomName(roomId, name);
+    return { conflict: false };
+  } catch (reserveError) {
+    if (reserveError.name !== "ConditionalCheckFailedException") {
+      throw reserveError;
+    }
+    const managementApi = buildManagementApiClient(event);
+    await postToConnection(managementApi, connectionId, {
+      type: "nameError",
+      message: "その名前は既に使われています。別の名前を入力してください。",
+    });
+    return { conflict: true };
+  }
+}
+
+// setQuizRoomName用: 接続レコードへ名前を保存する。接続が既に消えていた場合は
+// （予約済みの名前があれば）解放してからその旨を呼び出し側へ伝える
+async function updateConnectionNameOrRollback(connectionId, name, roomId, isRenaming) {
+  try {
+    await docClient.send(new UpdateCommand({
+      TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
+      Key: { connectionId },
+      UpdateExpression: "SET #name = :name",
+      ExpressionAttributeNames: { "#name": "name" },
+      ExpressionAttributeValues: { ":name": name },
+      ConditionExpression: "attribute_exists(connectionId)",
+    }));
+    return { connectionGone: false };
+  } catch (updateError) {
+    // 接続が消えていた場合、予約した名前を解放してから終了する
+    if (isRenaming) {
+      await releaseQuizRoomName(roomId, name);
+    }
+    if (updateError.name === "ConditionalCheckFailedException") {
+      return { connectionGone: true };
+    }
+    throw updateError;
+  }
+}
+
 exports.setQuizRoomName = async (event) => {
   try {
     const connectionId = event.requestContext.connectionId;
@@ -525,39 +586,15 @@ exports.setQuizRoomName = async (event) => {
     const isRenaming = previousName !== name;
 
     if (isRenaming) {
-      try {
-        await reserveQuizRoomName(roomId, name);
-      } catch (reserveError) {
-        if (reserveError.name === "ConditionalCheckFailedException") {
-          const managementApi = buildManagementApiClient(event);
-          await postToConnection(managementApi, connectionId, {
-            type: "nameError",
-            message: "その名前は既に使われています。別の名前を入力してください。",
-          });
-          return { statusCode: 200, body: "" };
-        }
-        throw reserveError;
+      const { conflict } = await tryReserveNameOrNotify(event, roomId, name, connectionId);
+      if (conflict) {
+        return { statusCode: 200, body: "" };
       }
     }
 
-    try {
-      await docClient.send(new UpdateCommand({
-        TableName: process.env.QUIZ_ROOM_CONNECTIONS_TABLE_NAME,
-        Key: { connectionId },
-        UpdateExpression: "SET #name = :name",
-        ExpressionAttributeNames: { "#name": "name" },
-        ExpressionAttributeValues: { ":name": name },
-        ConditionExpression: "attribute_exists(connectionId)",
-      }));
-    } catch (updateError) {
-      // 接続が消えていた場合、予約した名前を解放してから終了する
-      if (isRenaming) {
-        await releaseQuizRoomName(roomId, name);
-      }
-      if (updateError.name === "ConditionalCheckFailedException") {
-        return { statusCode: 200, body: "" };
-      }
-      throw updateError;
+    const { connectionGone } = await updateConnectionNameOrRollback(connectionId, name, roomId, isRenaming);
+    if (connectionGone) {
+      return { statusCode: 200, body: "" };
     }
 
     if (isRenaming && previousName) {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint . --max-warnings 29",
+    "lint": "eslint . --max-warnings 0",
     "test": "vitest",
     "deploy": "npx osls deploy"
   },

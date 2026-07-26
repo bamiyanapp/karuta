@@ -26,12 +26,13 @@ jobs:
       workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
       # SonarCloud相当の静的解析（issue #806）のうち、コード重複検知（jscpd）を有効化する。
       # 導入直後はduplication_threshold未指定（レポート表示のみ、ゲートなし）としていたが、
-      # 検出しても何も強制されない状態が放置されていたため、現状の重複率
-      # （2026-07-25時点で実測20.31%、行ベース）をベースラインとしたラチェット方式で
-      # ゲートを有効化する。既存の重複はすぐには解消せず、今後の増加のみを防ぐ
-      # （個別の削減はissue #833で追跡する）
+      # 検出しても何も強制されない状態が放置されていたため、現状の重複率（行ベース）を
+      # ベースラインとしたラチェット方式でゲートを有効化する。issue #833でQuizRoomView等
+      # の重複解消を進め、20.31%→18.64%まで削減できたためしきい値も引き下げた。
+      # 残る重複は主にテストファイル（App.test.jsx・QuizRoomView.test.jsx等）で、
+      # 引き続きissue #833で追跡する
       enable_duplication_check: true
-      duplication_threshold: 21
+      duplication_threshold: 19
       # 分岐(branches)カバレッジ80%必須化（issue #459）のうち、branches指標のみ
       # 引き続き見送る。backend側で、複数のテストファイルが同一のソースファイル
       # （例: backend/handler.js）をimportする構成において、@vitest/coverage-v8の

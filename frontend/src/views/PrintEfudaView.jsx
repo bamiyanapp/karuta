@@ -85,6 +85,23 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
     [allPhrasesForCategory]
   );
 
+  let emptyStateContent = null;
+  if (selectedCategories.length === 0) {
+    emptyStateContent = <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>;
+  } else if (allPhrasesForCategory.length === 0 && phrasesFetchError) {
+    // issue #474: 「読み込み中」と「取得失敗」を区別する。以前はどちらも
+    // allPhrasesForCategory.length === 0だけで判定していたため、取得に失敗した
+    // 場合も「読み込み中...」の表示のまま進まなくなっていた
+    emptyStateContent = (
+      <div className="text-center py-5 no-print">
+        <p className="text-danger mb-3">かるたデータの取得に失敗しました。</p>
+        <button onClick={onRetryFetchPhrases} className="btn btn-outline-dark rounded-pill px-4">再試行する</button>
+      </div>
+    );
+  } else if (allPhrasesForCategory.length === 0) {
+    emptyStateContent = <p className="text-muted text-center py-5 no-print">読み込み中...</p>;
+  }
+
   const downloadPdf = async () => {
     setIsGeneratingPdf(true);
     try {
@@ -142,19 +159,7 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
         noPrint
       />
 
-      {selectedCategories.length === 0 ? (
-        <p className="text-muted text-center py-5 no-print">カテゴリを選択してください。</p>
-      ) : allPhrasesForCategory.length === 0 && phrasesFetchError ? (
-        // issue #474: 「読み込み中」と「取得失敗」を区別する。以前はどちらも
-        // allPhrasesForCategory.length === 0だけで判定していたため、取得に失敗した
-        // 場合も「読み込み中...」の表示のまま進まなくなっていた
-        <div className="text-center py-5 no-print">
-          <p className="text-danger mb-3">かるたデータの取得に失敗しました。</p>
-          <button onClick={onRetryFetchPhrases} className="btn btn-outline-dark rounded-pill px-4">再試行する</button>
-        </div>
-      ) : allPhrasesForCategory.length === 0 ? (
-        <p className="text-muted text-center py-5 no-print">読み込み中...</p>
-      ) : (
+      {emptyStateContent ?? (
         <>
           {phrasesFetchError && (
             <div className="alert alert-warning no-print text-center d-flex align-items-center justify-content-center gap-3 flex-wrap">
@@ -203,8 +208,9 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
                     {Array.from({ length: efudaPerPage }).map((_, slotIndex) => {
                       const p = page.items[resolvePhraseIndex(slotIndex, printSide)];
                       const patternName = p && backPatternMap.get(p.category);
+                      const cardClassName = patternName ? `efuda-card efuda-color-${patternName}` : "efuda-card";
                       return (
-                        <div className={`efuda-card ${patternName ? `efuda-color-${patternName}` : ""}`} key={slotIndex}>
+                        <div className={cardClassName} key={slotIndex}>
                           {p && (printSide === "back" ? (
                             <div className={`efuda-card-back efuda-pattern-${patternName}`}>
                               <div className="efuda-card-back-category">{p.category}</div>

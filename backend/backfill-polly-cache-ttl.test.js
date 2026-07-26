@@ -42,7 +42,7 @@ describe('backfillPollyCacheTtl', () => {
 
     expect(updatedCount).toBe(2);
     const scanCalls = ddbMock.commandCalls(ScanCommand);
-    expect(scanCalls.length).toBe(2);
+    expect(scanCalls).toHaveLength(2);
     expect(scanCalls[1].args[0].input.ExclusiveStartKey).toEqual({ id: 'cache1' });
   });
 
@@ -63,7 +63,7 @@ describe('backfillPollyCacheTtl', () => {
     const updatedCount = await backfillPollyCacheTtl();
 
     expect(updatedCount).toBe(0);
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
   });
 
   it('treats a Scan response with no Items field as an empty page instead of throwing', async () => {

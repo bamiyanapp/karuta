@@ -344,13 +344,9 @@ test('admin resets participant points (issue #615)', async ({ browser }, testInf
 // closeQuizRoom（backend/quizRoomHandler.js）は、ルームレコード削除に使うDeleteCommandに
 // 必要なdynamodb:DeleteItem権限がserverless.ymlのIAMステートメントから漏れていたため、
 // AccessDeniedExceptionで処理全体が失敗し、参加者・管理者のどちらもroomClosedを受け取れない
-// 状態だった（issue #576のE2E追加で判明）。IAM側は修正済みだが、CD経由で実際にデプロイ
-// されるまでは本番Lambdaに反映されず、このテストは失敗し続けてしまうため、デプロイ確認が
-// 取れるまで一時的にskipする（TODO: デプロイ確認後、上のresetQuizRoomPointsテストと同様の
-// フローに続けて「ルームを閉じる」操作・参加者への通知を検証するテストとして有効化する）
+// 状態だった（issue #576のE2E追加で判明）。IAM側の修正（issue #748）はデプロイ済みのため
+// 有効化する
 test('admin closes the room, and the participant sees a closed-by-host message (issue #748)', async ({ browser }, testInfo) => {
-  test.skip(true, 'issue #748: closeQuizRoomのIAM権限修正（本PR）がCD経由でデプロイされるまで無効化する');
-
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);

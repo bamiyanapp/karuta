@@ -253,6 +253,105 @@ exports.getCongratulationAudio = async (event) => {
 // レコードが際限なく増加しないよう、DynamoDB TTLで一定期間後に自動削除する
 const POLLY_CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30日
 
+// getPhrase用: id/categoryの指定状況に応じて対象の1件を取得する。
+// getPhrase本体の複雑度を抑えるため分離している
+async function findPhraseItem(targetId, category) {
+  if (targetId && category) {
+    // IDとカテゴリ両方ある場合はGetItem
+    const getResult = await docClient.send(new GetCommand({
+      TableName: process.env.TABLE_NAME,
+      Key: { category, id: targetId },
+    }));
+    return getResult.Item;
+  }
+
+  // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
+  const scanParams = {
+    TableName: process.env.TABLE_NAME,
+    ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
+    ExpressionAttributeNames: {
+      "#lvl": "level",
+    },
+  };
+  const scanResult = await docClient.send(new ScanCommand(scanParams));
+  let items = scanResult.Items || [];
+
+  if (targetId) {
+    return items.find(item => item.id === targetId);
+  }
+  if (category) {
+    items = items.filter(item => (item.category || "").trim() === category.trim());
+  }
+  if (items.length === 0) {
+    return null;
+  }
+  // eslint-disable-next-line sonarjs/pseudo-random -- かるたの札をランダムに選ぶだけの用途で暗号学的な強度は不要
+  const randomIndex = Math.floor(Math.random() * items.length);
+  return items[randomIndex];
+}
+
+// getPhrase用: 読み上げ内容（SSML）を組み立てる純粋関数。getPhrase本体の
+// 複雑度を抑えるため分離している
+function buildPhraseSsml({ lang, level, speechPhrase, repeatCount, announceCategory, category, speechRate }) {
+  const levelPrefix = lang === "en" ? "Level" : "レベル";
+  const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
+  const escapedPhrase = escapeSsml(speechPhrase);
+  const phraseWithLevel = hasLevel ? `${levelPrefix}, ${escapeSsml(level)}. ${escapedPhrase}` : escapedPhrase;
+
+  let innerContent = phraseWithLevel;
+  if (repeatCount >= 2) {
+    innerContent = `${phraseWithLevel}<break time="1500ms"/>${phraseWithLevel}`;
+  }
+  // 複数種別を選択している場合、読み札がどの種別のものかを最後に1回だけ読み上げる（言語設定によらず日本語で読み上げる）
+  if (announceCategory && category) {
+    innerContent = `${innerContent}<break time="800ms"/>${escapeSsml(category)}`;
+  }
+  return `<speak><prosody rate="${speechRate}">${innerContent}</prosody></speak>`;
+}
+
+// getPhrase用: Pollyキャッシュ（DynamoDB）にヒットすればその音声を返す
+async function getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId) {
+  if (!pollyCacheTableName) {
+    return null;
+  }
+  const cachedAudio = await docClient.send(new GetCommand({
+    TableName: pollyCacheTableName,
+    Key: { id: cacheId },
+  }));
+  if (!cachedAudio.Item) {
+    return null;
+  }
+  console.log("Serving audio from cache for id:", targetId);
+  return cachedAudio.Item.audioData;
+}
+
+// getPhrase用: Pollyで音声を合成し、キャッシュ有効時はDynamoDBへ保存する
+async function synthesizePhraseAudio({ ssmlText, voiceId, engine, pollyCacheTableName, cacheId }) {
+  const command = new SynthesizeSpeechCommand({
+    Text: ssmlText,
+    TextType: "ssml",
+    OutputFormat: "mp3",
+    VoiceId: voiceId,
+    Engine: engine
+  });
+  const pollyResponse = await pollyClient.send(command);
+  const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
+  const audioData = `data:audio/mp3;base64,${audioBuffer.toString("base64")}`;
+
+  if (pollyCacheTableName) {
+    await docClient.send(new PutCommand({
+      TableName: pollyCacheTableName,
+      Item: {
+        id: cacheId,
+        audioData: audioData,
+        createdAt: new Date().toISOString(),
+        ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
+      },
+    }));
+  }
+  return audioData;
+}
+
 exports.getPhrase = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
@@ -266,49 +365,12 @@ exports.getPhrase = async (event) => {
     let targetId = params.id || null;
     const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME;
 
-    let selectedItem = null;
-
-    if (targetId && category) {
-      // IDとカテゴリ両方ある場合はGetItem
-      const getResult = await docClient.send(new GetCommand({
-        TableName: process.env.TABLE_NAME,
-        Key: { category, id: targetId },
-      }));
-      selectedItem = getResult.Item;
-    } else {
-      // それ以外は従来通りScan（またはQueryに最適化可能だが一旦Scan）
-      const scanParams = {
-        TableName: process.env.TABLE_NAME,
-        ProjectionExpression: "id, category, phrase, #lvl, kana, phrase_en, answer, explanation, readCount, averageTime, averageDifficulty, totalTime, totalDifficulty",
-        ExpressionAttributeNames: {
-          "#lvl": "level",
-        },
-      };
-
-      const scanResult = await docClient.send(new ScanCommand(scanParams));
-      let items = scanResult.Items || [];
-
-      if (targetId) {
-        selectedItem = items.find(item => item.id === targetId);
-      } else {
-        if (category) {
-          items = items.filter(item => (item.category || "").trim() === category.trim());
-        }
-        
-        if (items.length > 0) {
-          const randomIndex = Math.floor(Math.random() * items.length);
-          selectedItem = items[randomIndex];
-        }
-      }
-    }
-
+    const selectedItem = await findPhraseItem(targetId, category);
     if (!selectedItem) {
       return notFound(allowedOrigin, "Phrase not found");
     }
 
     targetId = selectedItem.id;
-
-    let audioData = null;
 
     const level = selectedItem.level;
     const speechPhrase = lang === "en"
@@ -320,60 +382,18 @@ exports.getPhrase = async (event) => {
       `${targetId}-${repeatCount}-${speechRate}-${lang}-${announceCategory}-${voiceId}-${JSON.stringify([level, speechPhrase, selectedItem.category])}`
     ).digest("hex");
 
-    if (pollyCacheTableName) {
-      const cachedAudio = await docClient.send(new GetCommand({
-        TableName: pollyCacheTableName,
-        Key: { id: cacheId },
-      }));
-      if (cachedAudio.Item) {
-        console.log("Serving audio from cache for id:", targetId);
-        audioData = cachedAudio.Item.audioData;
-      }
-    }
-
+    let audioData = await getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId);
     if (!audioData) {
-      const levelPrefix = lang === "en" ? "Level" : "レベル";
-
-      const hasLevel = level !== "-" && level !== null && level !== undefined && String(level).trim() !== "";
-      const escapedPhrase = escapeSsml(speechPhrase);
-      const phraseWithLevel = hasLevel ? `${levelPrefix}, ${escapeSsml(level)}. ${escapedPhrase}` : escapedPhrase;
-
-      let innerContent = phraseWithLevel;
-      if (repeatCount >= 2) {
-        innerContent = `${phraseWithLevel}<break time="1500ms"/>${phraseWithLevel}`;
-      }
-
-      // 複数種別を選択している場合、読み札がどの種別のものかを最後に1回だけ読み上げる（言語設定によらず日本語で読み上げる）
-      if (announceCategory && selectedItem.category) {
-        innerContent = `${innerContent}<break time="800ms"/>${escapeSsml(selectedItem.category)}`;
-      }
-
-      const ssmlText = `<speak><prosody rate="${speechRate}">${innerContent}</prosody></speak>`;
-
-      const command = new SynthesizeSpeechCommand({
-        Text: ssmlText,
-        TextType: "ssml",
-        OutputFormat: "mp3",
-        VoiceId: voiceId,
-        Engine: engine
+      const ssmlText = buildPhraseSsml({
+        lang,
+        level,
+        speechPhrase,
+        repeatCount,
+        announceCategory,
+        category: selectedItem.category,
+        speechRate,
       });
-      const pollyResponse = await pollyClient.send(command);
-
-      const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
-      const base64Audio = audioBuffer.toString("base64");
-      audioData = `data:audio/mp3;base64,${base64Audio}`;
-
-      if (pollyCacheTableName) {
-        await docClient.send(new PutCommand({
-          TableName: pollyCacheTableName,
-          Item: {
-            id: cacheId,
-            audioData: audioData,
-            createdAt: new Date().toISOString(),
-            ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
-          },
-        }));
-      }
+      audioData = await synthesizePhraseAudio({ ssmlText, voiceId, engine, pollyCacheTableName, cacheId });
     }
 
     const stats = computePhraseStats(selectedItem);

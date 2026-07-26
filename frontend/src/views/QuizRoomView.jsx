@@ -61,6 +61,45 @@ function renderParticipantContent(roomState) {
   return null;
 }
 
+// 早押し状態に応じた表示（不正解案内／回答中表示／回答ボタン）を1つに決定する。
+// - excludedThisRound: 直前に不正解と判定され、次の札を待っている状態を優先表示する
+// - winnerAlreadyShown: result画面側で既に正解者名を表示している間は「回答中」の
+//   重複表示を出さない（issue #696）
+// レンダー中に評価する早押しラウンドキーの導出（QuizRoomView本体の複雑度を
+// 抑えるための純粋関数）。"result"表示中は直前のラウンドキーを維持し、
+// それ以外の未知の状態（"initial"等）ではラウンドなし（null）とする
+function deriveBuzzRoundKey(roomState, lastBuzzRoundKey) {
+  if (roomState?.type === "phrase" && roomState.content?.id) {
+    return phraseKey(roomState.content);
+  }
+  if (roomState?.type !== "result") {
+    return null;
+  }
+  return lastBuzzRoundKey;
+}
+
+function renderBuzzStatus({ excludedThisRound, buzzedBy, roomState, onBuzz }) {
+  if (excludedThisRound) {
+    // issue #680: 不正解と判定された本人には「回答中」ではなく、不正解だった
+    // ことと次の札を待つよう案内する専用の表示を出す
+    return <p className="fw-bold text-muted mt-4">不正解でした。次の問題まで待っててね</p>;
+  }
+  const winnerAlreadyShown = roomState?.type === "result" && roomState.content?.winner;
+  if (buzzedBy && !winnerAlreadyShown) {
+    return <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>;
+  }
+  if (roomState?.type === "phrase") {
+    return (
+      <div className="mt-4">
+        <button onClick={onBuzz} className="btn btn-danger btn-lg rounded-pill px-5">
+          回答する
+        </button>
+      </div>
+    );
+  }
+  return null;
+}
+
 function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRestoreError, switchToAdminMode }) {
   const urlRoomId = useMemo(() => new URLSearchParams(window.location.search).get("roomId"), []);
   const [joinRoomId, setJoinRoomId] = useState(urlRoomId);
@@ -232,12 +271,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
   // 「直前のラウンドキー（lastBuzzRoundKey）を参照して"result"中は維持する」という
   // 前回値への依存を持つため、値の変化だけを検知するuseValueChangeにはそのまま乗らず、
   // ここでは個別に扱う
-  let currentBuzzRoundKey = lastBuzzRoundKey;
-  if (roomState?.type === "phrase" && roomState.content?.id) {
-    currentBuzzRoundKey = phraseKey(roomState.content);
-  } else if (roomState?.type !== "result") {
-    currentBuzzRoundKey = null;
-  }
+  const currentBuzzRoundKey = deriveBuzzRoundKey(roomState, lastBuzzRoundKey);
   if (currentBuzzRoundKey !== lastBuzzRoundKey) {
     setLastBuzzRoundKey(currentBuzzRoundKey);
     setBuzzedBy(null);
@@ -396,6 +430,103 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     };
   }, [roomState, confirmedName]);
 
+  // ルームコード確認済み・参加中の画面。routedViewの複雑度を抑えるため、
+  // 別関数として切り出している
+  const renderJoinedRoom = () => {
+    return (
+      <div className="container py-5 mx-auto text-center">
+        <Confetti pieces={confettiPieces} />
+        <header className="mb-4">
+          <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
+          <p className="text-muted small">ルーム: {joinRoomId}</p>
+        </header>
+        {/* 管理者セッション復帰（issue #697）: 保存済みの管理者トークンで管理者への
+            切り替えを試みて失敗した場合のエラー表示。この時点で保存済みトークンは
+            既に破棄されているため、「管理者に切り替える」ボタン自体も表示されなくなる */}
+        {adminSessionRestoreError && <p className="text-danger small mb-3">{adminSessionRestoreError}</p>}
+        <p className="text-muted small mb-3">
+          <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
+          {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
+              自動的に再接続を試みるが、それでも復帰しない場合に手動でやり直せる導線が
+              無かったため追加する */}
+          {connectionStatus === "error" && (
+            <button
+              type="button"
+              onClick={reconnect}
+              className="btn btn-sm btn-outline-danger rounded-pill ms-2"
+            >
+              再接続
+            </button>
+          )}
+        </p>
+        <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
+        {renderParticipantContent(roomState)}
+        {renderBuzzStatus({ excludedThisRound, buzzedBy, roomState, onBuzz: handleBuzz })}
+        {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
+            統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
+            より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
+            累計回数（attempts）も併せて表示する */}
+        <QuizRoomParticipantTable
+          participantNames={participants}
+          points={points}
+          answerCounts={answerCounts}
+          highlightName={confirmedName}
+        />
+        {phraseHistory.length > 0 && (
+          <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
+            <button
+              type="button"
+              onClick={() => setShowHistory(prev => !prev)}
+              className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+            >
+              {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${phraseHistory.length}枚）`}
+            </button>
+            {showHistory && (
+              // 管理者側の「詳細・報告 →」リンク（openDetail、DetailViewへの画面遷移を伴う指摘
+              // コメント投稿につながる）はここでは出さず、閲覧専用の簡易表示にとどめる（issue #548）。
+              // クイズ大会モードの参加者は端末を共有していない不特定多数のため、管理者専用機能への
+              // 導線をそのまま公開する必要はないと判断した
+              <div className="text-start mt-3">
+                <div className="list-group shadow-sm rounded">
+                  {phraseHistory.map((p, index) => (
+                    <div key={`${p.category}-${p.id}-${phraseHistory.length - index}`} className="list-group-item d-flex align-items-center">
+                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
+                      <span className="text-dark">{p.phrase}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {/* 管理者セッション復帰（issue #697）: このルームの管理者トークンが保存されている
+            場合のみ表示する。押すと保存済みトークンで管理者として再接続し、
+            管理者画面（QuizRoomInfoView）へ切り替わる */}
+        {adminSessionRoomId === joinRoomId && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                if (switchToAdminMode(joinRoomId)) {
+                  setView("quiz-room-info");
+                }
+              }}
+              className="btn btn-sm btn-outline-dark rounded-pill px-3"
+            >
+              管理者に切り替える
+            </button>
+          </div>
+        )}
+        <div className="mt-5">
+          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+        </div>
+      </div>
+    );
+  };
+
+  // ルームコード入力前の各種早期リターン・参加中画面。QuizRoomViewコンポーネント
+  // 本体の複雑度を抑えるため、該当が無ければnullを返すだけの即時実行関数へまとめている
+  const routedView = (() => {
   if (!wsBaseUrl) {
     return (
       <div className="container py-5 mx-auto text-center">
@@ -471,114 +602,11 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     );
   }
 
-  if (joinRoomId) {
-    return (
-      <div className="container py-5 mx-auto text-center">
-        <Confetti pieces={confettiPieces} />
-        <header className="mb-4">
-          <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
-          <p className="text-muted small">ルーム: {joinRoomId}</p>
-        </header>
-        {/* 管理者セッション復帰（issue #697）: 保存済みの管理者トークンで管理者への
-            切り替えを試みて失敗した場合のエラー表示。この時点で保存済みトークンは
-            既に破棄されているため、「管理者に切り替える」ボタン自体も表示されなくなる */}
-        {adminSessionRestoreError && <p className="text-danger small mb-3">{adminSessionRestoreError}</p>}
-        <p className="text-muted small mb-3">
-          <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
-          {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
-              自動的に再接続を試みるが、それでも復帰しない場合に手動でやり直せる導線が
-              無かったため追加する */}
-          {connectionStatus === "error" && (
-            <button
-              type="button"
-              onClick={reconnect}
-              className="btn btn-sm btn-outline-danger rounded-pill ms-2"
-            >
-              再接続
-            </button>
-          )}
-        </p>
-        <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
-        {renderParticipantContent(roomState)}
-        {excludedThisRound ? (
-          // issue #680: 不正解と判定された本人には「回答中」ではなく、不正解だった
-          // ことと次の札を待つよう案内する専用の表示を出す。excludedThisRoundは
-          // 次の札が届いたタイミングでfalseに戻る（上記のラウンド切り替え判定）
-          <p className="fw-bold text-muted mt-4">不正解でした。次の問題まで待っててね</p>
-        ) : /* issue #696: 正解と判定されresult画面に勝者（winner）が表示されている間は、
-               「回答中」の重複表示を出さない（結果画面側で既に正解者名を表示しているため）。
-               winnerが無いresult（早押しを介さない通常の「次の札」による結果表示等）では、
-               従来どおり回答者表示を維持する */
-        buzzedBy && !(roomState?.type === "result" && roomState.content?.winner) ? (
-          <p className="fw-bold text-dark mt-4">🔔 {buzzedBy.name} さんが回答中</p>
-        ) : roomState?.type === "phrase" && (
-          <div className="mt-4">
-            <button onClick={handleBuzz} className="btn btn-danger btn-lg rounded-pill px-5">
-              回答する
-            </button>
-          </div>
-        )}
-        {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
-            統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
-            より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
-            累計回数（attempts）も併せて表示する */}
-        <QuizRoomParticipantTable
-          participantNames={participants}
-          points={points}
-          answerCounts={answerCounts}
-          highlightName={confirmedName}
-        />
-        {phraseHistory.length > 0 && (
-          <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
-            <button
-              type="button"
-              onClick={() => setShowHistory(prev => !prev)}
-              className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-            >
-              {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${phraseHistory.length}枚）`}
-            </button>
-            {showHistory && (
-              // 管理者側の「詳細・報告 →」リンク（openDetail、DetailViewへの画面遷移を伴う指摘
-              // コメント投稿につながる）はここでは出さず、閲覧専用の簡易表示にとどめる（issue #548）。
-              // クイズ大会モードの参加者は端末を共有していない不特定多数のため、管理者専用機能への
-              // 導線をそのまま公開する必要はないと判断した
-              <div className="text-start mt-3">
-                <div className="list-group shadow-sm rounded">
-                  {phraseHistory.map((p, index) => (
-                    <div key={`${p.category}-${p.id}-${phraseHistory.length - index}`} className="list-group-item d-flex align-items-center">
-                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
-                      <span className="text-dark">{p.phrase}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {/* 管理者セッション復帰（issue #697）: このルームの管理者トークンが保存されている
-            場合のみ表示する。押すと保存済みトークンで管理者として再接続し、
-            管理者画面（QuizRoomInfoView）へ切り替わる */}
-        {adminSessionRoomId === joinRoomId && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                if (switchToAdminMode(joinRoomId)) {
-                  setView("quiz-room-info");
-                }
-              }}
-              className="btn btn-sm btn-outline-dark rounded-pill px-3"
-            >
-              管理者に切り替える
-            </button>
-          </div>
-        )}
-        <div className="mt-5">
-          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
-        </div>
-      </div>
-    );
-  }
+  if (joinRoomId) return renderJoinedRoom();
+
+  return null;
+  })();
+  if (routedView) return routedView;
 
   return (
     <div className="container py-5 mx-auto">

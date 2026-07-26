@@ -324,7 +324,7 @@ describe('App', () => {
     });
 
     const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
-    expect(categoriesCalls.length).toBe(1);
+    expect(categoriesCalls).toHaveLength(1);
   });
 
   it('starts game when category is selected', async () => {
@@ -588,7 +588,7 @@ describe('App', () => {
     }, { timeout: 20000 });
 
     // プリフェッチ済みのp2をそのまま使うため、/get-phraseの追加呼び出しは発生しない
-    expect(getPhraseCallIds.length).toBe(callCountBeforeSecondClick);
+    expect(getPhraseCallIds).toHaveLength(callCountBeforeSecondClick);
     expect(getPhraseCallIds).toEqual(['p1', 'p2']);
 
     randomSpy.mockRestore();
@@ -596,7 +596,6 @@ describe('App', () => {
 
   it('ignores a second "次の札" click while the first is still advancing (e.g. during the fade-out animation), instead of flipping multiple cards at once (issue #590)', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
-    const getPhraseCallIds = [];
     const phraseById = {
       p1: { id: 'p1', category: 'Cat1', phrase: '読み札1' },
       p2: { id: 'p2', category: 'Cat1', phrase: '読み札2' },
@@ -612,7 +611,6 @@ describe('App', () => {
       }
       if (url.includes('/get-phrase?')) {
         const id = new URL(url).searchParams.get('id');
-        getPhraseCallIds.push(id);
         return { ok: true, json: async () => ({ ...phraseById[id], audioData: 'dummy' }) };
       }
       return { ok: false };
@@ -746,7 +744,7 @@ describe('App', () => {
     expect(paperLinks[1]).toHaveAttribute('target', '_blank');
 
     // 11枚 → 10面/ページなので2ページ生成される
-    expect(document.querySelectorAll('.efuda-page').length).toBe(2);
+    expect(document.querySelectorAll('.efuda-page')).toHaveLength(2);
 
     fireEvent.click(screen.getByText('印刷する'));
     expect(window.print).toHaveBeenCalled();
@@ -1217,7 +1215,7 @@ describe('App', () => {
 
     await waitFor(() => {
       // カテゴリ境界で改ページせず、1枚ずつでも詰めて1ページにまとまる
-      expect(document.querySelectorAll('.efuda-page').length).toBe(1);
+      expect(document.querySelectorAll('.efuda-page')).toHaveLength(1);
       expect(screen.getByText('Cat1テキスト')).toBeInTheDocument();
       expect(screen.getByText('Cat2テキスト')).toBeInTheDocument();
     });
@@ -1310,11 +1308,11 @@ describe('App', () => {
     await waitFor(() => {
       // Cat1(7枚)+Cat2(5枚)=12枚 → 10面/ページなので2ページ生成される
       const pages = document.querySelectorAll('.efuda-page');
-      expect(pages.length).toBe(2);
+      expect(pages).toHaveLength(2);
       // 1ページ目はカテゴリ境界で途切れず10面すべて埋まる(空白カードなし)
-      expect(pages[0].querySelectorAll('.efuda-card-text').length).toBe(10);
+      expect(pages[0].querySelectorAll('.efuda-card-text')).toHaveLength(10);
       // 2ページ目はCat2の残り2枚のみ
-      expect(pages[1].querySelectorAll('.efuda-card-text').length).toBe(2);
+      expect(pages[1].querySelectorAll('.efuda-card-text')).toHaveLength(2);
     });
   });
 
@@ -1952,14 +1950,14 @@ describe('App', () => {
     // 回数列でソート（readCount未設定/0 のフォールバック分岐を通す）
     fireEvent.click(readCountHeader);
     await waitFor(() => {
-      expect(getPhraseOrder().length).toBe(6);
+      expect(getPhraseOrder()).toHaveLength(6);
     });
     fireEvent.click(readCountHeader);
 
     // 答え列でソート（未設定/"-"/実値の組み合わせを網羅）
     fireEvent.click(answerHeader);
     await waitFor(() => {
-      expect(getPhraseOrder().length).toBe(6);
+      expect(getPhraseOrder()).toHaveLength(6);
     });
     fireEvent.click(answerHeader);
 

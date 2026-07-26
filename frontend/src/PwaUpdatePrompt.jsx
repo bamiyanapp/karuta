@@ -13,13 +13,21 @@ const OFFLINE_READY_AUTO_DISMISS_MS = 5000;
 // 毎レンダー新しい関数を作らず安定した参照にすることで、useEffectの依存配列を汚さない
 const noop = () => {};
 
+// virtual:pwa-register/reactが未提供の場合のフォールバック込みで、必要な値・
+// 関数一式を取り出す。PwaUpdatePrompt本体の複雑度を抑えるため分離している
+function resolveSwState(sw) {
+  return {
+    needRefresh: sw?.needRefresh?.[0] || false,
+    setNeedRefresh: sw?.needRefresh?.[1] || noop,
+    offlineReady: sw?.offlineReady?.[0] || false,
+    setOfflineReady: sw?.offlineReady?.[1] || noop,
+    updateServiceWorker: sw?.updateServiceWorker || noop,
+  };
+}
+
 function PwaUpdatePrompt() {
   const sw = useRegisterSW();
-  const needRefresh = sw?.needRefresh?.[0] || false;
-  const setNeedRefresh = sw?.needRefresh?.[1] || noop;
-  const offlineReady = sw?.offlineReady?.[0] || false;
-  const setOfflineReady = sw?.offlineReady?.[1] || noop;
-  const updateServiceWorker = sw?.updateServiceWorker || noop;
+  const { needRefresh, setNeedRefresh, offlineReady, setOfflineReady, updateServiceWorker } = resolveSwState(sw);
   // 絵札PDF印刷画面（PrintEfudaView）はバックエンドAPIへの通信が必須でオフラインでは
   // 動作しないため、この画面を開いている間に「オフラインで利用可能になりました」を
   // 出すと誤解を招く（issue #473）

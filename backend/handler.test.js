@@ -13,6 +13,13 @@ const pollyMock = mockClient(PollyClient);
 vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid');
 vi.spyOn(console, 'error').mockImplementation(() => {});
 
+function createAudioStream() {
+    const s = new Readable();
+    s.push('audio data');
+    s.push(null);
+    return s;
+}
+
 
 describe('resolveAllowedOrigin', () => {
   it('reflects the request origin when it is on the allow-list', () => {
@@ -331,7 +338,7 @@ describe('postComment', () => {
         };
         const response = await postComment(event);
         expect(response.statusCode).toBe(400);
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
     });
 
     it('should accept a comment exactly at the maximum length', async () => {
@@ -478,7 +485,7 @@ describe('getCongratulationAudio', () => {
         await getCongratulationAudio(event);
         
         const pollyCalls = pollyMock.calls();
-        expect(pollyCalls.length).toBe(1);
+        expect(pollyCalls).toHaveLength(1);
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="120%">');
     });
@@ -746,7 +753,7 @@ describe('getPhrase', () => {
         const body = JSON.parse(response.body);
         expect(body.id).toBe('p1');
         expect(body.readCount).toBe(5);
-        expect(body.averageTime).toBe(12.3);
+        expect(body.averageTime).toBeCloseTo(12.3);
     });
 
     it('looks up a phrase directly via GetItem (skipping the Scan) when both id and category are provided', async () => {
@@ -767,7 +774,7 @@ describe('getPhrase', () => {
 
         expect(response.statusCode).toBe(200);
         expect(body.id).toBe('p1');
-        expect(ddbMock.commandCalls(ScanCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(ScanCommand)).toHaveLength(0);
     });
 
     it('filters out items whose category does not match (tolerating a missing category field on other items), returning 404 when nothing matches', async () => {
@@ -819,8 +826,8 @@ describe('getPhrase', () => {
         const response = await getPhrase(event);
 
         expect(response.statusCode).toBe(200);
-        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(GetCommand)).toHaveLength(0);
+        expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
     });
 
     it('uses averageTime/averageDifficulty as a legacy fallback (0 when also absent) when only one of totalTime/totalDifficulty is present (partial migration)', async () => {
@@ -922,7 +929,7 @@ describe('getPhrase', () => {
         await getPhrase(event);
 
         const pollyCalls = pollyMock.calls();
-        expect(pollyCalls.length).toBe(1);
+        expect(pollyCalls).toHaveLength(1);
         const pollyParams = pollyCalls[0].args[0].input;
         expect(pollyParams.Text).toContain('<prosody rate="110%">');
     });
@@ -1113,13 +1120,7 @@ describe('getPhrase', () => {
         ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
         ddbMock.on(PutCommand).resolves({});
 
-        const audioStream = () => {
-            const s = new Readable();
-            s.push('audio data');
-            s.push(null);
-            return s;
-        };
-        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: createAudioStream() }));
 
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: '犬棒かるた', phrase: 'phrase 1', level: '-' }],
@@ -1139,13 +1140,7 @@ describe('getPhrase', () => {
         ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
         ddbMock.on(PutCommand).resolves({});
 
-        const audioStream = () => {
-            const s = new Readable();
-            s.push('audio data');
-            s.push(null);
-            return s;
-        };
-        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: createAudioStream() }));
 
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: '元の読み札', level: '1' }],
@@ -1167,13 +1162,7 @@ describe('getPhrase', () => {
         ddbMock.on(GetCommand).resolves({ Item: undefined }); // Cache miss
         ddbMock.on(PutCommand).resolves({});
 
-        const audioStream = () => {
-            const s = new Readable();
-            s.push('audio data');
-            s.push(null);
-            return s;
-        };
-        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: audioStream() }));
+        pollyMock.on(SynthesizeSpeechCommand).callsFake(() => ({ AudioStream: createAudioStream() }));
 
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: '元の読み札', phrase_en: 'Original phrase', level: '1' }],
@@ -1209,9 +1198,9 @@ describe('recordTime', () => {
         expect(response.statusCode).toBe(200);
 
         // 読み取り→書き込みの競合を避けるため、GetItemを使わずUpdateItemのADDのみで完結させる
-        expect(ddbMock.commandCalls(GetCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(GetCommand)).toHaveLength(0);
         const updateCalls = ddbMock.commandCalls(UpdateCommand);
-        expect(updateCalls.length).toBe(1);
+        expect(updateCalls).toHaveLength(1);
         const updateParams = updateCalls[0].args[0].input;
         expect(updateParams.Key).toEqual({ category: 'c1', id: 'p1' });
         expect(updateParams.ConditionExpression).toBe('attribute_exists(id)');
@@ -1277,7 +1266,7 @@ describe('recordTime', () => {
         expect(response.statusCode).toBe(400);
         // readCountとtotalTimeが常に対応するサンプル数を保つよう、
         // 異常値のときはDB書き込み自体を行わない（部分更新はしない）
-        expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+        expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
     });
 
     it('should return 400 when id is missing', async () => {

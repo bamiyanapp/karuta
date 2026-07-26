@@ -8,6 +8,10 @@ function PlayerRegistrationPanel({
   addPlayer,
   maxPlayers,
 }) {
+  let toggleButtonLabel = "取った人を記録する";
+  if (showPlayerRegistration) toggleButtonLabel = "参加者登録を閉じる";
+  else if (players.length > 0) toggleButtonLabel = "参加者を編集する";
+
   return (
     <div>
       <button
@@ -15,7 +19,7 @@ function PlayerRegistrationPanel({
         onClick={() => setShowPlayerRegistration(prev => !prev)}
         className="btn btn-sm btn-outline-secondary rounded-pill px-3"
       >
-        {showPlayerRegistration ? "参加者登録を閉じる" : players.length > 0 ? "参加者を編集する" : "取った人を記録する"}
+        {toggleButtonLabel}
       </button>
       {showPlayerRegistration && (
         <div className="mt-3 mx-auto text-start" style={{ maxWidth: "360px" }}>
