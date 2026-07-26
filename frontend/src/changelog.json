@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.58.3",
+    "version": "1.58.4",
     "date": "2026/07/26",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照タグをv1.12.4へ更新する（issue [#849](https://github.com/bamiyanapp/karuta/issues/849)） ([#852](https://github.com/bamiyanapp/karuta/issues/852)) ([c3711e4](https://github.com/bamiyanapp/karuta/commit/c3711e48190189452f98f92cf414f85557e6f361))"
+  },
+  {
+    "version": "1.58.3",
+    "date": "2026/07/26 03:31",
     "body": "### Bug Fixes\n\n* **ci:** mermaid埋め込み画像をPNGへ切り替える（issue [#837](https://github.com/bamiyanapp/karuta/issues/837)） ([#845](https://github.com/bamiyanapp/karuta/issues/845)) ([68f408f](https://github.com/bamiyanapp/karuta/commit/68f408fb2365297414874435c1f2af39418313a5)), closes [dev-standards#122](https://github.com/dev-standards/issues/122)"
   },
   {

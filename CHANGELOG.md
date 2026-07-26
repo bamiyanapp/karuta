@@ -1,3 +1,10 @@
+## [1.58.4](https://github.com/bamiyanapp/karuta/compare/v1.58.3...v1.58.4) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** dev-standards参照タグをv1.12.4へ更新する（issue [#849](https://github.com/bamiyanapp/karuta/issues/849)） ([#852](https://github.com/bamiyanapp/karuta/issues/852)) ([c3711e4](https://github.com/bamiyanapp/karuta/commit/c3711e48190189452f98f92cf414f85557e6f361))
+
 ## [1.58.3](https://github.com/bamiyanapp/karuta/compare/v1.58.2...v1.58.3) (2026-07-26)
 
 
