@@ -1,3 +1,10 @@
+## [1.58.2](https://github.com/bamiyanapp/karuta/compare/v1.58.1...v1.58.2) (2026-07-26)
+
+
+### Bug Fixes
+
+* **deps:** npm auditで検出された安全に修正可能な脆弱性を解消する（issue [#831](https://github.com/bamiyanapp/karuta/issues/831)） ([#841](https://github.com/bamiyanapp/karuta/issues/841)) ([b812849](https://github.com/bamiyanapp/karuta/commit/b812849225c762331eb53905c4ab9c4a06d2500c))
+
 ## [1.58.1](https://github.com/bamiyanapp/karuta/compare/v1.58.0...v1.58.1) (2026-07-26)
 
 
