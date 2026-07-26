@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.58.1",
+    "version": "1.58.2",
     "date": "2026/07/26",
+    "body": "### Bug Fixes\n\n* **deps:** npm auditで検出された安全に修正可能な脆弱性を解消する（issue [#831](https://github.com/bamiyanapp/karuta/issues/831)） ([#841](https://github.com/bamiyanapp/karuta/issues/841)) ([b812849](https://github.com/bamiyanapp/karuta/commit/b812849225c762331eb53905c4ab9c4a06d2500c))"
+  },
+  {
+    "version": "1.58.1",
+    "date": "2026/07/26 00:33",
     "body": "### Bug Fixes\n\n* **quality:** issue [#806](https://github.com/bamiyanapp/karuta/issues/806)の静的解析指摘・重複を解消しゲートを引き下げる（issue [#833](https://github.com/bamiyanapp/karuta/issues/833)） ([#838](https://github.com/bamiyanapp/karuta/issues/838)) ([257647d](https://github.com/bamiyanapp/karuta/commit/257647de9576b1be5be16a7f87a0cbaec900a084))"
   },
   {
