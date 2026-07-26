@@ -1,3 +1,10 @@
+## [1.58.5](https://github.com/bamiyanapp/karuta/compare/v1.58.4...v1.58.5) (2026-07-26)
+
+
+### Bug Fixes
+
+* **quiz-room:** 早押しタイミングの読み上げ体験を改善する（issue [#861](https://github.com/bamiyanapp/karuta/issues/861), [#860](https://github.com/bamiyanapp/karuta/issues/860)） ([#864](https://github.com/bamiyanapp/karuta/issues/864)) ([1839b81](https://github.com/bamiyanapp/karuta/commit/1839b81275e03c5c6b84102c5e3807af78de4d0d))
+
 ## [1.58.4](https://github.com/bamiyanapp/karuta/compare/v1.58.3...v1.58.4) (2026-07-26)
 
 
