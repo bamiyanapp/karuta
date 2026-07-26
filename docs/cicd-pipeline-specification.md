@@ -6,6 +6,9 @@
 
 ## Architecture
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 graph TD
     A[PR] --> B[CI Workflow];
@@ -18,7 +21,9 @@ graph TD
     G --> I[Deploy Backend to AWS];
 ```
 
-上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[bamiyanapp/karuta#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソース（mermaid記法）はこのまま維持しつつ、以下は`enable_mermaid_render` job（[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#1-ci-ワークフロー-reusable-ciyml)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[bamiyanapp/karuta#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソース（mermaid記法）はこのまま維持しつつ、下記は`enable_mermaid_render` job（[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#1-ci-ワークフロー-reusable-ciyml)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
 
 ![Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-pipeline-specification.svg)
 
