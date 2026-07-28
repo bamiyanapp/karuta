@@ -65,6 +65,65 @@ test('admin creates a quiz room and a participant sees the same card update in r
   }
 });
 
+// issue #548の読み上げ履歴表示は参加者画面にもあるが、クイズ大会モードでは
+// これまで一度もE2Eで検証されていなかった（issue #576、カバレッジ向上のため追加）。
+// 新しいラウンドの札が届いた時点で即座にローカル履歴へ積まれる実装のため
+// （QuizRoomView.jsx）、1ラウンド目が届いた時点で既に履歴表示ボタンが現れる
+test('participant can open and close the "read-aloud history" panel after a phrase is broadcast (issue #576)', async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  await startCoverage(adminPage);
+
+  const participantContext = await browser.newContext();
+  let participantPage = null;
+
+  try {
+    await adminPage.goto('/');
+    await adminPage.getByText('こども向け').click();
+    await adminPage.getByRole('button', { name: /おばけかるた/ }).click();
+    const nextButton = adminPage.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+
+    await adminPage.getByText('クイズ大会のルームを作成する').click();
+    const roomInfoLink = adminPage.getByText('ルーム情報を表示（クイズ大会モード）');
+    await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
+    await roomInfoLink.click();
+    const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
+    await adminPage.getByText('← 戻る').click();
+    await expect(nextButton).toBeVisible();
+
+    participantPage = await participantContext.newPage();
+    await startCoverage(participantPage);
+    await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
+    await expect(participantPage.getByText('クイズ大会モード（参加者）')).toBeVisible();
+    await participantPage.getByPlaceholder('お名前').fill('たろう');
+    await participantPage.getByText('決定').click();
+    await expect(participantPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
+
+    await nextButton.click();
+    await expect(adminPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 30000 });
+    await expect(participantPage.locator('.yomifuda-phrase')).toBeVisible({ timeout: 15000 });
+    const phraseText = await participantPage.locator('.yomifuda-phrase').innerText();
+
+    const historyToggle = participantPage.getByRole('button', { name: /これまでに読み上げた札を表示する/ });
+    await expect(historyToggle).toBeVisible();
+    await historyToggle.click();
+    await expect(participantPage.locator('.list-group-item')).toHaveCount(1);
+    await expect(participantPage.locator('.list-group-item').first()).toContainText(phraseText);
+    await captureScreenshot(participantPage, testInfo, 'participant-history-open', '参加者：これまでに読み上げた札の履歴を開いた状態');
+
+    await participantPage.getByRole('button', { name: 'これまでに読み上げた札を閉じる' }).click();
+    await expect(participantPage.locator('.list-group-item')).toHaveCount(0);
+  } finally {
+    await stopCoverage(adminPage, testInfo);
+    if (participantPage) {
+      await stopCoverage(participantPage, testInfo);
+    }
+    await closeContext(adminContext);
+    await closeContext(participantContext);
+  }
+});
+
 // issue #640: 管理者がリロードした（このテストの再現方法）その場での挙動を固定化する
 // 回帰テスト。adminTokenはissue #697でlocalStorageへ永続化されており、当初は
 // 「参加者画面から『管理者に切り替える』ボタンで再接続する」という別導線でのみ
