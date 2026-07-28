@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.59.1",
+    "version": "1.59.2",
     "date": "2026/07/28",
+    "body": "### Bug Fixes\n\n* **pwa:** 更新通知にセーフエリア（ノッチ）対応を追加する ([#881](https://github.com/bamiyanapp/karuta/issues/881)) ([6c034d0](https://github.com/bamiyanapp/karuta/commit/6c034d0b47845db0f55af85383e93ac754a85d95))"
+  },
+  {
+    "version": "1.59.1",
+    "date": "2026/07/28 21:49",
     "body": "### Bug Fixes\n\n* **ci:** jscpdのテストファイル除外に合わせduplication_thresholdを引き下げる ([#878](https://github.com/bamiyanapp/karuta/issues/878)) ([4b476ac](https://github.com/bamiyanapp/karuta/commit/4b476ac3ae5b337c8175e665bd60a414ba729cf1))"
   },
   {
