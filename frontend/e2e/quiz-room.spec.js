@@ -124,6 +124,47 @@ test('participant can open and close the "read-aloud history" panel after a phra
   }
 });
 
+// QuizRoomInfoView.jsxのhandleCloseRoom/copyUrlは、これまで「確認ダイアログを承諾して
+// 実際に閉じる」経路（issue #748のテスト）しかE2Eで検証されておらず、window.confirm()が
+// falseを返す（キャンセルされる）分岐・招待URLコピー成功時の分岐は未検証だった
+// （issue #576、カバレッジ向上のため追加）
+test('admin dismisses the room-close confirmation (room stays open) and can copy the invite URL (issue #576)', async ({ browser }, testInfo) => {
+  // copyUrl（navigator.clipboard.writeText）の成功経路を検証するため、
+  // クリップボード書き込み権限を明示的に許可したコンテキストを使う
+  const adminContext = await browser.newContext({ permissions: ['clipboard-write'] });
+  const adminPage = await adminContext.newPage();
+  await startCoverage(adminPage);
+
+  try {
+    await adminPage.goto('/');
+    await adminPage.getByText('こども向け').click();
+    await adminPage.getByRole('button', { name: /おばけかるた/ }).click();
+    const nextButton = adminPage.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+
+    await adminPage.getByText('クイズ大会のルームを作成する').click();
+    const roomInfoLink = adminPage.getByText('ルーム情報を表示（クイズ大会モード）');
+    await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
+    await roomInfoLink.click();
+
+    const closeButton = adminPage.getByRole('button', { name: 'ルームを閉じる' });
+    await expect(closeButton).toBeVisible();
+
+    // window.confirm()をキャンセルした場合、closeQuizRoom()は呼ばれずルームは開いたまま
+    adminPage.once('dialog', (dialog) => dialog.dismiss());
+    await closeButton.click();
+    await expect(closeButton).toBeVisible();
+
+    const copyButton = adminPage.getByRole('button', { name: 'コピー' });
+    await copyButton.click();
+    await expect(adminPage.getByRole('button', { name: 'コピーしました' })).toBeVisible();
+    await captureScreenshot(adminPage, testInfo, 'admin-invite-url-copied', '管理者：招待URLをコピーした直後の状態');
+  } finally {
+    await stopCoverage(adminPage, testInfo);
+    await closeContext(adminContext);
+  }
+});
+
 // issue #640: 管理者がリロードした（このテストの再現方法）その場での挙動を固定化する
 // 回帰テスト。adminTokenはissue #697でlocalStorageへ永続化されており、当初は
 // 「参加者画面から『管理者に切り替える』ボタンで再接続する」という別導線でのみ
