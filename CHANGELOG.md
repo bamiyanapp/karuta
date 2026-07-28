@@ -1,3 +1,10 @@
+## [1.59.1](https://github.com/bamiyanapp/karuta/compare/v1.59.0...v1.59.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **ci:** jscpdのテストファイル除外に合わせduplication_thresholdを引き下げる ([#878](https://github.com/bamiyanapp/karuta/issues/878)) ([4b476ac](https://github.com/bamiyanapp/karuta/commit/4b476ac3ae5b337c8175e665bd60a414ba729cf1))
+
 # [1.59.0](https://github.com/bamiyanapp/karuta/compare/v1.58.6...v1.59.0) (2026-07-26)
 
 

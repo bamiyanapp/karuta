@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.59.1",
+    "date": "2026/07/28",
+    "body": "### Bug Fixes\n\n* **ci:** jscpdのテストファイル除外に合わせduplication_thresholdを引き下げる ([#878](https://github.com/bamiyanapp/karuta/issues/878)) ([4b476ac](https://github.com/bamiyanapp/karuta/commit/4b476ac3ae5b337c8175e665bd60a414ba729cf1))"
+  },
+  {
     "version": "1.59.0",
-    "date": "2026/07/26",
+    "date": "2026/07/26 10:42",
     "body": "### Features\n\n* **eslint:** jsx-a11y・import・n系ルールを追加し実指摘を解消する ([#868](https://github.com/bamiyanapp/karuta/issues/868)) ([805ebcf](https://github.com/bamiyanapp/karuta/commit/805ebcfaffb1c98bc000012d4f287993c99ef2cf)), closes [#857](https://github.com/bamiyanapp/karuta/issues/857) [#858](https://github.com/bamiyanapp/karuta/issues/858)"
   },
   {
