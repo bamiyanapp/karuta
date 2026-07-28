@@ -28,11 +28,14 @@ jobs:
       # 導入直後はduplication_threshold未指定（レポート表示のみ、ゲートなし）としていたが、
       # 検出しても何も強制されない状態が放置されていたため、現状の重複率（行ベース）を
       # ベースラインとしたラチェット方式でゲートを有効化する。issue #833でQuizRoomView等
-      # の重複解消を進め、20.31%→18.64%まで削減できたためしきい値も引き下げた。
-      # 残る重複は主にテストファイル（App.test.jsx・QuizRoomView.test.jsx等）で、
-      # 引き続きissue #833で追跡する
+      # の重複解消を進め、20.31%→18.64%まで削減できた。その後dev-standards側でjscpdの
+      # 対象からテストファイル（*.test.*・*.spec.*・e2eディレクトリ配下）を除外する対応
+      # （bamiyanapp/dev-standards#132、v1.12.5で反映）が入り、除外前は主にテストファイル
+      # だった重複がスキャン対象から外れたため、プロダクトコードのみの実測値（0.46%、
+      # backend/backfill-*.jsのバックフィルスクリプト間の重複のみ）に合わせて
+      # しきい値をさらに引き下げた（issue #877）
       enable_duplication_check: true
-      duplication_threshold: 19
+      duplication_threshold: 1
       # 分岐(branches)カバレッジ80%必須化（issue #459）のうち、branches指標のみ
       # 引き続き見送る。backend側で、複数のテストファイルが同一のソースファイル
       # （例: backend/handler.js）をimportする構成において、@vitest/coverage-v8の
