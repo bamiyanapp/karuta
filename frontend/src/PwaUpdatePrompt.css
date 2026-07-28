@@ -3,8 +3,12 @@
   /* 画面下部固定だと、入力欄フォーカスでソフトウェアキーボードが表示された際に
      隠れて操作できなくなる（issue #759）。画面中央よりやや上への変更（issue #759）
      は中途半端な位置だったため、キーボードに隠れず座りも良い最上部へ固定する
-     （issue #776） */
-  top: 1rem;
+     （issue #776）。PWAをホーム画面から起動した場合（standaloneモード）、
+     iOSはノッチ・ステータスバー分の領域をenv(safe-area-inset-top)として
+     提供するため、固定値の1remだけだとその領域と重なって最上部に見えない
+     ことがある（issue #840）。index.htmlのviewport-fit=coverと合わせ、
+     safe-area-inset-topが1remより大きい場合はそちらを優先する */
+  top: max(1rem, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
