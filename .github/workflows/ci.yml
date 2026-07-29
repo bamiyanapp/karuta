@@ -50,6 +50,21 @@ jobs:
       # ままにする）
       coverage_threshold: 80
       coverage_metrics: "statements,functions,lines"
+      # E2Eテスト（Playwright）のJSカバレッジ閾値（issue #576）。dev-standards v1.13.0で
+      # e2e_coverage_threshold/e2e_coverage_metricsが導入され、E2Eカバレッジも
+      # check-coverage-thresholdでゲート可能になった。理想値の80%にはまだ届いていないため、
+      # PR #883/#884で追加したテスト（読み上げ履歴パネルの開閉、ルームを閉じる確認ダイアログの
+      # キャンセル分岐、招待URLコピー）マージ後の実測値（statements 74.71%、functions 68.19%、
+      # lines 68.32%、branches 61.98%）をベースラインとしたラチェット方式で閾値を設定し、
+      # 将来の実装追加でカバレッジが悪化した場合に検知できるようにする。branchesはbackendの
+      # coverage_metricsと同じ理由（@vitest/coverage-v8のbranches指標がCI実行のたびに
+      # 変動し不安定）で判定対象から除外する。閾値はstatements/functions/linesの実測値のうち
+      # 最小のfunctions/lines（68%台）を基準に、実行毎の変動を吸収する余裕を持たせて65とした。
+      # efudaPDFの実際の生成・エラー報告の実際の送信はE2Eで検証しない方針のため、実測値と
+      # 理想の80%とのギャップは許容された既知の技術的負債として残し、issue #576はこの
+      # ラチェット導入をもって一旦クローズする
+      e2e_coverage_threshold: 65
+      e2e_coverage_metrics: "statements,functions,lines"
       # issue #824: docs/cicd-pipeline-specification.mdおよびREADME.md（System
       # Architecture／Screen Transitionsの2図）のmermaid図をSVGへ事前レンダリング
       # し、PR差分ビュー・API経由でのファイル取得等でmermaidがネイティブ
