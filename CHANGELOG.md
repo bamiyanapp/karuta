@@ -1,3 +1,10 @@
+# [1.60.0](https://github.com/bamiyanapp/karuta/compare/v1.59.2...v1.60.0) (2026-07-29)
+
+
+### Features
+
+* **ci:** E2Eカバレッジ閾値をラチェットダウン方式で有効化する ([#887](https://github.com/bamiyanapp/karuta/issues/887)) ([315110b](https://github.com/bamiyanapp/karuta/commit/315110b16c6dc8d370989e99d8ebb8c29cd9cc26))
+
 ## [1.59.2](https://github.com/bamiyanapp/karuta/compare/v1.59.1...v1.59.2) (2026-07-28)
 
 

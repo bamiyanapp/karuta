@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.60.0",
+    "date": "2026/07/29",
+    "body": "### Features\n\n* **ci:** E2Eカバレッジ閾値をラチェットダウン方式で有効化する ([#887](https://github.com/bamiyanapp/karuta/issues/887)) ([315110b](https://github.com/bamiyanapp/karuta/commit/315110b16c6dc8d370989e99d8ebb8c29cd9cc26))"
+  },
+  {
     "version": "1.59.2",
-    "date": "2026/07/28",
+    "date": "2026/07/28 22:18",
     "body": "### Bug Fixes\n\n* **pwa:** 更新通知にセーフエリア（ノッチ）対応を追加する ([#881](https://github.com/bamiyanapp/karuta/issues/881)) ([6c034d0](https://github.com/bamiyanapp/karuta/commit/6c034d0b47845db0f55af85383e93ac754a85d95))"
   },
   {
