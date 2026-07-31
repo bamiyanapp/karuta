@@ -45,7 +45,7 @@ erDiagram
     }
     "karuta-phrases" {
         string category PK
-        string id SK
+        string id "ソートキー"
     }
     "karuta-polly-cache" {
         string id PK

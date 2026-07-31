@@ -66,13 +66,27 @@ function collectEnvVarNames(functionBlock, calledHelperBlocks) {
   return [...new Set([...text.matchAll(/process\.env\.(\w+)/g)].map((m) => m[1]))];
 }
 
+// バケット名の`${aws:accountId}`（CloudFormation/Serverless Frameworkの疑似変数、
+// デプロイ時にしか実値が決まらないため静的には解決できない）を、`$`・`{`・`}`・`:`を
+// 含まない安全な表示用プレースホルダーに置き換える。これらの記号はノードラベル内で
+// Mermaidのパースエラーを引き起こす（実際にrender-mermaid-diagrams jobで発生）
+function sanitizeLabelText(text) {
+  return text.replace(/\$\{aws:accountId\}/g, "ACCOUNTID");
+}
+
 function buildResourceNodesByEnvValue(tables, buckets) {
   const map = new Map();
+  // ノードラベル中に丸括弧を含めると、シリンダー形状`[(...)]`の開始/終了記号と
+  // 衝突してパースエラーになる（実際にrender-mermaid-diagrams jobで発生）ため、
+  // 括弧を使わずラベルを組み立てる
   for (const table of tables) {
-    map.set(table.tableName, { id: `table_${sanitizeId(table.tableName)}`, label: `${table.tableName}<br/>(DynamoDB)` });
+    map.set(table.tableName, { id: `table_${sanitizeId(table.tableName)}`, label: `${table.tableName}<br/>DynamoDB` });
   }
   for (const bucket of buckets) {
-    map.set(bucket.bucketName, { id: `bucket_${sanitizeId(bucket.bucketName)}`, label: `${bucket.bucketName}<br/>(S3)` });
+    map.set(bucket.bucketName, {
+      id: `bucket_${sanitizeId(bucket.bucketName)}`,
+      label: `${sanitizeLabelText(bucket.bucketName)}<br/>S3`,
+    });
   }
   return map;
 }

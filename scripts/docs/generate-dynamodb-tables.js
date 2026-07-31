@@ -52,8 +52,17 @@ function renderErDiagram(tables) {
       }
       const type = ATTRIBUTE_TYPE_LABEL[attr.type] || "string";
       const keyType = keyTypeByAttribute.get(attr.attribute);
-      const keyLabel = keyType === "HASH" ? "PK" : keyType === "RANGE" ? "SK" : "";
-      mermaidSource += `        ${type} ${attr.attribute} ${keyLabel}\n`;
+      // MermaidのerDiagramが認識するキー種別はPK/FK/UKのみで、DynamoDBの
+      // ソートキー（RANGE）に対応する"SK"は無効なトークンとしてパースエラーに
+      // なる（実際にrender-mermaid-diagrams jobで発生）。ソートキーはPK/FK/UKの
+      // いずれにも当たらないため、キー種別は付けずコメント注記のみで示す
+      const parts = [type, attr.attribute];
+      if (keyType === "HASH") {
+        parts.push("PK");
+      } else if (keyType === "RANGE") {
+        parts.push('"ソートキー"');
+      }
+      mermaidSource += `        ${parts.join(" ")}\n`;
     }
     for (const gsi of table.globalSecondaryIndexes) {
       for (const k of gsi.keySchema) {

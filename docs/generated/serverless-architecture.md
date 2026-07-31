@@ -35,12 +35,12 @@ graph LR
     judgeQuizRoomBuzz["judgeQuizRoomBuzz"]
     resetQuizRoomPoints["resetQuizRoomPoints"]
     closeQuizRoom["closeQuizRoom"]
-    table_karuta_phrases[(karuta-phrases<br/>(DynamoDB))]
-    table_karuta_comments[(karuta-comments<br/>(DynamoDB))]
-    table_karuta_polly_cache[(karuta-polly-cache<br/>(DynamoDB))]
-    table_karuta_quiz_rooms[(karuta-quiz-rooms<br/>(DynamoDB))]
-    table_karuta_quiz_room_connections[(karuta-quiz-room-connections<br/>(DynamoDB))]
-    bucket_karuta_efuda_pdf___aws_accountId_[(karuta-efuda-pdf-${aws:accountId}<br/>(S3))]
+    table_karuta_phrases[(karuta-phrases<br/>DynamoDB)]
+    table_karuta_comments[(karuta-comments<br/>DynamoDB)]
+    table_karuta_polly_cache[(karuta-polly-cache<br/>DynamoDB)]
+    table_karuta_quiz_rooms[(karuta-quiz-rooms<br/>DynamoDB)]
+    table_karuta_quiz_room_connections[(karuta-quiz-room-connections<br/>DynamoDB)]
+    bucket_karuta_efuda_pdf___aws_accountId_[(karuta-efuda-pdf-ACCOUNTID<br/>S3)]
 
     Client -->|HTTP| APIGW
     Client -->|WebSocket| WSGW
