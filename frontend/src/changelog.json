@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.61.0",
+    "date": "2026/07/31",
+    "body": "### Features\n\n* **docs:** serverless.yml/frontend静的解析によるドキュメント自動生成 ([#910](https://github.com/bamiyanapp/karuta/issues/910)) ([cb95ce3](https://github.com/bamiyanapp/karuta/commit/cb95ce3024f28c1f0028cc88ce1860c37ee6495c))"
+  },
+  {
     "version": "1.60.0",
-    "date": "2026/07/29",
+    "date": "2026/07/29 00:10",
     "body": "### Features\n\n* **ci:** E2Eカバレッジ閾値をラチェットダウン方式で有効化する ([#887](https://github.com/bamiyanapp/karuta/issues/887)) ([315110b](https://github.com/bamiyanapp/karuta/commit/315110b16c6dc8d370989e99d8ebb8c29cd9cc26))"
   },
   {

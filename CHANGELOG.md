@@ -1,3 +1,10 @@
+# [1.61.0](https://github.com/bamiyanapp/karuta/compare/v1.60.0...v1.61.0) (2026-07-31)
+
+
+### Features
+
+* **docs:** serverless.yml/frontend静的解析によるドキュメント自動生成 ([#910](https://github.com/bamiyanapp/karuta/issues/910)) ([cb95ce3](https://github.com/bamiyanapp/karuta/commit/cb95ce3024f28c1f0028cc88ce1860c37ee6495c))
+
 # [1.60.0](https://github.com/bamiyanapp/karuta/compare/v1.59.2...v1.60.0) (2026-07-29)
 
 
