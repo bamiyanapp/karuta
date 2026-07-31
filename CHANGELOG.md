@@ -1,3 +1,10 @@
+# [1.63.0](https://github.com/bamiyanapp/karuta/compare/v1.62.0...v1.63.0) (2026-07-31)
+
+
+### Features
+
+* **docs:** ライブラリ一覧・外部サービス一覧・環境変数一覧を生成 ([#915](https://github.com/bamiyanapp/karuta/issues/915)) ([1b178a4](https://github.com/bamiyanapp/karuta/commit/1b178a49b2d1bbaf99db9b703a0e43fc93c4a69e))
+
 # [1.62.0](https://github.com/bamiyanapp/karuta/compare/v1.61.0...v1.62.0) (2026-07-31)
 
 
