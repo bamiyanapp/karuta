@@ -29,6 +29,42 @@ function renderTableSection(table) {
   return section;
 }
 
+const ATTRIBUTE_TYPE_LABEL = { S: "string", N: "number", B: "binary" };
+
+// Mermaidのerディレクトリ図。DynamoDBはORMを介さずAWS SDKを直接呼び出す構成で
+// 外部キー制約も無いため、テーブル間の関連（リレーション行）は描かず、各テーブルの
+// 属性一覧（パーティションキー/ソートキー/GSIキー）のみをエンティティとして図示する。
+// アプリケーションコード上の緩やかな関連（roomId等）は図ではなく後続の文章で補足する。
+function renderErDiagram(tables) {
+  let body = "```mermaid\nerDiagram\n";
+  for (const table of tables) {
+    body += `    "${table.tableName}" {\n`;
+    const keyTypeByAttribute = new Map(table.keySchema.map((k) => [k.attribute, k.keyType]));
+    const gsiAttributeNames = new Set(
+      table.globalSecondaryIndexes.flatMap((gsi) => gsi.keySchema.map((k) => k.attribute))
+    );
+    for (const attr of table.attributeDefinitions) {
+      // メインのKeySchemaに属さず、GSIのキーとしてのみ使われる属性は、
+      // 下のGSIループ側でまとめて出力するため、ここでは重複を避けてスキップする
+      if (!keyTypeByAttribute.has(attr.attribute) && gsiAttributeNames.has(attr.attribute)) {
+        continue;
+      }
+      const type = ATTRIBUTE_TYPE_LABEL[attr.type] || "string";
+      const keyType = keyTypeByAttribute.get(attr.attribute);
+      const keyLabel = keyType === "HASH" ? "PK" : keyType === "RANGE" ? "SK" : "";
+      body += `        ${type} ${attr.attribute} ${keyLabel}\n`;
+    }
+    for (const gsi of table.globalSecondaryIndexes) {
+      for (const k of gsi.keySchema) {
+        body += `        string ${k.attribute} "GSI: ${gsi.indexName}"\n`;
+      }
+    }
+    body += "    }\n";
+  }
+  body += "```\n";
+  return body;
+}
+
 function renderMarkdown(tables) {
   let body = "# DynamoDBテーブル定義書（自動生成）\n\n";
   body +=
@@ -41,6 +77,12 @@ function renderMarkdown(tables) {
   for (const table of tables) {
     body += renderTableSection(table);
   }
+  body += "## 属性一覧（ER図）\n\n";
+  body += renderErDiagram(tables);
+  body +=
+    "\nテーブル間に外部キー制約は無いが、アプリケーションコード上は`roomId`が" +
+    "`karuta-quiz-rooms`と`karuta-quiz-room-connections`（GSI `roomId-index`）を" +
+    "またいで使われており、緩やかな関連を持つ（図には正式なリレーションとして描画しない）。\n";
   return body;
 }
 

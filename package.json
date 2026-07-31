@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "lint": "commitlint --last --verbose",
-    "docs:generate": "node scripts/docs/generate-backend-api.js && node scripts/docs/generate-websocket-api.js && node scripts/docs/generate-dynamodb-tables.js && node scripts/docs/generate-api-usage.js"
+    "docs:generate": "node scripts/docs/generate-backend-api.js && node scripts/docs/generate-websocket-api.js && node scripts/docs/generate-dynamodb-tables.js && node scripts/docs/generate-serverless-architecture.js && node scripts/docs/generate-cicd-architecture.js && node scripts/docs/generate-api-usage.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.0",
