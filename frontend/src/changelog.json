@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.62.0",
+    "version": "1.63.0",
     "date": "2026/07/31",
+    "body": "### Features\n\n* **docs:** ライブラリ一覧・外部サービス一覧・環境変数一覧を生成 ([#915](https://github.com/bamiyanapp/karuta/issues/915)) ([1b178a4](https://github.com/bamiyanapp/karuta/commit/1b178a49b2d1bbaf99db9b703a0e43fc93c4a69e))"
+  },
+  {
+    "version": "1.62.0",
+    "date": "2026/07/31 22:44",
     "body": "### Features\n\n* **docs:** 静的解析ドキュメントにMermaid図式化を追加 ([#913](https://github.com/bamiyanapp/karuta/issues/913)) ([0998d90](https://github.com/bamiyanapp/karuta/commit/0998d90dae15df22cd23c1de6563175e239801f0)), closes [#903](https://github.com/bamiyanapp/karuta/issues/903)"
   },
   {
