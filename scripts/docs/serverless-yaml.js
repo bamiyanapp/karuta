@@ -1,13 +1,16 @@
 "use strict";
 
 const fs = require("fs");
-const yaml = require("js-yaml");
+const { load, CORE_SCHEMA, defineScalarTag } = require("js-yaml");
 
 // serverless.ymlはCloudFormationテンプレートのresourcesを含み、!GetAtt・!Subのような
 // CloudFormation組み込み関数の短縮タグを使う。js-yamlの既定スキーマはこれらのタグを
 // 知らずパースエラーになるため、値をそのまま`{ "Fn::<Tag>": <値> }`として保持するだけの
 // 最小限のカスタムスキーマを用意する（本パーサーは静的なルート・テーブル定義の抽出が
 // 目的で、組み込み関数の値解決自体は行わない。参照: issue #901/#902/#903）。
+// スカラー形式（例: `!GetAtt Resource.Attr`）のみ対応し、シーケンス/マッピング形式
+// （例: `!GetAtt [Resource, Attr]`）は本コードベースの実際のserverless.ymlで
+// 使われていないため未対応（必要になった場合はdefineSequenceTag/defineMappingTagで追加する）。
 const INTRINSIC_TAGS = [
   "GetAtt",
   "Sub",
@@ -25,21 +28,17 @@ const INTRINSIC_TAGS = [
   "Condition",
 ];
 
-const CLOUDFORMATION_SCHEMA = yaml.DEFAULT_SCHEMA.extend(
-  INTRINSIC_TAGS.flatMap((tag) =>
-    ["scalar", "sequence", "mapping"].map(
-      (kind) =>
-        new yaml.Type(`!${tag}`, {
-          kind,
-          construct: (data) => ({ [`Fn::${tag}`]: data }),
-        })
-    )
+const CLOUDFORMATION_SCHEMA = CORE_SCHEMA.withTags(
+  ...INTRINSIC_TAGS.map((tag) =>
+    defineScalarTag(`!${tag}`, {
+      resolve: (source) => ({ [`Fn::${tag}`]: source }),
+    })
   )
 );
 
 function loadServerlessConfig(filePath) {
   const raw = fs.readFileSync(filePath, "utf-8");
-  return yaml.load(raw, { schema: CLOUDFORMATION_SCHEMA });
+  return load(raw, { schema: CLOUDFORMATION_SCHEMA });
 }
 
 const SELF_CUSTOM_VAR_RE = /\$\{self:custom\.([\w.]+)\}/g;
