@@ -4,14 +4,53 @@
 
 クイズ大会モードのリアルタイム通信（読み札・結果画面の同期、早押し判定等）に使うAPI Gateway WebSocket API（`backend/quizRoomHandler.js`）のルート一覧。
 
-| ルート | 関数名 | ハンドラー |
-| :--- | :--- | :--- |
-| `$connect` | connectQuizRoom | `quizRoomHandler.connectQuizRoom` |
-| `$disconnect` | disconnectQuizRoom | `quizRoomHandler.disconnectQuizRoom` |
-| `buzz` | buzzQuizRoom | `quizRoomHandler.buzzQuizRoom` |
-| `closeRoom` | closeQuizRoom | `quizRoomHandler.closeQuizRoom` |
-| `judgeBuzz` | judgeQuizRoomBuzz | `quizRoomHandler.judgeQuizRoomBuzz` |
-| `resetPoints` | resetQuizRoomPoints | `quizRoomHandler.resetQuizRoomPoints` |
-| `setName` | setQuizRoomName | `quizRoomHandler.setQuizRoomName` |
-| `sync` | syncQuizRoom | `quizRoomHandler.syncQuizRoom` |
-| `updateState` | updateQuizRoomState | `quizRoomHandler.updateQuizRoomState` |
+| ルート | 関数名 | ハンドラー | 実行権限 | ブロードキャスト |
+| :--- | :--- | :--- | :--- | :--- |
+| `$connect` | connectQuizRoom | `quizRoomHandler.connectQuizRoom` | 制限なし | なし（呼び出し元のみ） |
+| `$disconnect` | disconnectQuizRoom | `quizRoomHandler.disconnectQuizRoom` | 制限なし | あり（ルーム内の全接続へ） |
+| `buzz` | buzzQuizRoom | `quizRoomHandler.buzzQuizRoom` | 参加者のみ | あり（ルーム内の全接続へ） |
+| `closeRoom` | closeQuizRoom | `quizRoomHandler.closeQuizRoom` | 管理者のみ | あり（ルーム内の全接続へ） |
+| `judgeBuzz` | judgeQuizRoomBuzz | `quizRoomHandler.judgeQuizRoomBuzz` | 管理者のみ | あり（ルーム内の全接続へ） |
+| `resetPoints` | resetQuizRoomPoints | `quizRoomHandler.resetQuizRoomPoints` | 管理者のみ | あり（ルーム内の全接続へ） |
+| `setName` | setQuizRoomName | `quizRoomHandler.setQuizRoomName` | 制限なし | あり（ルーム内の全接続へ） |
+| `sync` | syncQuizRoom | `quizRoomHandler.syncQuizRoom` | 制限なし | なし（呼び出し元のみ） |
+| `updateState` | updateQuizRoomState | `quizRoomHandler.updateQuizRoomState` | 管理者のみ | あり（ルーム内の全接続へ） |
+
+## 代表的な通信フロー（シーケンス図）
+
+実行権限・ブロードキャスト有無は静的解析（`withRoleGuard`/`broadcastToRoom`呼び出しの検出）で機械的に抽出しているが、下記の呼び出し順序自体はコードの意味的な理解に基づき構成したもので、厳密な自動生成ではない点に留意する。
+
+```mermaid
+sequenceDiagram
+    participant Admin as クライアント（管理者）
+    participant Participant as クライアント（参加者）
+    participant GW as API Gateway (WebSocket)
+    participant L as Lambda（quizRoomHandler）
+    participant Room as ルーム内の全接続
+
+    Admin->>GW: $connect（roomId・adminToken）
+    GW->>L: connectQuizRoom
+    Participant->>GW: $connect（roomId）
+    GW->>L: connectQuizRoom
+    Participant->>L: sync
+    L-->>Participant: 現在の状態（sync）
+    Participant->>L: setName
+    L->>Room: participants（ブロードキャスト）
+    Admin->>L: updateState（読み札の表示等）
+    L->>Room: state（ブロードキャスト）
+    Participant->>L: buzz
+    L->>Room: buzz（ブロードキャスト）
+    Admin->>L: judgeBuzz
+    alt 正解
+        L->>Room: points（ブロードキャスト）
+    else 不正解
+        L->>Room: roundReset（ブロードキャスト）
+    end
+    Admin->>L: resetPoints
+    L->>Room: points（リセット後、ブロードキャスト）
+    Admin->>L: closeRoom
+    L->>Room: roomClosed（ブロードキャスト）
+    Participant--)GW: $disconnect
+    GW--)L: disconnectQuizRoom
+    L->>Room: participants（ブロードキャスト）
+```

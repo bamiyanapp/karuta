@@ -33,3 +33,27 @@ ORM（Prisma/TypeORM等）は使わずAWS SDKを直接呼び出す構成のた�
 - キースキーマ: roomId (HASH)
 - TTL: `ttl`属性（有効）
 
+## 属性一覧（ER図）
+
+```mermaid
+erDiagram
+    "karuta-comments" {
+        string id PK
+    }
+    "karuta-phrases" {
+        string category PK
+        string id SK
+    }
+    "karuta-polly-cache" {
+        string id PK
+    }
+    "karuta-quiz-room-connections" {
+        string connectionId PK
+        string roomId "GSI: roomId-index"
+    }
+    "karuta-quiz-rooms" {
+        string roomId PK
+    }
+```
+
+テーブル間に外部キー制約は無いが、アプリケーションコード上は`roomId`が`karuta-quiz-rooms`と`karuta-quiz-room-connections`（GSI `roomId-index`）をまたいで使われており、緩やかな関連を持つ（図には正式なリレーションとして描画しない）。

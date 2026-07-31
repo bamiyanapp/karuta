@@ -128,9 +128,57 @@ function extractDynamoDbTables(config) {
   return tables;
 }
 
+function extractS3Buckets(config) {
+  const resources = (config.resources && config.resources.Resources) || {};
+  const buckets = [];
+  for (const [resourceName, def] of Object.entries(resources)) {
+    if (!def || def.Type !== "AWS::S3::Bucket") {
+      continue;
+    }
+    const props = def.Properties || {};
+    buckets.push({
+      resourceName,
+      bucketName: resolveSelfCustomVariables(props.BucketName, config),
+    });
+  }
+  return buckets;
+}
+
+function listFunctionNames(config) {
+  return Object.keys(config.functions || {});
+}
+
+// provider.environment（全関数で共有される環境変数）を、${self:custom.xxx}解決込みで返す
+function extractProviderEnvironment(config) {
+  const environment = (config.provider && config.provider.environment) || {};
+  const resolved = {};
+  for (const [key, value] of Object.entries(environment)) {
+    resolved[key] = resolveSelfCustomVariables(value, config);
+  }
+  return resolved;
+}
+
+// functions.<name>.environment（関数固有の環境変数上書き）を返す。文字列値は
+// ${self:custom.xxx}を解決し、CloudFormation組み込み関数（!GetAtt等）はそのまま
+// `{ "Fn::GetAtt": "<論理ID>.<属性>" }`形式で返す（値解決はしない）
+function extractFunctionEnvironment(config, functionName) {
+  const def = (config.functions || {})[functionName] || {};
+  const environment = def.environment || {};
+  const resolved = {};
+  for (const [key, value] of Object.entries(environment)) {
+    resolved[key] = resolveSelfCustomVariables(value, config);
+  }
+  return resolved;
+}
+
 module.exports = {
   loadServerlessConfig,
+  resolveSelfCustomVariables,
   extractHttpApiRoutes,
   extractWebsocketRoutes,
   extractDynamoDbTables,
+  extractS3Buckets,
+  listFunctionNames,
+  extractFunctionEnvironment,
+  extractProviderEnvironment,
 };
