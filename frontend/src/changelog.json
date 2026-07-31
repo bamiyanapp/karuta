@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.61.0",
+    "version": "1.62.0",
     "date": "2026/07/31",
+    "body": "### Features\n\n* **docs:** 静的解析ドキュメントにMermaid図式化を追加 ([#913](https://github.com/bamiyanapp/karuta/issues/913)) ([0998d90](https://github.com/bamiyanapp/karuta/commit/0998d90dae15df22cd23c1de6563175e239801f0)), closes [#903](https://github.com/bamiyanapp/karuta/issues/903)"
+  },
+  {
+    "version": "1.61.0",
+    "date": "2026/07/31 22:12",
     "body": "### Features\n\n* **docs:** serverless.yml/frontend静的解析によるドキュメント自動生成 ([#910](https://github.com/bamiyanapp/karuta/issues/910)) ([cb95ce3](https://github.com/bamiyanapp/karuta/commit/cb95ce3024f28c1f0028cc88ce1860c37ee6495c))"
   },
   {

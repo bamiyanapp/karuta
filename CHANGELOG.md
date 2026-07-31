@@ -1,3 +1,10 @@
+# [1.62.0](https://github.com/bamiyanapp/karuta/compare/v1.61.0...v1.62.0) (2026-07-31)
+
+
+### Features
+
+* **docs:** 静的解析ドキュメントにMermaid図式化を追加 ([#913](https://github.com/bamiyanapp/karuta/issues/913)) ([0998d90](https://github.com/bamiyanapp/karuta/commit/0998d90dae15df22cd23c1de6563175e239801f0)), closes [#903](https://github.com/bamiyanapp/karuta/issues/903)
+
 # [1.61.0](https://github.com/bamiyanapp/karuta/compare/v1.60.0...v1.61.0) (2026-07-31)
 
 
