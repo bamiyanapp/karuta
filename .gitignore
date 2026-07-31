@@ -1,3 +1,6 @@
+# --- dev-standards managed: start ---
+# このマーカー区間はdev-standards側との完全一致チェック対象（scripts/bootstrap.js、issue #138）。
+# プロダクト固有の追加エントリは、この区間の外（後ろ）に追記すること。
 # Node dependencies
 node_modules/
 npm-debug.log*
@@ -27,3 +30,4 @@ Thumbs.db
 
 # commit skill が下書きに使う一時ファイル
 commit_msg*.txt
+# --- dev-standards managed: end ---
