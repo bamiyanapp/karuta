@@ -35,6 +35,9 @@ ORM（Prisma/TypeORM等）は使わずAWS SDKを直接呼び出す構成のた�
 
 ## 属性一覧（ER図）
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 erDiagram
     "karuta-comments" {
@@ -55,5 +58,11 @@ erDiagram
         string roomId PK
     }
 ```
+
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](../cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
+
+![DynamoDBテーブル ER図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/dynamodb-tables.png)
 
 テーブル間に外部キー制約は無いが、アプリケーションコード上は`roomId`が`karuta-quiz-rooms`と`karuta-quiz-room-connections`（GSI `roomId-index`）をまたいで使われており、緩やかな関連を持つ（図には正式なリレーションとして描画しない）。

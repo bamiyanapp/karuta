@@ -20,6 +20,9 @@
 
 実行権限・ブロードキャスト有無は静的解析（`withRoleGuard`/`broadcastToRoom`呼び出しの検出）で機械的に抽出しているが、下記の呼び出し順序自体はコードの意味的な理解に基づき構成したもので、厳密な自動生成ではない点に留意する。
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 sequenceDiagram
     participant Admin as クライアント（管理者）
@@ -54,3 +57,9 @@ sequenceDiagram
     GW--)L: disconnectQuizRoom
     L->>Room: participants（ブロードキャスト）
 ```
+
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](../cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
+
+![WebSocket API 通信フロー (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/websocket-api.png)

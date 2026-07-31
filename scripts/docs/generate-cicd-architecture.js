@@ -4,6 +4,7 @@
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const { renderMermaidWithEmbed } = require("./mermaid-embed");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const reusableCiPath = path.join(repoRoot, "dev-standards", ".github", "workflows", "reusable-ci.yml");
@@ -77,40 +78,50 @@ function isJobEnabledForKaruta(job, karutaCiInputs) {
   });
 }
 
+// このファイルにはCI/CD 2つのMermaidブロックが含まれる。render-mermaid.jsの命名規則
+// （1ファイル内に複数ブロックがある場合`<basename>-<出現順の連番>.png`になる）に
+// 合わせ、このCIグラフが1番目（cicd-architecture-1.png）になる
 function renderCiGraph(jobs, karutaCiInputs) {
-  let body = "```mermaid\ngraph TD\n";
+  let mermaidSource = "graph TD\n";
   for (const job of jobs) {
     const enabled = isJobEnabledForKaruta(job, karutaCiInputs);
     const label = enabled ? job.name : `${job.name}（karutaでは無効/スキップ）`;
-    body += `    ${job.name}["${label}"]\n`;
+    mermaidSource += `    ${job.name}["${label}"]\n`;
     if (!enabled) {
-      body += `    style ${job.name} stroke-dasharray: 5 5\n`;
+      mermaidSource += `    style ${job.name} stroke-dasharray: 5 5\n`;
     }
   }
-  body += "\n";
+  mermaidSource += "\n";
   for (const job of jobs) {
     for (const need of job.needs) {
-      body += `    ${need} --> ${job.name}\n`;
+      mermaidSource += `    ${need} --> ${job.name}\n`;
     }
   }
-  body += "```\n";
-  return body;
+  return renderMermaidWithEmbed({
+    mermaidSource,
+    imageFileName: "cicd-architecture-1.png",
+    altText: "CIワークフロー構成図 (rendered)",
+  });
 }
 
+// CDグラフはファイル内2番目のMermaidブロック（cicd-architecture-2.png）になる
 function renderCdGraph(cdWorkflow) {
   const jobs = extractJobs(cdWorkflow);
-  let body = "```mermaid\ngraph TD\n";
+  let mermaidSource = "graph TD\n";
   for (const job of jobs) {
-    body += `    ${job.name}["${job.name}"]\n`;
+    mermaidSource += `    ${job.name}["${job.name}"]\n`;
   }
-  body += "\n";
+  mermaidSource += "\n";
   for (const job of jobs) {
     for (const need of job.needs) {
-      body += `    ${need} --> ${job.name}\n`;
+      mermaidSource += `    ${need} --> ${job.name}\n`;
     }
   }
-  body += "```\n";
-  return body;
+  return renderMermaidWithEmbed({
+    mermaidSource,
+    imageFileName: "cicd-architecture-2.png",
+    altText: "CDワークフロー構成図 (rendered)",
+  });
 }
 
 function main() {

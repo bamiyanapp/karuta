@@ -6,6 +6,9 @@ job間の依存（`needs:`）およびkarutaの実際の設定（`ci.yml`の`wit
 
 ## CIワークフロー（reusable-ci.yml、karuta設定反映）
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 graph TD
     commitlint["commitlint"]
@@ -36,7 +39,16 @@ graph TD
     render-mermaid-diagrams --> merge
 ```
 
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](../cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
+
+![CIワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-1.png)
+
 ## CDワークフロー（karuta cd.yml）
+
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
 
 ```mermaid
 graph TD
@@ -47,3 +59,9 @@ graph TD
     release --> build-and-deploy-frontend
     release --> deploy-backend
 ```
+
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](../cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
+
+![CDワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-2.png)
