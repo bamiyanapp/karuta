@@ -15,6 +15,9 @@ npm run docs:generate
 | [dynamodb-tables.md](./dynamodb-tables.md) | `backend/serverless.yml`の`AWS::DynamoDB::Table`リソース定義（Mermaid ER図を含む） | [#903](https://github.com/bamiyanapp/karuta/issues/903) |
 | [serverless-architecture.md](./serverless-architecture.md) | `backend/serverless.yml`のリソース定義・各Lambda関数コードの環境変数参照（Mermaidフロー図） | [#904](https://github.com/bamiyanapp/karuta/issues/904) |
 | [cicd-architecture.md](./cicd-architecture.md) | dev-standardsの`reusable-ci.yml`・karutaの`ci.yml`/`cd.yml`のjob依存関係（Mermaidフロー図） | [#905](https://github.com/bamiyanapp/karuta/issues/905) |
+| [library-list.md](./library-list.md) | frontend/backend/rootの各`package.json` | [#906](https://github.com/bamiyanapp/karuta/issues/906) |
+| [external-services.md](./external-services.md) | `backend/serverless.yml`のIAMポリシー・設定ファイルの存在 | [#907](https://github.com/bamiyanapp/karuta/issues/907) |
+| [env-vars.md](./env-vars.md) | `backend/serverless.yml`の`environment:`・`frontend/src/config.js` | [#908](https://github.com/bamiyanapp/karuta/issues/908) |
 | [api-usage.md](./api-usage.md) | `frontend/src`配下のAPI呼び出し箇所 | [#909](https://github.com/bamiyanapp/karuta/issues/909) |
 
 生成タイミングのCI組み込み（PRごとの自動再生成・ドリフト検知等）は未対応。方針は[issue #900](https://github.com/bamiyanapp/karuta/issues/900)の検討事項を参照し、別途フォローアップで対応する。
