@@ -14,6 +14,7 @@ const {
   extractProviderEnvironment,
 } = require("./serverless-yaml");
 const { splitExportsIntoBlocks, splitNamedFunctionsIntoBlocks } = require("./handler-blocks");
+const { renderMermaidWithEmbed } = require("./mermaid-embed");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const serverlessPath = path.join(repoRoot, "backend", "serverless.yml");
@@ -65,13 +66,27 @@ function collectEnvVarNames(functionBlock, calledHelperBlocks) {
   return [...new Set([...text.matchAll(/process\.env\.(\w+)/g)].map((m) => m[1]))];
 }
 
+// バケット名の`${aws:accountId}`（CloudFormation/Serverless Frameworkの疑似変数、
+// デプロイ時にしか実値が決まらないため静的には解決できない）を、`$`・`{`・`}`・`:`を
+// 含まない安全な表示用プレースホルダーに置き換える。これらの記号はノードラベル内で
+// Mermaidのパースエラーを引き起こす（実際にrender-mermaid-diagrams jobで発生）
+function sanitizeLabelText(text) {
+  return text.replace(/\$\{aws:accountId\}/g, "ACCOUNTID");
+}
+
 function buildResourceNodesByEnvValue(tables, buckets) {
   const map = new Map();
+  // ノードラベル中に丸括弧を含めると、シリンダー形状`[(...)]`の開始/終了記号と
+  // 衝突してパースエラーになる（実際にrender-mermaid-diagrams jobで発生）ため、
+  // 括弧を使わずラベルを組み立てる
   for (const table of tables) {
-    map.set(table.tableName, { id: `table_${sanitizeId(table.tableName)}`, label: `${table.tableName}<br/>(DynamoDB)` });
+    map.set(table.tableName, { id: `table_${sanitizeId(table.tableName)}`, label: `${table.tableName}<br/>DynamoDB` });
   }
   for (const bucket of buckets) {
-    map.set(bucket.bucketName, { id: `bucket_${sanitizeId(bucket.bucketName)}`, label: `${bucket.bucketName}<br/>(S3)` });
+    map.set(bucket.bucketName, {
+      id: `bucket_${sanitizeId(bucket.bucketName)}`,
+      label: `${sanitizeLabelText(bucket.bucketName)}<br/>S3`,
+    });
   }
   return map;
 }
@@ -188,48 +203,54 @@ function renderMarkdown({
     "エクスポートされた関数が直接、または1階層のヘルパー関数（`関数名(...)`という" +
     "直接呼び出し構文）経由で参照している場合のみ検出でき、`array.map(helperFn)`の" +
     "ような関数の参照渡しは検出できない既知の制約がある。\n\n";
-  body += "```mermaid\ngraph LR\n";
-  body += "    Client[フロントエンド]\n";
-  body += "    APIGW[API Gateway<br/>HTTP API]\n";
-  body += "    WSGW[API Gateway<br/>WebSocket API]\n";
-  body += "    Polly[(AWS Polly)]\n";
+
+  let mermaidSource = "graph LR\n";
+  mermaidSource += "    Client[フロントエンド]\n";
+  mermaidSource += "    APIGW[API Gateway<br/>HTTP API]\n";
+  mermaidSource += "    WSGW[API Gateway<br/>WebSocket API]\n";
+  mermaidSource += "    Polly[(AWS Polly)]\n";
 
   const httpFunctionNames = new Set(httpRoutes.map((r) => r.functionName));
   const websocketFunctionNames = new Set(websocketRoutes.map((r) => r.functionName));
 
   for (const functionName of functionNames) {
-    body += `    ${functionName}["${functionName}"]\n`;
+    mermaidSource += `    ${functionName}["${functionName}"]\n`;
   }
   for (const [, node] of resourceNodeByEnvValue) {
-    body += `    ${node.id}[(${node.label})]\n`;
+    mermaidSource += `    ${node.id}[(${node.label})]\n`;
   }
 
-  body += "\n";
+  mermaidSource += "\n";
   if (httpFunctionNames.size > 0) {
-    body += "    Client -->|HTTP| APIGW\n";
+    mermaidSource += "    Client -->|HTTP| APIGW\n";
   }
   if (websocketFunctionNames.size > 0) {
-    body += "    Client -->|WebSocket| WSGW\n";
+    mermaidSource += "    Client -->|WebSocket| WSGW\n";
   }
   for (const functionName of functionNames) {
     if (httpFunctionNames.has(functionName)) {
-      body += `    APIGW --> ${functionName}\n`;
+      mermaidSource += `    APIGW --> ${functionName}\n`;
     }
     if (websocketFunctionNames.has(functionName)) {
-      body += `    WSGW --> ${functionName}\n`;
+      mermaidSource += `    WSGW --> ${functionName}\n`;
     }
   }
   for (const edge of edges) {
     const node = resourceNodeByEnvValue.get(edge.to);
-    body += `    ${edge.from} --> ${node.id}\n`;
+    mermaidSource += `    ${edge.from} --> ${node.id}\n`;
   }
   for (const functionName of usesPollyByFunction) {
-    body += `    ${functionName} --> Polly\n`;
+    mermaidSource += `    ${functionName} --> Polly\n`;
   }
   for (const invoke of functionToFunctionInvokes) {
-    body += `    ${invoke.from} -->|非同期Invoke| ${invoke.to}\n`;
+    mermaidSource += `    ${invoke.from} -->|非同期Invoke| ${invoke.to}\n`;
   }
-  body += "```\n";
+
+  body += renderMermaidWithEmbed({
+    mermaidSource,
+    imageFileName: "serverless-architecture.png",
+    altText: "サーバレス構成図 (rendered)",
+  });
   return body;
 }
 

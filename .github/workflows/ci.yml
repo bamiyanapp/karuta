@@ -69,7 +69,11 @@ jobs:
       # Architecture／Screen Transitionsの2図）のmermaid図をSVGへ事前レンダリング
       # し、PR差分ビュー・API経由でのファイル取得等でmermaidがネイティブ
       # レンダリングされない場面でも確認できるようにする
+      # docs/generated/配下の4ファイル（websocket-api.md・dynamodb-tables.md・
+      # serverless-architecture.md・cicd-architecture.md）は、issue #901-909の
+      # ドキュメント自動生成でMermaid図を追加したが、mermaid_doc_pathsに含めて
+      # いなかったためコードのままでしか見えず画像化されていなかった。対象に追加する
       enable_mermaid_render: true
-      mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md"
+      mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md\ndocs/generated/websocket-api.md\ndocs/generated/dynamodb-tables.md\ndocs/generated/serverless-architecture.md\ndocs/generated/cicd-architecture.md"
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}

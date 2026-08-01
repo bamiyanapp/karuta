@@ -4,6 +4,7 @@
 const fs = require("fs");
 const path = require("path");
 const { loadServerlessConfig, extractDynamoDbTables } = require("./serverless-yaml");
+const { renderMermaidWithEmbed } = require("./mermaid-embed");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const serverlessPath = path.join(repoRoot, "backend", "serverless.yml");
@@ -36,9 +37,9 @@ const ATTRIBUTE_TYPE_LABEL = { S: "string", N: "number", B: "binary" };
 // 属性一覧（パーティションキー/ソートキー/GSIキー）のみをエンティティとして図示する。
 // アプリケーションコード上の緩やかな関連（roomId等）は図ではなく後続の文章で補足する。
 function renderErDiagram(tables) {
-  let body = "```mermaid\nerDiagram\n";
+  let mermaidSource = "erDiagram\n";
   for (const table of tables) {
-    body += `    "${table.tableName}" {\n`;
+    mermaidSource += `    "${table.tableName}" {\n`;
     const keyTypeByAttribute = new Map(table.keySchema.map((k) => [k.attribute, k.keyType]));
     const gsiAttributeNames = new Set(
       table.globalSecondaryIndexes.flatMap((gsi) => gsi.keySchema.map((k) => k.attribute))
@@ -51,18 +52,30 @@ function renderErDiagram(tables) {
       }
       const type = ATTRIBUTE_TYPE_LABEL[attr.type] || "string";
       const keyType = keyTypeByAttribute.get(attr.attribute);
-      const keyLabel = keyType === "HASH" ? "PK" : keyType === "RANGE" ? "SK" : "";
-      body += `        ${type} ${attr.attribute} ${keyLabel}\n`;
+      // MermaidのerDiagramが認識するキー種別はPK/FK/UKのみで、DynamoDBの
+      // ソートキー（RANGE）に対応する"SK"は無効なトークンとしてパースエラーに
+      // なる（実際にrender-mermaid-diagrams jobで発生）。ソートキーはPK/FK/UKの
+      // いずれにも当たらないため、キー種別は付けずコメント注記のみで示す
+      const parts = [type, attr.attribute];
+      if (keyType === "HASH") {
+        parts.push("PK");
+      } else if (keyType === "RANGE") {
+        parts.push('"ソートキー"');
+      }
+      mermaidSource += `        ${parts.join(" ")}\n`;
     }
     for (const gsi of table.globalSecondaryIndexes) {
       for (const k of gsi.keySchema) {
-        body += `        string ${k.attribute} "GSI: ${gsi.indexName}"\n`;
+        mermaidSource += `        string ${k.attribute} "GSI: ${gsi.indexName}"\n`;
       }
     }
-    body += "    }\n";
+    mermaidSource += "    }\n";
   }
-  body += "```\n";
-  return body;
+  return renderMermaidWithEmbed({
+    mermaidSource,
+    imageFileName: "dynamodb-tables.png",
+    altText: "DynamoDBテーブル ER図 (rendered)",
+  });
 }
 
 function renderMarkdown(tables) {

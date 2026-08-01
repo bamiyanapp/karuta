@@ -4,6 +4,9 @@
 
 関数からリソースへの依存関係は、関数コード内の`process.env.<変数名>`参照を静的に検出して導出している（AIによる意味解釈ではなく正規表現ベース）。エクスポートされた関数が直接、または1階層のヘルパー関数（`関数名(...)`という直接呼び出し構文）経由で参照している場合のみ検出でき、`array.map(helperFn)`のような関数の参照渡しは検出できない既知の制約がある。
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 graph LR
     Client[フロントエンド]
@@ -32,12 +35,12 @@ graph LR
     judgeQuizRoomBuzz["judgeQuizRoomBuzz"]
     resetQuizRoomPoints["resetQuizRoomPoints"]
     closeQuizRoom["closeQuizRoom"]
-    table_karuta_phrases[(karuta-phrases<br/>(DynamoDB))]
-    table_karuta_comments[(karuta-comments<br/>(DynamoDB))]
-    table_karuta_polly_cache[(karuta-polly-cache<br/>(DynamoDB))]
-    table_karuta_quiz_rooms[(karuta-quiz-rooms<br/>(DynamoDB))]
-    table_karuta_quiz_room_connections[(karuta-quiz-room-connections<br/>(DynamoDB))]
-    bucket_karuta_efuda_pdf___aws_accountId_[(karuta-efuda-pdf-${aws:accountId}<br/>(S3))]
+    table_karuta_phrases[(karuta-phrases<br/>DynamoDB)]
+    table_karuta_comments[(karuta-comments<br/>DynamoDB)]
+    table_karuta_polly_cache[(karuta-polly-cache<br/>DynamoDB)]
+    table_karuta_quiz_rooms[(karuta-quiz-rooms<br/>DynamoDB)]
+    table_karuta_quiz_room_connections[(karuta-quiz-room-connections<br/>DynamoDB)]
+    bucket_karuta_efuda_pdf___aws_accountId_[(karuta-efuda-pdf-ACCOUNTID<br/>S3)]
 
     Client -->|HTTP| APIGW
     Client -->|WebSocket| WSGW
@@ -90,3 +93,9 @@ graph LR
     getCongratulationAudio --> Polly
     generateEfudaPdf -->|非同期Invoke| renderEfudaPdfWorker
 ```
+
+上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](../cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
+
+![サーバレス構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/serverless-architecture.png)

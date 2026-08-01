@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { loadServerlessConfig, extractWebsocketRoutes } = require("./serverless-yaml");
 const { extractHandlerBehavior } = require("./handler-behavior");
+const { renderMermaidWithEmbed } = require("./mermaid-embed");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const serverlessPath = path.join(repoRoot, "backend", "serverless.yml");
@@ -31,25 +32,28 @@ function renderTable(routes, behavior) {
 // 読解に基づき手動で構成した（issue #902のコメントで留意点として明記済み）。
 // ルート名・型自体が変わった場合はこのテンプレートも追従して更新が必要になる。
 function renderSequenceDiagram() {
-  return `\`\`\`mermaid
-sequenceDiagram
+  // 別名"Participant"はMermaidのsequenceDiagram構文における予約語"participant"と
+  // 衝突し、`Participant->>...`のようなメッセージ行がパースエラーになるため
+  // （実際にrender-mermaid-diagrams jobで"Expecting 'ACTOR', got 'INVALID'"エラーが
+  // 発生した）、予約語と衝突しない別名"Player"を使う
+  const mermaidSource = `sequenceDiagram
     participant Admin as クライアント（管理者）
-    participant Participant as クライアント（参加者）
+    participant Player as クライアント（参加者）
     participant GW as API Gateway (WebSocket)
     participant L as Lambda（quizRoomHandler）
     participant Room as ルーム内の全接続
 
     Admin->>GW: $connect（roomId・adminToken）
     GW->>L: connectQuizRoom
-    Participant->>GW: $connect（roomId）
+    Player->>GW: $connect（roomId）
     GW->>L: connectQuizRoom
-    Participant->>L: sync
-    L-->>Participant: 現在の状態（sync）
-    Participant->>L: setName
+    Player->>L: sync
+    L-->>Player: 現在の状態（sync）
+    Player->>L: setName
     L->>Room: participants（ブロードキャスト）
     Admin->>L: updateState（読み札の表示等）
     L->>Room: state（ブロードキャスト）
-    Participant->>L: buzz
+    Player->>L: buzz
     L->>Room: buzz（ブロードキャスト）
     Admin->>L: judgeBuzz
     alt 正解
@@ -61,11 +65,14 @@ sequenceDiagram
     L->>Room: points（リセット後、ブロードキャスト）
     Admin->>L: closeRoom
     L->>Room: roomClosed（ブロードキャスト）
-    Participant--)GW: $disconnect
+    Player--)GW: $disconnect
     GW--)L: disconnectQuizRoom
-    L->>Room: participants（ブロードキャスト）
-\`\`\`
-`;
+    L->>Room: participants（ブロードキャスト）`;
+  return renderMermaidWithEmbed({
+    mermaidSource,
+    imageFileName: "websocket-api.png",
+    altText: "WebSocket API 通信フロー (rendered)",
+  });
 }
 
 function renderMarkdown(routes, behavior) {
