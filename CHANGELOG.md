@@ -1,3 +1,10 @@
+## [1.63.1](https://github.com/bamiyanapp/karuta/compare/v1.63.0...v1.63.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* **docs:** 生成ドキュメントのMermaid図を画像として埋め込む ([#917](https://github.com/bamiyanapp/karuta/issues/917)) ([82a64fd](https://github.com/bamiyanapp/karuta/commit/82a64fd6ed182de77994ad7c57231fb29ece1d7a))
+
 # [1.63.0](https://github.com/bamiyanapp/karuta/compare/v1.62.0...v1.63.0) (2026-07-31)
 
 
