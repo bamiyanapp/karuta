@@ -1,0 +1,42 @@
+[
+  {
+    "sourceFile": "docs/cicd-pipeline-specification.md",
+    "index": 1,
+    "fileName": "cicd-pipeline-specification.png"
+  },
+  {
+    "sourceFile": "README.md",
+    "index": 1,
+    "fileName": "README-1.png"
+  },
+  {
+    "sourceFile": "README.md",
+    "index": 2,
+    "fileName": "README-2.png"
+  },
+  {
+    "sourceFile": "docs/generated/websocket-api.md",
+    "index": 1,
+    "fileName": "websocket-api.png"
+  },
+  {
+    "sourceFile": "docs/generated/dynamodb-tables.md",
+    "index": 1,
+    "fileName": "dynamodb-tables.png"
+  },
+  {
+    "sourceFile": "docs/generated/serverless-architecture.md",
+    "index": 1,
+    "fileName": "serverless-architecture.png"
+  },
+  {
+    "sourceFile": "docs/generated/cicd-architecture.md",
+    "index": 1,
+    "fileName": "cicd-architecture-1.png"
+  },
+  {
+    "sourceFile": "docs/generated/cicd-architecture.md",
+    "index": 2,
+    "fileName": "cicd-architecture-2.png"
+  }
+]
