@@ -60,8 +60,8 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 `release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。ジョブ構成・依存関係は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)の「CDワークフロー」を参照。
 
-- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ
-- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する
+- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ（dev-standardsの`deploy-github-pages`複合actionを利用）
+- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する。デプロイ本体（EMFILE対策のファイルディスクリプタ上限引き上げを含む）はdev-standardsの`deploy-serverless`複合action（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）に共通化されている
 
 ## 環境変数（karuta固有）
 
