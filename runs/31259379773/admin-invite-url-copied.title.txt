@@ -1,0 +1,1 @@
+admin dismisses the room-close confirmation (room stays open) and can copy the invite URL (issue #576)
