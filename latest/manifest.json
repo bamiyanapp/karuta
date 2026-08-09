@@ -1,18 +1,8 @@
 [
   {
-    "sourceFile": "docs/cicd-pipeline-specification.md",
-    "index": 1,
-    "fileName": "cicd-pipeline-specification.png"
-  },
-  {
     "sourceFile": "README.md",
     "index": 1,
-    "fileName": "README-1.png"
-  },
-  {
-    "sourceFile": "README.md",
-    "index": 2,
-    "fileName": "README-2.png"
+    "fileName": "README.png"
   },
   {
     "sourceFile": "docs/generated/websocket-api.md",
