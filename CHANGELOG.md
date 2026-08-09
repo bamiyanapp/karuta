@@ -1,3 +1,10 @@
+# [1.64.0](https://github.com/bamiyanapp/karuta/compare/v1.63.1...v1.64.0) (2026-08-09)
+
+
+### Features
+
+* **ci:** ドキュメント重複排除とCI/CD共通化・高速化をまとめて反映 ([#920](https://github.com/bamiyanapp/karuta/issues/920)) ([807a42c](https://github.com/bamiyanapp/karuta/commit/807a42c0af7353eb41dffc0d6bcec0bea2665ee1)), closes [#608](https://github.com/bamiyanapp/karuta/issues/608)
+
 ## [1.63.1](https://github.com/bamiyanapp/karuta/compare/v1.63.0...v1.63.1) (2026-08-01)
 
 
