@@ -6,26 +6,7 @@
 
 ## Architecture
 
-<details>
-<summary>ソースを表示（mermaid記法）</summary>
-
-```mermaid
-graph TD
-    A[PR] --> B[CI Workflow];
-    B --> C[frontend-test / backend-test];
-    C -->|Success| D[merge job: mainへSquash merge];
-    D --> E[CD Workflow on main push];
-    E --> F[release job: main上でSemantic Release実行];
-    F --> G{新バージョンが発行されたか};
-    G --> H[Deploy Frontend to GitHub Pages];
-    G --> I[Deploy Backend to AWS];
-```
-
-上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[bamiyanapp/karuta#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソース（mermaid記法）はこのまま維持しつつ、下記は`enable_mermaid_render` job（[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#1-ci-ワークフロー-reusable-ciyml)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
-
-</details>
-
-![Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-pipeline-specification.png)
+`reusable-ci.yml`/`cd.yml`のjob構成・依存関係は、実際のワークフロー定義から自動生成されるCI/CD構成図（issue #919）を参照: [docs/generated/cicd-architecture.md](generated/cicd-architecture.md)
 
 semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）で行われる。以前はPRの作業ブランチ上でマージ前に実行する方式だったが、GitHub Actionsの`pull_request`イベントで自動設定される`GITHUB_REF`（ワークフローYAMLの`env:`では上書き不可）により常にリリースが発行されない不具合があったため、`main`への実pushイベント上で実行する方式に修正した（[dev-standards#43](https://github.com/bamiyanapp/dev-standards/pull/43)）。
 
@@ -77,10 +58,10 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 ## デプロイジョブ（`cd.yml` 固有）
 
-`release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。
+`release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。ジョブ構成・依存関係は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)の「CDワークフロー」を参照。
 
-- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ
-- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する
+- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ（dev-standardsの`deploy-github-pages`複合actionを利用）
+- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する。デプロイ本体（EMFILE対策のファイルディスクリプタ上限引き上げを含む）はdev-standardsの`deploy-serverless`複合action（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）に共通化されている
 
 ## 環境変数（karuta固有）
 

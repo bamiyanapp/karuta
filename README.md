@@ -43,35 +43,7 @@
 
 ### System Architecture
 
-<details>
-<summary>ソースを表示（mermaid記法）</summary>
-
-```mermaid
-graph TD
-    subgraph "Frontend (GitHub Pages)"
-        I[React + Vite]
-    end
-
-    subgraph "Backend (AWS)"
-        J[API Gateway REST] --> K[AWS Lambda];
-        K --> L[DynamoDB];
-        K --> M[Polly];
-        K --> N[S3<br/>絵札PDF];
-        N --> O[renderEfudaPdfWorker<br/>Headless Chromium];
-
-        P[API Gateway WebSocket] --> Q[quizRoomHandler];
-        Q --> R[DynamoDB<br/>ルーム・接続];
-    end
-
-    I --> J;
-    I -->|クイズ大会モード| P;
-```
-
-上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](./docs/cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
-
-</details>
-
-![System Architecture (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-1.png)
+`backend/serverless.yml`の実際の定義から自動生成されるサーバレス構成図（関数単位のリソース依存関係、issue #919）を参照: [docs/generated/serverless-architecture.md](docs/generated/serverless-architecture.md)
 
 ### Screen Transitions
 
@@ -128,104 +100,19 @@ graph TD
 
 </details>
 
-![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README-2.png)
+![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README.png)
 
 ### Backend API (AWS Lambda)
 
-| 関数名 | パス | メソッド | 説明 |
-| :--- | :--- | :--- | :--- |
-| getCategories | `/get-categories` | GET | 登録されているカテゴリの一覧を取得する。 |
-| getPhrasesList | `/get-phrases-list` | GET | 指定したカテゴリ（または全カテゴリ）のフレーズ一覧を取得する。 |
-| getPhrase | `/get-phrase` | GET | 指定したIDまたはランダムなフレーズを取得し、Pollyで音声を生成（またはキャッシュから取得）して返す。 |
-| getCongratulationAudio | `/get-congratulation-audio` | GET | 全フレーズ終了時のお祝いメッセージ音声を生成して返す。 |
-| recordTime | `/record-time` | POST | 読み上げに対する回答時間と難易度を記録し、統計情報を更新する。 |
-| postComment | `/post-comment` | POST | フレーズに対して新しいコメントを投稿する。 |
-| getComments | `/get-comments` | GET | 全てのコメントを取得し、新着順にソートして返す。 |
-| generateEfudaPdf | `/generate-efuda-pdf` | POST | 絵札印刷用PDFの生成ジョブを非同期で開始する（`renderEfudaPdfWorker`がヘッドレスChromiumでレンダリングし、S3へ保存）。 |
-| getEfudaPdfStatus | `/generate-efuda-pdf-status` | GET | PDF生成ジョブの完了状況をS3上のオブジェクトの有無から確認する。 |
-| createQuizRoom | `/quiz-room` | POST | クイズ大会モードの管理者用ルームを新規作成し、ルームコードと管理者トークンを返す。 |
-| checkQuizRoom | `/quiz-room` | GET | 参加者がWebSocket接続を試みる前に、ルームコードの存在を軽量に確認する。 |
-| listQuizRooms | `/quiz-rooms` | GET | 開設中（失効しておらず管理者接続が存在する）のクイズ大会ルームを一覧で返す。 |
+`backend/serverless.yml`のhttpApiイベント定義から自動生成されるBackend API仕様書（issue #919）を参照: [docs/generated/backend-api.md](docs/generated/backend-api.md)
 
 ### WebSocket API（クイズ大会モード）
 
-読み札・結果画面の同期や早押し判定など、クイズ大会モードのリアルタイム通信はAPI Gateway WebSocket API（`quizRoomHandler.js`）で行う。
-
-| ルート | 関数名 | 説明 |
-| :--- | :--- | :--- |
-| `$connect` | connectQuizRoom | ルームコード・管理者トークンをもとに管理者/参加者としての接続を確立する。 |
-| `$disconnect` | disconnectQuizRoom | 切断を記録し、残りの参加者へ更新後の参加者一覧をブロードキャストする。 |
-| `sync` | syncQuizRoom | 接続直後・再接続時に、現在のルーム状態（札・早押し・ポイント・参加者一覧）を呼び出し元へ返す。 |
-| `updateState` | updateQuizRoomState | 管理者のみ実行可能。表示中の札・結果をルーム内の全接続へブロードキャストする。 |
-| `setName` | setQuizRoomName | 参加者が表示名を登録する（同一ルーム内での名前重複は拒否する）。 |
-| `buzz` | buzzQuizRoom | 参加者の早押しを受け付ける（同一ラウンドで最初の1件のみ確定）。 |
-| `judgeBuzz` | judgeQuizRoomBuzz | 管理者のみ実行可能。早押しの正誤を判定し、正解ならポイントを加算する。 |
+読み札・結果画面の同期や早押し判定など、クイズ大会モードのリアルタイム通信はAPI Gateway WebSocket API（`quizRoomHandler.js`）で行う。ルート一覧・代表的な通信フローは自動生成されるWebSocket API仕様書（issue #919）を参照: [docs/generated/websocket-api.md](docs/generated/websocket-api.md)
 
 ### Database (DynamoDB)
 
-#### 1. karuta-phrases
-読み上げ用フレーズを格納するテーブル。
-
-| 属性名 | 型 | キー | 説明 |
-| :--- | :--- | :--- | :--- |
-| category | String | Partition Key | カテゴリ名 |
-| id | String | Sort Key | フレーズの一意識別子 |
-| group | String | - | 対象区分（`kids`: こども向け / `engineer`: エンジニア向け） |
-| phrase | String | - | 読み上げテキスト（日本語） |
-| phrase_en | String | - | 読み上げテキスト（英語） |
-| answer | String | - | 答え（取り札）のテキスト |
-| kana | String | - | フレーズの読み（かな） |
-| level | String/Number | - | 難易度レベル |
-| readCount | Number | - | 読み上げられた回数 |
-| averageTime | Number | - | 平均回答時間（秒） |
-| averageDifficulty | Number | - | ユーザーが選択した平均難易度 |
-
-#### 2. karuta-comments
-各フレーズに対するユーザーコメントを格納するテーブル。
-
-| 属性名 | 型 | キー | 説明 |
-| :--- | :--- | :--- | :--- |
-| id | String | Partition Key | コメントID (UUID) |
-| phraseId | String | - | 対象フレーズのID |
-| category | String | - | 対象フレーズのカテゴリ |
-| phrase | String | - | 対象フレーズのテキスト |
-| comment | String | - | コメント内容 |
-| createdAt | String | - | 作成日時 (ISO8601) |
-
-#### 3. karuta-polly-cache
-Amazon Polly で生成した音声データのキャッシュ。
-
-| 属性名 | 型 | キー | 説明 |
-| :--- | :--- | :--- | :--- |
-| id | String | Partition Key | キャッシュID (ハッシュ値) |
-| audioData | String | - | Base64形式の音声データ |
-| createdAt | String | - | 作成日時 (ISO8601) |
-
-#### 4. karuta-quiz-rooms
-クイズ大会モードのルーム情報を格納するテーブル。無人ルームが残り続けないよう、TTLによる自動削除の対象。
-
-| 属性名 | 型 | キー | 説明 |
-| :--- | :--- | :--- | :--- |
-| roomId | String | Partition Key | ルームコード（6文字） |
-| adminTokenHash | String | - | 管理者トークンのハッシュ値（平文はDBに保存しない） |
-| state | Map | - | 現在ブロードキャストされている札・結果等の状態 |
-| buzz | Map | - | 現在のラウンドで最初に早押しした参加者（未判定の間のみ存在） |
-| excludedNames | StringSet | - | 現在のラウンドで不正解と判定され、再度の早押しから除外された参加者名 |
-| points | Map | - | 参加者名 → 累計ポイントのマップ |
-| createdAt | Number | - | 作成日時（UNIXタイムスタンプ） |
-| ttl | Number | - | 有効期限（作成から24時間、TTLで自動削除） |
-
-#### 5. karuta-quiz-room-connections
-クイズ大会モードのWebSocket接続情報を格納するテーブル。`$disconnect`が確実に呼ばれない異常切断時の保険として、こちらもTTLによる自動削除の対象。
-
-| 属性名 | 型 | キー | 説明 |
-| :--- | :--- | :--- | :--- |
-| connectionId | String | Partition Key | WebSocket接続ID |
-| roomId | String | GSI（`roomId-index`） | 接続先のルームコード（ルーム内の全接続へのブロードキャストに使用） |
-| role | String | - | 接続の役割（`admin` / `participant`） |
-| name | String | - | 参加者の表示名（早押し機能で入室時に登録） |
-| connectedAt | Number | - | 接続日時（UNIXタイムスタンプ） |
-| ttl | Number | - | 有効期限（接続から24時間、TTLで自動削除） |
+`backend/serverless.yml`の`AWS::DynamoDB::Table`リソース定義から自動生成されるDynamoDBテーブル定義書（issue #919）を参照: [docs/generated/dynamodb-tables.md](docs/generated/dynamodb-tables.md)
 
 ## CI/CD Pipeline Specification
 

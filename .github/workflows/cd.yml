@@ -62,40 +62,23 @@ jobs:
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      # npm workspaces構成（issue #608）。個々のパッケージにlockfileが無くなった
-      # ため、リポジトリルートで一括インストールする（`.npmrc`のinstall-strategy=
-      # nestedにより、backend/node_modules配下に実行時依存が完全な形で
-      # 展開されるため、後段のserverless packagingへの影響は無い）
-      - name: Install dependencies
-        run: npm ci
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
-        working-directory: backend
         # npm workspaces移行（issue #608）で`install-strategy=nested`にした結果、
         # 各Lambda関数のzip作成（package.individually: true、11関数）が同一の
         # node_modules配下を関数ごとに繰り返し走査するようになり、GitHub Actions
         # ランナーのデフォルトのファイルディスクリプタ上限（1024）を超えて
-        # `EMFILE: too many open files`でデプロイが失敗することを確認した
-        # （issue #608のPR #654マージ後の初回デプロイで実際に発生）。
-        # ソフトリミットを65536へ引き上げる対応（PR #663）を行ったが、
-        # それでも別のパッケージ（@aws-sdk/s3-request-presigner配下の
-        # @smithy/core）でEMFILEが再発した（PR #663マージ後の実際のCD実行）。
-        # 65536でも足りないほどファイル数が多いため、ソフトリミットを
-        # ハードリミットまで引き上げる（実際の上限値はランナーによって
-        # 異なるためログへ出力し、以降の障害調査で参照できるようにする）
-        run: |
-          echo "file descriptor limits: soft=$(ulimit -Sn) hard=$(ulimit -Hn)"
-          ulimit -n "$(ulimit -Hn)"
-          echo "file descriptor limit after adjustment: $(ulimit -n)"
-          npx osls deploy
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        # `EMFILE: too many open files`でデプロイが失敗する問題（issue #608のPR #654
+        # マージ後の初回デプロイで実際に発生、#663でも別パッケージで再発）への対策
+        # （ファイルディスクリプタ上限のハードリミットまでの引き上げ）を含め、
+        # dev-standardsの共通複合action化した（bamiyanapp/dev-standards#147）
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v1.15.1
+        with:
+          working-directory: backend
+          node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
+          deploy-command: npx osls deploy
+          workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: 🌱 Seed Database
         working-directory: backend
         run: node seed.js
