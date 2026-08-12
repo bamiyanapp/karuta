@@ -49,6 +49,15 @@ const REPEAT_COUNT_OPTIONS = [
   { value: 1, label: "1回" },
   { value: 2, label: "2回" },
 ];
+// 札をめくった際、次の札の内容が確定してから表示（フェードアニメーション開始）
+// までの待ち時間（issue #471）。既定の3秒を維持しつつ、短縮・延長できるようにする
+const CARD_REVEAL_DELAY_OPTIONS = [
+  { value: 1000, label: "1秒" },
+  { value: 2000, label: "2秒" },
+  { value: 3000, label: "3秒" },
+  { value: 4000, label: "4秒" },
+  { value: 5000, label: "5秒" },
+];
 
 function SettingsFooter({
   themeSetting,
@@ -63,6 +72,8 @@ function SettingsFooter({
   setSpeechRate,
   repeatCount,
   setRepeatCount,
+  cardRevealDelay,
+  setCardRevealDelay,
 }) {
   return (
     <section className="settings-container mb-4 p-3 mx-auto shadow-sm rounded-4 bg-light border" style={{ maxWidth: "500px" }}>
@@ -84,7 +95,14 @@ function SettingsFooter({
         options={REPEAT_COUNT_OPTIONS}
         value={repeatCount}
         onChange={setRepeatCount}
-        wrapClassName="d-flex align-items-center justify-content-center gap-3"
+        wrapClassName="mb-3 d-flex align-items-center justify-content-center gap-3 border-bottom pb-2"
+      />
+      <SettingsButtonGroup
+        label="札の表示までの待ち時間"
+        options={CARD_REVEAL_DELAY_OPTIONS}
+        value={cardRevealDelay}
+        onChange={setCardRevealDelay}
+        wrapClassName="d-flex align-items-center justify-content-center gap-3 flex-wrap"
       />
     </section>
   );

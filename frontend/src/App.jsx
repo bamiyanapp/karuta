@@ -149,6 +149,7 @@ function App() {
   const [filterDivision, setFilterDivision] = useState('');
   const [searchQuery, setSearchQuery] = useState(''); // 全札一覧テキスト検索
   const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
+  const [cardRevealDelay, setCardRevealDelay] = useLocalStorageState("cardRevealDelay", 3000, (v) => parseInt(v, 10));
   const [speechRate, setSpeechRate] = useLocalStorageState("speechRate", "80%");
   const [lang, setLang] = useLocalStorageState("lang", "ja");
   const [voiceId, setVoiceId] = useLocalStorageState("voiceId", "Mizuki");
@@ -247,6 +248,7 @@ function App() {
     voiceId,
     isMultiCategorySelection,
     quizRoomActiveRef,
+    cardRevealDelay,
   });
 
   // 「取った人を記録する」参加者登録・スコア集計（issue #518）はusePlayerScoresへ
@@ -1014,6 +1016,8 @@ function App() {
           setSpeechRate={setSpeechRate}
           repeatCount={repeatCount}
           setRepeatCount={setRepeatCount}
+          cardRevealDelay={cardRevealDelay}
+          setCardRevealDelay={setCardRevealDelay}
         />
       <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
         {division === "kids" && (

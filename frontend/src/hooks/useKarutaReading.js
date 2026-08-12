@@ -47,6 +47,7 @@ export function useKarutaReading({
   voiceId,
   isMultiCategorySelection,
   quizRoomActiveRef,
+  cardRevealDelay = 3000,
 }) {
   const [currentPhrase, setCurrentPhrase] = useState(null);
   // クイズ大会モード（issue #781）: 参加者への「次の札」ブロードキャストを、管理者自身の
@@ -202,11 +203,12 @@ export function useKarutaReading({
           animationResolveRef.current = resolve;
         });
 
-        // 3秒待機してからフェードアニメーションを開始
+        // cardRevealDelay（既定3秒、設定画面で変更可能。issue #471）待機してから
+        // フェードアニメーションを開始
         flipTimeoutRef.current = setTimeout(() => {
           nextContentRef.current = { type: "phrase", content: phraseData, playbackSettings };
           setIsFadingOut(true);
-        }, 3000); // 待機時間
+        }, cardRevealDelay);
 
         // クイズ大会モード（issue #861）: 参加者側はWebSocketブロードキャストの受信・
         // 画面反映（ネットワーク往復＋バックエンドのpostToConnection処理）に一定の
@@ -254,7 +256,7 @@ export function useKarutaReading({
     return () => {
       if (flipTimeoutRef.current) clearTimeout(flipTimeoutRef.current);
     }
-  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, setHistoryByCategory, quizRoomActiveRef]);
+  }, [audioQueue, isReading, playAudio, playIntroSound, categoryKey, setHistoryByCategory, quizRoomActiveRef, cardRevealDelay]);
 
   // 現在の札を読み上げている間に、次に読み上げる予定の札の音声を先読みしておく
   useEffect(() => {
