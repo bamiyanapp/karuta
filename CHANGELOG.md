@@ -1,3 +1,10 @@
+## [1.64.1](https://github.com/bamiyanapp/karuta/compare/v1.64.0...v1.64.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **quiz-room:** 参加者側の結果画面に難易度レベルを表示する ([#966](https://github.com/bamiyanapp/karuta/issues/966)) ([534ad34](https://github.com/bamiyanapp/karuta/commit/534ad34b4bf8c3b8ab2f9d9377fd08fcc89a0594)), closes [#513](https://github.com/bamiyanapp/karuta/issues/513)
+
 # [1.64.0](https://github.com/bamiyanapp/karuta/compare/v1.63.1...v1.64.0) (2026-08-09)
 
 
