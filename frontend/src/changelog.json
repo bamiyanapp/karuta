@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.64.1",
+    "version": "1.65.0",
     "date": "2026/08/12",
+    "body": "### Features\n\n* **frontend:** 札の表示までの待ち時間を設定可能にする ([#967](https://github.com/bamiyanapp/karuta/issues/967)) ([d0ca991](https://github.com/bamiyanapp/karuta/commit/d0ca991e921b1e2b9a5b4762d15777753c8ef067)), closes [#471](https://github.com/bamiyanapp/karuta/issues/471)"
+  },
+  {
+    "version": "1.64.1",
+    "date": "2026/08/12 15:37",
     "body": "### Bug Fixes\n\n* **quiz-room:** 参加者側の結果画面に難易度レベルを表示する ([#966](https://github.com/bamiyanapp/karuta/issues/966)) ([534ad34](https://github.com/bamiyanapp/karuta/commit/534ad34b4bf8c3b8ab2f9d9377fd08fcc89a0594)), closes [#513](https://github.com/bamiyanapp/karuta/issues/513)"
   },
   {

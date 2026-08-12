@@ -1,3 +1,10 @@
+# [1.65.0](https://github.com/bamiyanapp/karuta/compare/v1.64.1...v1.65.0) (2026-08-12)
+
+
+### Features
+
+* **frontend:** 札の表示までの待ち時間を設定可能にする ([#967](https://github.com/bamiyanapp/karuta/issues/967)) ([d0ca991](https://github.com/bamiyanapp/karuta/commit/d0ca991e921b1e2b9a5b4762d15777753c8ef067)), closes [#471](https://github.com/bamiyanapp/karuta/issues/471)
+
 ## [1.64.1](https://github.com/bamiyanapp/karuta/compare/v1.64.0...v1.64.1) (2026-08-12)
 
 
