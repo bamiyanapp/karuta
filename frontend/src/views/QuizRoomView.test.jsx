@@ -292,6 +292,33 @@ describe('QuizRoomView', () => {
     expect(document.querySelector('.confetti-container')).toBeInTheDocument();
   });
 
+  it('shows the difficulty level and the "faster than average" badge on the participant result screen, mirroring the admin result screen (issue #513)', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+    emitState({ type: 'result', content: { time: 1.2, difficulty: 3.456, isFast: true, answer: '答え1', winner: null } });
+
+    expect(screen.getByText('難易度レベル')).toBeInTheDocument();
+    expect(screen.getByText('3.46')).toBeInTheDocument();
+    expect(screen.getByText('🎉 平均より速い！')).toBeInTheDocument();
+  });
+
+  it('omits the difficulty level and the "faster than average" badge when the broadcast result does not include them', () => {
+    window.history.pushState({}, '', '?roomId=ABC123');
+
+    render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
+    confirmName();
+
+    emitState({ type: 'phrase', content: { category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '3' } });
+    emitState({ type: 'result', content: { time: 1.2, answer: '答え1', winner: null } });
+
+    expect(screen.queryByText('難易度レベル')).not.toBeInTheDocument();
+    expect(screen.queryByText('🎉 平均より速い！')).not.toBeInTheDocument();
+  });
+
   it('treats an unrecognized or empty room state (e.g. right after room creation, before any card is shown) as "waiting" rather than a blank screen', () => {
     window.history.pushState({}, '', '?roomId=ABC123');
 

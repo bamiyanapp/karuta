@@ -53,6 +53,20 @@ function renderParticipantContent(roomState) {
           )}
           <div className="text-muted mb-2">所要時間</div>
           <div className="display-4 fw-bold text-dark mb-2">{r.time?.toFixed(2)}<span className="fs-4">秒</span></div>
+          {r.isFast && (
+            <div className="badge bg-warning text-dark fs-6 mb-4 px-3 py-2 rounded-pill shadow-sm">
+              🎉 平均より速い！
+            </div>
+          )}
+          {/* 難易度レベルは管理者側のResultCard（frontend/src/components/ResultCard.jsx）と
+              同じ表示形式に揃える。管理者・参加者双方に同じ結果ブロードキャストが届いている
+              にもかかわらず、参加者側にだけ表示されていなかった（issue #513） */}
+          {typeof r.difficulty === "number" && (
+            <>
+              <div className="text-muted mb-2">難易度レベル</div>
+              <div className="h3 fw-bold text-danger">{r.difficulty.toFixed(2)}</div>
+            </>
+          )}
           <AnswerAndExplanation answer={r.answer} explanation={r.explanation} />
         </div>
       </div>
