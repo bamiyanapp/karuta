@@ -91,6 +91,30 @@ describe('データ整合性', () => {
     }
     expect(duplicates, '重複している読み札').toHaveLength(0);
   });
+
+  // handler.jsのgetCategoriesは group を "engineer" 以外すべて "kids" 扱いに丸める
+  // （`item.group === "engineer" ? "engineer" : "kids"`）ため、"kids"/"engineer"
+  // 以外の値やタイポはエラーにならず黙って"kids"化されてしまう。ここで明示的に検証する。
+  const ALLOWED_GROUPS = new Set(['kids', 'engineer']);
+  it('groupが"kids"または"engineer"のいずれかであること', () => {
+    for (const r of records) {
+      expect(ALLOWED_GROUPS.has(r.group), `id=${r.id}: group="${r.group}" が許容値でない`).toBe(true);
+    }
+  });
+
+  // handler.jsのgetCategoriesはカテゴリごとに最初に出現した行のgroupのみを採用し、
+  // 同一カテゴリ内でgroupが割れていても検知せず黙って握りつぶす。分類選択画面
+  // （division）が破綻しないよう、カテゴリ内でgroupが一貫していることを保証する。
+  it('同一カテゴリ内でgroupが一貫していること', () => {
+    const byCategory = {};
+    for (const r of records) {
+      byCategory[r.category] ??= new Set();
+      byCategory[r.category].add(r.group);
+    }
+    for (const [category, groups] of Object.entries(byCategory)) {
+      expect([...groups], `カテゴリ"${category}"でgroupが複数存在する`).toHaveLength(1);
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────
