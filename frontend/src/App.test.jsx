@@ -1564,7 +1564,7 @@ describe('App', () => {
     randomSpy.mockRestore();
   });
 
-  it('updates settings (lang, sort order, speech rate)', async () => {
+  it('updates settings (lang, sort order, speech rate, card reveal delay)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
       return { ok: false };
@@ -1593,6 +1593,14 @@ describe('App', () => {
 
     fireEvent.click(screen.getByText('はやい'));
     expect(localStorage.getItem('speechRate')).toBe('100%');
+
+    // 札の表示までの待ち時間（issue #471）: 既定は3秒、変更するとlocalStorageへ保存される
+    expect(screen.getByText('3秒').closest('button')).toHaveClass('btn-dark');
+    fireEvent.click(screen.getByText('1秒'));
+    expect(localStorage.getItem('cardRevealDelay')).toBe('1000');
+    // 後続テスト（実時間の経過に依存するもの）に既定値以外の待ち時間が
+    // 漏れないようクリーンアップする
+    localStorage.removeItem('cardRevealDelay');
   });
 
   it('shows the voice selector only for Japanese, updates the setting, and includes voiceId in the phrase request (issue #217)', async () => {
