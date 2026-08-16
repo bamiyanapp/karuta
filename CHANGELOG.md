@@ -1,3 +1,10 @@
+## [1.68.1](https://github.com/bamiyanapp/karuta/compare/v1.68.0...v1.68.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* **quiz-room:** 管理者の本編読み上げが太鼓の音だけで無音になる不具合を修正 ([#999](https://github.com/bamiyanapp/karuta/issues/999)) ([785798c](https://github.com/bamiyanapp/karuta/commit/785798cf5ec2b983847c1b44711c3e067419ed50))
+
 # [1.68.0](https://github.com/bamiyanapp/karuta/compare/v1.67.0...v1.68.0) (2026-08-16)
 
 
