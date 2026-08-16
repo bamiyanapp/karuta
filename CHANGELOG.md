@@ -1,3 +1,10 @@
+## [1.68.2](https://github.com/bamiyanapp/karuta/compare/v1.68.1...v1.68.2) (2026-08-16)
+
+
+### Bug Fixes
+
+* **pwa:** プレイ中はPWA更新プロンプトを保留し、ゲーム中断を防ぐ ([#1012](https://github.com/bamiyanapp/karuta/issues/1012)) ([ace47f0](https://github.com/bamiyanapp/karuta/commit/ace47f0154a47317851aee3f2ed1a2c9e66b4fca))
+
 ## [1.68.1](https://github.com/bamiyanapp/karuta/compare/v1.68.0...v1.68.1) (2026-08-16)
 
 
