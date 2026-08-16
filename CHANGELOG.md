@@ -1,3 +1,10 @@
+## [1.68.3](https://github.com/bamiyanapp/karuta/compare/v1.68.2...v1.68.3) (2026-08-16)
+
+
+### Bug Fixes
+
+* **e2e:** Pollyコールドキャッシュ起因の既知flakyを条件付きskipで無効化する ([#1017](https://github.com/bamiyanapp/karuta/issues/1017)) ([d8f6ef2](https://github.com/bamiyanapp/karuta/commit/d8f6ef23a831a9880b8822ac18fc8afd8116f239)), closes [#972](https://github.com/bamiyanapp/karuta/issues/972) [#576](https://github.com/bamiyanapp/karuta/issues/576)
+
 ## [1.68.2](https://github.com/bamiyanapp/karuta/compare/v1.68.1...v1.68.2) (2026-08-16)
 
 
