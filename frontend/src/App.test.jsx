@@ -2469,6 +2469,89 @@ describe('App', () => {
     }
   }, 65000);
 
+  it('does not interrupt the currently-playing narration audio when 次の札 is clicked again before it finishes (issue #997 regression: unlockAudioPlayback used to be called on every click and overwrite the shared narration element mid-playback)', async () => {
+    const originalAudio = window.Audio;
+    const srcHistory = [];
+    // イントロ音（wadodon.mp3）は即座に終わらせるが、本編音声（dummy1/dummy2）と
+    // 解錠用の無音クリップ（data:audio/wav...）はonendedを意図的に発火させず、
+    // 「まだ再生中」の状態を維持する。vitest v4はvi.fn()のモック実装をnewで呼び出す
+    // 場合、アロー関数を許容しないため通常の関数式を使う
+    window.Audio = vi.fn().mockImplementation(function (url) {
+      const audio = {
+        play: vi.fn().mockResolvedValue(),
+        pause: vi.fn(),
+        load: vi.fn(),
+        _src: undefined,
+        get src() { return this._src; },
+        set src(u) {
+          this._src = u;
+          srcHistory.push(u);
+          if (u === 'wadodon.mp3') {
+            setTimeout(() => { if (this.onended) this.onended(); }, 0);
+          }
+        },
+      };
+      if (url) audio.src = url;
+      return audio;
+    });
+
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({
+            phrases: [
+              { id: 'p1', category: 'Cat1' },
+              { id: 'p2', category: 'Cat1' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/get-phrase?id=p1')) return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', phrase: '読み札1', audioData: 'dummy1' }) };
+      if (url.includes('/get-phrase?id=p2')) return { ok: true, json: async () => ({ id: 'p2', category: 'Cat1', phrase: '読み札2', audioData: 'dummy2' }) };
+      return { ok: false };
+    });
+
+    try {
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(await screen.findByText('こども向け'));
+      fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+      await waitFor(() => screen.getByText('次の札'));
+
+      fireEvent.click(screen.getByText('次の札'));
+      // カード1の本編音声（dummy1）が再生開始（＝共有要素へsrcが設定）されるまで待つ。
+      // onendedを発火させないため、この時点でまだ「再生中」の状態が続く
+      await waitFor(() => {
+        expect(srcHistory).toContain('dummy1');
+      }, { timeout: 10000 });
+
+      // カード1の本編がまだ再生中のうちに「次の札」をもう一度押す
+      await waitFor(() => expect(screen.getByText('次の札').closest('button')).not.toBeDisabled(), { timeout: 10000 });
+      fireEvent.click(screen.getByText('次の札'));
+      await waitFor(() => screen.getByText('所要時間'), { timeout: 10000 });
+
+      // issue #997の回帰: unlockAudioPlaybackが2回目のクリックでも呼ばれてしまうと、
+      // 再生中の共有<audio>要素のsrcが解錠用の無音クリップへ書き換えられ、
+      // カード1の本編読み上げが打ち切られてしまう。dummy1が再生され始めた後に
+      // 無音クリップ（data:audio/wav...）のsrc書き換えが発生していないことを確認する
+      const dummy1Index = srcHistory.indexOf('dummy1');
+      const silentClipAfterDummy1 = srcHistory
+        .slice(dummy1Index + 1)
+        .filter((src) => typeof src === 'string' && src.startsWith('data:audio/wav'));
+      expect(silentClipAfterDummy1).toHaveLength(0);
+
+      randomSpy.mockRestore();
+    } finally {
+      window.Audio = originalAudio;
+    }
+  }, 30000);
+
   it('keeps 次の札 disabled while the last remaining phrase is still being read, instead of racing ahead to the congratulations screen (issue #721)', async () => {
     const originalAudio = window.Audio;
     // イントロ音（wadodon.mp3）は従来どおり即座に終わらせるが、本編の音声は

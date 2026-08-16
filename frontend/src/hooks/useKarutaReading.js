@@ -75,6 +75,19 @@ export function useKarutaReading({
   // ならないとtrueにならず、押下直後の連打を防げないため、押下と同時に同期的に
   // 立てられる再入防止用のrefを別途持つ
   const playKarutaInFlightRef = useRef(false);
+  // ブラウザの自動再生ポリシー対策（issue #997）: unlockAudioPlayback()は共有<audio>要素
+  // （playAudioがuseSharedElement:trueで使うもの）のsrcを書き換えて無音再生する。
+  // Safariの解錠は「要素ごとに一度でもユーザー操作の中で再生されたか」で決まり、一度
+  // 解錠されればその要素は以降の非同期文脈からの再生でも許可され続けるため、解錠は
+  // セッション中に1回で十分。もし「次の札」クリックのたびに呼び直すと、前の札の本編
+  // 音声がまだこの共有要素で再生中の場合に、その途中でsrcを無音クリップへ書き換えて
+  // しまい、再生中の音声を打ち切ってしまう（issue #999のE2E回帰で発覚）
+  const audioUnlockedRef = useRef(false);
+  const unlockAudioPlaybackOnce = () => {
+    if (audioUnlockedRef.current) return;
+    audioUnlockedRef.current = true;
+    unlockAudioPlayback();
+  };
 
   // 途中の札はaudioQueueが直前の再生完了まで次の音声を溜めておくため、読み上げ中に
   // 「次の札」を押しても現在の再生を止めずに済む。しかし最後の1枚だけは次に読む札が
@@ -461,8 +474,8 @@ export function useKarutaReading({
     // ブラウザの自動再生ポリシー対策（issue #997）: 本編読み上げ（playAudioの共有
     // <audio>要素）はこの後の非同期処理（fetch・クイズ大会モードの3秒待機等）を
     // 経てから再生されるため、クリックという実際のユーザー操作の中で同期的に
-    // 解錠しておく必要がある
-    unlockAudioPlayback();
+    // 解錠しておく必要がある（1回のみ、上のunlockAudioPlaybackOnce参照）
+    unlockAudioPlaybackOnce();
     setLoading(true);
 
     try {
@@ -478,8 +491,8 @@ export function useKarutaReading({
   // 決定し、このhookはそれをキューへ積んで再生する処理だけを担う
   const queueRepeatAudio = (audioData) => {
     // ブラウザの自動再生ポリシー対策（issue #997）: playAudioが使う共有<audio>要素を、
-    // このボタン押下という実際のユーザー操作の中で同期的に解錠しておく
-    unlockAudioPlayback();
+    // このボタン押下という実際のユーザー操作の中で同期的に解錠しておく（1回のみ）
+    unlockAudioPlaybackOnce();
     setAudioQueue(prev => [...prev, { phraseData: null, audioData }]);
   };
 
