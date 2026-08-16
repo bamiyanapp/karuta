@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.65.1",
+    "date": "2026/08/16",
+    "body": "### Bug Fixes\n\n* **skills:** dev-standards新規Skill（planning-and-task-breakdown）のsymlinkを追加 ([#993](https://github.com/bamiyanapp/karuta/issues/993)) ([6291b10](https://github.com/bamiyanapp/karuta/commit/6291b10586f9e42b74d2a0c669bba1413a3491e2)), closes [#992](https://github.com/bamiyanapp/karuta/issues/992)"
+  },
+  {
     "version": "1.65.0",
-    "date": "2026/08/12",
+    "date": "2026/08/12 15:44",
     "body": "### Features\n\n* **frontend:** 札の表示までの待ち時間を設定可能にする ([#967](https://github.com/bamiyanapp/karuta/issues/967)) ([d0ca991](https://github.com/bamiyanapp/karuta/commit/d0ca991e921b1e2b9a5b4762d15777753c8ef067)), closes [#471](https://github.com/bamiyanapp/karuta/issues/471)"
   },
   {
