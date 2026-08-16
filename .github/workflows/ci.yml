@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.2.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.3.0
     with:
       frontend_dir: frontend
       backend_dir: backend
