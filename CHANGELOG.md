@@ -1,3 +1,10 @@
+## [1.65.1](https://github.com/bamiyanapp/karuta/compare/v1.65.0...v1.65.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* **skills:** dev-standards新規Skill（planning-and-task-breakdown）のsymlinkを追加 ([#993](https://github.com/bamiyanapp/karuta/issues/993)) ([6291b10](https://github.com/bamiyanapp/karuta/commit/6291b10586f9e42b74d2a0c669bba1413a3491e2)), closes [#992](https://github.com/bamiyanapp/karuta/issues/992)
+
 # [1.65.0](https://github.com/bamiyanapp/karuta/compare/v1.64.1...v1.65.0) (2026-08-12)
 
 
