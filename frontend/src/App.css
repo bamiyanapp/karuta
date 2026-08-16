@@ -1,54 +1,10 @@
-#root {
-  font-family: 'M PLUS Rounded 1c', sans-serif;
-  width: 100%;
-}
-
-/* ダークモード: bg-light/bg-white/text-dark等はBootstrap 5.3のカラーモードに追従しない
-   静的ユーティリティのため、その参照元のCSS変数を直接再定義して連動させる */
-[data-bs-theme="dark"] {
-  --bs-light-rgb: 43, 43, 43;
-  --bs-dark-rgb: 228, 228, 228;
-  --bs-white-rgb: 30, 30, 30;
-}
+/* 共通フォント・ダークモードのBootstrap変数追従・ボタン押下フィードバック等は
+   dev-standards/shared/ui/bootstrap-theme.css（bootstrap-theme.cssとしてsymlink、
+   issue #1005）へ切り出し済み。ここにはkaruta固有のスタイルのみを残す */
 
 /* かるた札は常に紙面のような明るい配色を保つ意匠のため、文字色の反転対象から除外する */
 [data-bs-theme="dark"] .yomifuda {
   --bs-dark-rgb: 33, 37, 41;
-}
-
-[data-bs-theme="dark"] .btn-dark {
-  --bs-btn-bg: #e4e4e4;
-  --bs-btn-border-color: #e4e4e4;
-  --bs-btn-color: #121212;
-  --bs-btn-hover-bg: #cfcfcf;
-  --bs-btn-hover-border-color: #cfcfcf;
-  --bs-btn-hover-color: #121212;
-  --bs-btn-active-bg: #cfcfcf;
-  --bs-btn-active-border-color: #cfcfcf;
-  --bs-btn-active-color: #121212;
-}
-
-/* btn-outline-dark/btn-outline-secondaryは--bs-btn-colorに固定の16進値を持つため、
-   --bs-dark-rgb等の再定義では追従しない。個別に上書きする */
-[data-bs-theme="dark"] .btn-outline-dark {
-  --bs-btn-color: #e4e4e4;
-  --bs-btn-border-color: #e4e4e4;
-  --bs-btn-hover-color: #121212;
-  --bs-btn-hover-bg: #e4e4e4;
-  --bs-btn-hover-border-color: #e4e4e4;
-  --bs-btn-active-color: #121212;
-  --bs-btn-active-bg: #e4e4e4;
-  --bs-btn-active-border-color: #e4e4e4;
-  --bs-btn-disabled-color: #e4e4e4;
-  --bs-btn-disabled-border-color: #e4e4e4;
-}
-
-[data-bs-theme="dark"] .btn-outline-secondary {
-  --bs-btn-color: #adb5bd;
-  --bs-btn-border-color: #6c757d;
-  --bs-btn-hover-color: #121212;
-  --bs-btn-hover-bg: #adb5bd;
-  --bs-btn-hover-border-color: #adb5bd;
 }
 
 /* ページ全体の中央寄せを保証 */
@@ -67,17 +23,6 @@
   margin-left: auto;
   margin-right: auto;
   cursor: pointer;
-}
-
-/* フェードアニメーション用 */
-.fade-in {
-  opacity: 1;
-  transition: opacity 0.5s ease-in;
-}
-
-.fade-out {
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
 }
 
 /* かるた固有のデザイン（Bootstrapで表現しにくい部分） */
@@ -237,18 +182,6 @@
 
 .modal-overlay {
   background-color: rgba(0, 0, 0, 0.5);
-}
-
-button {
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-button:hover:not(:disabled) {
-  transform: scale(1.05);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(2px);
 }
 
 /* 全札一覧：種別フィルタと表を同じ領域でスクロールし、表のヘッダのみ画面内に固定 */
