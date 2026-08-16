@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE_URL } from "../config";
 import { phraseKey } from "../utils/phraseKey";
+import { getMainAudio, unlockAudioPlayback } from "../utils/audioUnlock";
 
 // 未読み札から次に読み上げる1件を選ぶ（プリフェッチと実際の選択で同じロジックを使う）
 const pickTargetPhrase = (unreadPhrases, sortOrder) => {
@@ -74,6 +75,19 @@ export function useKarutaReading({
   // ならないとtrueにならず、押下直後の連打を防げないため、押下と同時に同期的に
   // 立てられる再入防止用のrefを別途持つ
   const playKarutaInFlightRef = useRef(false);
+  // ブラウザの自動再生ポリシー対策（issue #997）: unlockAudioPlayback()は共有<audio>要素
+  // （playAudioがuseSharedElement:trueで使うもの）のsrcを書き換えて無音再生する。
+  // Safariの解錠は「要素ごとに一度でもユーザー操作の中で再生されたか」で決まり、一度
+  // 解錠されればその要素は以降の非同期文脈からの再生でも許可され続けるため、解錠は
+  // セッション中に1回で十分。もし「次の札」クリックのたびに呼び直すと、前の札の本編
+  // 音声がまだこの共有要素で再生中の場合に、その途中でsrcを無音クリップへ書き換えて
+  // しまい、再生中の音声を打ち切ってしまう（issue #999のE2E回帰で発覚）
+  const audioUnlockedRef = useRef(false);
+  const unlockAudioPlaybackOnce = () => {
+    if (audioUnlockedRef.current) return;
+    audioUnlockedRef.current = true;
+    unlockAudioPlayback();
+  };
 
   // 途中の札はaudioQueueが直前の再生完了まで次の音声を溜めておくため、読み上げ中に
   // 「次の札」を押しても現在の再生を止めずに済む。しかし最後の1枚だけは次に読む札が
@@ -102,9 +116,21 @@ export function useKarutaReading({
     }
   }, [isFadingOut]);
 
-  const playAudio = useCallback((audioData) => {
+  const playAudio = useCallback((audioData, { useSharedElement = false } = {}) => {
     return new Promise((resolve, reject) => {
-      const audio = new Audio(audioData);
+      // ブラウザの自動再生ポリシー対策（issue #997）: クイズ大会モードの管理者による
+      // 本編読み上げは、「次の札」クリックからplayIntroSound・（クイズ大会モードのみ）
+      // 3秒待機・フェード演出を経て非同期にここへ到達する。その都度new Audio()すると、
+      // その要素自体はユーザー操作の中で一度も再生されておらず、Safari等の自動再生
+      // ポリシーにブロックされ続けてしまう（audioUnlock.jsのコメント参照）。参加者側
+      // （QuizRoomView.jsx）と同じ、あらかじめunlockAudioPlayback()で解錠済みの共有
+      // <audio>要素（audioUnlock.js）を再利用することで、非同期文脈からの再生でも
+      // 許可されるようにする
+      const audio = useSharedElement ? getMainAudio() : new Audio(audioData);
+      if (useSharedElement) {
+        audio.pause();
+        audio.src = audioData;
+      }
       let settled = false;
       // モバイルブラウザ等の環境によっては、audio.play()のPromiseが拒否も解決も
       // されないまま待機し続けることがある（issue #729）。onended/onerrorの
@@ -227,7 +253,7 @@ export function useKarutaReading({
         }
       }
 
-      await playAudio(audioData).catch(e => console.error("Audio playback failed:", e));
+      await playAudio(audioData, { useSharedElement: true }).catch(e => console.error("Audio playback failed:", e));
       if (stopRequestedRef.current) {
         stopRequestedRef.current = false;
         setIsReading(false);
@@ -445,6 +471,11 @@ export function useKarutaReading({
   const playKaruta = async () => {
     if (playKarutaInFlightRef.current) return;
     playKarutaInFlightRef.current = true;
+    // ブラウザの自動再生ポリシー対策（issue #997）: 本編読み上げ（playAudioの共有
+    // <audio>要素）はこの後の非同期処理（fetch・クイズ大会モードの3秒待機等）を
+    // 経てから再生されるため、クリックという実際のユーザー操作の中で同期的に
+    // 解錠しておく必要がある（1回のみ、上のunlockAudioPlaybackOnce参照）
+    unlockAudioPlaybackOnce();
     setLoading(true);
 
     try {
@@ -459,6 +490,9 @@ export function useKarutaReading({
   // （App.jsx）が対象の音声データ（現在読み上げ中の札、または詳細画面で開いている札）を
   // 決定し、このhookはそれをキューへ積んで再生する処理だけを担う
   const queueRepeatAudio = (audioData) => {
+    // ブラウザの自動再生ポリシー対策（issue #997）: playAudioが使う共有<audio>要素を、
+    // このボタン押下という実際のユーザー操作の中で同期的に解錠しておく（1回のみ）
+    unlockAudioPlaybackOnce();
     setAudioQueue(prev => [...prev, { phraseData: null, audioData }]);
   };
 
