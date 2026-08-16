@@ -2438,6 +2438,10 @@ describe('App', () => {
       // 以降のカードは通常のテスト用モック（onendedが自動発火する）に戻し、
       // カード2の読み上げが自然に完了できるようにする。
       window.Audio = originalAudio;
+      // issue #997: 本編読み上げは共有<audio>要素（audioUnlock.js）を再利用するため、
+      // window.Audioを差し替えただけでは、カード1で既に生成済みの（旧モックの）
+      // 共有要素がそのまま使われてしまう。新しいモックの下で共有要素を作り直させる
+      resetSharedAudioForTests();
 
       // 停止直後に「次の札」を押しても、isReadingが真に固定されて以降ずっと
       // 読み上げできなくなってはいけない。
