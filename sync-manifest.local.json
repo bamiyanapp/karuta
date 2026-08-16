@@ -1,5 +1,6 @@
 {
   "symlinks": [
-    { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" }
+    { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" },
+    { "source": "shared/ui/bootstrap-theme.css", "target": "frontend/src/bootstrap-theme.css" }
   ]
 }

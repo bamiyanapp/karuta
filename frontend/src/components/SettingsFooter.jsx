@@ -41,7 +41,9 @@ const SORT_ORDER_OPTIONS = [
   { value: "hard", label: "難しい" },
 ];
 const SPEECH_RATE_OPTIONS = [
-  { value: "70%", label: "ゆっくり" },
+  // issue #1001: 「ゆっくり」が遅すぎるとの声を受け、「ふつう」（80%）との
+  // 中間の速度（75%）へ引き上げた
+  { value: "75%", label: "ゆっくり" },
   { value: "80%", label: "ふつう" },
   { value: "100%", label: "はやい" },
 ];
