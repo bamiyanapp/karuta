@@ -1,0 +1,5 @@
+{
+  "symlinks": [
+    { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" }
+  ]
+}
