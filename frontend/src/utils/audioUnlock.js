@@ -78,6 +78,14 @@ export function playSharedAudio(src) {
   return audio.play();
 }
 
+// issue #997: 解錠済みの共有<audio>要素（読み上げ用）そのものを返す。onended/onerrorの
+// 監視やタイムアウト処理など、呼び出し側で再生完了を個別に追跡する必要がある場合
+// （useKarutaReading.jsのplayAudio）はこちらを使う。単に再生を開始するだけでよい
+// 場合はplaySharedAudioを使う
+export function getMainAudio() {
+  return getSharedAudio();
+}
+
 // issue #696: 読み上げ中に早押しボタンが押された場合、読み上げ音声を中断するために使う。
 // sharedAudioが未生成（一度も再生されていない）場合は何もしない
 export function stopSharedAudio() {

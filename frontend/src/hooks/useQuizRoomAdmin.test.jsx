@@ -1101,6 +1101,51 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(window.Audio).toHaveBeenCalledTimes(5);
   });
 
+  it("reuses the shared (already-unlocked) narration element for the admin's own quiz-room reading, instead of creating a fresh never-unlocked Audio element each time (issue #997)", async () => {
+    installMinimalMockWebSocket();
+
+    fetch.mockImplementation(async (url, options) => {
+      if (url.includes('/quiz-room') && options?.method === 'POST') {
+        return { ok: true, json: async () => ({ roomId: 'ABC123', adminToken: 'token-1' }) };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      if (url.includes('/get-phrase?')) {
+        return { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'data:audio/mp3;base64,DUMMY' }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+    await waitFor(() => screen.getByText('次の札'));
+
+    // issue #997: ルーム作成という実際のユーザー操作の中で、本編読み上げ用の
+    // 共有<audio>要素が解錠される（createQuizRoom内のunlockAudioPlayback）
+    fireEvent.click(screen.getByText('クイズ大会のルームを作成する'));
+    await screen.findByText('ルーム情報を表示（クイズ大会モード）');
+
+    const unlockedInstance = window.Audio.mock.results
+      .map((result) => result.value)
+      .find((audio) => typeof audio.src === 'string' && audio.src.startsWith('data:audio/wav'));
+    expect(unlockedInstance).toBeDefined();
+
+    fireEvent.click(screen.getByText('次の札'));
+
+    // issue #997: 管理者自身の本編読み上げ（太鼓の音＋クイズ大会モードの3秒待機を
+    // 経て開始）が、その都度new Audio()するのではなく、ルーム作成時に解錠済みだった
+    // 同じ要素を再利用して再生されることを確認する。別々の（未解錠の）要素を使って
+    // いると、Safari等の自動再生ポリシーに非同期文脈からの再生をブロックされ、
+    // 太鼓の音だけ鳴って本編が読み上げられない不具合になる
+    await waitFor(() => {
+      expect(unlockedInstance.src).toBe('data:audio/mp3;base64,DUMMY');
+    }, { timeout: 20000 });
+  }, 40000);
+
   it('does not show the open-room list section when there are no open quiz rooms', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('/quiz-rooms')) return { ok: true, json: async () => ({ rooms: [] }) };

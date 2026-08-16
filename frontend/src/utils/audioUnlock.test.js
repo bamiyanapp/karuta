@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playJudgmentSfx, playQuizSfxAndWait, stopSharedAudio, resetSharedAudioForTests } from './audioUnlock';
+import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playJudgmentSfx, playQuizSfxAndWait, stopSharedAudio, getMainAudio, resetSharedAudioForTests } from './audioUnlock';
 
 const audioInstances = [];
 let audioPlayImpl = () => Promise.resolve();
@@ -78,6 +78,22 @@ describe('audioUnlock', () => {
     unlockAudioPlayback();
 
     expect(audioInstances).toHaveLength(10);
+  });
+
+  describe('getMainAudio (issue #997)', () => {
+    it('returns the same already-unlocked element that unlockAudioPlayback primed', () => {
+      unlockAudioPlayback();
+      const unlockedInstance = audioInstances[0];
+
+      expect(getMainAudio()).toBe(unlockedInstance);
+    });
+
+    it('lazily creates the shared element if unlockAudioPlayback was never called, same as playSharedAudio', () => {
+      const audio = getMainAudio();
+
+      expect(audioInstances).toHaveLength(1);
+      expect(audio).toBe(audioInstances[0]);
+    });
   });
 
   describe('stopSharedAudio (issue #696)', () => {
