@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.67.0",
+    "version": "1.68.0",
     "date": "2026/08/16",
+    "body": "### Features\n\n* **theme:** 共有Bootstrapテーマ（bootstrap-theme.css）へ切り替える ([#1006](https://github.com/bamiyanapp/karuta/issues/1006)) ([9060e66](https://github.com/bamiyanapp/karuta/commit/9060e66d379bbb81316be0debc70a1f653507c07)), closes [bamiyanapp/dev-standards#232](https://github.com/bamiyanapp/dev-standards/issues/232)"
+  },
+  {
+    "version": "1.67.0",
+    "date": "2026/08/16 04:30",
     "body": "### Features\n\n* **settings:** 読み上げスピード「ゆっくり」をふつうとの中間速度へ引き上げる ([#1002](https://github.com/bamiyanapp/karuta/issues/1002)) ([8bc2b17](https://github.com/bamiyanapp/karuta/commit/8bc2b17636e088608c95249d424aac803452774e))"
   },
   {
