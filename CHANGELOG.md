@@ -1,3 +1,10 @@
+# [1.66.0](https://github.com/bamiyanapp/karuta/compare/v1.65.1...v1.66.0) (2026-08-16)
+
+
+### Features
+
+* **ci:** push時CIの軽量化（skip_verification_on_push）を有効化する ([#996](https://github.com/bamiyanapp/karuta/issues/996)) ([f606df1](https://github.com/bamiyanapp/karuta/commit/f606df1d7b79f10c6d891d1c4dbd4a9b3e2d9f61)), closes [#973](https://github.com/bamiyanapp/karuta/issues/973)
+
 ## [1.65.1](https://github.com/bamiyanapp/karuta/compare/v1.65.0...v1.65.1) (2026-08-16)
 
 
