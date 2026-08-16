@@ -9,6 +9,7 @@ vi.mock("virtual:pwa-register/react", () => ({
 
 import PwaUpdatePrompt from "./PwaUpdatePrompt.jsx";
 import { setPrintScreenActive } from "./pdfExportStatus";
+import { setGameplayActive } from "./gameplayActivity";
 
 describe("PwaUpdatePrompt", () => {
   beforeEach(() => {
@@ -17,8 +18,10 @@ describe("PwaUpdatePrompt", () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    // pdfExportStatusはモジュール単位で状態を共有するため、他テストへ漏れないよう戻す
+    // pdfExportStatus・gameplayActivityはモジュール単位で状態を共有するため、
+    // 他テストへ漏れないよう戻す
     setPrintScreenActive(false);
+    setGameplayActive(false);
   });
 
   it("更新が不要な場合は何も表示しない", () => {
@@ -70,6 +73,37 @@ describe("PwaUpdatePrompt", () => {
     fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
 
     expect(setNeedRefresh).toHaveBeenCalledWith(false);
+  });
+
+  it("プレイ中は更新ボタンを表示せず、プレイ終了後まで更新を保留する（issue #1000）", () => {
+    setGameplayActive(true);
+    const updateServiceWorker = vi.fn();
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [true, vi.fn()],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker,
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    expect(screen.getByText("新しいバージョンがあります（プレイ終了後に更新できます）")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "更新する" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "閉じる" })).toBeInTheDocument();
+    expect(updateServiceWorker).not.toHaveBeenCalled();
+  });
+
+  it("プレイ中でなければ通常どおり更新ボタンが表示される（issue #1000）", () => {
+    setGameplayActive(false);
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [true, vi.fn()],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    expect(screen.getByText("新しいバージョンがあります")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "更新する" })).toBeInTheDocument();
   });
 
   it("オフライン利用可能な場合はメッセージを表示し、「閉じる」をクリックで消える", () => {

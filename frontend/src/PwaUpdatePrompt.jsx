@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useIsPrintScreenActive } from "./pdfExportStatus";
+import { useGameplayActive } from "./gameplayActivity";
 import "./PwaUpdatePrompt.css";
 
 // オフライン利用可能通知は操作を要求しない情報表示のため、この時間が経てば自動的に消す。
@@ -32,6 +33,11 @@ function PwaUpdatePrompt() {
   // 動作しないため、この画面を開いている間に「オフラインで利用可能になりました」を
   // 出すと誤解を招く（issue #473）
   const isPrintScreenActive = useIsPrintScreenActive();
+  // issue #1000: プレイ中に「更新する」を押すと、選択中のカテゴリ・読み上げ中の
+  // 進行状態を失ったまま即座にページが再読み込みされ、ゲームが中断されてしまう。
+  // プレイ中は更新ボタン自体を出さず、プレイを終えて安全なタイミングになってから
+  // 更新できるようにする
+  const isGameplayActive = useGameplayActive();
 
   const close = () => {
     setOfflineReady(false);
@@ -45,6 +51,21 @@ function PwaUpdatePrompt() {
     const timer = setTimeout(() => setOfflineReady(false), OFFLINE_READY_AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [offlineReady, setOfflineReady]);
+
+  if (needRefresh && isGameplayActive) {
+    return (
+      <div className="pwa-update-prompt" role="status">
+        <span>新しいバージョンがあります（プレイ終了後に更新できます）</span>
+        <button
+          type="button"
+          className="pwa-update-prompt-button close-button"
+          onClick={close}
+        >
+          閉じる
+        </button>
+      </div>
+    );
+  }
 
   if (needRefresh) {
     return (
