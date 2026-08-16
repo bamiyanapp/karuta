@@ -1,3 +1,10 @@
+# [1.68.0](https://github.com/bamiyanapp/karuta/compare/v1.67.0...v1.68.0) (2026-08-16)
+
+
+### Features
+
+* **theme:** 共有Bootstrapテーマ（bootstrap-theme.css）へ切り替える ([#1006](https://github.com/bamiyanapp/karuta/issues/1006)) ([9060e66](https://github.com/bamiyanapp/karuta/commit/9060e66d379bbb81316be0debc70a1f653507c07)), closes [bamiyanapp/dev-standards#232](https://github.com/bamiyanapp/dev-standards/issues/232)
+
 # [1.67.0](https://github.com/bamiyanapp/karuta/compare/v1.66.0...v1.67.0) (2026-08-16)
 
 
