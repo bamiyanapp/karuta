@@ -75,5 +75,15 @@ jobs:
       # いなかったためコードのままでしか見えず画像化されていなかった。対象に追加する
       enable_mermaid_render: true
       mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md\ndocs/generated/websocket-api.md\ndocs/generated/dynamodb-tables.md\ndocs/generated/serverless-architecture.md\ndocs/generated/cicd-architecture.md"
+      # push時CI軽量化（issue #973、dev-standards#187バックログ③）。PRの
+      # 「base_branchと同期済みでなければマージ不可」（up-to-date required）
+      # ＋Squash merge運用のもとでは、squash merge直後のpush-to-main上のツリーは
+      # 直前のpull_requestイベントで検証済みのPR head内容と完全に一致するため、
+      # push時のfrontend-test/backend-test/package-test/standards-check/
+      # duplication-checkの再実行は構造的に冗長。frontend-e2e-test（E2E
+      # スクリーンショットのlatest/ベースライン公開）・render-mermaid-diagrams
+      # （mermaid画像のlatest/公開）はpush時のみの副作用があるため対象外のまま
+      # スキップされない（reusable-ci.yml側の実装）
+      skip_verification_on_push: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
