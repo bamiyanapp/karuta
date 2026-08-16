@@ -6,6 +6,7 @@ import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
+import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
 import { useQuizRoomAdmin } from "./hooks/useQuizRoomAdmin";
@@ -550,6 +551,16 @@ function App() {
   });
 
   useWakeLock(view === "game" && selectedCategories.length > 0);
+
+  // PWA更新プロンプト（issue #1000）: プレイ中に「更新する」が押されると、選択中の
+  // カテゴリ・読み上げ中の進行状態（sessionStorageに永続化されないもの）を失った
+  // まま即座にページが再読み込みされ、ゲームが中断されてしまう。useWakeLockと同じ
+  // 「実際に読み上げ画面で遊んでいる最中」の条件をPwaUpdatePromptへ伝え、その間は
+  // 更新プロンプトを保留する
+  useEffect(() => {
+    setGameplayActive(view === "game" && selectedCategories.length > 0);
+    return () => setGameplayActive(false);
+  }, [view, selectedCategories]);
 
   // クイズ大会モード（issue #470）の管理者側ロジック（ルーム作成・一覧取得・
   // WebSocket接続・早押し判定・状態ブロードキャスト）はuseQuizRoomAdminへ切り出した
