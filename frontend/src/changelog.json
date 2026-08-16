@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.68.1",
+    "version": "1.68.2",
     "date": "2026/08/16",
+    "body": "### Bug Fixes\n\n* **pwa:** プレイ中はPWA更新プロンプトを保留し、ゲーム中断を防ぐ ([#1012](https://github.com/bamiyanapp/karuta/issues/1012)) ([ace47f0](https://github.com/bamiyanapp/karuta/commit/ace47f0154a47317851aee3f2ed1a2c9e66b4fca))"
+  },
+  {
+    "version": "1.68.1",
+    "date": "2026/08/16 11:04",
     "body": "### Bug Fixes\n\n* **quiz-room:** 管理者の本編読み上げが太鼓の音だけで無音になる不具合を修正 ([#999](https://github.com/bamiyanapp/karuta/issues/999)) ([785798c](https://github.com/bamiyanapp/karuta/commit/785798cf5ec2b983847c1b44711c3e067419ed50))"
   },
   {
