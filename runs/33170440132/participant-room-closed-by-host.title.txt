@@ -1,0 +1,1 @@
+admin closes the room, and the participant sees a closed-by-host message (issue #748)
