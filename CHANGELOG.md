@@ -1,3 +1,10 @@
+# [1.69.0](https://github.com/bamiyanapp/karuta/compare/v1.68.3...v1.69.0) (2026-08-28)
+
+
+### Features
+
+* **sfx:** 太鼓の効果音をdev-standardsの共有アセットへ切り替える ([#1065](https://github.com/bamiyanapp/karuta/issues/1065)) ([a83a9ac](https://github.com/bamiyanapp/karuta/commit/a83a9acdbab0e6645fe73dc1fea3eba2ab4cd891))
+
 ## [1.68.3](https://github.com/bamiyanapp/karuta/compare/v1.68.2...v1.68.3) (2026-08-16)
 
 

@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.69.0",
+    "date": "2026/08/28",
+    "body": "### Features\n\n* **sfx:** 太鼓の効果音をdev-standardsの共有アセットへ切り替える ([#1065](https://github.com/bamiyanapp/karuta/issues/1065)) ([a83a9ac](https://github.com/bamiyanapp/karuta/commit/a83a9acdbab0e6645fe73dc1fea3eba2ab4cd891))"
+  },
+  {
     "version": "1.68.3",
-    "date": "2026/08/16",
+    "date": "2026/08/16 21:47",
     "body": "### Bug Fixes\n\n* **e2e:** Pollyコールドキャッシュ起因の既知flakyを条件付きskipで無効化する ([#1017](https://github.com/bamiyanapp/karuta/issues/1017)) ([d8f6ef2](https://github.com/bamiyanapp/karuta/commit/d8f6ef23a831a9880b8822ac18fc8afd8116f239)), closes [#972](https://github.com/bamiyanapp/karuta/issues/972) [#576](https://github.com/bamiyanapp/karuta/issues/576)"
   },
   {
