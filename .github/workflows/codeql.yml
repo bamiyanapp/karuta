@@ -19,4 +19,4 @@ permissions:
 
 jobs:
   codeql:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.5.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.6.0
