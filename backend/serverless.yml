@@ -163,6 +163,15 @@ functions:
           method: post
           cors:
             origins: ${self:custom.allowedOrigins}
+  reportClientError: # 追加（issue #1110）。ErrorBoundaryが捕捉したフロントエンドの例外を
+    # CloudWatch Logsへ残す。DynamoDB等への永続化は行わず、console.errorのみでよい
+    handler: handler.reportClientError
+    events:
+      - http:
+          path: report-client-error
+          method: post
+          cors:
+            origins: ${self:custom.allowedOrigins}
   generateEfudaPdf: # 追加（絵札PDFのサーバーサイド生成）。PDF生成ジョブを開始しjobIdを即返す
     handler: efudaPdfHandler.generateEfudaPdf
     environment:
