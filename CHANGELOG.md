@@ -1,3 +1,10 @@
+## [1.69.1](https://github.com/bamiyanapp/karuta/compare/v1.69.0...v1.69.1) (2026-09-06)
+
+
+### Bug Fixes
+
+* **frontend:** アプリ全体をError Boundaryで包み白画面クラッシュを防ぐ ([#1108](https://github.com/bamiyanapp/karuta/issues/1108)) ([2a37025](https://github.com/bamiyanapp/karuta/commit/2a3702579ee46585ba2eb253fa2b9b500472e856))
+
 # [1.69.0](https://github.com/bamiyanapp/karuta/compare/v1.68.3...v1.69.0) (2026-08-28)
 
 
