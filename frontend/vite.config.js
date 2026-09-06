@@ -28,6 +28,13 @@ export default defineConfig({
     }),
   ],
   base: "./",
+  // shared/ui/ErrorBoundary.jsx（symlink、issue #1113）が"react"をimportするため必要。
+  // Viteは既定でシンボリックリンクの実体パス（dev-standards配下）を起点にnode_modulesを
+  // 探索し、karutaにインストール済みのreactを見つけられずビルドエラーになる
+  // （dev-standards/docs/shared-ui-components.mdのShareButton.jsxと同じ制約）
+  resolve: {
+    preserveSymlinks: true,
+  },
   // E2EテストのJSカバレッジ算出（issue #541）でビルド成果物（バンドル・minify済み）を
   // 元のソースファイル単位へマッピングするためにソースマップを出力する
   build: {
