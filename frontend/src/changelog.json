@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.70.0",
+    "version": "1.70.1",
     "date": "2026/09/06",
+    "body": "### Bug Fixes\n\n* **settings:** 旧speechRate(70%)のlocalStorage保存値を75%へ移行する ([#1117](https://github.com/bamiyanapp/karuta/issues/1117)) ([496a7b8](https://github.com/bamiyanapp/karuta/commit/496a7b869f364d2a427ad566018eb8137bb82bad))"
+  },
+  {
+    "version": "1.70.0",
+    "date": "2026/09/06 00:42",
     "body": "### Features\n\n* **error-reporting:** ErrorBoundaryが捕捉した例外をサーバーサイドにも記録する ([#1111](https://github.com/bamiyanapp/karuta/issues/1111)) ([9d4ff87](https://github.com/bamiyanapp/karuta/commit/9d4ff878a708ca782f61c28b5dd6d7f1ba4b3caf))"
   },
   {
