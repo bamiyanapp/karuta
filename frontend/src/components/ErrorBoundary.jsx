@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { API_BASE_URL } from "../config";
 
 // issue #1106: 札をめくった後に画面が真っ白になり操作不能になる事象が報告されたが、
 // 再現条件が特定できていない。本アプリにはError Boundaryが1つも無く、
@@ -18,9 +19,27 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // 再現条件が未特定のため、発生時のスタックトレースをコンソールへ残す。
-    // 本番の集約ログ基盤は無く、これが唯一の手がかりになる
+    // ブラウザのコンソールへも残すが、開発環境がスマートフォンオンリーのため
+    // 事後にはほぼ確認できない（issue #1110）。サーバーサイド（CloudWatch Logs）にも
+    // 残すため、record-time等と同様のfire-and-forget方式（送信失敗はもみ消し、
+    // アプリの他の動作に影響させない）でreport-client-errorへ送信する。
+    // プレイ内容（読み上げ中のフレーズ等）は個人情報・利用状況の詳細にあたるため
+    // 送信しない
     console.error("ErrorBoundaryが例外を捕捉しました:", error, errorInfo);
+
+    fetch(`${API_BASE_URL}/report-client-error`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error?.message,
+        stack: error?.stack,
+        componentStack: errorInfo?.componentStack,
+        url: window.location.href,
+      }),
+    }).catch(() => {
+      // 送信自体が失敗しても、フォールバック画面の表示（recover手段の提供）を
+      // 妨げてはならないため何もしない
+    });
   }
 
   render() {

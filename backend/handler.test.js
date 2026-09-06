@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
-import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, resolveAllowedOrigin } from './handler';
+import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, reportClientError, resolveAllowedOrigin } from './handler';
 import { Readable } from 'stream';
 import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
@@ -1293,6 +1293,62 @@ describe('recordTime', () => {
         ddbMock.on(UpdateCommand).rejects(new Error('ProvisionedThroughputExceededException'));
         const event = { body: JSON.stringify({ id: 'p1', category: 'c1', time: 10 }) };
         const response = await recordTime(event);
+        expect(response.statusCode).toBe(500);
+    });
+});
+
+// issue #1110: ErrorBoundaryが捕捉したフロントエンドの例外をCloudWatch Logsへ残す
+describe('reportClientError', () => {
+    it('should log the error and return 200 when message is provided', async () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error');
+        consoleErrorSpy.mockClear();
+
+        const event = {
+            body: JSON.stringify({
+                message: 'テスト用の例外',
+                stack: 'Error: テスト用の例外\n    at Bomb',
+                componentStack: '\n    in Bomb\n    in ErrorBoundary',
+                url: 'https://bamiyanapp.github.io/karuta/',
+            })
+        };
+        const response = await reportClientError(event);
+        expect(response.statusCode).toBe(200);
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith('[ClientError]', expect.objectContaining({
+            message: 'テスト用の例外',
+            stack: 'Error: テスト用の例外\n    at Bomb',
+            componentStack: '\n    in Bomb\n    in ErrorBoundary',
+            url: 'https://bamiyanapp.github.io/karuta/',
+        }));
+    });
+
+    it('should return 400 when message is missing', async () => {
+        const event = { body: JSON.stringify({ stack: 'Error' }) };
+        const response = await reportClientError(event);
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('should truncate overly long fields instead of storing them in full (abuse prevention)', async () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error');
+        consoleErrorSpy.mockClear();
+
+        const event = {
+            body: JSON.stringify({
+                message: 'a'.repeat(1000),
+                stack: 'b'.repeat(5000),
+            })
+        };
+        const response = await reportClientError(event);
+        expect(response.statusCode).toBe(200);
+
+        const loggedPayload = consoleErrorSpy.mock.calls[0][1];
+        expect(loggedPayload.message).toHaveLength(500);
+        expect(loggedPayload.stack).toHaveLength(4000);
+    });
+
+    it('should return 500 when the request body is not valid JSON (same convention as other handlers)', async () => {
+        const event = { body: '{invalid json' };
+        const response = await reportClientError(event);
         expect(response.statusCode).toBe(500);
     });
 });

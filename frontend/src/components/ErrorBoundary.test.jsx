@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -11,6 +11,22 @@ function Bomb() {
 }
 
 describe('ErrorBoundary', () => {
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+    // Reactが例外発生時にコンソールへエラーログを出す（componentDidCatchとは別の、
+    // React自体の既定動作）ため、テスト出力を汚さないよう抑制する
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // issue #1110: componentDidCatchがreport-client-errorへfetchするようになったため、
+    // モックせず実行すると実際のAPIへネットワークリクエストが飛んでしまう
+    window.fetch = vi.fn().mockResolvedValue({ ok: true });
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   it('renders children normally when no error occurs', () => {
     render(
       <ErrorBoundary>
@@ -18,13 +34,10 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     expect(screen.getByText('正常な画面')).toBeInTheDocument();
+    expect(window.fetch).not.toHaveBeenCalled();
   });
 
   it('renders a fallback screen instead of a blank page when a child throws during render', () => {
-    // Reactが例外発生時にコンソールへエラーログを出す（componentDidCatchとは別の、
-    // React自体の既定動作）ため、テスト出力を汚さないよう抑制する
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
     render(
       <ErrorBoundary>
         <Bomb />
@@ -33,12 +46,41 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText('エラーが発生しました')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '再読み込み' })).toBeInTheDocument();
+  });
 
-    consoleErrorSpy.mockRestore();
+  it('reports the caught error to the backend without blocking the fallback screen (issue #1110)', () => {
+    render(
+      <ErrorBoundary>
+        <Bomb />
+      </ErrorBoundary>
+    );
+
+    expect(window.fetch).toHaveBeenCalledTimes(1);
+    const [url, options] = window.fetch.mock.calls[0];
+    expect(url).toMatch(/\/report-client-error$/);
+    const body = JSON.parse(options.body);
+    expect(body.message).toBe('テスト用の例外');
+    expect(body.stack).toEqual(expect.any(String));
+    expect(body.componentStack).toEqual(expect.any(String));
+    expect(body.url).toBe(window.location.href);
+  });
+
+  it('does not let a failed error report break the fallback screen', async () => {
+    window.fetch = vi.fn().mockRejectedValue(new Error('ネットワークエラー'));
+
+    render(
+      <ErrorBoundary>
+        <Bomb />
+      </ErrorBoundary>
+    );
+
+    expect(screen.getByText('エラーが発生しました')).toBeInTheDocument();
+    // fetch失敗のcatchが未処理のPromise rejectionにならないことを確認するため、
+    // マイクロタスクの解決を待つ
+    await Promise.resolve();
   });
 
   it('reloads the page when the reload button is clicked', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const reloadSpy = vi.fn();
     // jsdomのwindow.location.reloadは未実装のため、呼び出しを検証できるよう差し替える
     vi.stubGlobal('location', { ...window.location, reload: reloadSpy });
@@ -51,8 +93,5 @@ describe('ErrorBoundary', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '再読み込み' }));
     expect(reloadSpy).toHaveBeenCalledTimes(1);
-
-    consoleErrorSpy.mockRestore();
-    vi.unstubAllGlobals();
   });
 });
