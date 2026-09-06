@@ -1,3 +1,10 @@
+# [1.70.0](https://github.com/bamiyanapp/karuta/compare/v1.69.1...v1.70.0) (2026-09-06)
+
+
+### Features
+
+* **error-reporting:** ErrorBoundaryが捕捉した例外をサーバーサイドにも記録する ([#1111](https://github.com/bamiyanapp/karuta/issues/1111)) ([9d4ff87](https://github.com/bamiyanapp/karuta/commit/9d4ff878a708ca782f61c28b5dd6d7f1ba4b3caf))
+
 ## [1.69.1](https://github.com/bamiyanapp/karuta/compare/v1.69.0...v1.69.1) (2026-09-06)
 
 
