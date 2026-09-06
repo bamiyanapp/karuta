@@ -1,3 +1,10 @@
+## [1.70.1](https://github.com/bamiyanapp/karuta/compare/v1.70.0...v1.70.1) (2026-09-06)
+
+
+### Bug Fixes
+
+* **settings:** 旧speechRate(70%)のlocalStorage保存値を75%へ移行する ([#1117](https://github.com/bamiyanapp/karuta/issues/1117)) ([496a7b8](https://github.com/bamiyanapp/karuta/commit/496a7b869f364d2a427ad566018eb8137bb82bad))
+
 # [1.70.0](https://github.com/bamiyanapp/karuta/compare/v1.69.1...v1.70.0) (2026-09-06)
 
 
