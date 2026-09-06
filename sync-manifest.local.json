@@ -2,6 +2,8 @@
   "symlinks": [
     { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" },
     { "source": "shared/ui/bootstrap-theme.css", "target": "frontend/src/bootstrap-theme.css" },
-    { "source": "shared/sfx/wadodon.mp3", "target": "frontend/public/wadodon.mp3" }
+    { "source": "shared/sfx/wadodon.mp3", "target": "frontend/public/wadodon.mp3" },
+    { "source": "shared/ui/ErrorBoundary.jsx", "target": "frontend/src/components/ErrorBoundary.jsx" },
+    { "source": "shared/lambda/clientErrorReporting.js", "target": "backend/clientErrorReporting.js" }
   ]
 }
