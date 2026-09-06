@@ -1297,7 +1297,11 @@ describe('recordTime', () => {
     });
 });
 
-// issue #1110: ErrorBoundaryが捕捉したフロントエンドの例外をCloudWatch Logsへ残す
+// issue #1110: ErrorBoundaryが捕捉したフロントエンドの例外をCloudWatch Logsへ残す。
+// リクエストボディの検証・切り詰めロジック自体はdev-standardsのshared/lambda/
+// clientErrorReporting.js（issue #1113でsymlink化）側のテストで検証済みのため、
+// ここではhandler.jsがそれを正しく呼び出し、console.error・レスポンスへ
+// 反映していること（結線）の確認に留める
 describe('reportClientError', () => {
     it('should log the error and return 200 when message is provided', async () => {
         const consoleErrorSpy = vi.spyOn(console, 'error');

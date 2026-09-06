@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, serverError } = require("./httpResponse");
+const { buildClientErrorLogPayload } = require("./clientErrorReporting.js"); // symlink先（issue #1113）
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -157,43 +158,24 @@ exports.recordTime = async (event) => {
 }
 
 // issue #1106（画面が真っ白になり操作不能になる事象）の再発防止策として追加したErrorBoundary
-// （frontend/src/components/ErrorBoundary.jsx）は、開発環境がスマートフォンオンリーのため
-// ブラウザのコンソール出力だけでは事後に確認できない（issue #1110）。そのため捕捉した
-// エラー情報をこのエンドポイント経由でCloudWatch Logsへも残す。
-// 各フィールドに長さ上限を設けているのは、悪意ある大量送信でログの容量・コストが
-// 膨らむのを防ぐため（認証の無い公開エンドポイントのため、内容の真偽は検証できない前提）。
-const CLIENT_ERROR_FIELD_MAX_LENGTHS = {
-  message: 500,
-  stack: 4000,
-  componentStack: 4000,
-  url: 500,
-};
-
-function truncateClientErrorField(value, maxLength) {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  return value.length > maxLength ? value.slice(0, maxLength) : value;
-}
-
+// （frontend/src/components/ErrorBoundary.jsx、dev-standardsのshared/ui/ErrorBoundary.jsx由来）は、
+// 開発環境がスマートフォンオンリーのためブラウザのコンソール出力だけでは事後に確認できない
+// （issue #1110）。そのため捕捉したエラー情報をこのエンドポイント経由でCloudWatch Logsへも残す。
+// リクエストボディの検証・長さ上限による切り詰めはdev-standardsの共有ロジック
+// （shared/lambda/clientErrorReporting.js、issue #1113）に委ねる。
 exports.reportClientError = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const body = JSON.parse(event.body);
-    const message = truncateClientErrorField(body.message, CLIENT_ERROR_FIELD_MAX_LENGTHS.message);
+    const payload = buildClientErrorLogPayload(body);
 
-    if (!message) {
+    if (!payload) {
       return badRequest(allowedOrigin, "Invalid input");
     }
 
     // プレイ内容（読み上げ中のフレーズ等）は送信対象に含めない設計のため、ここで
     // 受け取るのはエラー情報とURLのみ（個人情報・利用状況の詳細を含まない）
-    console.error("[ClientError]", {
-      message,
-      stack: truncateClientErrorField(body.stack, CLIENT_ERROR_FIELD_MAX_LENGTHS.stack),
-      componentStack: truncateClientErrorField(body.componentStack, CLIENT_ERROR_FIELD_MAX_LENGTHS.componentStack),
-      url: truncateClientErrorField(body.url, CLIENT_ERROR_FIELD_MAX_LENGTHS.url),
-    });
+    console.error("[ClientError]", payload);
 
     return jsonResponse(allowedOrigin, 200, { message: "Error reported successfully" });
   } catch (error) {
