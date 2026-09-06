@@ -1603,6 +1603,27 @@ describe('App', () => {
     localStorage.removeItem('cardRevealDelay');
   });
 
+  it('migrates a pre-issue-1001 speechRate of 70% to 75% so existing users actually get the faster rate (issue #1115)', async () => {
+    localStorage.setItem('speechRate', '70%');
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    fireEvent.click(await screen.findByRole('button', { name: /Cat1/ }));
+
+    // 移行後は「ゆっくり」ボタンが選択状態（active）で表示され、保存値も書き換わる
+    expect(screen.getByText('ゆっくり').closest('button')).toHaveClass('btn-dark');
+    expect(localStorage.getItem('speechRate')).toBe('75%');
+
+    localStorage.removeItem('speechRate');
+  });
+
   it('shows the voice selector only for Japanese, updates the setting, and includes voiceId in the phrase request (issue #217)', async () => {
     // 直前のテストがlocalStorageにlang='en'を残す場合があるため、日本語から始まることを明示する
     localStorage.setItem('lang', 'ja');

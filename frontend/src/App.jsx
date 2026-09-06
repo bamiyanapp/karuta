@@ -151,7 +151,10 @@ function App() {
   const [searchQuery, setSearchQuery] = useState(''); // 全札一覧テキスト検索
   const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
   const [cardRevealDelay, setCardRevealDelay] = useLocalStorageState("cardRevealDelay", 3000, (v) => parseInt(v, 10));
-  const [speechRate, setSpeechRate] = useLocalStorageState("speechRate", "80%");
+  // issue #1001で「ゆっくり」の値を70%→75%へ引き上げたが、既に70%を選択済みだった
+  // ユーザーのlocalStorage保存値はそのままでは移行されない（issue #1115）。
+  // parse時に旧値を新値へ読み替えることで、次回アクセス時に自動的に反映されるようにする
+  const [speechRate, setSpeechRate] = useLocalStorageState("speechRate", "80%", (stored) => (stored === "70%" ? "75%" : stored));
   const [lang, setLang] = useLocalStorageState("lang", "ja");
   const [voiceId, setVoiceId] = useLocalStorageState("voiceId", "Mizuki");
   const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
