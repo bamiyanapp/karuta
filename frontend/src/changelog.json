@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.69.1",
+    "version": "1.70.0",
     "date": "2026/09/06",
+    "body": "### Features\n\n* **error-reporting:** ErrorBoundaryが捕捉した例外をサーバーサイドにも記録する ([#1111](https://github.com/bamiyanapp/karuta/issues/1111)) ([9d4ff87](https://github.com/bamiyanapp/karuta/commit/9d4ff878a708ca782f61c28b5dd6d7f1ba4b3caf))"
+  },
+  {
+    "version": "1.69.1",
+    "date": "2026/09/06 00:09",
     "body": "### Bug Fixes\n\n* **frontend:** アプリ全体をError Boundaryで包み白画面クラッシュを防ぐ ([#1108](https://github.com/bamiyanapp/karuta/issues/1108)) ([2a37025](https://github.com/bamiyanapp/karuta/commit/2a3702579ee46585ba2eb253fa2b9b500472e856))"
   },
   {
