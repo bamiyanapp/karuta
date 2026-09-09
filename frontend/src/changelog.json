@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.70.3",
+    "date": "2026/09/09",
+    "body": "### Bug Fixes\n\n* **frontend:** こども向け（kids）分類の読み札でもレベルを右下に表示する ([#1134](https://github.com/bamiyanapp/karuta/issues/1134)) ([47ea02c](https://github.com/bamiyanapp/karuta/commit/47ea02c33c6b4b9f6a62438529aa9271e31ae50b))"
+  },
+  {
     "version": "1.70.2",
-    "date": "2026/09/08",
+    "date": "2026/09/08 18:36",
     "body": "### Bug Fixes\n\n* **deps:** update dependency @sparticuz/chromium to v152 ([#1124](https://github.com/bamiyanapp/karuta/issues/1124)) ([7a2fdcf](https://github.com/bamiyanapp/karuta/commit/7a2fdcf55d0d3ee39629cd3a740ed6e990c01f51))"
   },
   {

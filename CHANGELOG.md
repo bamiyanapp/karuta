@@ -1,3 +1,10 @@
+## [1.70.3](https://github.com/bamiyanapp/karuta/compare/v1.70.2...v1.70.3) (2026-09-09)
+
+
+### Bug Fixes
+
+* **frontend:** こども向け（kids）分類の読み札でもレベルを右下に表示する ([#1134](https://github.com/bamiyanapp/karuta/issues/1134)) ([47ea02c](https://github.com/bamiyanapp/karuta/commit/47ea02c33c6b4b9f6a62438529aa9271e31ae50b))
+
 ## [1.70.2](https://github.com/bamiyanapp/karuta/compare/v1.70.1...v1.70.2) (2026-09-08)
 
 
