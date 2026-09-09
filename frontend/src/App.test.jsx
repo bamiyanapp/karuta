@@ -1316,7 +1316,7 @@ describe('App', () => {
     });
   });
 
-  it('hides the level/difficulty jargon and enlarges the phrase card for the kids division', async () => {
+  it('shows the level on the card but hides the difficulty-rating jargon, and enlarges the phrase card, for the kids division (issue #1107: level display was previously hidden for kids)', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
@@ -1354,7 +1354,7 @@ describe('App', () => {
       expect(phraseCard).toHaveClass('yomifuda-kids');
     }, { timeout: 20000 });
 
-    expect(screen.queryByText(/レベル:/)).not.toBeInTheDocument();
+    expect(screen.getByText('レベル: 3')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('次の札'));
 
