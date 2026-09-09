@@ -882,7 +882,7 @@ function App() {
         >
             <div className="yomifuda-kana"><span>{phrase.kana || (phrase.phrase && phrase.phrase[0])}</span></div>
             <div className="yomifuda-phrase">{phrase.phrase}</div>
-            {division !== "kids" && phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
+            {phrase.level !== "-" && <div className="yomifuda-level fw-bold">レベル: {phrase.level}</div>}
         </div>
     );
   }
