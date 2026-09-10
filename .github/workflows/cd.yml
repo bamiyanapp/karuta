@@ -56,6 +56,14 @@ jobs:
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
+    env:
+      # serverless.ymlのreportClientError関数が${env:...}で参照する（issue #1144）。
+      # ジョブレベルのenvはdeploy-serverless複合action内部のDeployステップにも
+      # 引き継がれる（複合actionのuses:ステップ自体へのenv指定とは異なり、
+      # ジョブ内の全ステップに継承されるため機能する）。Secret未登録の間は
+      # 空文字列に解決され、handler.js側のガードにより送信自体は行われない
+      OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
+      OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
