@@ -1,3 +1,10 @@
+# [1.72.0](https://github.com/bamiyanapp/karuta/compare/v1.71.1...v1.72.0) (2026-09-10)
+
+
+### Features
+
+* **backend:** フロントエンドエラーを運用監視LINE Botへも通知する ([#1145](https://github.com/bamiyanapp/karuta/issues/1145)) ([846e727](https://github.com/bamiyanapp/karuta/commit/846e727df96ab1a5631f6a1fd0109e9290a3adbb)), closes [#1144](https://github.com/bamiyanapp/karuta/issues/1144) [bamiyanapp/dev-standards#387](https://github.com/bamiyanapp/dev-standards/issues/387)
+
 ## [1.71.1](https://github.com/bamiyanapp/karuta/compare/v1.71.0...v1.71.1) (2026-09-10)
 
 
