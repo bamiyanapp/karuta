@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.71.1",
+    "version": "1.72.0",
     "date": "2026/09/10",
+    "body": "### Features\n\n* **backend:** フロントエンドエラーを運用監視LINE Botへも通知する ([#1145](https://github.com/bamiyanapp/karuta/issues/1145)) ([846e727](https://github.com/bamiyanapp/karuta/commit/846e727df96ab1a5631f6a1fd0109e9290a3adbb)), closes [#1144](https://github.com/bamiyanapp/karuta/issues/1144) [bamiyanapp/dev-standards#387](https://github.com/bamiyanapp/dev-standards/issues/387)"
+  },
+  {
+    "version": "1.71.1",
+    "date": "2026/09/10 03:05",
     "body": "### Bug Fixes\n\n* **frontend:** PWAのバージョンが更新されない事象を修正する ([#1142](https://github.com/bamiyanapp/karuta/issues/1142)) ([f8203c1](https://github.com/bamiyanapp/karuta/commit/f8203c17b4770547327afb88bc26d8eccccd6506)), closes [#1138](https://github.com/bamiyanapp/karuta/issues/1138)"
   },
   {
