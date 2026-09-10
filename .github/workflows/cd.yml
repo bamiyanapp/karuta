@@ -40,6 +40,7 @@ jobs:
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
+          submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
         uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.12.0
@@ -70,6 +71,7 @@ jobs:
         with:
           ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
           fetch-depth: 0
+          submodules: true # backend配下のdev-standards symlink（clientErrorReporting.js等）解決に必要
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
         # npm workspaces移行（issue #608）で`install-strategy=nested`にした結果、
         # 各Lambda関数のzip作成（package.individually: true、11関数）が同一の
