@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.71.0",
+    "date": "2026/09/10",
+    "body": "### Features\n\n* **frontend:** 横長画面で読み札と設定/履歴を左右2ペイン表示にする ([#1140](https://github.com/bamiyanapp/karuta/issues/1140)) ([52125e4](https://github.com/bamiyanapp/karuta/commit/52125e48f352ac1a9debf5b574e99d46ec0f5f55)), closes [#472](https://github.com/bamiyanapp/karuta/issues/472)"
+  },
+  {
     "version": "1.70.3",
-    "date": "2026/09/09",
+    "date": "2026/09/09 21:15",
     "body": "### Bug Fixes\n\n* **frontend:** こども向け（kids）分類の読み札でもレベルを右下に表示する ([#1134](https://github.com/bamiyanapp/karuta/issues/1134)) ([47ea02c](https://github.com/bamiyanapp/karuta/commit/47ea02c33c6b4b9f6a62438529aa9271e31ae50b))"
   },
   {
