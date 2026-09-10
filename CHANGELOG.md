@@ -1,3 +1,10 @@
+## [1.72.1](https://github.com/bamiyanapp/karuta/compare/v1.72.0...v1.72.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** CDのcheckoutでsubmoduleを初期化し、dev-standards symlinkのビルド失敗を修正する ([#1150](https://github.com/bamiyanapp/karuta/issues/1150)) ([194327b](https://github.com/bamiyanapp/karuta/commit/194327b34bf4f77bc370079d395a900834ec6863)), closes [#1149](https://github.com/bamiyanapp/karuta/issues/1149)
+
 # [1.72.0](https://github.com/bamiyanapp/karuta/compare/v1.71.1...v1.72.0) (2026-09-10)
 
 
