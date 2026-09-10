@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 const useRegisterSWMock = vi.fn();
 
 vi.mock("virtual:pwa-register/react", () => ({
-  useRegisterSW: () => useRegisterSWMock(),
+  useRegisterSW: (options) => useRegisterSWMock(options),
 }));
 
 import PwaUpdatePrompt from "./PwaUpdatePrompt.jsx";
@@ -167,6 +167,48 @@ describe("PwaUpdatePrompt", () => {
     render(<PwaUpdatePrompt />);
 
     expect(screen.getByText("オフラインで利用可能になりました")).toBeInTheDocument();
+  });
+
+  it("Service Worker登録完了時、1時間ごとに更新チェック（registration.update）を行う（issue #1138）", () => {
+    vi.useFakeTimers();
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [false, vi.fn()],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    const { onRegisteredSW } = useRegisterSWMock.mock.calls[0][0];
+    const registration = { update: vi.fn() };
+    onRegisteredSW("/sw.js", registration);
+
+    expect(registration.update).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(60 * 60 * 1000);
+    });
+    expect(registration.update).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      vi.advanceTimersByTime(60 * 60 * 1000);
+    });
+    expect(registration.update).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
+  it("Service Worker登録に失敗した場合（registrationがnull）は更新チェックを仕込まない", () => {
+    useRegisterSWMock.mockReturnValue({
+      needRefresh: [false, vi.fn()],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker: vi.fn(),
+    });
+
+    render(<PwaUpdatePrompt />);
+
+    const { onRegisteredSW } = useRegisterSWMock.mock.calls[0][0];
+
+    expect(() => onRegisteredSW("/sw.js", undefined)).not.toThrow();
   });
 
   it("更新が必要な場合（ユーザーの判断を要する）は自動では消えない", () => {

@@ -10,9 +10,29 @@ import "./PwaUpdatePrompt.css";
 // クリックをブロックしてしまう不具合があった
 const OFFLINE_READY_AUTO_DISMISS_MS = 5000;
 
+// issue #1138: registerType: 'prompt'構成では、ブラウザ自体の更新チェック（ナビゲーション時に
+// 新しいService Workerのバイト比較を行う仕組み）に更新検知を委ねている。しかしこのアプリは
+// PWAとしてホーム画面から起動され、タブを閉じずに何日も同じページを開き続ける使い方が
+// 前提のため、ナビゲーションが発生せずブラウザ側の更新チェック自体が長期間走らないことがある
+// （「バージョンが進まない」という報告の実態）。vite-plugin-pwaが公式に案内する対策どおり、
+// Service Worker登録後に`registration.update()`を定期的に呼び、能動的に更新チェックを行う
+const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+
 // virtual:pwa-register/reactが未提供（テスト等）の場合のフォールバック。
 // 毎レンダー新しい関数を作らず安定した参照にすることで、useEffectの依存配列を汚さない
 const noop = () => {};
+
+// Service Worker登録完了時に呼ばれ、定期的な更新チェックを仕込む。setIntervalの戻り値は
+// このコンポーネントがアプリ起動から終了まで常駐する前提（main.jsxでアンマウントされない）
+// のため、明示的なクリーンアップは行わない
+function onRegisteredSW(swScriptUrl, registration) {
+  if (!registration) {
+    return;
+  }
+  setInterval(() => {
+    registration.update();
+  }, UPDATE_CHECK_INTERVAL_MS);
+}
 
 // virtual:pwa-register/reactが未提供の場合のフォールバック込みで、必要な値・
 // 関数一式を取り出す。PwaUpdatePrompt本体の複雑度を抑えるため分離している
@@ -27,7 +47,7 @@ function resolveSwState(sw) {
 }
 
 function PwaUpdatePrompt() {
-  const sw = useRegisterSW();
+  const sw = useRegisterSW({ onRegisteredSW });
   const { needRefresh, setNeedRefresh, offlineReady, setOfflineReady, updateServiceWorker } = resolveSwState(sw);
   // 絵札PDF印刷画面（PrintEfudaView）はバックエンドAPIへの通信が必須でオフラインでは
   // 動作しないため、この画面を開いている間に「オフラインで利用可能になりました」を
