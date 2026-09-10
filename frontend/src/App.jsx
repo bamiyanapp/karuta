@@ -977,97 +977,105 @@ function App() {
         })()}
       </header>
 
-      <main className="text-center">
-        {renderGameMain()}
-      </main>
+      {/* issue #472: PC・タブレット等の横長画面（Bootstrapのlgブレークポイント、992px
+          以上）では、読み札表示エリア（main）と設定/履歴エリア（aside）を左右2ペインに
+          分ける。lg未満（スマートフォン想定）ではcol-lg-*が自動的に縦積みへ戻るため、
+          既存のレイアウトと見た目上変わらない */}
+      <div className="row">
+        <main className="col-lg-7 text-center">
+          {renderGameMain()}
+        </main>
 
-      {currentHistory.length > 0 && (
-        <section className="history mx-auto text-center" style={{ maxWidth: "600px" }}>
-          <button
-            type="button"
-            onClick={() => setShowHistory(prev => !prev)}
-            className="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3"
-          >
-            {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${currentHistory.length}枚）`}
-          </button>
-          {showHistory && (
-            <div className="text-start">
-              <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
-              <div className="list-group shadow-sm rounded">
-                {currentHistory.map((p, index) => (
-                  <button key={`${p.category}-${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id, p.category)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
-                      <span className="text-dark">{p.phrase}</span>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      {/* クイズ大会モードの正解者表示（issue #695）: winnerは早押しが
-                          正解と判定された参加者名。クイズ大会モード以外・誰も正解
-                          しなかった場合は表示しない */}
-                      {p.winner && <span className="text-success small me-3 notranslate">🎉 {p.winner}さん正解</span>}
-                      {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
-                      <span className="text-primary small">詳細・報告 →</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+        <aside className="col-lg-5">
+          {currentHistory.length > 0 && (
+            <section className="history mx-auto text-center" style={{ maxWidth: "600px" }}>
+              <button
+                type="button"
+                onClick={() => setShowHistory(prev => !prev)}
+                className="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3"
+              >
+                {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${currentHistory.length}枚）`}
+              </button>
+              {showHistory && (
+                <div className="text-start">
+                  <h2 className="h4 fw-bold mb-3 border-bottom pb-2 text-dark">これまでに読み上げた札</h2>
+                  <div className="list-group shadow-sm rounded">
+                    {currentHistory.map((p, index) => (
+                      <button key={`${p.category}-${p.id}-${currentHistory.length - index}`} onClick={() => openDetail(p.id, p.category)} className="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+                        <div className="d-flex align-items-center">
+                          {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
+                          <span className="text-dark">{p.phrase}</span>
+                        </div>
+                        <div className="d-flex align-items-center">
+                          {/* クイズ大会モードの正解者表示（issue #695）: winnerは早押しが
+                              正解と判定された参加者名。クイズ大会モード以外・誰も正解
+                              しなかった場合は表示しない */}
+                          {p.winner && <span className="text-success small me-3 notranslate">🎉 {p.winner}さん正解</span>}
+                          {p.elapsedTime && <span className="text-muted small me-3">{p.elapsedTime}秒</span>}
+                          <span className="text-primary small">詳細・報告 →</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
           )}
-        </section>
-      )}
 
-      <footer className="text-center mt-5 pt-4 border-top">
-        <SettingsFooter
-          themeSetting={themeSetting}
-          setThemeSetting={setThemeSetting}
-          lang={lang}
-          setLang={setLang}
-          voiceId={voiceId}
-          setVoiceId={setVoiceId}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          speechRate={speechRate}
-          setSpeechRate={setSpeechRate}
-          repeatCount={repeatCount}
-          setRepeatCount={setRepeatCount}
-          cardRevealDelay={cardRevealDelay}
-          setCardRevealDelay={setCardRevealDelay}
-        />
-      <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
-        {division === "kids" && (
-          // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
-          // 置けないため、従来どおりゲーム画面からの導線を残す。エンジニア向けは
-          // かるた選択画面の「かるたを始める」ボタン下に一本化したためここには置かない
-          <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
-        )}
-        <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
+          <footer className="text-center mt-5 pt-4 border-top">
+            <SettingsFooter
+              themeSetting={themeSetting}
+              setThemeSetting={setThemeSetting}
+              lang={lang}
+              setLang={setLang}
+              voiceId={voiceId}
+              setVoiceId={setVoiceId}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+              speechRate={speechRate}
+              setSpeechRate={setSpeechRate}
+              repeatCount={repeatCount}
+              setRepeatCount={setRepeatCount}
+              cardRevealDelay={cardRevealDelay}
+              setCardRevealDelay={setCardRevealDelay}
+            />
+            <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
+              {division === "kids" && (
+                // こども向け（issue #636）はかるた選択画面に「決定」ボタンが無く印刷ボタンを
+                // 置けないため、従来どおりゲーム画面からの導線を残す。エンジニア向けは
+                // かるた選択画面の「かるたを始める」ボタン下に一本化したためここには置かない
+                <button onClick={() => setView("print-efuda")} className="btn btn-outline-dark px-4 rounded-pill">絵札を印刷する</button>
+              )}
+              <button onClick={resetGame} className="btn btn-outline-dark px-4 rounded-pill">かるたの種類を選び直す</button>
+            </div>
+            <QuizRoomActionsPanel
+              quizRoom={quizRoom}
+              quizRoomConnectionStatus={quizRoomConnectionStatus}
+              reconnectQuizRoom={reconnectQuizRoom}
+              setView={setView}
+              quizRoomBuzzedBy={quizRoomBuzzedBy}
+              currentPhrase={currentPhrase}
+              judgeQuizRoomBuzz={judgeQuizRoomBuzz}
+              division={division}
+              adminSessionRoomId={adminSessionRoomId}
+              isRestoringAdminSession={isRestoringAdminSession}
+              switchToAdminMode={switchToAdminMode}
+              createQuizRoom={createQuizRoom}
+              creatingQuizRoom={creatingQuizRoom}
+              quizRoomCreateError={quizRoomCreateError}
+              adminSessionRestoreError={adminSessionRestoreError}
+              showPlayerRegistration={showPlayerRegistration}
+              setShowPlayerRegistration={setShowPlayerRegistration}
+              players={players}
+              removePlayer={removePlayer}
+              newPlayerName={newPlayerName}
+              setNewPlayerName={setNewPlayerName}
+              addPlayer={addPlayer}
+              maxPlayers={maxPlayers}
+            />
+          </footer>
+        </aside>
       </div>
-      <QuizRoomActionsPanel
-        quizRoom={quizRoom}
-        quizRoomConnectionStatus={quizRoomConnectionStatus}
-        reconnectQuizRoom={reconnectQuizRoom}
-        setView={setView}
-        quizRoomBuzzedBy={quizRoomBuzzedBy}
-        currentPhrase={currentPhrase}
-        judgeQuizRoomBuzz={judgeQuizRoomBuzz}
-        division={division}
-        adminSessionRoomId={adminSessionRoomId}
-        isRestoringAdminSession={isRestoringAdminSession}
-        switchToAdminMode={switchToAdminMode}
-        createQuizRoom={createQuizRoom}
-        creatingQuizRoom={creatingQuizRoom}
-        quizRoomCreateError={quizRoomCreateError}
-        adminSessionRestoreError={adminSessionRestoreError}
-        showPlayerRegistration={showPlayerRegistration}
-        setShowPlayerRegistration={setShowPlayerRegistration}
-        players={players}
-        removePlayer={removePlayer}
-        newPlayerName={newPlayerName}
-        setNewPlayerName={setNewPlayerName}
-        addPlayer={addPlayer}
-        maxPlayers={maxPlayers}
-      />
-    </footer>
     </div>
   );
 }
