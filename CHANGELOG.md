@@ -1,3 +1,10 @@
+## [1.71.1](https://github.com/bamiyanapp/karuta/compare/v1.71.0...v1.71.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **frontend:** PWAのバージョンが更新されない事象を修正する ([#1142](https://github.com/bamiyanapp/karuta/issues/1142)) ([f8203c1](https://github.com/bamiyanapp/karuta/commit/f8203c17b4770547327afb88bc26d8eccccd6506)), closes [#1138](https://github.com/bamiyanapp/karuta/issues/1138)
+
 # [1.71.0](https://github.com/bamiyanapp/karuta/compare/v1.70.3...v1.71.0) (2026-09-10)
 
 

@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.71.0",
+    "version": "1.71.1",
     "date": "2026/09/10",
+    "body": "### Bug Fixes\n\n* **frontend:** PWAのバージョンが更新されない事象を修正する ([#1142](https://github.com/bamiyanapp/karuta/issues/1142)) ([f8203c1](https://github.com/bamiyanapp/karuta/commit/f8203c17b4770547327afb88bc26d8eccccd6506)), closes [#1138](https://github.com/bamiyanapp/karuta/issues/1138)"
+  },
+  {
+    "version": "1.71.0",
+    "date": "2026/09/10 02:51",
     "body": "### Features\n\n* **frontend:** 横長画面で読み札と設定/履歴を左右2ペイン表示にする ([#1140](https://github.com/bamiyanapp/karuta/issues/1140)) ([52125e4](https://github.com/bamiyanapp/karuta/commit/52125e48f352ac1a9debf5b574e99d46ec0f5f55)), closes [#472](https://github.com/bamiyanapp/karuta/issues/472)"
   },
   {
