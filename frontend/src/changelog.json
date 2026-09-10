@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.72.0",
+    "version": "1.72.1",
     "date": "2026/09/10",
+    "body": "### Bug Fixes\n\n* **ci:** CDのcheckoutでsubmoduleを初期化し、dev-standards symlinkのビルド失敗を修正する ([#1150](https://github.com/bamiyanapp/karuta/issues/1150)) ([194327b](https://github.com/bamiyanapp/karuta/commit/194327b34bf4f77bc370079d395a900834ec6863)), closes [#1149](https://github.com/bamiyanapp/karuta/issues/1149)"
+  },
+  {
+    "version": "1.72.0",
+    "date": "2026/09/10 07:58",
     "body": "### Features\n\n* **backend:** フロントエンドエラーを運用監視LINE Botへも通知する ([#1145](https://github.com/bamiyanapp/karuta/issues/1145)) ([846e727](https://github.com/bamiyanapp/karuta/commit/846e727df96ab1a5631f6a1fd0109e9290a3adbb)), closes [#1144](https://github.com/bamiyanapp/karuta/issues/1144) [bamiyanapp/dev-standards#387](https://github.com/bamiyanapp/dev-standards/issues/387)"
   },
   {
