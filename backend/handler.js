@@ -2,7 +2,8 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, serverError } = require("./httpResponse");
-const { buildClientErrorLogPayload } = require("./clientErrorReporting.js"); // symlink先（issue #1113）
+const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
+const { sendOpsAlert } = require("./opsAlertNotifier.js"); // symlink先（issue #1144）
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -176,6 +177,21 @@ exports.reportClientError = async (event) => {
     // プレイ内容（読み上げ中のフレーズ等）は送信対象に含めない設計のため、ここで
     // 受け取るのはエラー情報とURLのみ（個人情報・利用状況の詳細を含まない）
     console.error("[ClientError]", payload);
+
+    // 運用監視専用LINE Bot（dev-standards issue #387）は環境変数（GitHub Secrets）が
+    // 未設定の環境（ローカル開発等）もあるため、揃っている場合のみ送信する（issue #1144）。
+    // 送信失敗はCloudWatch Logsへの記録・クライアントへのレスポンスを妨げない
+    if (process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN && process.env.OPS_ALERT_LINE_USER_ID) {
+      try {
+        await sendOpsAlert({
+          message: buildClientErrorAlertMessage({ appName: "karuta", message: payload.message, url: payload.url }),
+          channelAccessToken: process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN,
+          userId: process.env.OPS_ALERT_LINE_USER_ID,
+        });
+      } catch (alertError) {
+        console.error("[ClientError] LINE通知の送信に失敗しました:", alertError);
+      }
+    }
 
     return jsonResponse(allowedOrigin, 200, { message: "Error reported successfully" });
   } catch (error) {

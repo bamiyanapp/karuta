@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
@@ -1354,5 +1354,63 @@ describe('reportClientError', () => {
         const event = { body: '{invalid json' };
         const response = await reportClientError(event);
         expect(response.statusCode).toBe(500);
+    });
+
+    // issue #1144: 運用監視専用LINE Bot（dev-standards issue #387）への通知。
+    // メッセージ組み立て（buildClientErrorAlertMessage）・送信（sendOpsAlert）自体は
+    // dev-standards側のテストで検証済みのため、ここではhandler.jsが環境変数の有無に
+    // 応じて正しく呼び分けること、送信失敗がレスポンスに影響しないことの結線を確認する
+    describe('運用監視LINE Bot通知（issue #1144）', () => {
+        const event = {
+            body: JSON.stringify({
+                message: 'テスト用の例外',
+                url: 'https://bamiyanapp.github.io/karuta/',
+            }),
+        };
+
+        afterEach(() => {
+            delete process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN;
+            delete process.env.OPS_ALERT_LINE_USER_ID;
+            vi.unstubAllGlobals();
+        });
+
+        it('does not attempt to send a LINE notification when the env vars are not set (e.g. local development)', async () => {
+            const fetchSpy = vi.fn();
+            vi.stubGlobal('fetch', fetchSpy);
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it('sends a LINE notification identifying karuta when both env vars are set', async () => {
+            process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN = 'test-token';
+            process.env.OPS_ALERT_LINE_USER_ID = 'test-user-id';
+            const fetchSpy = vi.fn().mockResolvedValue({ ok: true });
+            vi.stubGlobal('fetch', fetchSpy);
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+            expect(fetchSpy).toHaveBeenCalledTimes(1);
+            const [url, options] = fetchSpy.mock.calls[0];
+            expect(url).toBe('https://api.line.me/v2/bot/message/push');
+            expect(options.headers.authorization).toBe('Bearer test-token');
+            const body = JSON.parse(options.body);
+            expect(body.to).toBe('test-user-id');
+            expect(body.messages[0].text).toContain('アプリ: karuta');
+            expect(body.messages[0].text).toContain('テスト用の例外');
+        });
+
+        it('still returns 200 when the LINE notification fails to send', async () => {
+            process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN = 'test-token';
+            process.env.OPS_ALERT_LINE_USER_ID = 'test-user-id';
+            vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ネットワークエラー')));
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+        });
     });
 });

@@ -166,6 +166,10 @@ functions:
   reportClientError: # 追加（issue #1110）。ErrorBoundaryが捕捉したフロントエンドの例外を
     # CloudWatch Logsへ残す。DynamoDB等への永続化は行わず、console.errorのみでよい
     handler: handler.reportClientError
+    environment: # 運用監視専用LINE Botへの通知用（issue #1144）。GitHub Secrets未登録の間は
+      # 空文字列になり、handler.js側のガードにより送信自体は行われない
+      OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${env:OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN, ''}
+      OPS_ALERT_LINE_USER_ID: ${env:OPS_ALERT_LINE_USER_ID, ''}
     events:
       - http:
           path: report-client-error
