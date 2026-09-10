@@ -1,3 +1,10 @@
+# [1.71.0](https://github.com/bamiyanapp/karuta/compare/v1.70.3...v1.71.0) (2026-09-10)
+
+
+### Features
+
+* **frontend:** 横長画面で読み札と設定/履歴を左右2ペイン表示にする ([#1140](https://github.com/bamiyanapp/karuta/issues/1140)) ([52125e4](https://github.com/bamiyanapp/karuta/commit/52125e48f352ac1a9debf5b574e99d46ec0f5f55)), closes [#472](https://github.com/bamiyanapp/karuta/issues/472)
+
 ## [1.70.3](https://github.com/bamiyanapp/karuta/compare/v1.70.2...v1.70.3) (2026-09-09)
 
 
