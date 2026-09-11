@@ -1,3 +1,10 @@
+## [1.72.2](https://github.com/bamiyanapp/karuta/compare/v1.72.1...v1.72.2) (2026-09-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sparticuz/chromium to v153 ([#1159](https://github.com/bamiyanapp/karuta/issues/1159)) ([f2fdebe](https://github.com/bamiyanapp/karuta/commit/f2fdebeb1560de7917aa5b1a6f201413b3766c4e))
+
 ## [1.72.1](https://github.com/bamiyanapp/karuta/compare/v1.72.0...v1.72.1) (2026-09-10)
 
 
