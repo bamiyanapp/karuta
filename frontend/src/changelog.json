@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.72.2",
+    "date": "2026/09/11",
+    "body": "### Bug Fixes\n\n* **deps:** update dependency @sparticuz/chromium to v153 ([#1159](https://github.com/bamiyanapp/karuta/issues/1159)) ([f2fdebe](https://github.com/bamiyanapp/karuta/commit/f2fdebeb1560de7917aa5b1a6f201413b3766c4e))"
+  },
+  {
     "version": "1.72.1",
-    "date": "2026/09/10",
+    "date": "2026/09/10 13:54",
     "body": "### Bug Fixes\n\n* **ci:** CDのcheckoutでsubmoduleを初期化し、dev-standards symlinkのビルド失敗を修正する ([#1150](https://github.com/bamiyanapp/karuta/issues/1150)) ([194327b](https://github.com/bamiyanapp/karuta/commit/194327b34bf4f77bc370079d395a900834ec6863)), closes [#1149](https://github.com/bamiyanapp/karuta/issues/1149)"
   },
   {
