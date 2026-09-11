@@ -36,7 +36,7 @@
     "@aws-sdk/lib-dynamodb": "^3.958.0",
     "@aws-sdk/polly-request-presigner": "^3.958.0",
     "@aws-sdk/s3-request-presigner": "^3.958.0",
-    "@sparticuz/chromium": "^152.0.0",
+    "@sparticuz/chromium": "^153.0.0",
     "csv-parse": "^7.0.0",
     "puppeteer-core": "^25.0.0"
   }
