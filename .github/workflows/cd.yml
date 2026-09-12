@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.12.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.13.0
     with:
       enable_release: true
       enable_changelog_json: true
@@ -43,7 +43,7 @@ jobs:
           submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.12.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.13.0
         with:
           working-directory: frontend
           node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
@@ -81,7 +81,7 @@ jobs:
         # マージ後の初回デプロイで実際に発生、#663でも別パッケージで再発）への対策
         # （ファイルディスクリプタ上限のハードリミットまでの引き上げ）を含め、
         # dev-standardsの共通複合action化した（bamiyanapp/dev-standards#147）
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.12.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.13.0
         with:
           working-directory: backend
           node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
