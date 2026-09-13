@@ -2,11 +2,6 @@
    dev-standards/shared/ui/bootstrap-theme.css（bootstrap-theme.cssとしてsymlink、
    issue #1005）へ切り出し済み。ここにはkaruta固有のスタイルのみを残す */
 
-/* かるた札は常に紙面のような明るい配色を保つ意匠のため、文字色の反転対象から除外する */
-[data-bs-theme="dark"] .yomifuda {
-  --bs-dark-rgb: 33, 37, 41;
-}
-
 /* ページ全体の中央寄せを保証 */
 .container {
   max-width: 800px; /* PCで見やすい幅に制限 */
@@ -35,7 +30,7 @@
   border: 4px solid #2d5a27;
   border-radius: 12px;
   padding: 15px;
-  box-shadow: 10px 15px 30px rgba(0,0,0,0.25);
+  box-shadow: 10px 15px 30px rgb(0 0 0 / 25%);
   color: #333;
   display: flex;
   flex-direction: column;
@@ -44,9 +39,14 @@
   box-sizing: border-box;
 }
 
+/* かるた札は常に紙面のような明るい配色を保つ意匠のため、文字色の反転対象から除外する */
+[data-bs-theme="dark"] .yomifuda {
+  --bs-dark-rgb: 33, 37, 41;
+}
+
 .yomifuda:active {
   transform: scale(0.98);
-  box-shadow: 5px 8px 15px rgba(0,0,0,0.25);
+  box-shadow: 5px 8px 15px rgb(0 0 0 / 25%);
 }
 
 /* かな丸・レベル表示は.yomifuda-phraseに倣いclamp()+vwで指定し、
@@ -114,10 +114,10 @@
 }
 
 .category-selection-container {
-  background-color: #ffffff;
+  background-color: #fff;
   border: 4px solid #2d5a27;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
 }
 
 [data-bs-theme="dark"] .category-selection-container {
@@ -137,7 +137,7 @@
 
 .btn-karuta.selected {
   background-color: #2d5a27;
-  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.4);
+  box-shadow: 0 0 0 3px rgb(45 90 39 / 40%);
 }
 
 .progress-bar-karuta {
@@ -167,6 +167,7 @@
     transform: translateY(0) rotate(0deg);
     opacity: 1;
   }
+
   100% {
     transform: translateY(110vh) rotate(360deg);
     opacity: 0;
@@ -181,14 +182,14 @@
 }
 
 .modal-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(0 0 0 / 50%);
 }
 
 /* 全札一覧：種別フィルタと表を同じ領域でスクロールし、表のヘッダのみ画面内に固定 */
+
 /* 140px は画面上部の「戻る」ヘッダ（高さ約53px + 上下パディング/余白約73px）分の差し引き */
 .all-phrases-scroll-container {
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
   max-height: calc(100vh - 140px);
 }
 
@@ -205,6 +206,7 @@
    残り幅の均等割りで不自然に狭くならないよう、全列に明示的な幅を指定する */
 .all-phrases-table-container table {
   table-layout: fixed;
+
   /* 画面幅が狭いとfixedレイアウトの各列が均等に縮んで読み札・答え列まで潰れるため、
      最小幅を確保し、収まらない分はscroll-containerの横スクロールに委ねる */
   min-width: 640px;
@@ -263,7 +265,7 @@
    余白をなしに設定できないことが多く、A4実寸で作った絵札のレイアウトが崩れる。
    この端末では「印刷する」ボタン（window.print()）を出さず、余白を持たない
    PDFファイルとして生成できる「PDFをダウンロード」の利用に誘導する */
-@media (max-width: 600px) and (pointer: coarse) {
+@media (width <= 600px) and (pointer: coarse) {
   .efuda-print-button {
     display: none;
   }
@@ -278,6 +280,7 @@
    変えないため、占有サイズの調整は外側の.efuda-page-scalerで行う */
 .efuda-page-scaler {
   --efuda-scale: min(1, calc(100vw / 210mm), 0.6);
+
   width: calc(210mm * var(--efuda-scale));
   height: calc(297mm * var(--efuda-scale));
   overflow: hidden;
@@ -288,7 +291,7 @@
   width: 210mm;
   height: 297mm;
   background: white;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 8px rgb(0 0 0 / 20%);
   transform: scale(var(--efuda-scale));
   transform-origin: top left;
 }
@@ -302,14 +305,14 @@
   display: grid;
   grid-template-columns: 91mm 91mm;
   grid-template-rows: repeat(5, 55mm);
-  column-gap: 4mm;
-  row-gap: 2mm;
+  gap: 2mm 4mm;
 }
 
 .efuda-card {
   width: 91mm;
   height: 55mm;
   box-sizing: border-box;
+
   /* 枠線は種別ごとの色（--efuda-accent-color、.efuda-color-*で定義）に合わせる。
      未指定時（柄なし）は従来の色にフォールバックする */
   border: 5mm solid var(--efuda-accent-color, #e44d26);
@@ -329,12 +332,14 @@
   width: 10mm;
   height: 10mm;
   border-radius: 50%;
+
   /* 枠線・文字色ともに.efuda-cardの枠線と同じ種別色に統一する */
   border: 0.4mm solid var(--efuda-accent-color, #e44d26);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+
   /* font-sizeだけはmmではなくpx（mm相当を96dpiで換算した値）で指定する。
      .efuda-pageのzoomによる画面プレビューの縮小は、mm等の絶対単位で指定した
      font-sizeには正しく追従しない端末があり、枠は縮小されるのに文字だけ
@@ -347,10 +352,12 @@
 
 .efuda-card-text {
   font-weight: bold;
+
   /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
   font-size: 30.24px; /* 8mm */
   text-align: center;
   line-height: 1.3;
+
   /* word-break: break-wordは日本語の文字間どこでも改行しうるため、
      「とけてきた」のような一続きの単語の途中で折り返され読みにくくなっていた。
      keep-allで単語（スペース区切りの塊）の途中では改行しないようにしつつ、
@@ -360,6 +367,7 @@
      はみ出すことを確認したため、より確実なanywhereを使う） */
   word-break: keep-all;
   overflow-wrap: anywhere;
+
   /* カードは常に白背景の紙面を模すため、ダークモードのbody文字色（薄灰色）を継承させず黒固定にする */
   color: #000;
 }
@@ -370,6 +378,7 @@
   right: 3mm;
   margin: 0;
   font-size: 9px;
+
   /* カードは常に白背景の紙面を模すため、text-mutedの薄灰色ではなくPDF出力でも視認できる黒固定にする */
   color: #000;
 }
@@ -396,12 +405,15 @@
 
 .efuda-card-back-category {
   font-weight: bold;
+
   /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
   font-size: 22.68px; /* 6mm */
   text-align: center;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+
   /* 背景の和柄パターンの上でも文字が読みやすいよう、印章のような白背景の帯を敷く */
   background: #fff;
+
   /* 枠線は種別の色（--efuda-accent-color、祖先要素の.efuda-cardに.efuda-color-*で
      定義）に合わせる。未指定時は柄なし表示に備えて従来の色にフォールバックする */
   border: 0.3mm solid var(--efuda-accent-color, #e44d26);
@@ -494,11 +506,13 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: bold;
+
   /* font-sizeをpxにする理由は.efuda-card-kanaのコメントを参照 */
   font-size: 23px;
   line-height: 1.1;
   text-align: center;
   color: #fff;
+
   /* 絵文字のメダル部分（金色の円）の上でも視認できるよう、白文字に濃い縁取りを付ける */
   text-shadow:
     -1px -1px 0 #7a4a00, 1px -1px 0 #7a4a00,
@@ -535,12 +549,12 @@
 
   .efuda-page {
     box-shadow: none;
-    page-break-after: always;
+    break-after: page;
     transform: none;
   }
 
   .efuda-page:last-child {
-    page-break-after: auto;
+    break-after: auto;
   }
 
   /* サーバーサイドPDF生成（renderEfudaPdfWorkerのpage.pdf()、印刷用CSSがそのまま
@@ -552,7 +566,7 @@
   }
 
   @page {
-    size: A4;
+    size: a4;
     margin: 0;
   }
 }
