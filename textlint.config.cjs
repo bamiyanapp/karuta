@@ -1,0 +1,1 @@
+dev-standards/textlint.config.cjs

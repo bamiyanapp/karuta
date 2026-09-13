@@ -51,7 +51,7 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 ## CodeQLワークフロー（`codeql.yml`固有、issue #808）
 
-`.github/workflows/codeql.yml`（karuta固有、`reusable-ci.yml`/`reusable-cd.yml`とは別のトップレベルワークフローファイル）から dev-standards の `reusable-codeql.yml` を呼び出し、frontend/backend（いずれもJavaScript）を対象にCodeQLによる静的解析を行う。結果はGitHub Securityタブへ表示され、スマートフォンのブラウザからも閲覧できる（「開発環境の制約（スマホオンリー）」参照）。
+`.github/workflows/codeql.yml`（karuta固有、`reusable-ci.yml`/`reusable-cd.yml`とは別のトップレベルワークフローファイル）から dev-standards の `reusable-codeql.yml` を呼び出し、frontend/backend（いずれもJavaScript）を対象にCodeQLで静的解析する。結果はGitHub Securityタブへ表示され、スマートフォンのブラウザからも閲覧できる（「開発環境の制約（スマホオンリー）」参照）。
 
 - **トリガー**: `push`（`main`）・`pull_request`・`schedule`（毎週月曜日 03:00 UTC）。`schedule`はコード変更が無い期間もCodeQLのクエリセット更新を検知するために設定している
 - **`reusable-ci.yml`との関係**: 独立したワークフローであり、`merge` jobのマージ可否ゲートには関与しない。必須チェックにするかどうかはリポジトリのブランチ保護設定側で判断する（本ドキュメント作成時点では未設定）
@@ -61,7 +61,7 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 `release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。ジョブ構成・依存関係は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)の「CDワークフロー」を参照。
 
 - `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ（dev-standardsの`deploy-github-pages`複合actionを利用）
-- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードを実行する。デプロイ本体（EMFILE対策のファイルディスクリプタ上限引き上げを含む）はdev-standardsの`deploy-serverless`複合action（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）に共通化されている
+- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードする。デプロイ本体（EMFILE対策のファイルディスクリプタ上限引き上げを含む）はdev-standardsの`deploy-serverless`複合action（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）に共通化されている
 
 ## 環境変数（karuta固有）
 
