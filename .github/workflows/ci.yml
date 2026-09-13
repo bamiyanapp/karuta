@@ -75,6 +75,10 @@ jobs:
       # いなかったためコードのままでしか見えず画像化されていなかった。対象に追加する
       enable_mermaid_render: true
       mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md\ndocs/generated/websocket-api.md\ndocs/generated/dynamodb-tables.md\ndocs/generated/serverless-architecture.md\ndocs/generated/cicd-architecture.md"
+      # dev-standards#436・#447: Markdownドキュメントの日本語文章に対する
+      # textlintチェックを有効化する（issue #1179）
+      enable_text_lint: true
+      text_lint_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
       # push時CI軽量化（issue #973、dev-standards#187バックログ③）。PRの
       # 「base_branchと同期済みでなければマージ不可」（up-to-date required）
       # ＋Squash merge運用のもとでは、squash merge直後のpush-to-main上のツリーは
