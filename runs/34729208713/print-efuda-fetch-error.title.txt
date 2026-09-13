@@ -1,0 +1,1 @@
+print-efuda view shows an error with a retry button when the phrase list fails to fetch, and recovers after retrying (issue #474)
