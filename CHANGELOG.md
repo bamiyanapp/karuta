@@ -1,3 +1,10 @@
+# [1.73.0](https://github.com/bamiyanapp/karuta/compare/v1.72.2...v1.73.0) (2026-09-13)
+
+
+### Features
+
+* **frontend:** stylelintを導入する ([#1175](https://github.com/bamiyanapp/karuta/issues/1175)) ([89e4503](https://github.com/bamiyanapp/karuta/commit/89e4503282b2c66feda05e8a44b723d746ece4f3)), closes [bamiyanapp/dev-standards#429](https://github.com/bamiyanapp/dev-standards/issues/429)
+
 ## [1.72.2](https://github.com/bamiyanapp/karuta/compare/v1.72.1...v1.72.2) (2026-09-11)
 
 

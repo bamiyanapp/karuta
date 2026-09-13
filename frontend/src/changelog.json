@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.73.0",
+    "date": "2026/09/13",
+    "body": "### Features\n\n* **frontend:** stylelintを導入する ([#1175](https://github.com/bamiyanapp/karuta/issues/1175)) ([89e4503](https://github.com/bamiyanapp/karuta/commit/89e4503282b2c66feda05e8a44b723d746ece4f3)), closes [bamiyanapp/dev-standards#429](https://github.com/bamiyanapp/dev-standards/issues/429)"
+  },
+  {
     "version": "1.72.2",
-    "date": "2026/09/11",
+    "date": "2026/09/11 20:09",
     "body": "### Bug Fixes\n\n* **deps:** update dependency @sparticuz/chromium to v153 ([#1159](https://github.com/bamiyanapp/karuta/issues/1159)) ([f2fdebe](https://github.com/bamiyanapp/karuta/commit/f2fdebeb1560de7917aa5b1a6f201413b3766c4e))"
   },
   {
