@@ -1,3 +1,15 @@
+# [1.73.0](https://github.com/bamiyanapp/karuta/compare/v1.72.2...v1.73.0) (2026-09-14)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsのtextlint.config.cjs symlink欠落を解消しtext-lintを有効化する ([#1180](https://github.com/bamiyanapp/karuta/issues/1180)) ([070c434](https://github.com/bamiyanapp/karuta/commit/070c434b9689a11741b105ee03d34dfc3cc2e93e)), closes [#1179](https://github.com/bamiyanapp/karuta/issues/1179)
+
+
+### Features
+
+* **frontend:** stylelintを導入する ([#1175](https://github.com/bamiyanapp/karuta/issues/1175)) ([89e4503](https://github.com/bamiyanapp/karuta/commit/89e4503282b2c66feda05e8a44b723d746ece4f3)), closes [bamiyanapp/dev-standards#429](https://github.com/bamiyanapp/dev-standards/issues/429)
+
 ## [1.72.2](https://github.com/bamiyanapp/karuta/compare/v1.72.1...v1.72.2) (2026-09-11)
 
 
