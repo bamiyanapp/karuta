@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.74.0",
+    "date": "2026/09/17",
+    "body": "### Features\n\n* **frontend:** トップページにビルドバージョン・更新日時を表示する ([#1212](https://github.com/bamiyanapp/karuta/issues/1212)) ([12c2a3b](https://github.com/bamiyanapp/karuta/commit/12c2a3b62afadcf7cd1979064a1ee8555838a05d)), closes [#1186](https://github.com/bamiyanapp/karuta/issues/1186)"
+  },
+  {
     "version": "1.73.0",
-    "date": "2026/09/14",
+    "date": "2026/09/14 02:03",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsのtextlint.config.cjs symlink欠落を解消しtext-lintを有効化する ([#1180](https://github.com/bamiyanapp/karuta/issues/1180)) ([070c434](https://github.com/bamiyanapp/karuta/commit/070c434b9689a11741b105ee03d34dfc3cc2e93e)), closes [#1179](https://github.com/bamiyanapp/karuta/issues/1179)\n\n\n### Features\n\n* **frontend:** stylelintを導入する ([#1175](https://github.com/bamiyanapp/karuta/issues/1175)) ([89e4503](https://github.com/bamiyanapp/karuta/commit/89e4503282b2c66feda05e8a44b723d746ece4f3)), closes [bamiyanapp/dev-standards#429](https://github.com/bamiyanapp/dev-standards/issues/429)"
   },
   {
