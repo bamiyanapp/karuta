@@ -1,0 +1,1 @@
+../dev-standards/shared/ui/getAppVersionDefine.js

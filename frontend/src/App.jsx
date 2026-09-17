@@ -23,6 +23,7 @@ import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
 import ResultCard from "./components/ResultCard";
 import QuizCompletionScreen from "./components/QuizCompletionScreen";
 import SettingsFooter from "./components/SettingsFooter";
+import AppVersionInfo from "./components/AppVersionInfo";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
@@ -1073,6 +1074,7 @@ function App() {
               addPlayer={addPlayer}
               maxPlayers={maxPlayers}
             />
+            <AppVersionInfo />
           </footer>
         </aside>
       </div>

@@ -29,7 +29,13 @@ export default defineConfig([
       // （'latest'）が同居していたが、パース時には後者が優先されるため
       // 前者は実質無効な設定だった（issue #859）
       ecmaVersion: 'latest',
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        // vite.config.jsのdefineでビルド時に埋め込まれる（トップページ必須構成、
+        // dev-standards docs/frontend-ui-conventions.md参照）
+        __APP_VERSION__: 'readonly',
+        __APP_BUILD_TIME__: 'readonly',
+      },
       parserOptions: {
         ecmaFeatures: { jsx: true },
         sourceType: 'module',
