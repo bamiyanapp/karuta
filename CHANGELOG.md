@@ -1,3 +1,10 @@
+# [1.75.0](https://github.com/bamiyanapp/karuta/compare/v1.74.0...v1.75.0) (2026-09-17)
+
+
+### Features
+
+* **ci:** architecture-checkを有効化する ([#1217](https://github.com/bamiyanapp/karuta/issues/1217)) ([e912bb7](https://github.com/bamiyanapp/karuta/commit/e912bb7702ff799ebef2c96bb5ea8d88b7724fd4)), closes [#1216](https://github.com/bamiyanapp/karuta/issues/1216) [#1216](https://github.com/bamiyanapp/karuta/issues/1216)
+
 # [1.74.0](https://github.com/bamiyanapp/karuta/compare/v1.73.0...v1.74.0) (2026-09-17)
 
 
