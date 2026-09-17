@@ -1,0 +1,1 @@
+dev-standards/dependency-cruiser.config.cjs
