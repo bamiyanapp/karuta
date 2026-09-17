@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import getAppVersionDefine from './getAppVersionDefine.js' // symlink
 
 // https://vite.dev/config/
 export default defineConfig({
+  // トップページ必須構成（バージョン・更新日時表示、dev-standards
+  // docs/frontend-ui-conventions.md参照）。__APP_VERSION__・
+  // __APP_BUILD_TIME__をビルド時にpackage.jsonのversion・ビルド時刻から埋め込む
+  define: {
+    ...getAppVersionDefine(new URL('../package.json', import.meta.url)),
+  },
   plugins: [
     react(),
       VitePWA({
