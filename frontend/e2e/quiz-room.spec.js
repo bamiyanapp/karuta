@@ -53,6 +53,8 @@ test('admin creates a quiz room and a participant sees the same card update in r
     const adminPhraseText = await adminPage.locator('.yomifuda-phrase').innerText();
     const participantPhraseText = await participantPage.locator('.yomifuda-phrase').innerText();
     expect(participantPhraseText).toBe(adminPhraseText);
+    await captureScreenshot(adminPage, testInfo, 'admin-quiz-room-phrase-synced', '管理者：読み上げた札が表示された状態');
+    await captureScreenshot(participantPage, testInfo, 'participant-quiz-room-phrase-synced', '参加者：管理者と同じ札がリアルタイムに同期された状態');
   } finally {
     // カバレッジ計測（issue #541）: 失敗時も可能な範囲でカバレッジを収集するため、
     // コンテキストを閉じる前にtry節の成否に関わらず停止・収集する
