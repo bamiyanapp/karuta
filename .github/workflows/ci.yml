@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.18.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.19.0
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -36,6 +36,10 @@ jobs:
       # しきい値をさらに引き下げた（issue #877）
       enable_duplication_check: true
       duplication_threshold: 1
+      # frontend/backend間の越境import・循環依存を検知するdependency-cruiserを
+      # 有効化する（bamiyanapp/dev-standards#523、issue #1216）。事前検証で
+      # karutaの既存コードに違反が無いことを確認済み
+      enable_architecture_check: true
       # 分岐(branches)カバレッジ80%必須化（issue #459）のうち、branches指標のみ
       # 引き続き見送る。backend側で、複数のテストファイルが同一のソースファイル
       # （例: backend/handler.js）をimportする構成において、@vitest/coverage-v8の
