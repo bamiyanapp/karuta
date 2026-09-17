@@ -1,3 +1,10 @@
+# [1.74.0](https://github.com/bamiyanapp/karuta/compare/v1.73.0...v1.74.0) (2026-09-17)
+
+
+### Features
+
+* **frontend:** トップページにビルドバージョン・更新日時を表示する ([#1212](https://github.com/bamiyanapp/karuta/issues/1212)) ([12c2a3b](https://github.com/bamiyanapp/karuta/commit/12c2a3b62afadcf7cd1979064a1ee8555838a05d)), closes [#1186](https://github.com/bamiyanapp/karuta/issues/1186)
+
 # [1.73.0](https://github.com/bamiyanapp/karuta/compare/v1.72.2...v1.73.0) (2026-09-14)
 
 
