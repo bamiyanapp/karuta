@@ -402,7 +402,7 @@ describe('QuizRoomView', () => {
     render(<QuizRoomView setView={vi.fn()} wsBaseUrl={WS_BASE_URL} />);
 
     expect(screen.getByText('早押し対決で使うお名前を入力してください')).toBeInTheDocument();
-    expect(screen.queryByText('クイズ大会モード（参加者）', { selector: 'h1' })).toBeInTheDocument();
+    expect(screen.getByText('クイズ大会モード（参加者）', { selector: 'h1' })).toBeInTheDocument();
     expect(screen.queryByText('ルーム:', { exact: false })).not.toBeInTheDocument();
     expect(screen.getByText('決定')).toBeDisabled();
 
