@@ -1,3 +1,10 @@
+## [1.75.1](https://github.com/bamiyanapp/karuta/compare/v1.75.0...v1.75.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **ci:** textlint-rulesディレクトリのsymlinkを追加する ([#1230](https://github.com/bamiyanapp/karuta/issues/1230)) ([cb42231](https://github.com/bamiyanapp/karuta/commit/cb422315b695234be2e92c50048149cc45007c69)), closes [#1228](https://github.com/bamiyanapp/karuta/issues/1228)
+
 # [1.75.0](https://github.com/bamiyanapp/karuta/compare/v1.74.0...v1.75.0) (2026-09-17)
 
 
