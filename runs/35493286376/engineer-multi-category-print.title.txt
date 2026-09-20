@@ -1,0 +1,1 @@
+engineer division: selects multiple categories, then prints combined efuda directly from the category selection screen (issue #576)
