@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.77.1",
+    "version": "1.78.0",
     "date": "2026/09/26",
+    "body": "### Features\n\n* **ci:** frontend/backendいずれか一方のみの変更時にpath filteringでジョブを省略する ([#1284](https://github.com/bamiyanapp/karuta/issues/1284)) ([b1a499f](https://github.com/bamiyanapp/karuta/commit/b1a499f3ca04ec93109edab5f70ea89d277701f0)), closes [#1188](https://github.com/bamiyanapp/karuta/issues/1188)"
+  },
+  {
+    "version": "1.77.1",
+    "date": "2026/09/26 22:23",
     "body": "### Bug Fixes\n\n* **ci:** デプロイジョブがバージョン更新前のコミットをcheckoutしていた問題を修正する ([#1280](https://github.com/bamiyanapp/karuta/issues/1280)) ([ee73685](https://github.com/bamiyanapp/karuta/commit/ee73685f620b5b24b240bb965631bada1d399822)), closes [#1274](https://github.com/bamiyanapp/karuta/issues/1274)"
   },
   {
