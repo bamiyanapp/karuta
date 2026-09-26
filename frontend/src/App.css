@@ -124,6 +124,11 @@
   background-color: #1e1e1e;
 }
 
+/* オレンジ（未選択）・緑（選択済み、.selected）はkarutaのブランドカラーであり、
+   周囲のテーマに関わらず一貫して視認できることを意図した固定配色である
+   （issue #1169）。.category-selection-container等の背景パネルとは異なり、
+   白文字との組み合わせで元々明暗どちらの画面上でもコントラストを確保できるため、
+   [data-bs-theme="dark"]時の追従指定は行っていない */
 .btn-karuta {
   background-color: #e44d26;
   color: white;
