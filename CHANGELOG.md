@@ -1,3 +1,10 @@
+# [1.77.0](https://github.com/bamiyanapp/karuta/compare/v1.76.5...v1.77.0) (2026-09-26)
+
+
+### Features
+
+* **version-info:** 主要画面へAppVersionInfoを追加する ([#1278](https://github.com/bamiyanapp/karuta/issues/1278)) ([d4d064d](https://github.com/bamiyanapp/karuta/commit/d4d064d1ca4b7d77ee51414a15d18d9029426405)), closes [#1263](https://github.com/bamiyanapp/karuta/issues/1263)
+
 ## [1.76.5](https://github.com/bamiyanapp/karuta/compare/v1.76.4...v1.76.5) (2026-09-26)
 
 
