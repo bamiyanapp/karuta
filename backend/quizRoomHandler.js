@@ -27,6 +27,10 @@ const MAX_CREATE_ROOM_ATTEMPTS = 5; // ルームコード衝突時の再採番�
 const MAX_STATE_JSON_LENGTH = 8000; // 状態データの肥大化・課金濫用を防ぐ上限
 const MAX_NAME_LENGTH = 20; // 早押し機能（issue #510）: 参加者名の肥大化・表示崩れを防ぐ上限
 const MAX_OPEN_ROOMS_DISPLAYED = 5; // トップページの一覧が無制限に肥大化しないための上限（issue #500）
+// ルーム一覧でのかるた種類表示（issue #1256）: 開設時に選択されていたカテゴリ名の肥大化・
+// 表示崩れを防ぐ上限
+const MAX_ROOM_CATEGORIES = 10;
+const MAX_CATEGORY_NAME_LENGTH = 50;
 
 function generateRoomCode() {
   let code = "";
@@ -42,10 +46,32 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
+// createQuizRoom用: リクエストボディの`categories`を検証・整形する。開設時に選択されていた
+// かるた種類の名前配列（issue #1256、ルーム一覧での表示・「開設者が選んだかるた画面へ
+// 再開できるようにする」機能のため、ルームレコードへ永続化する）。不正な形・肥大化した
+// 入力は静かに切り詰め、リクエスト自体は失敗させない（一覧表示に使うだけの付随情報のため）
+function sanitizeRoomCategories(body) {
+  if (!Array.isArray(body?.categories)) {
+    return [];
+  }
+  return body.categories
+    .filter((category) => typeof category === "string" && category.trim())
+    .slice(0, MAX_ROOM_CATEGORIES)
+    .map((category) => category.trim().slice(0, MAX_CATEGORY_NAME_LENGTH));
+}
+
 // POST /quiz-room（REST API）。管理者用のルームを新規作成し、ルームIDと管理者トークンを返す
 exports.createQuizRoom = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    let body = {};
+    try {
+      body = JSON.parse(event.body || "{}");
+    } catch {
+      body = {};
+    }
+    const categories = sanitizeRoomCategories(body);
+
     let roomId = null;
     for (let attempt = 0; attempt < MAX_CREATE_ROOM_ATTEMPTS; attempt += 1) {
       const candidate = generateRoomCode();
@@ -71,6 +97,7 @@ exports.createQuizRoom = async (event) => {
       Item: {
         roomId,
         adminTokenHash: hashToken(adminToken),
+        categories,
         state: {},
         createdAt: now,
         ttl: Math.floor(now / 1000) + ROOM_TTL_SECONDS,
@@ -92,7 +119,7 @@ exports.listQuizRooms = async (event) => {
     const now = Math.floor(Date.now() / 1000);
     const result = await docClient.send(new ScanCommand({
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      ProjectionExpression: "roomId, createdAt, #state, #ttl",
+      ProjectionExpression: "roomId, createdAt, categories, #state, #ttl",
       ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
       // TTLによる実際の削除には失効後最大48時間程度のラグが生じ得るため、
       // 削除待ちの失効済みルームを一覧から明示的に除外する
@@ -121,6 +148,9 @@ exports.listQuizRooms = async (event) => {
           roomId: item.roomId,
           createdAt: item.createdAt,
           category,
+          // issue #1256: ルーム開設時に選択されていたかるた種類（永続化済み、
+          // categoryと異なり読み上げ中の1枚に依存せず開設時点のまま変わらない）
+          categories: item.categories || [],
           status,
         };
       })

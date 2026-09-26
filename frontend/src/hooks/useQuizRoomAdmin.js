@@ -301,7 +301,13 @@ export function useQuizRoomAdmin({
     setCreatingQuizRoom(true);
     setQuizRoomCreateError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/quiz-room`, { method: "POST" });
+      const response = await fetch(`${API_BASE_URL}/quiz-room`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // issue #1256: ルーム一覧でどのかるたで開設されたかを表示できるよう、
+        // 開設時点の選択カテゴリをルームレコードへ永続化する
+        body: JSON.stringify({ categories: selectedCategories }),
+      });
       if (!response.ok) {
         throw new Error("ルームの作成に失敗しました");
       }
@@ -324,12 +330,20 @@ export function useQuizRoomAdmin({
     }
   };
 
-  // クイズ大会モード（issue #489）: トップページの一覧から直接、参加者としてルームに入る。
+  // クイズ大会モード（issue #489）: トップページの一覧から直接、ルームに入る。
   // QuizRoomViewはマウント時に一度だけURLの?roomId=を読むため、view切り替えの前にURLへ反映する
   const joinQuizRoom = (roomId) => {
     // ブラウザの自動再生ポリシー対策（issue #497）: この参加操作（クリック）に
     // 便乗して無音再生しておき、参加後の自動再生が通りやすくする
     unlockAudioPlayback();
+    // 開設者本人が選んだ場合（issue #1256）: 保存済みの管理者トークンが一致すれば、
+    // 参加者モードを経由せず直接ルーム詳細画面（管理者用の再開画面）へ遷移する。
+    // switchToAdminModeはトークン不一致の場合はfalseを返し何もしないため、
+    // その場合は通常の参加者フローへフォールスルーする
+    if (switchToAdminMode(roomId)) {
+      setView("quiz-room-info");
+      return;
+    }
     setRoomIdParam(roomId);
     setView("quiz-room");
   };
