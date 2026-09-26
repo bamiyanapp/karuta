@@ -60,11 +60,14 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await expect(page.getByText('かるたの誤りを指摘する')).toBeVisible();
     await expect(page.getByPlaceholder('例：かなが間違っている、フレーズが違うなど')).toBeVisible();
     await captureScreenshot(page, testInfo, 'detail-view', '詳細画面：かるたの誤りを指摘するフォームが表示された状態');
-    await page.getByText('← 戻る').click();
+    // issue #1271: page.getByText('← 戻る')は既定で部分一致するため、更新履歴画面
+    // （changelog.json）にこの文字列を含むエントリ（コミットメッセージ・PRタイトル由来）
+    // が追加されるとstrict mode violationになる。ボタン要素に限定して回避する
+    await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByRole('heading', { name: '全札一覧' })).toBeVisible();
 
     // 全札一覧から戻る（division未選択のままなのでトップ画面に戻る）
-    await page.getByText('← 戻る').click();
+    await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
     // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）
@@ -77,7 +80,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // issue #795: エントリの増加でページ全体の縦幅が際限なく長くなるため、
     // 画面上部（ビューポート内）のみを撮影する
     await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面', { fullPage: false });
-    await page.getByText('← 戻る').click();
+    await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
     // 指摘一覧画面
@@ -124,7 +127,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await page.getByText('印刷する', { exact: true }).click();
     await expect.poll(() => page.evaluate(() => window.__printCalled)).toBe(true);
 
-    await page.getByText('← 戻る').click();
+    await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(nextButton).toBeVisible();
   } finally {
     await stopCoverage(page, testInfo);
@@ -156,7 +159,7 @@ test('engineer division: selects multiple categories, then prints combined efuda
     await page.getByText('絵札を印刷する').click();
     await expect(page.locator('.efuda-card-text').first()).toBeVisible();
     await captureScreenshot(page, testInfo, 'engineer-multi-category-print', 'エンジニア向け：複数種別選択時の絵札印刷画面');
-    await page.getByText('← 戻る').click();
+    await page.getByRole('button', { name: '← 戻る' }).click();
 
     // 戻った後もカテゴリ選択画面へ正しく復帰する（同じ複数選択のまま）
     await expect(page.getByRole('button', { name: /Git大ピンチ/ })).toBeVisible();
