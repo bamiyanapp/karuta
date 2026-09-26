@@ -1140,6 +1140,51 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(adminConnections[0].url).toContain('adminToken=token-1');
   });
 
+  // issue #1262: 管理者セッション復帰後、開設時に選択されていたかるた種類（categories）を
+  // 使ってdivision・selectedCategoriesを復元し、「← 戻る」から実際の読み上げ画面へ
+  // 到達できるようにする（以前は空のままトップページへ戻ってしまっていた）
+  it('restores the selected categories on admin session resume, so "← 戻る" from the room-info screen reaches the actual reading screen (issue #1262)', async () => {
+    localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'ABC123', adminToken: 'token-1' }));
+    installMockWebSocket();
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        return {
+          ok: true,
+          json: async () => ({
+            rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1', categories: ['Cat1', 'Cat2'], status: '進行中' }],
+          }),
+        };
+      }
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true, categories: ['Cat1', 'Cat2'] }) };
+      }
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }),
+        };
+      }
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('ABC123'));
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    fireEvent.click(screen.getByText('← 戻る'));
+
+    // 以前はselectedCategoriesが空のままトップページ（DivisionSelectView）へ
+    // 戻ってしまっていたが、復元により実際の読み上げ画面（「次の札」ボタンが
+    // ある画面）へ到達できることを確認する
+    await screen.findByText('次の札');
+    expect(screen.queryByText('どなた向けに遊びますか？')).not.toBeInTheDocument();
+  });
+
   it("reuses the shared (already-unlocked) narration element for the admin's own quiz-room reading, instead of creating a fresh never-unlocked Audio element each time (issue #997)", async () => {
     installMinimalMockWebSocket();
 

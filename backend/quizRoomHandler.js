@@ -201,8 +201,11 @@ exports.checkQuizRoom = async (event) => {
     // listQuizRoomsと同様、TTL失効後の実削除には最大48時間程度のラグが
     // 生じ得るため、レコードが残っていてもttlを過ぎていれば存在しない扱いにする
     const exists = !!room.Item && (!room.Item.ttl || room.Item.ttl > now);
+    // 管理者セッション復帰（issue #1262）: 復帰後に読み上げ画面へ戻るには、開設時に
+    // 選択されていたかるた種類（categories）が必要なため、既存の存在確認と合わせて返す
+    const categories = exists ? room.Item.categories || [] : [];
 
-    return jsonResponse(allowedOrigin, 200, { exists });
+    return jsonResponse(allowedOrigin, 200, { exists, categories });
   } catch (error) {
     return serverError(allowedOrigin, error, { includeMessage: true });
   }

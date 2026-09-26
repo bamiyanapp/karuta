@@ -240,6 +240,59 @@ test('when the admin reloads mid-game, the quiz room association is lost and the
   }
 });
 
+// issue #1262: 管理者が「管理者に切り替える」ボタン（自分自身の招待URLを開いた場合）で
+// セッションを復帰した際、開設時に選択されていたかるた種類（categories、issue #1256）を
+// 使ってdivision・selectedCategoriesを復元し、ルーム情報画面の「← 戻る」から実際の
+// かるた読み上げ画面へ到達できることを確認する回帰テスト。上のリロードのテストとは異なり、
+// この導線ではdivision・selectedCategoriesがURLクエリパラメータ経由で復元されないため
+// （招待URLは?view=quiz-room&roomId=のみを持つ）、issue #1262の復元ロジックが
+// 実際に働かないと読み上げ画面へ戻れない
+test('admin resumes their own session via the "管理者に切り替える" button from the invite URL, and can reach the actual reading screen afterward (issue #1262)', async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  await startCoverage(adminPage);
+
+  try {
+    await adminPage.goto('/');
+    await adminPage.getByText('こども向け').click();
+    await adminPage.getByRole('button', { name: /おばけかるた/ }).click();
+    const nextButton = adminPage.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+
+    await adminPage.getByText('クイズ大会のルームを作成する').click();
+    const roomInfoLink = adminPage.getByText('ルーム情報を表示（クイズ大会モード）');
+    await expect(roomInfoLink).toBeVisible({ timeout: 15000 });
+    await roomInfoLink.click();
+    const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
+
+    // 自分自身の招待URLを開き直す（別タブ・ブックマーク経由の再訪問を模す）。
+    // division・selectedCategoriesはURLに含まれないため、この時点では空になる
+    await adminPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
+    await adminPage.getByPlaceholder('お名前').fill('管理者本人');
+    await adminPage.getByText('決定').click();
+    const switchToAdminButton = adminPage.getByText('管理者に切り替える');
+    await expect(switchToAdminButton).toBeVisible({ timeout: 15000 });
+    await switchToAdminButton.click();
+
+    await expect(adminPage.getByText('クイズ大会モードのルーム情報')).toBeVisible({ timeout: 15000 });
+    await captureScreenshot(adminPage, testInfo, 'admin-resumed-via-switch-to-admin', '管理者：招待URLから「管理者に切り替える」でルーム情報画面へ復帰した状態');
+
+    // categories復元（issue #1262）はswitchToAdminMode内でawaitされないfire-and-forgetの
+    // 非同期処理のため、「戻る」を押す前に完了を待つ
+    await adminPage.waitForTimeout(1000);
+    await adminPage.getByText('← 戻る').click();
+
+    // issue #1262の修正前は、この時点でselectedCategoriesが空のままトップページ
+    // （division選択画面）へ戻ってしまい、実際のかるた読み上げ画面へ到達できなかった
+    await expect(nextButton).toBeVisible({ timeout: 15000 });
+    await expect(adminPage.getByText('どなた向けに遊びますか？')).not.toBeVisible();
+    await captureScreenshot(adminPage, testInfo, 'admin-back-to-reading-screen-after-resume', '管理者：ルーム情報画面から「← 戻る」で実際のかるた読み上げ画面へ到達できた状態');
+  } finally {
+    await stopCoverage(adminPage, testInfo);
+    await closeContext(adminContext);
+  }
+});
+
 // issue #559: 管理者・回答者（早押しした本人）・未回答参加者（早押ししていない他の参加者）の
 // 3ロールを同時に登場させ、正誤判定（issue #546）後にロールごとに画面の見え方が異なることを
 // 確認する。あわせて参加者一覧（issue #545）が管理者・参加者双方に反映されることも検証する。

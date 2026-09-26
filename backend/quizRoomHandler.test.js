@@ -270,33 +270,44 @@ describe('listQuizRooms', () => {
 });
 
 describe('checkQuizRoom', () => {
-  it('returns exists:true for a room that has not expired', async () => {
+  it('returns exists:true and an empty categories list for a room without persisted categories', async () => {
     ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) + 3600 } });
 
     const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body).toEqual({ exists: true });
+    expect(body).toEqual({ exists: true, categories: [] });
   });
 
-  it('returns exists:false when the room does not exist', async () => {
+  it('returns the persisted categories for a room that has them (issue #1262: 管理者セッション復帰時の読み上げ画面復元)', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) + 3600, categories: ['Cat1', 'Cat2'] },
+    });
+
+    const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
+    const body = JSON.parse(response.body);
+
+    expect(body).toEqual({ exists: true, categories: ['Cat1', 'Cat2'] });
+  });
+
+  it('returns exists:false and an empty categories list when the room does not exist', async () => {
     ddbMock.on(GetCommand).resolves({ Item: undefined });
 
     const response = await checkQuizRoom({ queryStringParameters: { roomId: 'MISSING' } });
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body).toEqual({ exists: false });
+    expect(body).toEqual({ exists: false, categories: [] });
   });
 
   it('returns exists:false when the room record is still present but its ttl has already passed', async () => {
-    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) - 3600 } });
+    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', ttl: Math.floor(Date.now() / 1000) - 3600, categories: ['Cat1'] } });
 
     const response = await checkQuizRoom({ queryStringParameters: { roomId: 'ROOM01' } });
     const body = JSON.parse(response.body);
 
-    expect(body).toEqual({ exists: false });
+    expect(body).toEqual({ exists: false, categories: [] });
   });
 
   it('returns 400 when roomId is missing', async () => {

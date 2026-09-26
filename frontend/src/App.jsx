@@ -593,6 +593,9 @@ function App() {
   } = useQuizRoomAdmin({
     view,
     selectedCategories,
+    categories,
+    setSelectedCategories,
+    setDivision,
     displayContent,
     broadcastPhrase,
     isAllRead,
