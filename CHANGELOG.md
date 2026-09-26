@@ -1,3 +1,10 @@
+## [1.76.4](https://github.com/bamiyanapp/karuta/compare/v1.76.3...v1.76.4) (2026-09-26)
+
+
+### Bug Fixes
+
+* **e2e:** app-flows.spec.jsの「← 戻る」クリックが更新履歴のchangelog文言と衝突する問題を修正する ([#1272](https://github.com/bamiyanapp/karuta/issues/1272)) ([58f0e97](https://github.com/bamiyanapp/karuta/commit/58f0e973182cbf6cbb0912331cef5aed3eea5c27)), closes [#1271](https://github.com/bamiyanapp/karuta/issues/1271)
+
 ## [1.76.3](https://github.com/bamiyanapp/karuta/compare/v1.76.2...v1.76.3) (2026-09-26)
 
 
