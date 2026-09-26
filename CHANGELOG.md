@@ -1,3 +1,10 @@
+# [1.78.0](https://github.com/bamiyanapp/karuta/compare/v1.77.1...v1.78.0) (2026-09-26)
+
+
+### Features
+
+* **ci:** frontend/backendいずれか一方のみの変更時にpath filteringでジョブを省略する ([#1284](https://github.com/bamiyanapp/karuta/issues/1284)) ([b1a499f](https://github.com/bamiyanapp/karuta/commit/b1a499f3ca04ec93109edab5f70ea89d277701f0)), closes [#1188](https://github.com/bamiyanapp/karuta/issues/1188)
+
 ## [1.77.1](https://github.com/bamiyanapp/karuta/compare/v1.77.0...v1.77.1) (2026-09-26)
 
 
