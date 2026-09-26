@@ -8,6 +8,12 @@
     { "source": "shared/ui/getAppVersionDefine.js", "target": "frontend/getAppVersionDefine.js" },
     { "source": "shared/ui/formatBuildTime.js", "target": "frontend/src/formatBuildTime.js" },
     { "source": "shared/lambda/clientErrorReporting.js", "target": "backend/clientErrorReporting.js" },
-    { "source": "shared/lambda/opsAlertNotifier.js", "target": "backend/opsAlertNotifier.js" }
+    { "source": "shared/lambda/opsAlertNotifier.js", "target": "backend/opsAlertNotifier.js" },
+    { "source": "shared/lambda/httpResponse.js", "target": "backend/httpResponse.js" },
+    { "source": "shared/lambda/webSocketBroadcast.js", "target": "backend/webSocketBroadcast.js" },
+    { "source": "shared/hooks/useLocalStorageState.js", "target": "frontend/src/hooks/useLocalStorageState.js" },
+    { "source": "shared/hooks/useSessionStorageState.js", "target": "frontend/src/hooks/useSessionStorageState.js" },
+    { "source": "shared/hooks/useValueChange.js", "target": "frontend/src/hooks/useValueChange.js" },
+    { "source": "shared/hooks/useWakeLock.js", "target": "frontend/src/hooks/useWakeLock.js" }
   ]
 }
