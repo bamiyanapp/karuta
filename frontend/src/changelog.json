@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.76.2",
+    "version": "1.76.3",
     "date": "2026/09/26",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 「← 戻る」と「かるたを再開する」の役割を分離する ([#1268](https://github.com/bamiyanapp/karuta/issues/1268)) ([7b080cc](https://github.com/bamiyanapp/karuta/commit/7b080cc121e6c552bef7fa21569c03fa417d9a5b)), closes [#1267](https://github.com/bamiyanapp/karuta/issues/1267)"
+  },
+  {
+    "version": "1.76.2",
+    "date": "2026/09/26 13:13",
     "body": "### Bug Fixes\n\n* **quiz-room:** 管理者セッション復帰後にかるた読み上げ画面へ戻れるようにする ([#1264](https://github.com/bamiyanapp/karuta/issues/1264)) ([0095a53](https://github.com/bamiyanapp/karuta/commit/0095a53efbb565646178cf6f966dbc6cf2f63ac0)), closes [#1262](https://github.com/bamiyanapp/karuta/issues/1262) [#1262](https://github.com/bamiyanapp/karuta/issues/1262)"
   },
   {

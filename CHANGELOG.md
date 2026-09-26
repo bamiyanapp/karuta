@@ -1,3 +1,10 @@
+## [1.76.3](https://github.com/bamiyanapp/karuta/compare/v1.76.2...v1.76.3) (2026-09-26)
+
+
+### Bug Fixes
+
+* **quiz-room:** 「← 戻る」と「かるたを再開する」の役割を分離する ([#1268](https://github.com/bamiyanapp/karuta/issues/1268)) ([7b080cc](https://github.com/bamiyanapp/karuta/commit/7b080cc121e6c552bef7fa21569c03fa417d9a5b)), closes [#1267](https://github.com/bamiyanapp/karuta/issues/1267)
+
 ## [1.76.2](https://github.com/bamiyanapp/karuta/compare/v1.76.1...v1.76.2) (2026-09-26)
 
 
