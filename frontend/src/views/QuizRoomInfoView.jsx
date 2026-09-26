@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 // クイズ大会モード（issue #470）の管理者向けルーム情報画面（issue #547）。
 // 以前は通常のゲーム画面にインラインで展開する折りたたみパネル
@@ -116,6 +117,7 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
       <div className="mt-3">
         <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
       </div>
+      <AppVersionInfo />
     </div>
   );
 }

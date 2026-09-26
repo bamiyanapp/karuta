@@ -1,4 +1,5 @@
 import ViewHeader from "../components/ViewHeader";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 // 詳細画面本体（読み込み中はDetailView側で「読み込み中...」を出すため、
 // ここはdetailPhraseが確定してから呼ばれる前提）。DetailView本体の複雑度を
@@ -110,6 +111,9 @@ function DetailView({
         title={`${detailPhrase ? detailPhrase.category : (detailPhraseCategory || categoryLabel)} の詳細`}
         headingClassName="h4 m-0 fw-bold notranslate"
       />
+      <div className="text-center mb-2">
+        <AppVersionInfo />
+      </div>
 
       <main className="text-center py-4">
         {!detailPhrase ? (

@@ -10,6 +10,7 @@ import AnswerAndExplanation from "../components/AnswerAndExplanation";
 import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 import Confetti from "../components/Confetti";
 import { buildConfettiPieces } from "../utils/confetti";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 // クイズ大会モード（issue #470）の参加者用入口（閲覧専用）。
 // ルームコードの直接入力、または招待URL（?roomId=...）からの参加に対応する。
@@ -557,6 +558,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
         <div className="mt-5">
           <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
+        <AppVersionInfo />
       </div>
     );
   };
@@ -677,6 +679,7 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
           <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
       </main>
+      <AppVersionInfo />
     </div>
   );
 }
