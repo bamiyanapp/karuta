@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useIsPrintScreenActive } from "./pdfExportStatus";
 import { useGameplayActive } from "./gameplayActivity";
+import "./fixedToast.css";
 import "./PwaUpdatePrompt.css";
 
 // オフライン利用可能通知は操作を要求しない情報表示のため、この時間が経てば自動的に消す。
@@ -74,11 +75,11 @@ function PwaUpdatePrompt() {
 
   if (needRefresh && isGameplayActive) {
     return (
-      <div className="pwa-update-prompt" role="status">
+      <div className="fixed-toast pwa-update-prompt" role="status">
         <span>新しいバージョンがあります（プレイ終了後に更新できます）</span>
         <button
           type="button"
-          className="pwa-update-prompt-button close-button"
+          className="fixed-toast-button pwa-update-prompt-button close-button"
           onClick={close}
         >
           閉じる
@@ -89,18 +90,18 @@ function PwaUpdatePrompt() {
 
   if (needRefresh) {
     return (
-      <div className="pwa-update-prompt" role="alert">
+      <div className="fixed-toast pwa-update-prompt" role="alert">
         <span>新しいバージョンがあります</span>
         <button
           type="button"
-          className="pwa-update-prompt-button"
+          className="fixed-toast-button pwa-update-prompt-button"
           onClick={() => updateServiceWorker(true)}
         >
           更新する
         </button>
         <button
           type="button"
-          className="pwa-update-prompt-button close-button"
+          className="fixed-toast-button pwa-update-prompt-button close-button"
           onClick={close}
         >
           閉じる
@@ -111,11 +112,11 @@ function PwaUpdatePrompt() {
 
   if (offlineReady && !isPrintScreenActive) {
     return (
-      <div className="pwa-update-prompt" role="alert">
+      <div className="fixed-toast pwa-update-prompt" role="alert">
         <span>オフラインで利用可能になりました</span>
         <button
           type="button"
-          className="pwa-update-prompt-button close-button"
+          className="fixed-toast-button pwa-update-prompt-button close-button"
           onClick={close}
         >
           閉じる
