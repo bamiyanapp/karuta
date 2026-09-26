@@ -1,9 +1,13 @@
 import ViewHeader from "../components/ViewHeader";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 function CommentsView({ allComments, setView }) {
   return (
     <div className="container py-4 mx-auto">
       <ViewHeader onBack={() => setView("game")} title="指摘された内容一覧" marginBottom="mb-5" />
+      <div className="text-center mb-4">
+        <AppVersionInfo />
+      </div>
 
       <main className="mx-auto" style={{ maxWidth: "800px" }}>
         {allComments.length === 0 ? (

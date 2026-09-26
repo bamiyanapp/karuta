@@ -1,4 +1,5 @@
 import ViewHeader from "../components/ViewHeader";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 function AllPhrasesView({
   allPhrases,
@@ -158,6 +159,9 @@ function AllPhrasesView({
           </div>
         )}
       </main>
+      <div className="text-center">
+        <AppVersionInfo />
+      </div>
     </div>
   );
 }

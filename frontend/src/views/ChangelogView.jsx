@@ -1,11 +1,15 @@
 import ReactMarkdown from "react-markdown";
 import changelogData from "../changelog.json";
 import ViewHeader from "../components/ViewHeader";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 function ChangelogView({ setView }) {
   return (
     <div className="container py-4 mx-auto">
       <ViewHeader onBack={() => setView("game")} title="更新履歴" marginBottom="mb-5" />
+      <div className="text-center mb-4">
+        <AppVersionInfo />
+      </div>
       <main className="mx-auto" style={{ maxWidth: "800px" }}>
           {changelogData.length === 0 ? (
               <p className="text-muted text-center py-5">履歴はありません。</p>

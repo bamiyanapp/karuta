@@ -1,6 +1,8 @@
 // DivisionSelectView・CategorySelectViewで一字一句同一だったヒーローヘッダー・
 // フッターリンクの共通化（issue #804 16）
 
+import AppVersionInfo from "./AppVersionInfo";
+
 export function HeroHeader() {
   return (
     <header className="text-center mb-5">
@@ -22,6 +24,7 @@ export function TopViewFooterLinks({ setView, className = "text-center d-flex fl
       <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
         更新履歴を見る
       </button>
+      <AppVersionInfo />
     </div>
   );
 }

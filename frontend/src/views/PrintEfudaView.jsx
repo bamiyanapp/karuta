@@ -3,6 +3,7 @@ import { API_BASE_URL } from "../config";
 import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
 import { setPrintScreenActive } from "../pdfExportStatus";
 import ViewHeader from "../components/ViewHeader";
+import AppVersionInfo from "../components/AppVersionInfo";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
@@ -158,6 +159,9 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
         headingClassName="h4 m-0 fw-bold notranslate"
         noPrint
       />
+      <div className="no-print text-center">
+        <AppVersionInfo />
+      </div>
 
       {emptyStateContent ?? (
         <>
