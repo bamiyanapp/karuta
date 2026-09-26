@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.76.4",
+    "version": "1.76.5",
     "date": "2026/09/26",
+    "body": "### Bug Fixes\n\n* **pwa:** PWA固定トーストの重複CSSをfixed-toast共通クラスへ統合する ([#1275](https://github.com/bamiyanapp/karuta/issues/1275)) ([73dbaff](https://github.com/bamiyanapp/karuta/commit/73dbaffb5702ebb1613448e3ff9876228f1978a9)), closes [#1167](https://github.com/bamiyanapp/karuta/issues/1167)"
+  },
+  {
+    "version": "1.76.4",
+    "date": "2026/09/26 16:03",
     "body": "### Bug Fixes\n\n* **e2e:** app-flows.spec.jsの「← 戻る」クリックが更新履歴のchangelog文言と衝突する問題を修正する ([#1272](https://github.com/bamiyanapp/karuta/issues/1272)) ([58f0e97](https://github.com/bamiyanapp/karuta/commit/58f0e973182cbf6cbb0912331cef5aed3eea5c27)), closes [#1271](https://github.com/bamiyanapp/karuta/issues/1271)"
   },
   {
