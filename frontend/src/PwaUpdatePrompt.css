@@ -1,6 +1,7 @@
+/* 背景色・角丸・影・余白等の共通見た目はfixedToast.css（.fixed-toast、issue #1167）
+   に集約した。ここには「画面上部に固定する」という、このコンポーネント固有の
+   位置決め・レイアウトのみを残す */
 .pwa-update-prompt {
-  position: fixed;
-
   /* 画面下部固定だと、入力欄フォーカスでソフトウェアキーボードが表示された際に
      隠れて操作できなくなる（issue #759）。画面中央よりやや上への変更（issue #759）
      は中途半端な位置だったため、キーボードに隠れず座りも良い最上部へ固定する
@@ -10,34 +11,13 @@
      ことがある（issue #840）。index.htmlのviewport-fit=coverと合わせ、
      safe-area-inset-topが1remより大きい場合はそちらを優先する */
   top: max(1rem, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background-color: #333;
-  color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
-  font-size: 0.9rem;
-
-  /* コンテンツ（文言＋ボタン2つ）が1行に収まる幅を確保しつつ、狭い画面では左右に余白を残す */
-  width: calc(100vw - 2rem);
-  max-width: 420px;
-  box-sizing: border-box;
 }
 
 .pwa-update-prompt-button {
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #333;
-  font-weight: bold;
-  cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
 }

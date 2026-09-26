@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./fixedToast.css";
 import "./AddToHomeScreenPrompt.css";
 
 const DISMISSED_STORAGE_KEY = "a2hsPromptDismissed";
@@ -56,13 +57,13 @@ function AddToHomeScreenPrompt() {
 
   if (deferredPrompt) {
     return (
-      <div className="a2hs-prompt" role="alert">
+      <div className="fixed-toast a2hs-prompt" role="alert">
         <span>ホーム画面に追加できます</span>
         <div className="a2hs-prompt-buttons">
-          <button type="button" className="a2hs-prompt-button" onClick={handleInstallClick}>
+          <button type="button" className="fixed-toast-button" onClick={handleInstallClick}>
             追加する
           </button>
-          <button type="button" className="a2hs-prompt-button" onClick={dismiss}>
+          <button type="button" className="fixed-toast-button" onClick={dismiss}>
             閉じる
           </button>
         </div>
@@ -72,10 +73,10 @@ function AddToHomeScreenPrompt() {
 
   if (showIosGuide) {
     return (
-      <div className="a2hs-prompt" role="alert">
+      <div className="fixed-toast a2hs-prompt" role="alert">
         <span>共有ボタンから「ホーム画面に追加」を選ぶとアプリのように使えます</span>
         <div className="a2hs-prompt-buttons">
-          <button type="button" className="a2hs-prompt-button" onClick={dismiss}>
+          <button type="button" className="fixed-toast-button" onClick={dismiss}>
             閉じる
           </button>
         </div>

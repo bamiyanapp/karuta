@@ -1,0 +1,28 @@
+/* PwaUpdatePrompt・AddToHomeScreenPromptが共有する、画面に固定表示する通知トースト
+   （スナックバー）の共通見た目（issue #1167）。両者とも常に同じ配色（背景#333・
+   文字#fff）で表示し、data-bs-theme（bootstrap-theme.css）には追従させない。
+   通知の視認性をライト/ダークモードによらず一定に保つための意図的な選択である */
+.fixed-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: calc(100vw - 2rem);
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  background-color: #333;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  font-size: 0.9rem;
+}
+
+.fixed-toast-button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+}
