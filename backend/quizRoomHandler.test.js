@@ -56,11 +56,47 @@ describe('createQuizRoom', () => {
     expect(putCall.TableName).toBe('TestQuizRooms');
     expect(putCall.Item.roomId).toBe(body.roomId);
     expect(putCall.Item.state).toEqual({});
+    expect(putCall.Item.categories).toEqual([]);
     // 平文のadminTokenはDBに保存せず、ハッシュのみ保存する
     expect(putCall.Item.adminTokenHash).not.toBe(body.adminToken);
     expect(putCall.Item.adminTokenHash).toBe(
       crypto.createHash('sha256').update(body.adminToken).digest('hex')
     );
+  });
+
+  // issue #1256: ルーム一覧でどのかるたで開設されたかを表示するため、開設時点の
+  // 選択カテゴリをルームレコードへ永続化する
+  it('persists the selected categories from the request body', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    ddbMock.on(PutCommand).resolves({});
+
+    await createQuizRoom({ body: JSON.stringify({ categories: ['犬', '猫'] }) });
+
+    const putCall = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+    expect(putCall.Item.categories).toEqual(['犬', '猫']);
+  });
+
+  it('sanitizes an invalid categories field instead of failing the request', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    ddbMock.on(PutCommand).resolves({});
+
+    const response = await createQuizRoom({ body: JSON.stringify({ categories: 'not-an-array' }) });
+
+    expect(response.statusCode).toBe(200);
+    const putCall = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+    expect(putCall.Item.categories).toEqual([]);
+  });
+
+  it('drops non-string entries and truncates an over-long categories list', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+    ddbMock.on(PutCommand).resolves({});
+
+    const tooMany = Array.from({ length: 15 }, (_, i) => `カテゴリ${i}`);
+    await createQuizRoom({ body: JSON.stringify({ categories: [...tooMany, 123, null, '  '] }) });
+
+    const putCall = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+    expect(putCall.Item.categories).toHaveLength(10);
+    expect(putCall.Item.categories).toEqual(tooMany.slice(0, 10));
   });
 
   it('retries room code generation on collision and gives up after the attempt limit', async () => {
@@ -101,9 +137,9 @@ describe('listQuizRooms', () => {
 
     expect(response.statusCode).toBe(200);
     expect(body.rooms).toEqual([
-      { roomId: 'ROOM02', createdAt: 3000, category: 'Cat1', status: '進行中' },
-      { roomId: 'ROOM03', createdAt: 2000, category: null, status: '開始前' },
-      { roomId: 'ROOM01', createdAt: 1000, category: null, status: '開始前' },
+      { roomId: 'ROOM02', createdAt: 3000, category: 'Cat1', categories: [], status: '進行中' },
+      { roomId: 'ROOM03', createdAt: 2000, category: null, categories: [], status: '開始前' },
+      { roomId: 'ROOM01', createdAt: 1000, category: null, categories: [], status: '開始前' },
     ]);
     // adminTokenHashが応答に含まれていないことを確認する
     expect(JSON.stringify(body)).not.toContain('secret-hash');
@@ -165,6 +201,22 @@ describe('listQuizRooms', () => {
 
     expect(body.rooms).toHaveLength(5);
     expect(body.rooms.map((r) => r.roomId)).toEqual(['ROOM07', 'ROOM06', 'ROOM05', 'ROOM04', 'ROOM03']);
+  });
+
+  // issue #1256: ルーム開設時に選択されていたかるた種類を一覧表示に含める
+  it('returns the persisted categories from room creation, defaulting to an empty array when absent', async () => {
+    ddbMock.on(ScanCommand).resolves({
+      Items: [
+        { roomId: 'ROOM01', createdAt: 1000, state: {}, categories: ['犬', '猫', '鳥'] },
+        { roomId: 'ROOM02', createdAt: 2000, state: {} },
+      ],
+    });
+
+    const response = await listQuizRooms({});
+    const body = JSON.parse(response.body);
+
+    const byRoomId = Object.fromEntries(body.rooms.map((r) => [r.roomId, r.categories]));
+    expect(byRoomId).toEqual({ ROOM01: ['犬', '猫', '鳥'], ROOM02: [] });
   });
 
   it('excludes rooms whose ttl has already passed via the filter expression', async () => {

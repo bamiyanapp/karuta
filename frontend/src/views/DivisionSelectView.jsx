@@ -6,6 +6,14 @@ function roomStatusBadgeClass(status) {
   return "text-bg-secondary";
 }
 
+// ルーム開設時に選択されていたかるた種類（issue #1256）を一覧表示用の短い文字列にする。
+// 複数選択されている場合は代表1件のみを示し「など」を付ける（列挙すると長くなりすぎるため）
+function formatRoomCategories(categories) {
+  if (!categories || categories.length === 0) return null;
+  if (categories.length === 1) return categories[0];
+  return `${categories[0]}など`;
+}
+
 function DivisionSelectView({
   openQuizRooms,
   joinQuizRoom,
@@ -49,7 +57,9 @@ function DivisionSelectView({
                   <span className={`badge rounded-pill ${roomStatusBadgeClass(room.status)}`}>
                     {room.status}
                   </span>
-                  {room.category && <span className="text-muted small notranslate">{room.category}</span>}
+                  {formatRoomCategories(room.categories) && (
+                    <span className="text-muted small notranslate">{formatRoomCategories(room.categories)}</span>
+                  )}
                 </span>
               </button>
             ))}

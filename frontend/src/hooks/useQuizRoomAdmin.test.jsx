@@ -1037,8 +1037,8 @@ describe('useQuizRoomAdmin (via App)', () => {
           ok: true,
           json: async () => ({
             rooms: [
-              { roomId: 'ABC123', createdAt: 2, category: 'Cat1', status: '進行中' },
-              { roomId: 'DEF456', createdAt: 1, category: null, status: '開始前' },
+              { roomId: 'ABC123', createdAt: 2, category: 'Cat1', categories: ['Cat1'], status: '進行中' },
+              { roomId: 'DEF456', createdAt: 1, category: null, categories: [], status: '開始前' },
             ],
           }),
         };
@@ -1099,6 +1099,45 @@ describe('useQuizRoomAdmin (via App)', () => {
     // sharedAudio（読み上げ用）+ buzz/correct/incorrect/introの効果音用
     // （issue #613, #786）で計5要素
     expect(window.Audio).toHaveBeenCalledTimes(5);
+  });
+
+  // issue #1256: ルーム一覧から開設者本人が自分のルームを選んだ場合、参加者モードを
+  // 経由せず直接ルーム詳細画面（管理者用の再開画面）へ遷移できるようにする
+  it('lets the room creator resume directly from the open-room list, skipping the participant flow, when the saved admin token matches (issue #1256)', async () => {
+    localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'ABC123', adminToken: 'token-1' }));
+    const MockWebSocket = installMockWebSocket();
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        return {
+          ok: true,
+          json: async () => ({
+            rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1', categories: ['Cat1', 'Cat2'], status: '進行中' }],
+          }),
+        };
+      }
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    expect(await screen.findByText('開設中のクイズ大会ルーム')).toBeInTheDocument();
+    // 複数のかるたが紐づく場合は代表1件＋「など」で表示する
+    expect(screen.getByText('Cat1など')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('ABC123'));
+
+    // 参加者用の名前入力画面（「お名前」）を経由せず、直接ルーム詳細画面へ遷移する
+    await screen.findByText('クイズ大会モードのルーム情報');
+    expect(screen.queryByPlaceholderText('お名前')).not.toBeInTheDocument();
+
+    const adminConnections = MockWebSocket.instances.filter((instance) => instance.url.includes('adminToken='));
+    expect(adminConnections).toHaveLength(1);
+    expect(adminConnections[0].url).toContain('roomId=ABC123');
+    expect(adminConnections[0].url).toContain('adminToken=token-1');
   });
 
   it("reuses the shared (already-unlocked) narration element for the admin's own quiz-room reading, instead of creating a fresh never-unlocked Audio element each time (issue #997)", async () => {
