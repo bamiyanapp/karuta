@@ -8,9 +8,10 @@ import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 // useQuizRoomSync（WebSocket接続）はApp.jsx側のトップレベルで呼ばれており、
 // view遷移によってApp自体がアンマウントされることはないため、この画面への
 // 遷移中も読み上げ・早押し等のクイズ大会の進行状態は維持される
-function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, quizRoomAnswerCounts = {}, resetQuizRoomPoints, closeQuizRoom }) {
+function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, quizRoomAnswerCounts = {}, resetQuizRoomPoints, closeQuizRoom, resumeReading }) {
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [resuming, setResuming] = useState(false);
 
   const inviteUrl = `${window.location.origin}${window.location.pathname}?view=quiz-room&roomId=${roomId}`;
 
@@ -35,6 +36,21 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
   const handleCloseRoom = () => {
     if (window.confirm("このルームを閉じます。参加者全員が切断され、元に戻せません。よろしいですか？")) {
       closeQuizRoom?.();
+    }
+  };
+
+  // かるたを再開する（issue #1267）: セッション復帰直後（selectedCategoriesが未選択）に
+  // 開設時のかるた種類を復元し、実際の読み上げ画面へ遷移する。「← 戻る」は、読み上げ中に
+  // この画面を開いた場合に元の読み上げ画面へそのまま戻るための既存の導線（issue #547）
+  // のままとし、状況によって挙動が変わって分かりにくいという指摘（issue #1262対応時）を
+  // 受けてこのボタンへ分離した
+  const handleResumeReading = async () => {
+    setResuming(true);
+    try {
+      await resumeReading?.(roomId);
+    } finally {
+      setResuming(false);
+      setView("game");
     }
   };
 
@@ -90,6 +106,11 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
       <div className="mt-5">
         <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
           ルームを閉じる
+        </button>
+      </div>
+      <div className="mt-3">
+        <button type="button" onClick={handleResumeReading} disabled={resuming} className="btn btn-sm btn-outline-dark rounded-pill px-3">
+          {resuming ? "再開中..." : "かるたを再開する"}
         </button>
       </div>
       <div className="mt-3">

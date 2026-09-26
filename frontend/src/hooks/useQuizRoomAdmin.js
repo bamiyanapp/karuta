@@ -351,13 +351,14 @@ export function useQuizRoomAdmin({
     setView("quiz-room");
   };
 
-  // 管理者セッション復帰時のかるた読み上げ画面への復元（issue #1262）: WebSocket再接続
-  // （quizRoom）だけではdivision・selectedCategoriesが空のままのため、ルーム情報
-  // 画面の「← 戻る」を押してもトップページへ戻ってしまい、読み上げ画面へ到達できない
-  // 問題があった。開設時に永続化された categories（issue #1256）を取得し、
-  // 現在も存在する種別だけを使ってdivision・selectedCategoriesを復元する。
-  // 取得・復元に失敗しても管理者としての再接続自体は成立させたいため、結果を
-  // 待たずfire-and-forgetで呼び出す（呼び出し元でawaitしない）
+  // かるた読み上げ画面へのdivision・selectedCategories復元（issue #1262・#1267）:
+  // ルーム情報画面（QuizRoomInfoView.jsx）の「かるたを再開する」ボタンから呼ばれる。
+  // WebSocket再接続（switchToAdminMode）だけではセッション復帰直後はdivision・
+  // selectedCategoriesが空のままのため、開設時に永続化されたcategories（issue #1256）を
+  // 取得し、現在も存在する種別だけを使って復元する。issue #1262では「← 戻る」から
+  // 自動的に呼んでいたが、読み上げ中にルーム情報を確認して「← 戻る」で元の読み上げ画面へ
+  // 戻る既存の導線（selectedCategoriesは既に設定済み）まで巻き込んでしまい、「戻る」の
+  // 挙動が状況によって変わって分かりにくいという指摘を受け、専用ボタンへ分離した（issue #1267）
   const restoreSelectedCategoriesFromRoom = async (roomId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/quiz-room?roomId=${encodeURIComponent(roomId)}`);
@@ -387,7 +388,6 @@ export function useQuizRoomAdmin({
     setAdminSessionRestoreError(null);
     setIsRestoringAdminSession(true);
     setQuizRoom({ roomId: stored.roomId, adminToken: stored.adminToken });
-    restoreSelectedCategoriesFromRoom(roomId);
     return true;
   };
 
@@ -419,5 +419,6 @@ export function useQuizRoomAdmin({
     isRestoringAdminSession,
     switchToAdminMode,
     closeQuizRoom,
+    restoreSelectedCategoriesFromRoom,
   };
 }

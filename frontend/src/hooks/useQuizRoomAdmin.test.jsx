@@ -1140,10 +1140,13 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(adminConnections[0].url).toContain('adminToken=token-1');
   });
 
-  // issue #1262: 管理者セッション復帰後、開設時に選択されていたかるた種類（categories）を
-  // 使ってdivision・selectedCategoriesを復元し、「← 戻る」から実際の読み上げ画面へ
-  // 到達できるようにする（以前は空のままトップページへ戻ってしまっていた）
-  it('restores the selected categories on admin session resume, so "← 戻る" from the room-info screen reaches the actual reading screen (issue #1262)', async () => {
+  // issue #1262・#1267: 管理者セッション復帰直後（selectedCategoriesが未選択）は
+  // 「← 戻る」を押してもトップページ（DivisionSelectView）へ戻ることを確認する。
+  // issue #1262では「← 戻る」自体が復元・読み上げ画面遷移を兼ねていたが、読み上げ中に
+  // ルーム情報を確認して「← 戻る」で同じ読み上げ画面へ戻る既存の導線（selectedCategories
+  // 設定済み）まで巻き込み、状況によって挙動が変わって分かりにくいという指摘を受け、
+  // 復元・読み上げ画面遷移は専用の「かるたを再開する」ボタン（次のテスト）へ分離した
+  it('sends the admin back to the top page (not the reading screen) via "← 戻る" right after a fresh session resume (issue #1267)', async () => {
     localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'ABC123', adminToken: 'token-1' }));
     installMockWebSocket();
 
@@ -1178,9 +1181,49 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     fireEvent.click(screen.getByText('← 戻る'));
 
-    // 以前はselectedCategoriesが空のままトップページ（DivisionSelectView）へ
-    // 戻ってしまっていたが、復元により実際の読み上げ画面（「次の札」ボタンが
-    // ある画面）へ到達できることを確認する
+    await screen.findByText('どなた向けに遊びますか？');
+    expect(screen.queryByText('次の札')).not.toBeInTheDocument();
+  });
+
+  // issue #1267: 「かるたを再開する」ボタンで、開設時に選択されていたかるた種類
+  // （categories、issue #1256）を復元し、実際の読み上げ画面へ到達できることを確認する
+  it('restores the selected categories and reaches the actual reading screen via the "かるたを再開する" button (issue #1267)', async () => {
+    localStorage.setItem('quizRoomAdminSession', JSON.stringify({ roomId: 'ABC123', adminToken: 'token-1' }));
+    installMockWebSocket();
+
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('/quiz-rooms')) {
+        return {
+          ok: true,
+          json: async () => ({
+            rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1', categories: ['Cat1', 'Cat2'], status: '進行中' }],
+          }),
+        };
+      }
+      if (url.includes('/quiz-room?roomId=')) {
+        return { ok: true, json: async () => ({ exists: true, categories: ['Cat1', 'Cat2'] }) };
+      }
+      if (url.includes('get-categories')) {
+        return {
+          ok: true,
+          json: async () => ({ categories: [{ name: 'Cat1', group: 'engineer' }, { name: 'Cat2', group: 'engineer' }] }),
+        };
+      }
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('ABC123'));
+    await screen.findByText('クイズ大会モードのルーム情報');
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('かるたを再開する'));
+    });
+
     await screen.findByText('次の札');
     expect(screen.queryByText('どなた向けに遊びますか？')).not.toBeInTheDocument();
   });
