@@ -1,0 +1,1 @@
+../dev-standards/textlint-rules/max-lines.js
