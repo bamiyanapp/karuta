@@ -1,0 +1,1 @@
+admin resumes their own session via the "管理者に切り替える" button from the invite URL, and can reach the actual reading screen afterward (issue #1262)
