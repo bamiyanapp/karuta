@@ -1,3 +1,10 @@
+## [1.76.2](https://github.com/bamiyanapp/karuta/compare/v1.76.1...v1.76.2) (2026-09-26)
+
+
+### Bug Fixes
+
+* **quiz-room:** 管理者セッション復帰後にかるた読み上げ画面へ戻れるようにする ([#1264](https://github.com/bamiyanapp/karuta/issues/1264)) ([0095a53](https://github.com/bamiyanapp/karuta/commit/0095a53efbb565646178cf6f966dbc6cf2f63ac0)), closes [#1262](https://github.com/bamiyanapp/karuta/issues/1262) [#1262](https://github.com/bamiyanapp/karuta/issues/1262)
+
 ## [1.76.1](https://github.com/bamiyanapp/karuta/compare/v1.76.0...v1.76.1) (2026-09-26)
 
 

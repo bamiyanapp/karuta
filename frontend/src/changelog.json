@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.76.1",
+    "version": "1.76.2",
     "date": "2026/09/26",
+    "body": "### Bug Fixes\n\n* **quiz-room:** 管理者セッション復帰後にかるた読み上げ画面へ戻れるようにする ([#1264](https://github.com/bamiyanapp/karuta/issues/1264)) ([0095a53](https://github.com/bamiyanapp/karuta/commit/0095a53efbb565646178cf6f966dbc6cf2f63ac0)), closes [#1262](https://github.com/bamiyanapp/karuta/issues/1262) [#1262](https://github.com/bamiyanapp/karuta/issues/1262)"
+  },
+  {
+    "version": "1.76.1",
+    "date": "2026/09/26 08:58",
     "body": "### Bug Fixes\n\n* **ci:** textlint-rulesを個別ファイルsymlink方式へ修正する ([#1260](https://github.com/bamiyanapp/karuta/issues/1260)) ([effe890](https://github.com/bamiyanapp/karuta/commit/effe8905788cf241716cec72fd5ad65593011f8d)), closes [#1257](https://github.com/bamiyanapp/karuta/issues/1257)"
   },
   {
