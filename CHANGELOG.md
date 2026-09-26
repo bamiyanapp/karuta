@@ -1,3 +1,10 @@
+## [1.76.1](https://github.com/bamiyanapp/karuta/compare/v1.76.0...v1.76.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **ci:** textlint-rulesを個別ファイルsymlink方式へ修正する ([#1260](https://github.com/bamiyanapp/karuta/issues/1260)) ([effe890](https://github.com/bamiyanapp/karuta/commit/effe8905788cf241716cec72fd5ad65593011f8d)), closes [#1257](https://github.com/bamiyanapp/karuta/issues/1257)
+
 # [1.76.0](https://github.com/bamiyanapp/karuta/compare/v1.75.1...v1.76.0) (2026-09-26)
 
 
