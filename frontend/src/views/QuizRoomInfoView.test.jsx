@@ -80,6 +80,28 @@ describe('QuizRoomInfoView', () => {
     expect(setView).toHaveBeenCalledWith('game');
   });
 
+  // issue #1267: 「かるたを再開する」は、セッション復帰直後（selectedCategories未選択）に
+  // 開設時のかるた種類を復元してから読み上げ画面へ遷移する専用ボタン。「← 戻る」（上のテスト）
+  // とは異なり、遷移前にresumeReadingの完了を待つ
+  it('resumes the reading screen via the "かるたを再開する" button, awaiting resumeReading before navigating', async () => {
+    const setView = vi.fn();
+    let resolveResume;
+    const resumeReading = vi.fn(() => new Promise((resolve) => { resolveResume = resolve; }));
+    render(<QuizRoomInfoView setView={setView} roomId="ABC123" resumeReading={resumeReading} />);
+
+    fireEvent.click(screen.getByText('かるたを再開する'));
+
+    expect(resumeReading).toHaveBeenCalledWith('ABC123');
+    expect(screen.getByText('再開中...')).toBeInTheDocument();
+    expect(setView).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveResume();
+    });
+
+    expect(setView).toHaveBeenCalledWith('game');
+  });
+
   it('copies the invite URL to the clipboard and shows transient feedback', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);

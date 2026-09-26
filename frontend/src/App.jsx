@@ -590,6 +590,7 @@ function App() {
     adminSessionRestoreError,
     isRestoringAdminSession,
     switchToAdminMode,
+    restoreSelectedCategoriesFromRoom,
   } = useQuizRoomAdmin({
     view,
     selectedCategories,
@@ -825,6 +826,7 @@ function App() {
           quizRoomAnswerCounts={quizRoomAnswerCounts}
           resetQuizRoomPoints={resetQuizRoomPoints}
           closeQuizRoom={closeQuizRoom}
+          resumeReading={restoreSelectedCategoriesFromRoom}
         />
         {/* issue #613: 早押し判定モーダルはこの画面を開いている間も表示する
             （以前はゲーム画面のレンダー内にしか存在せず、この画面滞在中は
