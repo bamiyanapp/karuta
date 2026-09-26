@@ -1,3 +1,10 @@
+## [1.77.1](https://github.com/bamiyanapp/karuta/compare/v1.77.0...v1.77.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **ci:** デプロイジョブがバージョン更新前のコミットをcheckoutしていた問題を修正する ([#1280](https://github.com/bamiyanapp/karuta/issues/1280)) ([ee73685](https://github.com/bamiyanapp/karuta/commit/ee73685f620b5b24b240bb965631bada1d399822)), closes [#1274](https://github.com/bamiyanapp/karuta/issues/1274)
+
 # [1.77.0](https://github.com/bamiyanapp/karuta/compare/v1.76.5...v1.77.0) (2026-09-26)
 
 
