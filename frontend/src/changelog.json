@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.76.0",
+    "date": "2026/09/26",
+    "body": "### Features\n\n* **frontend,backend:** 大会モードのルーム一覧のユーザビリティを改善する ([#1258](https://github.com/bamiyanapp/karuta/issues/1258)) ([b099597](https://github.com/bamiyanapp/karuta/commit/b09959741dd34d08734ad150bec1c1b28237c0e6)), closes [#1256](https://github.com/bamiyanapp/karuta/issues/1256)"
+  },
+  {
     "version": "1.75.1",
-    "date": "2026/09/19",
+    "date": "2026/09/19 04:14",
     "body": "### Bug Fixes\n\n* **ci:** textlint-rulesディレクトリのsymlinkを追加する ([#1230](https://github.com/bamiyanapp/karuta/issues/1230)) ([cb42231](https://github.com/bamiyanapp/karuta/commit/cb422315b695234be2e92c50048149cc45007c69)), closes [#1228](https://github.com/bamiyanapp/karuta/issues/1228)"
   },
   {

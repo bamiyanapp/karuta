@@ -1,3 +1,10 @@
+# [1.76.0](https://github.com/bamiyanapp/karuta/compare/v1.75.1...v1.76.0) (2026-09-26)
+
+
+### Features
+
+* **frontend,backend:** 大会モードのルーム一覧のユーザビリティを改善する ([#1258](https://github.com/bamiyanapp/karuta/issues/1258)) ([b099597](https://github.com/bamiyanapp/karuta/commit/b09959741dd34d08734ad150bec1c1b28237c0e6)), closes [#1256](https://github.com/bamiyanapp/karuta/issues/1256)
+
 ## [1.75.1](https://github.com/bamiyanapp/karuta/compare/v1.75.0...v1.75.1) (2026-09-19)
 
 
