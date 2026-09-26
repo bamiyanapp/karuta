@@ -1,3 +1,10 @@
+## [1.76.5](https://github.com/bamiyanapp/karuta/compare/v1.76.4...v1.76.5) (2026-09-26)
+
+
+### Bug Fixes
+
+* **pwa:** PWA固定トーストの重複CSSをfixed-toast共通クラスへ統合する ([#1275](https://github.com/bamiyanapp/karuta/issues/1275)) ([73dbaff](https://github.com/bamiyanapp/karuta/commit/73dbaffb5702ebb1613448e3ff9876228f1978a9)), closes [#1167](https://github.com/bamiyanapp/karuta/issues/1167)
+
 ## [1.76.4](https://github.com/bamiyanapp/karuta/compare/v1.76.3...v1.76.4) (2026-09-26)
 
 
