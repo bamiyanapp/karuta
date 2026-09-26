@@ -51,6 +51,9 @@ const OPEN_ROOMS_POLL_INTERVAL_MS = 15000;
 export function useQuizRoomAdmin({
   view,
   selectedCategories,
+  categories,
+  setSelectedCategories,
+  setDivision,
   displayContent,
   broadcastPhrase,
   isAllRead,
@@ -348,6 +351,30 @@ export function useQuizRoomAdmin({
     setView("quiz-room");
   };
 
+  // 管理者セッション復帰時のかるた読み上げ画面への復元（issue #1262）: WebSocket再接続
+  // （quizRoom）だけではdivision・selectedCategoriesが空のままのため、ルーム情報
+  // 画面の「← 戻る」を押してもトップページへ戻ってしまい、読み上げ画面へ到達できない
+  // 問題があった。開設時に永続化された categories（issue #1256）を取得し、
+  // 現在も存在する種別だけを使ってdivision・selectedCategoriesを復元する。
+  // 取得・復元に失敗しても管理者としての再接続自体は成立させたいため、結果を
+  // 待たずfire-and-forgetで呼び出す（呼び出し元でawaitしない）
+  const restoreSelectedCategoriesFromRoom = async (roomId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz-room?roomId=${encodeURIComponent(roomId)}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      const validNames = (data.categories || []).filter((name) => categories.some((cat) => cat.name === name));
+      if (validNames.length === 0) return;
+      const division = categories.find((cat) => cat.name === validNames[0])?.group;
+      if (division) {
+        setDivision(division);
+      }
+      setSelectedCategories(validNames);
+    } catch (error) {
+      console.error("Failed to restore quiz room categories:", error);
+    }
+  };
+
   // 管理者セッション復帰（issue #697）: 参加者画面（QuizRoomView.jsx）の
   // 「管理者に切り替える」ボタンから呼ばれる。保存済みの管理者トークンが
   // 現在のroomIdに一致する場合のみ管理者として再接続し、trueを返す
@@ -360,6 +387,7 @@ export function useQuizRoomAdmin({
     setAdminSessionRestoreError(null);
     setIsRestoringAdminSession(true);
     setQuizRoom({ roomId: stored.roomId, adminToken: stored.adminToken });
+    restoreSelectedCategoriesFromRoom(roomId);
     return true;
   };
 
