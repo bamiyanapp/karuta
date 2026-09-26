@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.28.2
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.28.3
     with:
       enable_release: true
       enable_changelog_json: true
@@ -38,7 +38,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
+          # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
+          # github.shaはsemantic-releaseによるバージョン更新（package.json・
+          # CHANGELOG.md等）が反映される前のコミットを指すため、そのままcheckout
+          # すると常に「1つ前のリリース」の状態をデプロイしてしまう（issue #1274）
+          ref: ${{ needs.release.outputs.release_commit_sha }}
           fetch-depth: 0
           submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
       - name: 🚀 Deploy to GitHub Pages
@@ -69,7 +73,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }} # CDをトリガーしたコミットを確実にデプロイする
+          # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
+          # 理由はbuild-and-deploy-frontendジョブの同名ステップのコメントを参照（issue #1274）
+          ref: ${{ needs.release.outputs.release_commit_sha }}
           fetch-depth: 0
           submodules: true # backend配下のdev-standards symlink（clientErrorReporting.js等）解決に必要
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
