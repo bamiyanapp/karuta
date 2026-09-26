@@ -24,6 +24,10 @@ jobs:
       enable_e2e_test: true
       enable_standards_check: true
       workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
+      # frontend/backendいずれか一方のみの変更時、対象外パッケージのfrontend-test・
+      # backend-test・frontend-e2e-test・duplication-check・architecture-checkを
+      # スキップし、CI実行時間・GitHub Actions利用時間を削減する（issue #1188）
+      enable_path_filtering: true
       # SonarCloud相当の静的解析（issue #806）のうち、コード重複検知（jscpd）を有効化する。
       # 導入直後はduplication_threshold未指定（レポート表示のみ、ゲートなし）としていたが、
       # 検出しても何も強制されない状態が放置されていたため、現状の重複率（行ベース）を
