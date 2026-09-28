@@ -277,6 +277,58 @@ test('engineer division: toggles settings, records a taker, views history, and u
   }
 });
 
+// issue #1289対応: エンジニア向けdivisionの結果表示（ResultCard.jsx、.yomifuda-container
+// でラップされる管理者側の表示）は、解説文が長い場合に「所要時間」「解説」が札の枠
+// （.yomifuda）からはみ出す不具合があった。.yomifuda-container固定サイズの箱の中で
+// .yomifudaがheight: 100%固定だったため、中身がその高さを超えてもクリップされずに
+// 視覚的に枠の外へあふれていた（App.css、min-height: 100%へ変更して修正）。
+// 「Git大ピンチ」カテゴリは全40札が解説付き（最短46文字・最長116文字）のため、
+// どの札が出ても確実に長めの解説を伴う結果画面を再現できる回帰テストとして使う
+test('engineer division result screen keeps long explanation text within the card frame (issue #1289)', async ({ browser }, testInfo) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await startCoverage(page);
+
+  try {
+    await page.goto('/');
+    await page.getByText('エンジニア向け').click();
+    await page.getByRole('button', { name: /Git大ピンチ/ }).click();
+    await page.getByRole('button', { name: 'かるたを始める' }).click();
+
+    const nextButton = page.getByRole('button', { name: '次の札' });
+    await expect(nextButton).toBeVisible();
+    await nextButton.click();
+
+    // issue #972と同じ既知のflaky（Git大ピンチは実行頻度が低くPollyコールド
+    // キャッシュを踏みやすい）のため、同じ条件付きskip方針に倣う
+    try {
+      await expect(page.locator('.yomifuda-phrase')).toBeVisible({ timeout: 60000 });
+    } catch (error) {
+      // バックエンド側の外部要因（Polly合成レイテンシ）による既知のflaky（issue #972）
+      // のみを対象にした条件付きskipで、このテスト内容自体を恒久的に無効化するものではない
+      test.skip(true, `Pollyコールドキャッシュ起因の既知のflaky（issue #972）: ${error.message}`);
+    }
+
+    // もう一度「次の札」を押すと、直前の札の結果（所要時間・解説）が表示される。
+    // この遷移は音声合成を伴わないため短いタイムアウトで足りる
+    await nextButton.click();
+    await expect(page.getByText('所要時間')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('解説')).toBeVisible();
+
+    // 枠（.yomifuda）の中身が枠の外へあふれていないこと（scrollHeightが
+    // clientHeightを超えないこと）を回帰的に検証する
+    const card = page.locator('.yomifuda-container .yomifuda');
+    await expect(card).toBeVisible();
+    const overflow = await card.evaluate((el) => el.scrollHeight - el.clientHeight);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await captureScreenshot(page, testInfo, 'engineer-result-long-explanation', 'エンジニア向け：解説が長い結果画面が札の枠内に収まっている状態');
+  } finally {
+    await stopCoverage(page, testInfo);
+    await closeContext(context);
+  }
+});
+
 // issue #474/#576対応: PrintEfudaViewの取得失敗・再試行の分岐は新規追加時点で
 // E2Eの実カバレッジが無かったため、page.routeでget-phrases-listを意図的に失敗
 // させて検証する（本番バックエンドを実際に落とすわけではなく、ブラウザ側の
