@@ -22,10 +22,15 @@
 
 /* かるた固有のデザイン（Bootstrapで表現しにくい部分） */
 
+/* issue #1289: heightを100%固定にすると、.yomifuda-containerがaspect-ratioで
+   算出した高さに中身が収まらない場合（解説文が長い結果表示など）、枠の高さが
+   広がらずコンテンツだけが視覚的に枠の外へはみ出していた。min-heightにすることで、
+   通常の札（.yomifuda-container基準の高さ以下に収まる）は従来どおりの見た目を保ちつつ、
+   結果表示等で中身がその高さを超える場合は枠自体が中身に応じて伸びるようにする */
 .yomifuda {
   position: relative;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   background-color: #fffaf0;
   border: 4px solid #2d5a27;
   border-radius: 12px;
