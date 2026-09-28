@@ -1,3 +1,10 @@
+## [1.78.1](https://github.com/bamiyanapp/karuta/compare/v1.78.0...v1.78.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **frontend:** 結果表示の解説・所要時間が札の枠からはみ出す不具合を修正する ([#1290](https://github.com/bamiyanapp/karuta/issues/1290)) ([df2f1b3](https://github.com/bamiyanapp/karuta/commit/df2f1b3d586582f764845f05254f803183fe6f14)), closes [#1289](https://github.com/bamiyanapp/karuta/issues/1289) [#1289](https://github.com/bamiyanapp/karuta/issues/1289)
+
 # [1.78.0](https://github.com/bamiyanapp/karuta/compare/v1.77.1...v1.78.0) (2026-09-26)
 
 
