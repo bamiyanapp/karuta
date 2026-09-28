@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.78.1",
+    "date": "2026/09/28",
+    "body": "### Bug Fixes\n\n* **frontend:** 結果表示の解説・所要時間が札の枠からはみ出す不具合を修正する ([#1290](https://github.com/bamiyanapp/karuta/issues/1290)) ([df2f1b3](https://github.com/bamiyanapp/karuta/commit/df2f1b3d586582f764845f05254f803183fe6f14)), closes [#1289](https://github.com/bamiyanapp/karuta/issues/1289) [#1289](https://github.com/bamiyanapp/karuta/issues/1289)"
+  },
+  {
     "version": "1.78.0",
-    "date": "2026/09/26",
+    "date": "2026/09/26 22:38",
     "body": "### Features\n\n* **ci:** frontend/backendいずれか一方のみの変更時にpath filteringでジョブを省略する ([#1284](https://github.com/bamiyanapp/karuta/issues/1284)) ([b1a499f](https://github.com/bamiyanapp/karuta/commit/b1a499f3ca04ec93109edab5f70ea89d277701f0)), closes [#1188](https://github.com/bamiyanapp/karuta/issues/1188)"
   },
   {
