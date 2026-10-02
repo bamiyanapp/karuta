@@ -2,6 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "rebaseWhen": "behind-base-branch",
+  "minimumReleaseAge": "3 days",
+  "description": "minimumReleaseAge: 公開直後のバージョンはコミュニティ検証が済んでいないため、リリースから3日間はPRを作成させず異常発覚の猶予期間を作る（dev-standards issue #647 Phase 2 8-3）",
   "git-submodules": {
     "enabled": true
   },
