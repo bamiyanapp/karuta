@@ -1,3 +1,10 @@
+# [1.79.0](https://github.com/bamiyanapp/karuta/compare/v1.78.1...v1.79.0) (2026-10-02)
+
+
+### Features
+
+* **renovate:** minimumReleaseAgeで依存更新PRの猶予期間を設ける ([#1309](https://github.com/bamiyanapp/karuta/issues/1309)) ([8d5a178](https://github.com/bamiyanapp/karuta/commit/8d5a1788987409c51216a3f704317fb1ef112c18))
+
 ## [1.78.1](https://github.com/bamiyanapp/karuta/compare/v1.78.0...v1.78.1) (2026-09-28)
 
 

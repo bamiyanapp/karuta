@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.79.0",
+    "date": "2026/10/02",
+    "body": "### Features\n\n* **renovate:** minimumReleaseAgeで依存更新PRの猶予期間を設ける ([#1309](https://github.com/bamiyanapp/karuta/issues/1309)) ([8d5a178](https://github.com/bamiyanapp/karuta/commit/8d5a1788987409c51216a3f704317fb1ef112c18))"
+  },
+  {
     "version": "1.78.1",
-    "date": "2026/09/28",
+    "date": "2026/09/28 07:18",
     "body": "### Bug Fixes\n\n* **frontend:** 結果表示の解説・所要時間が札の枠からはみ出す不具合を修正する ([#1290](https://github.com/bamiyanapp/karuta/issues/1290)) ([df2f1b3](https://github.com/bamiyanapp/karuta/commit/df2f1b3d586582f764845f05254f803183fe6f14)), closes [#1289](https://github.com/bamiyanapp/karuta/issues/1289) [#1289](https://github.com/bamiyanapp/karuta/issues/1289)"
   },
   {
