@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.83.0",
+    "version": "1.83.1",
     "date": "2026/10/03",
+    "body": "### Bug Fixes\n\n* **backend:** verify-data-resources.jsのキー順序依存比較を修正する ([#1342](https://github.com/bamiyanapp/karuta/issues/1342)) ([d017752](https://github.com/bamiyanapp/karuta/commit/d01775293063aed07b63963291a182eca8a80b05)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
+  },
+  {
+    "version": "1.83.0",
+    "date": "2026/10/03 22:30",
     "body": "### Features\n\n* **backend:** ステートフルリソースをserverless-data.ymlへ分離する ([#1339](https://github.com/bamiyanapp/karuta/issues/1339)) ([b9da543](https://github.com/bamiyanapp/karuta/commit/b9da543ccc848120f07eb66f8b6e907db0857c7f)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
   },
   {
