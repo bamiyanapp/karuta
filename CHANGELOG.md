@@ -1,3 +1,10 @@
+# [1.83.0](https://github.com/bamiyanapp/karuta/compare/v1.82.0...v1.83.0) (2026-10-03)
+
+
+### Features
+
+* **backend:** ステートフルリソースをserverless-data.ymlへ分離する ([#1339](https://github.com/bamiyanapp/karuta/issues/1339)) ([b9da543](https://github.com/bamiyanapp/karuta/commit/b9da543ccc848120f07eb66f8b6e907db0857c7f)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)
+
 # [1.82.0](https://github.com/bamiyanapp/karuta/compare/v1.81.1...v1.82.0) (2026-10-03)
 
 

@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.82.0",
+    "version": "1.83.0",
     "date": "2026/10/03",
+    "body": "### Features\n\n* **backend:** ステートフルリソースをserverless-data.ymlへ分離する ([#1339](https://github.com/bamiyanapp/karuta/issues/1339)) ([b9da543](https://github.com/bamiyanapp/karuta/commit/b9da543ccc848120f07eb66f8b6e907db0857c7f)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
+  },
+  {
+    "version": "1.82.0",
+    "date": "2026/10/03 20:56",
     "body": "### Features\n\n* **ci:** DynamoDBオンデマンドバックアップの手動ワークフローを追加する ([#1337](https://github.com/bamiyanapp/karuta/issues/1337)) ([6097fe3](https://github.com/bamiyanapp/karuta/commit/6097fe3bb0ffca11e31ad4c96badd3c80d80a34c)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
   },
   {
