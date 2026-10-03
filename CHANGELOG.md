@@ -1,3 +1,10 @@
+## [1.83.2](https://github.com/bamiyanapp/karuta/compare/v1.83.1...v1.83.2) (2026-10-03)
+
+
+### Bug Fixes
+
+* **ci:** IMPORT change setの結果を標準出力にも出す ([#1344](https://github.com/bamiyanapp/karuta/issues/1344)) ([98454e8](https://github.com/bamiyanapp/karuta/commit/98454e80ab744aaf034ba1a7097fcd0448964ab0)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)
+
 ## [1.83.1](https://github.com/bamiyanapp/karuta/compare/v1.83.0...v1.83.1) (2026-10-03)
 
 
