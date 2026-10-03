@@ -38,10 +38,14 @@ provider:
             - dynamodb:GetItem
             - dynamodb:PutItem
             - dynamodb:UpdateItem
+          # issue #1320: これらのテーブルはserverless-data.ymlへ移管し、本テンプレートの
+          # 管理対象から外した（stable/canaryの並行デプロイで、デプロイ単位ごとに同名
+          # テーブルの新規作成を試みて衝突することを避けるため）。テーブル名自体は
+          # 従来どおり固定の文字列（custom.*TableName）のため、ARNを直接組み立てる
           Resource:
-            - !GetAtt KarutaTable.Arn
-            - !GetAtt CommentsTable.Arn
-            - !GetAtt PollyCacheTable.Arn # 追加
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.commentsTableName}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.pollyCacheTableName} # 追加
         - Effect: Allow
           Action:
             - polly:SynthesizeSpeech
@@ -51,14 +55,16 @@ provider:
             - lambda:InvokeFunction
           Resource: !GetAtt RenderEfudaPdfWorkerLambdaFunction.Arn
         - Effect: Allow # 追加（絵札PDFのサーバーサイド生成: getEfudaPdfStatusが署名付きURLを発行するためGetObject/HeadObjectを要する）
+          # issue #1320: EfudaPdfBucketもserverless-data.ymlへ移管したため、バケット名を直接組み立てる
           Action:
             - s3:GetObject
-          Resource: !Sub "${EfudaPdfBucket.Arn}/*"
+          Resource: "arn:aws:s3:::${self:custom.efudaPdfBucketName}-${aws:accountId}/*"
         - Effect: Allow # 追加（クイズ大会モード: ルーム・接続情報の読み書き、issue #489: トップページの一覧表示用にScanを追加）
           # DeleteItemはissue #748の「ルームを閉じる」（closeQuizRoom）がルームレコードを
           # 削除するために必要。issue #576のE2E追加で判明: この権限が漏れていたため、
           # closeQuizRoomのDeleteCommandがAccessDeniedExceptionで失敗し、参加者・管理者の
           # どちらもroomClosedの配信を受け取れずルームを閉じる操作全体が無反応になっていた
+          # issue #1320: QuizRoomsTableもserverless-data.ymlへ移管したため、ARNを直接組み立てる
           Action:
             - dynamodb:GetItem
             - dynamodb:PutItem
@@ -66,9 +72,10 @@ provider:
             - dynamodb:DeleteItem
             - dynamodb:Scan
           Resource:
-            - !GetAtt QuizRoomsTable.Arn
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.quizRoomsTableName}
         - Effect: Allow # 追加（クイズ大会モード: 接続情報の読み書き・ルーム単位の一覧取得。
           # UpdateItemは早押し機能issue #510のsetQuizRoomName（参加者名の保存）で使用）
+          # issue #1320: QuizRoomConnectionsTableもserverless-data.ymlへ移管したため、ARNを直接組み立てる
           Action:
             - dynamodb:GetItem
             - dynamodb:PutItem
@@ -76,8 +83,8 @@ provider:
             - dynamodb:DeleteItem
             - dynamodb:Query
           Resource:
-            - !GetAtt QuizRoomConnectionsTable.Arn
-            - !Sub "${QuizRoomConnectionsTable.Arn}/index/*"
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.quizRoomConnectionsTableName}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.quizRoomConnectionsTableName}/index/*
         - Effect: Allow # 追加（クイズ大会モード: WebSocket接続への状態ブロードキャスト）
           # api-id/stageをワイルドカードにしているのはAWS公式ドキュメントで案内されている定型パターン。
           # Serverless Frameworkが自動生成するWebSocket APIの論理ID（未確定・デプロイ時に決まる）を
@@ -281,125 +288,14 @@ functions:
 
 resources:
   Resources:
-    KarutaTable:
-      Type: AWS::DynamoDB::Table
-      # issue #1320（ブルーグリーンデプロイ導入）: 本テーブルをstable/canaryの
-      # デプロイ単位から独立したserverless-data.ymlへ段階的に移管する予定。
-      # 移管の第一段階として、誤ってテンプレートから削除されても実データが
-      # 消えないようRetainを設定する（実際の移管はCloudFormationのリソース
-      # インポート機能を使う別タスクで行う）
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        TableName: ${self:custom.tableName}
-        AttributeDefinitions:
-          - AttributeName: category
-            AttributeType: S
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: category
-            KeyType: HASH
-          - AttributeName: id
-            KeyType: RANGE
-        BillingMode: PAY_PER_REQUEST
-        PointInTimeRecoverySpecification:
-          PointInTimeRecoveryEnabled: true
-    CommentsTable:
-      Type: AWS::DynamoDB::Table
-      # issue #1320: KarutaTableと同じ理由でRetainを設定する
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        TableName: ${self:custom.commentsTableName}
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        PointInTimeRecoverySpecification:
-          PointInTimeRecoveryEnabled: true
-    PollyCacheTable: # 追加
-      Type: AWS::DynamoDB::Table
-      # issue #1320: KarutaTableと同じ理由でRetainを設定する
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        TableName: ${self:custom.pollyCacheTableName}
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        PointInTimeRecoverySpecification:
-          PointInTimeRecoveryEnabled: true
-        TimeToLiveSpecification: # キャッシュキーの組み合わせ分レコードが際限なく増加するのを防ぐため、一定期間後に自動削除する
-          AttributeName: ttl
-          Enabled: true
-    EfudaPdfBucket: # 追加（絵札PDFのサーバーサイド生成）
-      Type: AWS::S3::Bucket
-      # issue #1320: KarutaTableと同じ理由でRetainを設定する
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        BucketName: ${self:custom.efudaPdfBucketName}-${aws:accountId}
-        PublicAccessBlockConfiguration:
-          BlockPublicAcls: true
-          BlockPublicPolicy: true
-          IgnorePublicAcls: true
-          RestrictPublicBuckets: true
-        LifecycleConfiguration: # 生成済みPDF・エラーマーカーはダウンロード用の一時ファイルのため、短期間で自動削除する
-          Rules:
-            - Id: ExpireEfudaPdfObjects
-              Status: Enabled
-              ExpirationInDays: 1
-    QuizRoomsTable: # 追加（クイズ大会モード）。roomId→管理者トークンのハッシュ・現在の状態を保持する
-      Type: AWS::DynamoDB::Table
-      # issue #1320: KarutaTableと同じ理由でRetainを設定する
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        TableName: ${self:custom.quizRoomsTableName}
-        AttributeDefinitions:
-          - AttributeName: roomId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: roomId
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        TimeToLiveSpecification: # 無人ルームが際限なく残らないよう、一定期間後に自動削除する
-          AttributeName: ttl
-          Enabled: true
-    QuizRoomConnectionsTable: # 追加（クイズ大会モード）。connectionId→roomId・役割（admin/participant）を保持する
-      Type: AWS::DynamoDB::Table
-      # issue #1320: KarutaTableと同じ理由でRetainを設定する
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Retain
-      Properties:
-        TableName: ${self:custom.quizRoomConnectionsTableName}
-        AttributeDefinitions:
-          - AttributeName: connectionId
-            AttributeType: S
-          - AttributeName: roomId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: connectionId
-            KeyType: HASH
-        GlobalSecondaryIndexes: # 状態更新時、ルーム内の全接続へブロードキャストするために必要
-          - IndexName: roomId-index
-            KeySchema:
-              - AttributeName: roomId
-                KeyType: HASH
-            Projection:
-              ProjectionType: ALL
-        BillingMode: PAY_PER_REQUEST
-        TimeToLiveSpecification: # $disconnectが確実に呼ばれない異常切断時の保険として自動削除する
-          AttributeName: ttl
-          Enabled: true
+    # issue #1320（ブルーグリーンデプロイ導入）: KarutaTable・CommentsTable・
+    # PollyCacheTable・EfudaPdfBucket・QuizRoomsTable・QuizRoomConnectionsTableは
+    # serverless-data.ymlへ移管した。stable/canaryの並行デプロイ（デプロイ単位ごとに
+    # 固有のCloudFormationスタックを持つ）の管理対象にステートフルリソースを含めると、
+    # 同名リソースの新規作成を試みて衝突するため、デプロイ単位から独立した1つの
+    # スタックに切り離す必要があった。移管はCloudFormationのリソースインポート機能で
+    # 行い、データの削除は発生していない（手順はserverless-data.ymlのコメント参照）。
+    # これらのリソースのARNは、IAM権限（provider.iam.role.statements）で直接組み立てる
     RenderEfudaPdfWorkerRole: # 追加（絵札PDFのサーバーサイド生成）。renderEfudaPdfWorker関数専用のロール
       # （provider.iam.roleの共有ロールを使うと、共有ロールのポリシーがこの関数自身のArnを
       # 参照する形になり循環依存でデプロイが失敗するため、専用ロールに分離している）
@@ -419,7 +315,7 @@ resources:
             PolicyDocument:
               Version: "2012-10-17"
               Statement:
-                - Effect: Allow
+                - Effect: Allow # issue #1320: EfudaPdfBucketはserverless-data.ymlへ移管したため、バケット名を直接組み立てる
                   Action:
                     - s3:PutObject
-                  Resource: !Sub "${EfudaPdfBucket.Arn}/*"
+                  Resource: "arn:aws:s3:::${self:custom.efudaPdfBucketName}-${aws:accountId}/*"
