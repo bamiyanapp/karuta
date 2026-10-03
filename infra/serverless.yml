@@ -25,6 +25,32 @@ service: karuta-infra
 # 更新は伝播に15〜20分程度かかるため、頻繁に走る通常のCD（backend/frontendの
 # デプロイ）とは別の、専用の手動ワークフローで管理する
 # （.github/workflows/deploy-infra.yml参照）
+#
+# 【Task 3（#1322）: CloudFront Functions重み付けルーティング】
+# viewer-request関数: canary Cookieが無い場合、KVS（RoutingKeyValueStore）の
+# 重み（既定キー canary_weight、未設定時10%）に従ってstable/canaryを抽選し、
+# URIへプレフィックスを付与する。KVSのforce_stableキーがtrueの場合は
+# Cookieに関わらず常にstableにする。viewer-response関数: 新規抽選が発生した
+# 場合のみ（force_stableによる強制時は発生しない）canary Cookie
+# （Max-Age=1週間）を付与する。
+#
+# 関数コードはserverless.yml内に直接インラインで記述している（別ファイル
+# 分割にしなかった理由: osls/Serverless Frameworkの`${file(...)}`変数は、
+# 拡張子が.js/.cjsのファイルを「raw textではなくNode.jsモジュールとして
+# require()した結果」として扱う。CloudFront Functionsのコードは
+# `module.exports`を持たない素のハンドラ関数であるため、require()自体は
+# エラーにならずに`{}`を返してしまい、FunctionCodeに空オブジェクトが
+# 設定されるという気づきにくい不具合を引き起こす（実機検証で確認済み）。
+# 拡張子を変えれば回避できるが、GitHubのdiffビューでのJS構文ハイライトを
+# 諦めることになり実益が無いため、素直にインライン化した）
+#
+# KVSの初期値（canary_weight=10、force_stable=false）はCloudFormationでは
+# 設定できない（AWS::CloudFront::KeyValueStoreのImportSourceはS3からの
+# 一括インポートのみに対応し、個別キーの初期値指定はできない）。
+# deploy-infra.yml側でaws cloudfront-keyvaluestore CLIを使い、スタック
+# デプロイ後に未設定のキーのみ初期値を設定する（既存の値は上書きしない。
+# Task 11（#1330、管理者ロールバックforce_stable）実装後、運用者が
+# force_stableを手動でtrueにしている可能性があるため）
 
 provider:
   name: aws
@@ -98,9 +124,115 @@ resources:
             AllowedMethods:
               - GET
               - HEAD
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ViewerRequestFunction.FunctionMetadata.FunctionARN
+              - EventType: viewer-response
+                FunctionARN: !GetAtt ViewerResponseFunction.FunctionMetadata.FunctionARN
+
+    # issue #1322: stable/canaryの重み・強制切り替えフラグを保持するKVS。
+    # 初期値設定・以後の更新はいずれもCloudFormationの外（aws
+    # cloudfront-keyvaluestore CLI）で行う。再デプロイ無しで即座に反映される
+    # ことが要件（issue #1322の検証項目）のため、CloudFormationのプロパティ
+    # としては値を持たせない
+    RoutingKeyValueStore:
+      Type: AWS::CloudFront::KeyValueStore
+      Properties:
+        Name: karuta-bg-routing
+
+    ViewerRequestFunction:
+      Type: AWS::CloudFront::Function
+      Properties:
+        Name: karuta-bg-viewer-request
+        AutoPublish: true # trueにしないとLIVEステージへ反映されず、ディストリビューションから参照できない
+        FunctionConfig:
+          Comment: "issue #1322: stable/canaryへの重み付けルーティング（Cookie確認→KVS抽選→URIプレフィックス付与）"
+          Runtime: cloudfront-js-2.0 # KVS参照にはruntime 2.0が必須
+          KeyValueStoreAssociations:
+            - KeyValueStoreARN: !GetAtt RoutingKeyValueStore.Arn
+        FunctionCode: |
+          import cf from 'cloudfront';
+
+          var KVS_WEIGHT_KEY = 'canary_weight';
+          var KVS_FORCE_STABLE_KEY = 'force_stable';
+          var DEFAULT_WEIGHT_PERCENT = 10;
+          var COOKIE_NAME = 'canary';
+          var NEW_ASSIGNMENT_HEADER = 'x-bg-new-assignment';
+
+          async function handler(event) {
+              var request = event.request;
+              var kvsHandle = cf.kvs();
+
+              var forceStable = false;
+              try {
+                  var forceStableValue = await kvsHandle.get(KVS_FORCE_STABLE_KEY);
+                  forceStable = forceStableValue === 'true';
+              } catch (err) {
+                  // KVSに未設定の場合は既定値(false)のまま進める
+              }
+
+              var bucket;
+              var isNewAssignment = false;
+
+              if (forceStable) {
+                  bucket = 'stable';
+              } else {
+                  var existingCookie = request.cookies[COOKIE_NAME];
+                  if (existingCookie && (existingCookie.value === 'stable' || existingCookie.value === 'canary')) {
+                      bucket = existingCookie.value;
+                  } else {
+                      var weight = DEFAULT_WEIGHT_PERCENT;
+                      try {
+                          var weightValue = await kvsHandle.get(KVS_WEIGHT_KEY);
+                          var parsedWeight = parseInt(weightValue, 10);
+                          if (!isNaN(parsedWeight) && parsedWeight >= 0 && parsedWeight <= 100) {
+                              weight = parsedWeight;
+                          }
+                      } catch (err) {
+                          // KVSに未設定の場合は既定値(10)のまま進める
+                      }
+                      bucket = Math.random() * 100 < weight ? 'canary' : 'stable';
+                      isNewAssignment = true;
+                  }
+              }
+
+              request.uri = '/' + bucket + request.uri;
+
+              if (isNewAssignment) {
+                  request.headers[NEW_ASSIGNMENT_HEADER] = { value: bucket };
+              }
+
+              return request;
+          }
+
+    ViewerResponseFunction:
+      Type: AWS::CloudFront::Function
+      Properties:
+        Name: karuta-bg-viewer-response
+        AutoPublish: true
+        FunctionConfig:
+          Comment: "issue #1322: 新規抽選時のみcanary Cookie（Max-Age=1週間）を付与する"
+          Runtime: cloudfront-js-2.0
+        FunctionCode: |
+          function handler(event) {
+              var request = event.request;
+              var response = event.response;
+
+              var newAssignment = request.headers['x-bg-new-assignment'];
+              if (newAssignment && newAssignment.value) {
+                  response.cookies['canary'] = {
+                      value: newAssignment.value,
+                      attributes: 'Max-Age=604800; Path=/; Secure; HttpOnly; SameSite=Lax'
+                  };
+              }
+
+              return response;
+          }
 
 outputs:
   FrontendDistributionDomainName:
     Value: !GetAtt FrontendDistribution.DomainName
   FrontendBucketName:
     Value: !Ref FrontendBucket
+  RoutingKeyValueStoreArn:
+    Value: !GetAtt RoutingKeyValueStore.Arn
