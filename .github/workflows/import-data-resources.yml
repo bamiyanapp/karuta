@@ -61,6 +61,22 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Verify live resource configuration matches serverless-data.yml (preview only)
+        # 読み取り専用API（DescribeTable等）のみを使い、実際のAWSリソースの現在の構成が
+        # serverless-data.ymlの定義と一致するかを事前確認する。不一致があればここで
+        # 止まり、change set作成（実際のIMPORT操作）には進まない
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu -o pipefail
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          node verify-data-resources.js "$ACCOUNT_ID" | tee verify-result.md
+          {
+            echo "## 実リソース構成の事前確認"
+            echo ""
+            cat verify-result.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Generate CloudFormation template (preview only)
         if: inputs.action == 'preview'
         working-directory: backend
