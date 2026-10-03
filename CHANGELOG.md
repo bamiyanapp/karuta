@@ -1,3 +1,10 @@
+# [1.80.0](https://github.com/bamiyanapp/karuta/compare/v1.79.0...v1.80.0) (2026-10-03)
+
+
+### Features
+
+* 依存更新Risk判定の業務影響度向けに重要パスを宣言する ([#1314](https://github.com/bamiyanapp/karuta/issues/1314)) ([c466ba5](https://github.com/bamiyanapp/karuta/commit/c466ba537931cf933fca6f7f9dbfdc437bf0ae69)), closes [#1312](https://github.com/bamiyanapp/karuta/issues/1312)
+
 # [1.79.0](https://github.com/bamiyanapp/karuta/compare/v1.78.1...v1.79.0) (2026-10-02)
 
 
