@@ -1,0 +1,144 @@
+service: karuta-data
+
+# issue #1320（ブルーグリーンデプロイ導入）: backend/serverless.yml（stable/canaryの
+# デプロイ単位）から、ステートフルリソース（DynamoDBテーブル・絵札PDF用S3バケット）を
+# 分離した独立サービス。stable/canary双方のコードがこのリソースを参照するが、
+# デプロイ単位（sls:stage）とは無関係に、固定の1つのスタックとして常時存在する。
+#
+# 【移管手順（実施済み・今後の参考用）】
+# CloudFormationはテンプレートからリソース定義を削除すると物理リソースも削除する
+# ため、本番データを失わずに移管するには以下の順序を踏む必要があった。
+# 1. backend/serverless.ymlの対象リソースにDeletionPolicy: Retain・
+#    UpdateReplacePolicy: Retainを設定してデプロイ（PR #1335）
+# 2. backend/serverless.ymlのテンプレートから対象リソース定義を削除してデプロイ
+#    （Retainにより物理リソースは削除されず、スタックの管理対象から外れて孤立する）
+# 3. 本ファイルを、CloudFormationの「リソースインポート」機能
+#    （aws cloudformation create-change-set --change-set-type IMPORT）で、
+#    手順2で孤立した物理リソースを取り込む形でデプロイする
+#
+# osls/Serverless Frameworkは変更セットのIMPORTタイプを直接サポートしないため、
+# 通常の`osls deploy`では使えない。手順3のデプロイ手順は
+# .github/workflows/import-data-resources.yml（手動実行、workflow_dispatch）を参照する。
+#
+# deploymentMethod: directにしているのは、Serverless Frameworkが既定で自動生成する
+# S3デプロイバケット（ServerlessDeploymentBucket）をテンプレートに含めないための設定。
+# CloudFormationのIMPORT（新規スタック作成）は、テンプレート内の全リソースが
+# resources-to-importに列挙されている必要があり、自動生成バケットが混在すると
+# 失敗するため
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  deploymentMethod: direct
+
+resources:
+  Resources:
+    KarutaTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: karuta-phrases
+        AttributeDefinitions:
+          - AttributeName: category
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: category
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+    CommentsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: karuta-comments
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+    PollyCacheTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: karuta-polly-cache
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    EfudaPdfBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        BucketName: karuta-efuda-pdf-${aws:accountId}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: ExpireEfudaPdfObjects
+              Status: Enabled
+              ExpirationInDays: 1
+    QuizRoomsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: karuta-quiz-rooms
+        AttributeDefinitions:
+          - AttributeName: roomId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: roomId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    QuizRoomConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: karuta-quiz-room-connections
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: roomId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: roomId-index
+            KeySchema:
+              - AttributeName: roomId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
