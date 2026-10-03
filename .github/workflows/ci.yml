@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.41.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.59.1
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -97,5 +97,15 @@ jobs:
       # （mermaid画像のlatest/公開）はpush時のみの副作用があるため対象外のまま
       # スキップされない（reusable-ci.yml側の実装）
       skip_verification_on_push: true
+      # package-lock.json変更時にupdate type・CVE/KEV・Supply Chainチェック・業務影響度
+      # （ブラスト半径、dependency-risk-critical-paths.json）等をまとめたRisk Summaryを
+      # PRへ投稿する（dev-standards#645、issue #1312/#1313）。本機能を使うには
+      # dependency-risk-critical-paths.json（本リポジトリルート）を参照し、重要パス該当時に
+      # 適用リスクを1段階昇格する。詳細はdev-standards/docs/dependency-risk-judgment.mdを参照
+      enable_dependency_risk_summary: true
+      # 適用リスクがHighのPRでは自動マージを止める（dev-standards#647 Phase 2、issue #1313）。
+      # Renovate等が作成した依存更新PRのうち、重要パスに影響するもの・既知のCVE/KEV・
+      # Supply Chain異常等でHighと判定されたものは、人間のレビューを経るまで自動マージされない
+      enable_dependency_risk_gating: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
