@@ -1,3 +1,10 @@
+## [1.83.1](https://github.com/bamiyanapp/karuta/compare/v1.83.0...v1.83.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **backend:** verify-data-resources.jsのキー順序依存比較を修正する ([#1342](https://github.com/bamiyanapp/karuta/issues/1342)) ([d017752](https://github.com/bamiyanapp/karuta/commit/d01775293063aed07b63963291a182eca8a80b05)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)
+
 # [1.83.0](https://github.com/bamiyanapp/karuta/compare/v1.82.0...v1.83.0) (2026-10-03)
 
 
