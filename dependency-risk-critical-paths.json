@@ -1,0 +1,15 @@
+{
+  "criticalPaths": [
+    "backend/handler.js",
+    "backend/quizRoomHandler.js",
+    "backend/quizRoomStore.js",
+    "backend/webSocketBroadcast.js",
+    "frontend/src/hooks/useQuizRoomSync.js",
+    "frontend/src/hooks/useQuizRoomAdmin.js",
+    "frontend/src/views/QuizRoomView.jsx",
+    "frontend/src/views/QuizRoomInfoView.jsx",
+    "frontend/src/components/QuizRoomActionsPanel.jsx",
+    "frontend/src/components/QuizRoomBuzzJudgmentModal.jsx",
+    "frontend/src/components/QuizRoomParticipantTable.jsx"
+  ]
+}
