@@ -374,8 +374,6 @@ resources:
         TimeToLiveSpecification: # 無人ルームが際限なく残らないよう、一定期間後に自動削除する
           AttributeName: ttl
           Enabled: true
-        PointInTimeRecoverySpecification: # issue #1320: 他のテーブルと同様にPITRを有効化する
-          PointInTimeRecoveryEnabled: true
     QuizRoomConnectionsTable: # 追加（クイズ大会モード）。connectionId→roomId・役割（admin/participant）を保持する
       Type: AWS::DynamoDB::Table
       # issue #1320: KarutaTableと同じ理由でRetainを設定する
@@ -402,8 +400,6 @@ resources:
         TimeToLiveSpecification: # $disconnectが確実に呼ばれない異常切断時の保険として自動削除する
           AttributeName: ttl
           Enabled: true
-        PointInTimeRecoverySpecification: # issue #1320: 他のテーブルと同様にPITRを有効化する
-          PointInTimeRecoveryEnabled: true
     RenderEfudaPdfWorkerRole: # 追加（絵札PDFのサーバーサイド生成）。renderEfudaPdfWorker関数専用のロール
       # （provider.iam.roleの共有ロールを使うと、共有ロールのポリシーがこの関数自身のArnを
       # 参照する形になり循環依存でデプロイが失敗するため、専用ロールに分離している）
