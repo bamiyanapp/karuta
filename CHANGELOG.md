@@ -1,3 +1,10 @@
+# [1.81.0](https://github.com/bamiyanapp/karuta/compare/v1.80.0...v1.81.0) (2026-10-03)
+
+
+### Features
+
+* **ci:** dependency-risk-summary機能を有効化する ([#1316](https://github.com/bamiyanapp/karuta/issues/1316)) ([5f24656](https://github.com/bamiyanapp/karuta/commit/5f24656b7f15de46b47fe8b6786906a4c2d9652f)), closes [#1313](https://github.com/bamiyanapp/karuta/issues/1313)
+
 # [1.80.0](https://github.com/bamiyanapp/karuta/compare/v1.79.0...v1.80.0) (2026-10-03)
 
 
