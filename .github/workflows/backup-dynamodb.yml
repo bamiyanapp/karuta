@@ -1,0 +1,69 @@
+name: Backup DynamoDB Tables
+run-name: Backup DynamoDB Tables (manual)
+
+# issue #1320（ブルーグリーンデプロイ導入）のデータ層移管作業（Retain化→
+# CloudFormationリソースインポート）は、手順を誤ると本番データを失うリスクが
+# ある。移管作業の前に、いつでもこのワークフローを手動実行して全テーブルの
+# オンデマンドバックアップを取得できるようにする（スマートフォンのGitHub
+# Web/モバイルアプリのActionsタブから実行可能）。PITR（README.md「バックアップ
+# と復旧」参照）は過去35日間の任意の時点への復旧用で常時有効だが、本ワークフローは
+# 「このタイミングの状態を明示的に残す」ための追加の保険として使う
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1 # backend/serverless.ymlのprovider.regionと統一する
+    steps:
+      - name: Create on-demand backups
+        run: |
+          set -u
+
+          # テーブル名はbackend/serverless.ymlのcustom.*TableNameと一致させる。
+          # テーブル追加・リネーム時はこの配列も更新すること
+          TABLES=(
+            "karuta-phrases"
+            "karuta-comments"
+            "karuta-polly-cache"
+            "karuta-quiz-rooms"
+            "karuta-quiz-room-connections"
+          )
+
+          TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          FAILED=0
+
+          echo "## DynamoDB バックアップ結果 (${TIMESTAMP})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| テーブル | 結果 | Backup ARN |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+
+          for TABLE in "${TABLES[@]}"; do
+            BACKUP_NAME="${TABLE}-manual-${TIMESTAMP}"
+            if RESULT=$(aws dynamodb create-backup \
+              --table-name "$TABLE" \
+              --backup-name "$BACKUP_NAME" \
+              --output json 2>&1); then
+              ARN=$(echo "$RESULT" | jq -r '.BackupDetails.BackupArn')
+              echo "✅ ${TABLE}: ${ARN}"
+              echo "| ${TABLE} | ✅ 成功 | \`${ARN}\` |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "❌ ${TABLE}: ${RESULT}" >&2
+              echo "| ${TABLE} | ❌ 失敗 | ${RESULT} |" >> "$GITHUB_STEP_SUMMARY"
+              FAILED=1
+            fi
+          done
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "復旧手順はdocs/data-backup-restore.mdを参照。オンデマンドバックアップはPITRと異なり自動削除されないため、不要になったら手動で削除すること。" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "一部のテーブルでバックアップに失敗した。上記サマリーを確認すること" >&2
+            exit 1
+          fi
