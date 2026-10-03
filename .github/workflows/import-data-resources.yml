@@ -1,0 +1,184 @@
+name: Import Data Resources (CloudFormation IMPORT)
+run-name: Import Data Resources (manual, ${{ inputs.action }})
+
+# issue #1320（ブルーグリーンデプロイ導入）: backend/serverless.ymlから分離した
+# ステートフルリソース（DynamoDBテーブル・絵札PDF用S3バケット）を、
+# backend/serverless-data.ymlの新スタックへCloudFormationの「リソースインポート」
+# 機能で取り込む。osls/Serverless Frameworkは変更セットのIMPORTタイプを
+# サポートしないため、AWS CLIで直接オーケストレーションする。
+#
+# 【前提】本ワークフローの実行前に、backend/serverless.ymlから対象6リソースの
+# 定義を削除したPRをマージし、CDで本番へデプロイしておく必要がある
+# （Retainポリシーにより物理リソースは削除されず、スタックの管理対象から
+# 外れて孤立した状態になる。CloudFormationのIMPORTは、取り込み対象の物理
+# リソースがどのスタックにも属していないことを要求するため）
+#
+# 【使い方（二段階、安全のため分離している）】
+# 1. action: preview で実行する。change setを作成するだけで実際の変更は
+#    発生しない。Job Summaryに表示される各リソースのAction（Import等）を
+#    確認し、想定外の変更（Add/Remove/Modify-replace等）が無いことを確認する
+# 2. 問題なければ、action: execute で再実行する。1で作成したchange setを
+#    実行し、実際にリソースを新スタックの管理下に置く
+#
+# change setは一定時間後に自動的に失効する。previewから時間を空けすぎた場合は
+# 再度previewから実行すること
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "preview: change setを作成して内容を確認するのみ（安全）。execute: 作成済みのchange setを実行する（実際にリソースが移管される）"
+        required: true
+        type: choice
+        options:
+          - preview
+          - execute
+
+permissions:
+  contents: read
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ap-northeast-1
+  STACK_NAME: karuta-data-shared
+  CHANGE_SET_NAME: karuta-data-import
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate CloudFormation template (preview only)
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu
+          npx osls package --config serverless-data.yml --stage shared --package .serverless-data-package
+
+          # Serverless FrameworkはdeploymentMethod: directでも常にデプロイ用S3バケット
+          # （ServerlessDeploymentBucket・そのバケットポリシー）をテンプレートへ含めて
+          # しまう。CloudFormationのIMPORT（新規スタック作成）は、テンプレート内の
+          # 全リソースがresources-to-importに列挙されていることを要求するため、
+          # 実在しないこの2リソースを含んだままでは失敗する。取り込み対象外として
+          # 事前に取り除く
+          node -e "
+            const fs = require('fs');
+            const path = '.serverless-data-package/cloudformation-template-update-stack.json';
+            const template = JSON.parse(fs.readFileSync(path, 'utf-8'));
+            delete template.Resources.ServerlessDeploymentBucket;
+            delete template.Resources.ServerlessDeploymentBucketPolicy;
+            delete template.Outputs;
+            fs.writeFileSync(path, JSON.stringify(template, null, 2));
+            console.log('Resources in template:', Object.keys(template.Resources));
+          "
+
+      - name: Build resources-to-import mapping (preview only)
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          cat > .serverless-data-package/resources-to-import.json <<EOF
+          [
+            {"ResourceType": "AWS::DynamoDB::Table", "LogicalResourceId": "KarutaTable", "ResourceIdentifier": {"TableName": "karuta-phrases"}},
+            {"ResourceType": "AWS::DynamoDB::Table", "LogicalResourceId": "CommentsTable", "ResourceIdentifier": {"TableName": "karuta-comments"}},
+            {"ResourceType": "AWS::DynamoDB::Table", "LogicalResourceId": "PollyCacheTable", "ResourceIdentifier": {"TableName": "karuta-polly-cache"}},
+            {"ResourceType": "AWS::S3::Bucket", "LogicalResourceId": "EfudaPdfBucket", "ResourceIdentifier": {"BucketName": "karuta-efuda-pdf-${ACCOUNT_ID}"}},
+            {"ResourceType": "AWS::DynamoDB::Table", "LogicalResourceId": "QuizRoomsTable", "ResourceIdentifier": {"TableName": "karuta-quiz-rooms"}},
+            {"ResourceType": "AWS::DynamoDB::Table", "LogicalResourceId": "QuizRoomConnectionsTable", "ResourceIdentifier": {"TableName": "karuta-quiz-room-connections"}}
+          ]
+          EOF
+
+      - name: Create change set (preview only)
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu
+          aws cloudformation create-change-set \
+            --stack-name "$STACK_NAME" \
+            --change-set-name "$CHANGE_SET_NAME" \
+            --change-set-type IMPORT \
+            --template-body file://.serverless-data-package/cloudformation-template-update-stack.json \
+            --resources-to-import file://.serverless-data-package/resources-to-import.json
+
+          echo "change setの作成を待機中..."
+          aws cloudformation wait change-set-create-complete \
+            --stack-name "$STACK_NAME" \
+            --change-set-name "$CHANGE_SET_NAME" || true
+
+      - name: Describe change set (preview only)
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu
+          aws cloudformation describe-change-set \
+            --stack-name "$STACK_NAME" \
+            --change-set-name "$CHANGE_SET_NAME" > change-set-result.json
+
+          STATUS=$(node -e "console.log(require('./change-set-result.json').Status)")
+          REASON=$(node -e "console.log(require('./change-set-result.json').StatusReason || '')")
+
+          echo "## CloudFormation IMPORT change set プレビュー" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: \`${STATUS}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$REASON" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "理由: ${REASON}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| リソース | Action | Replacement |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+
+          node -e "
+            const result = require('./change-set-result.json');
+            for (const c of (result.Changes || [])) {
+              const rc = c.ResourceChange;
+              console.log(\`| \${rc.LogicalResourceId} | \${rc.Action} | \${rc.Replacement || '-'} |\`);
+            }
+          " >> "$GITHUB_STEP_SUMMARY"
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "全リソースのActionが\`Import\`になっていることを確認してから、action: executeで実行すること。Add/Remove/Modify-replaceが含まれる場合は実行せず調査すること。" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STATUS" != "CREATE_COMPLETE" ] && [ "$STATUS" != "REVIEW_IN_PROGRESS" ]; then
+            echo "change setの作成に失敗した可能性がある。Statusを確認すること" >&2
+            exit 1
+          fi
+
+      - name: Execute change set (execute only)
+        if: inputs.action == 'execute'
+        working-directory: backend
+        run: |
+          set -eu
+          aws cloudformation execute-change-set \
+            --stack-name "$STACK_NAME" \
+            --change-set-name "$CHANGE_SET_NAME"
+
+          echo "スタックの更新完了を待機中..."
+          aws cloudformation wait stack-import-complete --stack-name "$STACK_NAME"
+
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" > stack-result.json
+          STATUS=$(node -e "console.log(require('./stack-result.json').Stacks[0].StackStatus)")
+
+          echo "## CloudFormation IMPORT 実行結果" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "StackStatus: \`${STATUS}\`" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STATUS" != "IMPORT_COMPLETE" ]; then
+            echo "インポートが完了しなかった。AWSコンソールでスタックイベントを確認すること" >&2
+            exit 1
+          fi
+          echo "インポート成功。6リソースがkaruta-data-sharedスタックの管理下に入った。" >> "$GITHUB_STEP_SUMMARY"
