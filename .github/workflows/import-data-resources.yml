@@ -147,6 +147,18 @@ jobs:
           STATUS=$(node -e "console.log(require('./change-set-result.json').Status)")
           REASON=$(node -e "console.log(require('./change-set-result.json').StatusReason || '')")
 
+          # Job Summaryはスマートフォンでの閲覧用。ログからも直接確認できるよう、
+          # 同じ内容を標準出力にも出す（Job Summary自体はREST APIで取得できないため）
+          echo "Status: ${STATUS}"
+          [ -n "$REASON" ] && echo "Reason: ${REASON}"
+          node -e "
+            const result = require('./change-set-result.json');
+            for (const c of (result.Changes || [])) {
+              const rc = c.ResourceChange;
+              console.log(\`\${rc.LogicalResourceId}: \${rc.Action} (Replacement: \${rc.Replacement || '-'})\`);
+            }
+          "
+
           echo "## CloudFormation IMPORT change set プレビュー" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Status: \`${STATUS}\`" >> "$GITHUB_STEP_SUMMARY"
