@@ -1,3 +1,10 @@
+## [1.81.1](https://github.com/bamiyanapp/karuta/compare/v1.81.0...v1.81.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **backend:** DynamoDB/S3リソースにDeletionPolicy: Retainを設定する ([#1335](https://github.com/bamiyanapp/karuta/issues/1335)) ([455b583](https://github.com/bamiyanapp/karuta/commit/455b5833c2dbd1fe3669e46df883e9a405787a35)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)
+
 # [1.81.0](https://github.com/bamiyanapp/karuta/compare/v1.80.0...v1.81.0) (2026-10-03)
 
 

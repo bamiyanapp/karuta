@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.81.0",
+    "version": "1.81.1",
     "date": "2026/10/03",
+    "body": "### Bug Fixes\n\n* **backend:** DynamoDB/S3リソースにDeletionPolicy: Retainを設定する ([#1335](https://github.com/bamiyanapp/karuta/issues/1335)) ([455b583](https://github.com/bamiyanapp/karuta/commit/455b5833c2dbd1fe3669e46df883e9a405787a35)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
+  },
+  {
+    "version": "1.81.0",
+    "date": "2026/10/03 07:17",
     "body": "### Features\n\n* **ci:** dependency-risk-summary機能を有効化する ([#1316](https://github.com/bamiyanapp/karuta/issues/1316)) ([5f24656](https://github.com/bamiyanapp/karuta/commit/5f24656b7f15de46b47fe8b6786906a4c2d9652f)), closes [#1313](https://github.com/bamiyanapp/karuta/issues/1313)"
   },
   {
