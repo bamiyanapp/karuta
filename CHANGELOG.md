@@ -1,3 +1,10 @@
+# [1.82.0](https://github.com/bamiyanapp/karuta/compare/v1.81.1...v1.82.0) (2026-10-03)
+
+
+### Features
+
+* **ci:** DynamoDBオンデマンドバックアップの手動ワークフローを追加する ([#1337](https://github.com/bamiyanapp/karuta/issues/1337)) ([6097fe3](https://github.com/bamiyanapp/karuta/commit/6097fe3bb0ffca11e31ad4c96badd3c80d80a34c)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)
+
 ## [1.81.1](https://github.com/bamiyanapp/karuta/compare/v1.81.0...v1.81.1) (2026-10-03)
 
 

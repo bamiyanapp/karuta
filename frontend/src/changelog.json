@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.81.1",
+    "version": "1.82.0",
     "date": "2026/10/03",
+    "body": "### Features\n\n* **ci:** DynamoDBオンデマンドバックアップの手動ワークフローを追加する ([#1337](https://github.com/bamiyanapp/karuta/issues/1337)) ([6097fe3](https://github.com/bamiyanapp/karuta/commit/6097fe3bb0ffca11e31ad4c96badd3c80d80a34c)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
+  },
+  {
+    "version": "1.81.1",
+    "date": "2026/10/03 20:46",
     "body": "### Bug Fixes\n\n* **backend:** DynamoDB/S3リソースにDeletionPolicy: Retainを設定する ([#1335](https://github.com/bamiyanapp/karuta/issues/1335)) ([455b583](https://github.com/bamiyanapp/karuta/commit/455b5833c2dbd1fe3669e46df883e9a405787a35)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
   },
   {
