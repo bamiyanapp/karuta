@@ -83,8 +83,24 @@ function sortByAttributeName(list) {
   return [...list].sort((a, b) => a.AttributeName.localeCompare(b.AttributeName));
 }
 
+// JSON.stringifyによる比較はオブジェクトキーの出現順序に依存してしまい、
+// AWS SDKのレスポンスがプロパティを異なる順序で返すだけで誤って不一致と
+// 判定してしまう（実際にPublicAccessBlockConfigurationで発生した）。
+// キー順序に依存しない再帰的な比較を行う
 function deepEqual(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
+  if (a === b) return true;
+  if (typeof a !== typeof b || a === null || b === null) return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((item, i) => deepEqual(item, b[i]));
+  }
+  if (typeof a === "object") {
+    const aKeys = Object.keys(a).sort();
+    const bKeys = Object.keys(b).sort();
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((key, i) => key === bKeys[i] && deepEqual(a[key], b[key]));
+  }
+  return a === b;
 }
 
 async function verifyTable(expected) {
@@ -95,10 +111,10 @@ async function verifyTable(expected) {
   if (
     !deepEqual(sortByAttributeName(Table.AttributeDefinitions), sortByAttributeName(expected.attributeDefinitions))
   ) {
-    mismatches.push("AttributeDefinitionsが一致しない");
+    mismatches.push(`AttributeDefinitionsが一致しない（実際: ${JSON.stringify(Table.AttributeDefinitions)}）`);
   }
   if (!deepEqual(Table.KeySchema, expected.keySchema)) {
-    mismatches.push("KeySchemaが一致しない");
+    mismatches.push(`KeySchemaが一致しない（実際: ${JSON.stringify(Table.KeySchema)}）`);
   }
   if (Table.BillingModeSummary?.BillingMode !== expected.billingMode) {
     mismatches.push(`BillingModeが一致しない（実際: ${Table.BillingModeSummary?.BillingMode}）`);
@@ -109,7 +125,7 @@ async function verifyTable(expected) {
     KeySchema: g.KeySchema,
   }));
   if (!deepEqual(actualGsi, expected.gsi)) {
-    mismatches.push("GlobalSecondaryIndexesが一致しない");
+    mismatches.push(`GlobalSecondaryIndexesが一致しない（実際: ${JSON.stringify(actualGsi)}）`);
   }
 
   const { TimeToLiveDescription } = await dynamoClient.send(
@@ -148,7 +164,7 @@ async function verifyBucket(bucketName) {
     RestrictPublicBuckets: true,
   };
   if (!deepEqual(PublicAccessBlockConfiguration, expectedPab)) {
-    mismatches.push("PublicAccessBlockConfigurationが一致しない");
+    mismatches.push(`PublicAccessBlockConfigurationが一致しない（実際: ${JSON.stringify(PublicAccessBlockConfiguration)}）`);
   }
 
   const { Rules } = await s3Client.send(new GetBucketLifecycleConfigurationCommand({ Bucket: bucketName }));
@@ -159,7 +175,7 @@ async function verifyBucket(bucketName) {
     actualRule.Status !== "Enabled" ||
     actualRule.Expiration?.Days !== 1
   ) {
-    mismatches.push("LifecycleConfigurationが一致しない");
+    mismatches.push(`LifecycleConfigurationが一致しない（実際: ${JSON.stringify(Rules)}）`);
   }
 
   return { name: bucketName, mismatches };
