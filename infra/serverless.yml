@@ -1,0 +1,106 @@
+service: karuta-infra
+
+# issue #1319（ブルーグリーンデプロイ導入）Task 2（#1321）: フロントエンドを
+# GitHub PagesからS3+CloudFrontへ移行するための最小インフラ。stable/canaryの
+# デプロイ単位（backend/serverless.yml、将来的にはフロントエンドのビルドも
+# stage別）とは独立した、固定の1つのスタックとして常時存在する
+# （backend/serverless-data.ymlと同じ位置付け）。
+#
+# S3バケットは単一で、stable/canaryのビルド成果物をそれぞれ`stable/`・
+# `canary/`プレフィックス配下に配置する。CloudFrontのデフォルトキャッシュ
+# ビヘイビアはオリジンパスを設定しない（空）ため、リクエストパスがそのまま
+# S3のキーに対応する（例: `/stable/index.html`→S3キー`stable/index.html`）。
+# この結果、本タスクの時点ではprefixなしのルート（`/`）はS3バケット直下に
+# 対応するオブジェクトが無いため404になる想定だが、それは正しい挙動である。
+# ルートパスを実際にstable/canaryへ振り分けるのはTask 3（#1322）の
+# CloudFront Functionsが担当する。viewer-request関数がevent.request.uriを
+# 書き換えて`/stable`または`/canary`を付与する設計のため、デフォルト
+# ビヘイビアのオリジンパスを空にしておく必要がある（関数側で付与した
+# プレフィックスと、オリジンパス設定によるプレフィックスが二重にならない
+# ようにするため）。
+#
+# デプロイは`npx osls deploy --config infra/serverless.yml --stage shared`で
+# 手動実行する（issue #1321の受け入れ基準どおり）。CDパイプラインへの統合は
+# Task 6（#1325）の範囲とする。CloudFrontディストリビューションの初回作成・
+# 更新は伝播に15〜20分程度かかるため、頻繁に走る通常のCD（backend/frontendの
+# デプロイ）とは別の、専用の手動ワークフローで管理する
+# （.github/workflows/deploy-infra.yml参照）
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  deploymentMethod: direct # serverless-data.ymlと同じ理由（自動生成デプロイバケットを避ける）
+
+resources:
+  Resources:
+    FrontendBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: karuta-frontend-${aws:accountId}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    # CloudFrontからのみS3へアクセスさせるための現行の推奨方式（Origin Access
+    # Control）。レガシーなOrigin Access Identityは新規では使わない
+    FrontendOriginAccessControl:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          Name: karuta-frontend-oac
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+
+    FrontendBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref FrontendBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:GetObject
+              Resource: !Sub "${FrontendBucket.Arn}/*"
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Sub "arn:aws:cloudfront::${aws:accountId}:distribution/${FrontendDistribution.Id}"
+
+    FrontendDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          # 独自ドメインは取得しない（issue #1319の決定済み設計）。CloudFrontの
+          # 既定ドメイン（*.cloudfront.net）のままとする
+          HttpVersion: http2
+          IPV6Enabled: true
+          Origins:
+            - Id: FrontendS3Origin
+              DomainName: !GetAtt FrontendBucket.RegionalDomainName
+              OriginAccessControlId: !GetAtt FrontendOriginAccessControl.Id
+              # OriginAccessControlIdを使う場合もS3OriginConfigの指定自体は必要
+              # （CloudFormationの仕様。OriginAccessIdentityは空文字でよい）
+              S3OriginConfig:
+                OriginAccessIdentity: ""
+          DefaultCacheBehavior:
+            TargetOriginId: FrontendS3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            # AWSマネージドポリシー「CachingOptimized」。静的サイトなので
+            # オリジン側のキャッシュ制御ヘッダーに従ってCloudFront側でも
+            # 効率よくキャッシュする既定値として適切
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            AllowedMethods:
+              - GET
+              - HEAD
+
+outputs:
+  FrontendDistributionDomainName:
+    Value: !GetAtt FrontendDistribution.DomainName
+  FrontendBucketName:
+    Value: !Ref FrontendBucket
