@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.83.1",
+    "version": "1.83.2",
     "date": "2026/10/03",
+    "body": "### Bug Fixes\n\n* **ci:** IMPORT change setの結果を標準出力にも出す ([#1344](https://github.com/bamiyanapp/karuta/issues/1344)) ([98454e8](https://github.com/bamiyanapp/karuta/commit/98454e80ab744aaf034ba1a7097fcd0448964ab0)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
+  },
+  {
+    "version": "1.83.1",
+    "date": "2026/10/03 22:53",
     "body": "### Bug Fixes\n\n* **backend:** verify-data-resources.jsのキー順序依存比較を修正する ([#1342](https://github.com/bamiyanapp/karuta/issues/1342)) ([d017752](https://github.com/bamiyanapp/karuta/commit/d01775293063aed07b63963291a182eca8a80b05)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
   },
   {
