@@ -1,3 +1,10 @@
+# [1.96.0](https://github.com/bamiyanapp/karuta/compare/v1.95.0...v1.96.0) (2026-10-04)
+
+
+### Features
+
+* **cd:** GitHub Pagesを旧URL移行ページへ切り替える ([#1387](https://github.com/bamiyanapp/karuta/issues/1387)) ([85926d4](https://github.com/bamiyanapp/karuta/commit/85926d442f8ef6ec253efedcf2c31408c2278458))
+
 # [1.95.0](https://github.com/bamiyanapp/karuta/compare/v1.94.0...v1.95.0) (2026-10-04)
 
 
