@@ -1,3 +1,17 @@
+# [1.88.0](https://github.com/bamiyanapp/karuta/compare/v1.87.0...v1.88.0) (2026-10-04)
+
+
+### Features
+
+* **frontend:** stable/canaryステージ別のAPIベースURLビルドに対応する ([#1365](https://github.com/bamiyanapp/karuta/issues/1365)) ([d5dd685](https://github.com/bamiyanapp/karuta/commit/d5dd6857b9ff263ea12e9d55cb6418e540721f7f))
+
+# [1.87.0](https://github.com/bamiyanapp/karuta/compare/v1.86.2...v1.87.0) (2026-10-04)
+
+
+### Features
+
+* **backend:** stable/canary並行stageデプロイに対応する ([#1363](https://github.com/bamiyanapp/karuta/issues/1363)) ([15e366d](https://github.com/bamiyanapp/karuta/commit/15e366d0ae03edc10ea34e7550fe9ca137f75428)), closes [#1323](https://github.com/bamiyanapp/karuta/issues/1323)
+
 ## [1.86.2](https://github.com/bamiyanapp/karuta/compare/v1.86.1...v1.86.2) (2026-10-04)
 
 
