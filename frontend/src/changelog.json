@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.89.0",
+    "version": "1.90.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **ci:** 管理者ロールバック（force_stable）workflowを新設する ([#1370](https://github.com/bamiyanapp/karuta/issues/1370)) ([aeb0729](https://github.com/bamiyanapp/karuta/commit/aeb07292eaaa818e0b775a9ec41e281a8043dee1))"
+  },
+  {
+    "version": "1.89.0",
+    "date": "2026/10/04 04:22",
     "body": "### Features\n\n* **ci:** CDワークフローへcanaryステージへの自動デプロイを追加する ([#1368](https://github.com/bamiyanapp/karuta/issues/1368)) ([85b1a99](https://github.com/bamiyanapp/karuta/commit/85b1a99ecd20b0af6f042b5b650d5f6c402d1870))"
   },
   {

@@ -1,3 +1,10 @@
+# [1.90.0](https://github.com/bamiyanapp/karuta/compare/v1.89.0...v1.90.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** 管理者ロールバック（force_stable）workflowを新設する ([#1370](https://github.com/bamiyanapp/karuta/issues/1370)) ([aeb0729](https://github.com/bamiyanapp/karuta/commit/aeb07292eaaa818e0b775a9ec41e281a8043dee1))
+
 # [1.89.0](https://github.com/bamiyanapp/karuta/compare/v1.88.0...v1.89.0) (2026-10-04)
 
 
