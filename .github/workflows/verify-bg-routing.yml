@@ -59,7 +59,7 @@ jobs:
         run: |
           set -eu
           DOMAIN="${{ steps.resolve.outputs.domain }}"
-          N=50
+          N=100
           CANARY_COUNT=0
           for i in $(seq 1 "$N"); do
             BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15)
@@ -111,6 +111,30 @@ jobs:
         run: |
           set -eu
           DOMAIN="${{ steps.resolve.outputs.domain }}"
+          # KVSの更新はCloudFrontのエッジ拠点への伝播が非同期（AWSの文書では
+          # 通常数秒、最大で数分かかる場合があるとされる）。KVS書き込み直後に
+          # 確認すると、伝播が追いついておらず古い値(false)を読んでしまい
+          # 誤って「反映されていない」と判定する可能性があるため、反映を
+          # 確認できるまで一定間隔でリトライする（最大120秒）
+          MAX_WAIT_ATTEMPTS=12
+          WAIT_SECONDS=10
+          PROPAGATED=0
+          for attempt in $(seq 1 "$MAX_WAIT_ATTEMPTS"); do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
+            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
+            if [ "$VARIANT" = "STABLE" ]; then
+              PROPAGATED=1
+              echo "KVS更新が反映された（${attempt}回目の確認、待機合計約$(( (attempt - 1) * WAIT_SECONDS ))秒）"
+              break
+            fi
+            echo "${attempt}回目: まだ反映されていない（${VARIANT}）。${WAIT_SECONDS}秒待機して再試行する"
+            sleep "$WAIT_SECONDS"
+          done
+          echo "propagated=${PROPAGATED}" >> "$GITHUB_OUTPUT"
+          if [ "$PROPAGATED" -ne 1 ]; then
+            echo "force_stable=trueが$((MAX_WAIT_ATTEMPTS * WAIT_SECONDS))秒経っても反映されなかった" >&2
+          fi
+
           N=10
           NON_STABLE_COUNT=0
           for i in $(seq 1 "$N"); do
@@ -153,5 +177,6 @@ jobs:
             echo "1回目の結果: ${{ steps.sticky.outputs.first_variant }} / 以降不一致: ${{ steps.sticky.outputs.mismatch == '1' && 'あり（NG）' || 'なし（OK）' }}"
             echo ""
             echo "### 3. force_stable強制切り替え"
+            echo "KVS更新の反映: ${{ steps.force_stable_check.outputs.propagated == '1' && '確認できた' || '120秒待っても確認できなかった（force_stableの反映自体に問題がある可能性）' }}"
             echo "10回中stable以外になった回数: ${{ steps.force_stable_check.outputs.non_stable_count }}（0が正常）"
           } >> "$GITHUB_STEP_SUMMARY"
