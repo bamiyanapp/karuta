@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.86.2",
+    "version": "1.87.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **backend:** stable/canary並行stageデプロイに対応する ([#1363](https://github.com/bamiyanapp/karuta/issues/1363)) ([15e366d](https://github.com/bamiyanapp/karuta/commit/15e366d0ae03edc10ea34e7550fe9ca137f75428)), closes [#1323](https://github.com/bamiyanapp/karuta/issues/1323)"
+  },
+  {
+    "version": "1.86.2",
+    "date": "2026/10/04 03:20",
     "body": "### Bug Fixes\n\n* **ci:** verify-bg-routing.ymlのKVS伝播待ちとサンプル数を見直す ([#1361](https://github.com/bamiyanapp/karuta/issues/1361)) ([e6406ca](https://github.com/bamiyanapp/karuta/commit/e6406cad3fd43994000e4f35e932c354a70c0283)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)"
   },
   {

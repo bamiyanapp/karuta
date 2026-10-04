@@ -1,3 +1,10 @@
+# [1.87.0](https://github.com/bamiyanapp/karuta/compare/v1.86.2...v1.87.0) (2026-10-04)
+
+
+### Features
+
+* **backend:** stable/canary並行stageデプロイに対応する ([#1363](https://github.com/bamiyanapp/karuta/issues/1363)) ([15e366d](https://github.com/bamiyanapp/karuta/commit/15e366d0ae03edc10ea34e7550fe9ca137f75428)), closes [#1323](https://github.com/bamiyanapp/karuta/issues/1323)
+
 ## [1.86.2](https://github.com/bamiyanapp/karuta/compare/v1.86.1...v1.86.2) (2026-10-04)
 
 
