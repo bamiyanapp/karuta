@@ -1,3 +1,10 @@
+# [1.89.0](https://github.com/bamiyanapp/karuta/compare/v1.88.0...v1.89.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** CDワークフローへcanaryステージへの自動デプロイを追加する ([#1368](https://github.com/bamiyanapp/karuta/issues/1368)) ([85b1a99](https://github.com/bamiyanapp/karuta/commit/85b1a99ecd20b0af6f042b5b650d5f6c402d1870))
+
 # [1.88.0](https://github.com/bamiyanapp/karuta/compare/v1.87.0...v1.88.0) (2026-10-04)
 
 
