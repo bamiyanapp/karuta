@@ -24,7 +24,7 @@
 6. **`stable`への初回切り替え**。フロントエンドの本番ビルド（GitHub Pagesまたは新インフラ、issue #1321参照）が指すAPIエンドポイントを、旧`dev`スタックから新しい`stable`スタックのエンドポイントへ切り替える。この切り替えは本番トラフィックに直接影響するため、実行前に必ずユーザーへ報告し承認を得る。
 7. **旧`dev`スタックの削除**。`stable`への切り替えが完全に完了し、問題が無いことを十分な期間確認したのち、`npx osls remove --stage dev`で旧スタックを削除する。DynamoDBテーブル等のステートフルリソースは`serverless-data.yml`側で管理されており、この削除では影響を受けない。
 
-手順6〜7は、それぞれ対応する後続issueが完了してから着手する。現時点（Task 6完了時点）では手順1〜5を実施済みで、`dev`スタックは本番として稼働を継続している。
+手順6〜7は、それぞれ対応する後続issueが完了してから着手する。現時点（Task 10完了時点）では手順1〜5に加え、手順6の一部（新インフラ側のstable最新化）を実施済み。GitHub Pages（既存の本番、`dev`スタックのAPIを指すビルド）は未変更で、既存ユーザーへの影響は無い。`dev`スタックは引き続き本番として稼働している。
 
 ### 補足: CDワークフローのcanaryデプロイ（Task 6）
 
@@ -84,6 +84,17 @@ issue記載の「`canary` Cookieを削除してから再読み込みする」方
 ### 補足: 手動切り替えリンク（Task 10）
 
 ErrorBoundaryが検知できない軽微な不具合（クラッシュに至らない表示崩れ等）向けに、`frontend/src/components/StableSwitchLink.jsx`をフッターへ追加した。`import.meta.env.MODE`が`canary`のビルドでのみ表示し、クリックすると`/stable${検索クエリ}`へ遷移する。Task 9で追加した`ViewerRequestFunction`側のstable固定ロジックをそのまま再利用するため、CloudFront Functions側の追加変更は不要だった。
+
+### 補足: stableへの初回切り替え（手順6、新インフラ側のみ実施）
+
+Task 1〜12が完了した時点でも、`promote-canary.yml`（週次の自動昇格）は未発火（canaryデプロイから1週間未経過）のままだった。そのため、新インフラ（CloudFront）側の`stable`プレフィックス・`karuta-app-stable`スタックは、Task 4で初回デプロイした時点の古いコードのままだった。Task 13（旧URLの移行ページ化）着手の前提として、新URL（CloudFront）が実際に最新コードで機能している状態を整える必要がある。
+
+`promote-canary.yml`の昇格処理はそのまま流用できない（`canary`スタックの削除・KVSリセットまで実行されてしまい、進行中の検証に影響するため）。そのため、以下を個別に手動実行した。
+
+- `.github/workflows/deploy-backend-stage.yml`（`stage: stable`）: `karuta-app-stable`スタックを現在の`main` HEADの内容で再デプロイ
+- `.github/workflows/deploy-frontend-stage.yml`（新規、`stage: stable`）: S3の`stable/`プレフィックスを現在の`main` HEADのビルドで再デプロイ。`promote-canary.yml`・`cd.yml`の`canary`向けデプロイ処理から、プレフィックス単体更新用のロジックのみを抜き出した新規workflow
+
+**GitHub Pages（既存の本番、`dev`スタックのAPIを指すビルド）は本作業で一切変更していない**。新インフラのCloudFront既定ドメイン経由でのみ影響があり、既存ユーザー（GitHub Pages経由）への影響は無い。
 
 ## 関連issue
 
