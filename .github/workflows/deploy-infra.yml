@@ -1,0 +1,51 @@
+name: Deploy Infra (S3+CloudFront)
+run-name: Deploy Infra (manual)
+
+# issue #1321（ブルーグリーンデプロイ導入 Task 2）: infra/serverless.ymlで定義した
+# S3+CloudFront最小インフラのデプロイ。stable/canaryのデプロイ単位（backend/
+# frontendのCD、cd.yml参照）とは独立した、固定の1つのスタックとして常時存在する
+# ため、通常のCDには組み込まない（CDパイプラインへの統合はTask 6、issue #1325の
+# 範囲）。CloudFrontディストリビューションの作成・更新は伝播に15〜20分程度かかり、
+# 頻繁に走る通常のCDには適さないため、手動workflow_dispatchとする
+# （スマートフォンのGitHub Web/モバイルアプリのActionsタブから実行可能）
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: 🚀 Deploy Infra (osls, Serverless Framework v3 OSS fork)
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.41.0
+        with:
+          working-directory: infra
+          node-version: 22
+          deploy-command: npx osls deploy --config serverless.yml --stage shared
+          workspaces: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Show CloudFront domain name
+        working-directory: infra
+        run: |
+          set -eu
+          DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed 's/.*: *//')
+          echo "CloudFront domain: https://${DOMAIN}"
+          {
+            echo "## infra デプロイ結果"
+            echo ""
+            echo "CloudFront domain: https://${DOMAIN}"
+            echo ""
+            echo "手動でstable/canaryの静的ファイルをS3バケット（\`stable/\`・\`canary/\`プレフィックス配下）へ配置し、\`https://${DOMAIN}/stable/<ファイル名>\`・\`https://${DOMAIN}/canary/<ファイル名>\`へブラウザでアクセスして表示を確認すること（issue #1321の受け入れ基準）。"
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

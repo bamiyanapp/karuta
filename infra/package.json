@@ -1,0 +1,11 @@
+{
+  "name": "infra",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "npx osls deploy --config serverless.yml --stage shared"
+  },
+  "devDependencies": {
+    "osls": "^3.0.0"
+  }
+}
