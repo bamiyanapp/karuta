@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.88.0",
+    "version": "1.89.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **ci:** CDワークフローへcanaryステージへの自動デプロイを追加する ([#1368](https://github.com/bamiyanapp/karuta/issues/1368)) ([85b1a99](https://github.com/bamiyanapp/karuta/commit/85b1a99ecd20b0af6f042b5b650d5f6c402d1870))"
+  },
+  {
+    "version": "1.88.0",
+    "date": "2026/10/04 04:12",
     "body": "### Features\n\n* **frontend:** stable/canaryステージ別のAPIベースURLビルドに対応する ([#1365](https://github.com/bamiyanapp/karuta/issues/1365)) ([d5dd685](https://github.com/bamiyanapp/karuta/commit/d5dd6857b9ff263ea12e9d55cb6418e540721f7f))"
   },
   {
