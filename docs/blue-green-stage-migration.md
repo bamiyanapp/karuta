@@ -63,6 +63,15 @@
 
 キュー待ちの解放は、専用の監視workflowを新設せず、Task 12の`promote-canary.yml`（毎日定時実行）に相乗りさせた。実行ごとに「canaryが空いたか（スタックが存在しない、または`force_stable=true`でロールバック済み）」と「キュー待ちの更新が無いか」を確認し、両方が真であれば最新のmain HEADを新しいcanaryとしてデプロイし、`canary_queue_pending`を`false`へ戻す。
 
+### 補足: sticky Cookie動作のフロントエンド側確認（Task 8）
+
+コード調査の結果、以下の既存設計により両方の受け入れ基準が満たされており、コード変更は不要と判断した。
+
+- **アセット・API呼び出しの一致**: `frontend/src/config.js`の`API_BASE_URL`/`WS_BASE_URL`は`import.meta.env`経由でビルド時に完全に固定される定数であり、実行時に再評価されることは無い。CloudFront Functionsの viewer-request（Task 3）は、Cookieに基づき`/`を含む全リクエストのURIへ同じプレフィックス（`stable`または`canary`）を付与するため、一度割り当てられたユーザーが受け取るHTML・JS・CSSは常に同一ビルドのものになる。APIへのリクエストはCloudFront経由ではなく、そのビルドに埋め込まれた固定URLへ直接送られるため、アセットとAPI呼び出しのバージョンは構造的に一致する
+- **Service Workerの古いキャッシュ返却**: `frontend/src/PwaUpdatePrompt.jsx`で`virtual:pwa-register/react`の`useRegisterSW`を使った更新確認UIが既に実装済み。1時間ごとに`registration.update()`を能動実行し、新しいビルド（新しいprecacheマニフェスト）を検知すると「新しいバージョンがあります」の更新案内を表示する（ゲームプレイ中は進行状態保護のため案内のみに留める、issue #1000対応）。`force_stable`によるロールバック（Task 11）等でユーザーの実質的な割り当てが変化した場合も、次回の更新チェック（最大1時間後）で検知され、更新案内が表示される
+
+残存する制約は、この最大1時間の検知ラグのみであり、KVS伝播（最大30秒程度）や自動昇格の判定間隔（1日1回）と同様、既存の許容範囲内の遅延として扱う。実機（ブラウザ・PWAインストール済み端末）での複数セッションにわたる動作確認は、今後の実運用の中で確認する。
+
 ## 関連issue
 
 - #1319（親issue）
@@ -71,5 +80,6 @@
 - #1324（Task 5、フロントエンドstage別APIベースURL）
 - #1325（Task 6、CDワークフローのcanaryデプロイフロー新設）
 - #1326（Task 7、カナリアの直列化）
+- #1327（Task 8、sticky Cookie動作のフロントエンド側確認）
 - #1330（Task 11、管理者ロールバック）
 - #1331（Task 12、1週間後の自動昇格）
