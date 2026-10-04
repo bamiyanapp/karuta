@@ -72,6 +72,19 @@
 
 残存する制約は、この最大1時間の検知ラグのみであり、KVS伝播（最大30秒程度）や自動昇格の判定間隔（1日1回）と同様、既存の許容範囲内の遅延として扱う。実機（ブラウザ・PWAインストール済み端末）での複数セッションにわたる動作確認は、今後の実運用の中で確認する。
 
+### 補足: ErrorBoundary連動の自動フォールバック（Task 9）
+
+issue記載の「`canary` Cookieを削除してから再読み込みする」方式は採用しなかった。当該Cookieが`HttpOnly`属性付き（`infra/serverless.yml`の`ViewerResponseFunction`）であることが実装時に判明したためである。クライアント側JavaScriptからは直接削除・書き換えができない。そのため以下の方式で代替した。
+
+- `shared/ui/ErrorBoundary.jsx`（dev-standards）に汎用的な`fallbackUrl` propを追加し、`componentDidCatch`発生時に自動的に`window.location.href = fallbackUrl`へ遷移するようにした（ボタン操作不要）。karuta側は`frontend/src/main.jsx`で`fallbackUrl="/stable${検索クエリ}"`を指定する
+- `ViewerRequestFunction`（CloudFront Functions）を変更し、`/stable/`への明示アクセス時に`NEW_ASSIGNMENT_HEADER`を`stable`固定で設定するようにした。既存の`ViewerResponseFunction`がこれを受けて`canary=stable`のCookieを発行するため、単なる再抽選ではなく確実にstableへ固定される
+
+`.github/workflows/verify-stable-fallback.yml`（`workflow_dispatch`）で、実デプロイ済みのCloudFront URLを対象に自動検証する。検証内容は「`/stable/`への明示アクセスが常にstableの内容を返すこと」と「`/stable/`アクセス後、以後のCookie無し通常アクセスもstableへ固定されること」の2点である。ErrorBoundary自体の自動遷移ロジック（JS側の挙動）はブラウザでのみ確認可能なため対象外とし、単体テストで検証した。
+
+### 補足: 手動切り替えリンク（Task 10）
+
+ErrorBoundaryが検知できない軽微な不具合（クラッシュに至らない表示崩れ等）向けに、`frontend/src/components/StableSwitchLink.jsx`をフッターへ追加した。`import.meta.env.MODE`が`canary`のビルドでのみ表示し、クリックすると`/stable${検索クエリ}`へ遷移する。Task 9で追加した`ViewerRequestFunction`側のstable固定ロジックをそのまま再利用するため、CloudFront Functions側の追加変更は不要だった。
+
 ## 関連issue
 
 - #1319（親issue）
@@ -81,5 +94,7 @@
 - #1325（Task 6、CDワークフローのcanaryデプロイフロー新設）
 - #1326（Task 7、カナリアの直列化）
 - #1327（Task 8、sticky Cookie動作のフロントエンド側確認）
+- #1328（Task 9、ErrorBoundary連動の自動フォールバック）
+- #1329（Task 10、手動切り替えリンク）
 - #1330（Task 11、管理者ロールバック）
 - #1331（Task 12、1週間後の自動昇格）
