@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>かるた読み上げアプリ - 新しいURLへ移動しました</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 24px;
+    text-align: center;
+    background: #fff;
+    color: #212529;
+  }
+  main {
+    max-width: 480px;
+  }
+  a {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: #212529;
+    color: #fff;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<main>
+  <p>かるた読み上げアプリのURLが変わりました。</p>
+  <p id="status">新しいURLへ移動しています…</p>
+  <a id="manual-link" href="__NEW_URL__">新しいURLへ移動する</a>
+</main>
+<script>
+  // issue #1332（ブルーグリーンデプロイ導入 Task 13）: 旧URL（GitHub Pages）は
+  // 今後更新されないビルドレスの移行ページとなる。既存のService Worker登録・
+  // キャッシュを破棄し、新URL（CloudFrontの既定ドメイン）へ誘導する。
+  // __NEW_URL__はcd.ymlのデプロイステップでCloudFrontの実ドメインへ置換される
+  (async () => {
+    const NEW_URL = "__NEW_URL__";
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+      if ("caches" in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      }
+    } catch {
+      // Service Worker・Cache Storage未対応環境（CLAUDE.md「開発環境の制約」の
+      // フィーチャー検出方針）やセキュリティ制約での失敗時も、誘導自体は継続する
+    }
+
+    window.location.href = NEW_URL;
+  })();
+</script>
+</body>
+</html>
