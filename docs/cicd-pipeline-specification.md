@@ -12,6 +12,8 @@ semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）�
 
 karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)）。その後、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)で行われている。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
 
+`render-mermaid-diagrams`ジョブのキャッシュバスティング用コミット（[dev-standards#723](https://github.com/bamiyanapp/dev-standards/issues/723)）にも同じGH013制約があった。こちらはPR経由のフォールバックを持たず`continue-on-error: true`で握り消される。そのため、push拒否されてもCIの見た目だけでは失敗に気づけなかった。対応として、`main`のruleset（Repository Settings → Rules → Rulesets）のBypass listへRepository admin（`BOT_TOKEN`が認証する`bamiyanapp`アカウント）を追加し、直接pushを許可した。
+
 ## E2Eテスト（`ci.yml` 固有）
 
 `frontend-e2e-test`ジョブ（共通、dev-standardsの`reusable-ci.yml`）は`enable_e2e_test: true`で有効化している（Playwright、`frontend/e2e/`配下）。
