@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.93.0",
+    "version": "1.93.1",
     "date": "2026/10/04",
+    "body": "### Bug Fixes\n\n* **ci:** verify-stable-fallback.ymlにAWS認証情報を渡す ([#1380](https://github.com/bamiyanapp/karuta/issues/1380)) ([a104c8e](https://github.com/bamiyanapp/karuta/commit/a104c8ecf22c85d37ce2d7ef8c0adc93969761f9))"
+  },
+  {
+    "version": "1.93.0",
+    "date": "2026/10/04 07:43",
     "body": "### Features\n\n* **frontend:** ErrorBoundaryの自動フォールバック先をstableへ設定する ([#1377](https://github.com/bamiyanapp/karuta/issues/1377)) ([a30e8d5](https://github.com/bamiyanapp/karuta/commit/a30e8d5ea742659a3c34e5595be26ef98c58b537))"
   },
   {

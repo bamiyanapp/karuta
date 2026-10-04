@@ -1,3 +1,10 @@
+## [1.93.1](https://github.com/bamiyanapp/karuta/compare/v1.93.0...v1.93.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **ci:** verify-stable-fallback.ymlにAWS認証情報を渡す ([#1380](https://github.com/bamiyanapp/karuta/issues/1380)) ([a104c8e](https://github.com/bamiyanapp/karuta/commit/a104c8ecf22c85d37ce2d7ef8c0adc93969761f9))
+
 # [1.93.0](https://github.com/bamiyanapp/karuta/compare/v1.92.0...v1.93.0) (2026-10-04)
 
 
