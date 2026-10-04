@@ -1,0 +1,73 @@
+name: Deploy Frontend Stage
+run-name: Deploy Frontend Stage (manual, ${{ inputs.stage }})
+
+# issue #1319（ブルーグリーンデプロイ導入）の移行手順6（stableへの本番
+# カットオーバー、docs/blue-green-stage-migration.md参照、要ユーザー承認）用。
+#
+# frontendのstable/canaryプレフィックス別ビルド（Task 5、#1324）は
+# cd.yml（mainマージ時のcanary自動デプロイ）・promote-canary.yml（週次の
+# stable昇格）の中にそれぞれ個別実装されているが、両者から独立して
+# stable/canaryいずれかのプレフィックスだけを手動で最新化する手段が
+# 無かった。手順6の実施（stableプレフィックスの初回最新化）に必要なため
+# 本workflowを新設する。
+#
+# canaryスタック削除・KVSリセット等は行わない（promote-canary.ymlの昇格処理
+# とは異なり、S3プレフィックスの同期のみを行う単純な操作）。
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "デプロイ先のstage"
+        required: true
+        type: choice
+        options:
+          - stable
+          - canary
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build:${{ inputs.stage }}
+
+      - name: Deploy to S3 and invalidate CloudFront cache
+        run: |
+          set -eu
+          # infra/serverless.ymlのスタック名はosls既定の命名規則（${service}-${stage}）
+          # によりkaruta-infra-sharedで固定（issue #1321参照）
+          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
+          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
+          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
+          aws s3 sync frontend/dist "s3://${BUCKET}/${{ inputs.stage }}/" --delete
+          # DefaultCacheBehaviorがCachingOptimized（オリジン側Cache-Controlに従う）
+          # のため、同期しただけでは最大24時間古いキャッシュが返り続ける。対象の
+          # プレフィックス配下のみを明示的に無効化する
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/${{ inputs.stage }}/*"
+          {
+            echo "## frontend デプロイ結果（stage: ${{ inputs.stage }}）"
+            echo ""
+            echo "S3バケット: ${BUCKET}"
+            echo "同期先プレフィックス: ${{ inputs.stage }}/"
+          } >> "$GITHUB_STEP_SUMMARY"
