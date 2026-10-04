@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.85.0",
+    "version": "1.85.1",
     "date": "2026/10/04",
+    "body": "### Bug Fixes\n\n* **infra:** serverless.ymlのoutputsをresources.Outputsへ修正する ([#1350](https://github.com/bamiyanapp/karuta/issues/1350)) ([918e9a3](https://github.com/bamiyanapp/karuta/commit/918e9a390b939a85dece5ecd0e4ab8c35906a0d4)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)"
+  },
+  {
+    "version": "1.85.0",
+    "date": "2026/10/04 02:17",
     "body": "### Features\n\n* **infra:** CloudFront Functionsによる重み付けルーティング＋KVSを追加する ([#1348](https://github.com/bamiyanapp/karuta/issues/1348)) ([e3b64c8](https://github.com/bamiyanapp/karuta/commit/e3b64c873778f65caf0a2e13ff23495b0e9c3971)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)"
   },
   {
