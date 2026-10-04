@@ -34,18 +34,57 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Show CloudFront domain name
+        id: domain
         working-directory: infra
         run: |
           set -eu
           DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed 's/.*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "CloudFront domain: https://${DOMAIN}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Seed KVS initial values (issue #1322)
+        # canary_weight（既定10）・force_stable（既定false）が未設定の場合のみ初期値を
+        # 設定する。既に値がある場合は上書きしない。Task 11（#1330、管理者ロールバック
+        # force_stable）実装後、運用者がforce_stableを手動でtrueにしている状態で
+        # 本ワークフローを再実行（CloudFrontディストリビューション設定の変更等）しても、
+        # その値を誤って既定値へ戻してしまわないようにするため
+        working-directory: infra
+        run: |
+          set -eu
+          KVS_ARN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "RoutingKeyValueStoreArn" | sed 's/.*: *//')
+          echo "KVS ARN: ${KVS_ARN}"
+
+          seed_default() {
+            KEY="$1"
+            DEFAULT_VALUE="$2"
+            if aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "$KEY" >/dev/null 2>&1; then
+              echo "${KEY}: 既に設定済みのためスキップ"
+              return
+            fi
+            ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+            aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "$KEY" --value "$DEFAULT_VALUE" >/dev/null
+            echo "${KEY}: 初期値(${DEFAULT_VALUE})を設定した"
+          }
+
+          seed_default "canary_weight" "10"
+          seed_default "force_stable" "false"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Write deployment summary
+        run: |
+          set -eu
+          DOMAIN="${{ steps.domain.outputs.domain }}"
           {
             echo "## infra デプロイ結果"
             echo ""
             echo "CloudFront domain: https://${DOMAIN}"
             echo ""
             echo "手動でstable/canaryの静的ファイルをS3バケット（\`stable/\`・\`canary/\`プレフィックス配下）へ配置し、\`https://${DOMAIN}/stable/<ファイル名>\`・\`https://${DOMAIN}/canary/<ファイル名>\`へブラウザでアクセスして表示を確認すること（issue #1321の受け入れ基準）。"
+            echo ""
+            echo "issue #1322の受け入れ基準の確認（CloudFront Functions重み付けルーティング）は、\`https://${DOMAIN}/\`へ複数回ブラウザでアクセスし、約10%の確率で\`canary\`のCookieが付与されること・2回目以降はCookieの値通りに固定されることを確認すること。"
           } >> "$GITHUB_STEP_SUMMARY"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
