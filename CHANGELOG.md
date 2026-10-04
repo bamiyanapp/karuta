@@ -1,3 +1,10 @@
+# [1.85.0](https://github.com/bamiyanapp/karuta/compare/v1.84.0...v1.85.0) (2026-10-04)
+
+
+### Features
+
+* **infra:** CloudFront Functionsによる重み付けルーティング＋KVSを追加する ([#1348](https://github.com/bamiyanapp/karuta/issues/1348)) ([e3b64c8](https://github.com/bamiyanapp/karuta/commit/e3b64c873778f65caf0a2e13ff23495b0e9c3971)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)
+
 # [1.84.0](https://github.com/bamiyanapp/karuta/compare/v1.83.2...v1.84.0) (2026-10-04)
 
 
