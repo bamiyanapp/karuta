@@ -229,10 +229,14 @@ resources:
               return response;
           }
 
-outputs:
-  FrontendDistributionDomainName:
-    Value: !GetAtt FrontendDistribution.DomainName
-  FrontendBucketName:
-    Value: !Ref FrontendBucket
-  RoutingKeyValueStoreArn:
-    Value: !GetAtt RoutingKeyValueStore.Arn
+  # serverless.yml直下のoutputs:はosls/Serverless Frameworkのスキーマに存在せず
+  # 無視される（`Warning: Invalid configuration encountered at root:
+  # unrecognized property 'outputs'`。実機デプロイで確認済み）。CloudFormation
+  # の生のOutputsセクションに対応する、resources.Outputsを使う必要がある
+  Outputs:
+    FrontendDistributionDomainName:
+      Value: !GetAtt FrontendDistribution.DomainName
+    FrontendBucketName:
+      Value: !Ref FrontendBucket
+    RoutingKeyValueStoreArn:
+      Value: !GetAtt RoutingKeyValueStore.Arn
