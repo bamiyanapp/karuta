@@ -161,6 +161,23 @@ resources:
 
           async function handler(event) {
               var request = event.request;
+
+              // issue #1321の動作確認・Task 10（#1329、手動切り替えリンク）との
+              // 前方互換のため、明示的に/stable/または/canary/で始まるリクエストは
+              // 重み付け抽選を行わずそのまま通す。これが無いと、どのパスへの
+              // アクセスでも常に重み付けで選ばれた側のプレフィックスが二重に
+              // 付与されてしまい（例: /stable/index.html → /canary/stable/index.html）、
+              // 存在しないキーへのアクセスとなる（実機検証で発覚。S3側はGetObjectのみ
+              // 許可しListBucketを許可していないため、404ではなくAccess Deniedとして
+              // 表面化する）
+              if (request.uri === '/stable' || request.uri.indexOf('/stable/') === 0 ||
+                  request.uri === '/canary' || request.uri.indexOf('/canary/') === 0) {
+                  if (request.uri.endsWith('/')) {
+                      request.uri += 'index.html';
+                  }
+                  return request;
+              }
+
               var kvsHandle = cf.kvs();
 
               var forceStable = false;
