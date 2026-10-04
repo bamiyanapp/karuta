@@ -119,6 +119,8 @@ graph TD
 
 本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴う、単一ステージ運用からstable/canary構成への移行手順については、[単一ステージ運用からstable/canaryへの移行手順](docs/blue-green-stage-migration.md) を参照してください。
 
+`stable`・`canary`が同一DynamoDBテーブルを共存期間中に共有することに伴うスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
+
 ## 運用
 
 ### クイズ大会モードの運用手順
