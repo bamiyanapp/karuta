@@ -1,3 +1,10 @@
+## [1.86.1](https://github.com/bamiyanapp/karuta/compare/v1.86.0...v1.86.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **infra:** 明示的な/stable//canaryパスへの直接アクセスを修正する ([#1358](https://github.com/bamiyanapp/karuta/issues/1358)) ([030918d](https://github.com/bamiyanapp/karuta/commit/030918d933d48a501241067b30194a0adb9e7e69)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)
+
 # [1.86.0](https://github.com/bamiyanapp/karuta/compare/v1.85.3...v1.86.0) (2026-10-04)
 
 
