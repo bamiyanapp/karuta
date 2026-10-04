@@ -1,3 +1,10 @@
+## [1.86.2](https://github.com/bamiyanapp/karuta/compare/v1.86.1...v1.86.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* **ci:** verify-bg-routing.ymlのKVS伝播待ちとサンプル数を見直す ([#1361](https://github.com/bamiyanapp/karuta/issues/1361)) ([e6406ca](https://github.com/bamiyanapp/karuta/commit/e6406cad3fd43994000e4f35e932c354a70c0283)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)
+
 ## [1.86.1](https://github.com/bamiyanapp/karuta/compare/v1.86.0...v1.86.1) (2026-10-04)
 
 
