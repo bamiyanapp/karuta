@@ -170,10 +170,21 @@ resources:
               // 存在しないキーへのアクセスとなる（実機検証で発覚。S3側はGetObjectのみ
               // 許可しListBucketを許可していないため、404ではなくAccess Deniedとして
               // 表面化する）
-              if (request.uri === '/stable' || request.uri.indexOf('/stable/') === 0 ||
-                  request.uri === '/canary' || request.uri.indexOf('/canary/') === 0) {
+              var isExplicitStable = request.uri === '/stable' || request.uri.indexOf('/stable/') === 0;
+              var isExplicitCanary = request.uri === '/canary' || request.uri.indexOf('/canary/') === 0;
+              if (isExplicitStable || isExplicitCanary) {
                   if (request.uri.endsWith('/')) {
                       request.uri += 'index.html';
+                  }
+                  // issue #1328（Task 9、ErrorBoundary連動の自動フォールバック）:
+                  // /stable/への明示アクセスを、今回のリクエストだけでなく以後の
+                  // 通常アクセス（Cookie無し判定）でも継続してstableへ固定する。
+                  // canaryの'canary' Cookieは`HttpOnly`のためクライアント側JSからは
+                  // 書き換えられず、ErrorBoundary側からCookieを直接操作することが
+                  // できない。そのため、/stable/への遷移そのものをきっかけに
+                  // viewer-response側でCookieを'stable'へ上書きさせる
+                  if (isExplicitStable) {
+                      request.headers[NEW_ASSIGNMENT_HEADER] = { value: 'stable' };
                   }
                   return request;
               }
@@ -235,7 +246,7 @@ resources:
         Name: karuta-bg-viewer-response
         AutoPublish: true
         FunctionConfig:
-          Comment: "issue #1322: 新規抽選時のみcanary Cookie（Max-Age=1週間）を付与する"
+          Comment: "issue #1322: 新規抽選時、または/stableへの明示アクセス時（issue #1328）にcanary Cookie（Max-Age=1週間）を付与する"
           Runtime: cloudfront-js-2.0
         FunctionCode: |
           function handler(event) {

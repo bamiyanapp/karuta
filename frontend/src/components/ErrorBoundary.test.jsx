@@ -101,4 +101,55 @@ describe('ErrorBoundary', () => {
     fireEvent.click(screen.getByRole('button', { name: '再読み込み' }));
     expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
+
+  // issue #1328（ブルーグリーンデプロイ導入 Task 9）: canary版でエラーが発生した
+  // 場合、単なるリロードではなく/stable/への遷移を自動的に行う（「リロードで
+  // 戻る」という手動操作をユーザーに求めない方式を採用、#1319コメント参照）
+  describe('fallbackUrl（issue #1328）', () => {
+    it('automatically navigates to fallbackUrl when an error is caught, without waiting for a button click', () => {
+      let href = '';
+      vi.stubGlobal('location', {
+        ...window.location,
+        get href() {
+          return href;
+        },
+        set href(value) {
+          href = value;
+        },
+      });
+
+      render(
+        <ErrorBoundary reportUrl={REPORT_URL} fallbackUrl="/stable?category=foo">
+          <Bomb />
+        </ErrorBoundary>
+      );
+
+      expect(href).toBe('/stable?category=foo');
+    });
+
+    it('navigates to fallbackUrl (not reload) when the reload button is clicked', () => {
+      const reloadSpy = vi.fn();
+      let href = '';
+      vi.stubGlobal('location', {
+        ...window.location,
+        reload: reloadSpy,
+        get href() {
+          return href;
+        },
+        set href(value) {
+          href = value;
+        },
+      });
+
+      render(
+        <ErrorBoundary reportUrl={REPORT_URL} fallbackUrl="/stable">
+          <Bomb />
+        </ErrorBoundary>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '再読み込み' }));
+      expect(href).toBe('/stable');
+      expect(reloadSpy).not.toHaveBeenCalled();
+    });
+  });
 });
