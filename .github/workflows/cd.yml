@@ -27,6 +27,10 @@ jobs:
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
+  # issue #1332（ブルーグリーンデプロイ導入 Task 13）: GitHub Pages（旧URL）は
+  # 今後更新されないビルドレスの移行ページ（github-pages-migration/）のみを
+  # 配信する。本番アプリ自体は新インフラ（CloudFront、docs/
+  # blue-green-stage-migration.md手順6で最新化済み）が引き継ぐ
   build-and-deploy-frontend:
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
@@ -34,6 +38,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page-url }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -44,14 +52,20 @@ jobs:
           # すると常に「1つ前のリリース」の状態をデプロイしてしまう（issue #1274）
           ref: ${{ needs.release.outputs.release_commit_sha }}
           fetch-depth: 0
-          submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
+      - name: Resolve CloudFront domain
+        id: resolve
+        run: |
+          set -eu
+          DOMAIN=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionDomainName'].OutputValue" --output text)
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
         uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.41.0
         with:
-          working-directory: frontend
+          working-directory: github-pages-migration
+          build-command: sed -i "s|__NEW_URL__|https://${{ steps.resolve.outputs.domain }}/|" index.html
+          artifact-path: github-pages-migration
           node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
-          artifact-path: frontend/dist
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
       - name: Show GitHub Pages URL
         run: |

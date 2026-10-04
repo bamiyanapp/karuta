@@ -96,6 +96,13 @@ Task 1〜12が完了した時点でも、`promote-canary.yml`（週次の自動�
 
 **GitHub Pages（既存の本番、`dev`スタックのAPIを指すビルド）は本作業で一切変更していない**。新インフラのCloudFront既定ドメイン経由でのみ影響があり、既存ユーザー（GitHub Pages経由）への影響は無い。
 
+### 補足: 旧URL（GitHub Pages）の移行ページ（Task 13）
+
+`github-pages-migration/`配下に、`vite-plugin-pwa`等のビルドパイプラインを通さないビルドレスの静的ページ（`index.html`・`sw.js`）を新設した。`cd.yml`の`build-and-deploy-frontend`ジョブを、既存のReactアプリ（`frontend/dist`）のビルド・デプロイから、この移行ページのデプロイへ切り替えた。これにより、以後`main`へマージするたびにGitHub Pagesへ配信される内容が移行ページで固定される。
+
+- `index.html`: ページ読み込み時に`navigator.serviceWorker.getRegistrations()`→`unregister()`、`caches.keys()`→`caches.delete()`を実行し、新URL（CloudFront既定ドメイン）へ自動的にリダイレクトする。新URLはビルド時の固定値ではなくデプロイ時にCloudFormation出力から解決するため、`sed`でプレースホルダー（`__NEW_URL__`）を実際のドメインへ置換する`build-command`を`deploy-github-pages`複合actionへ渡している
+- `sw.js`: kill switch用のService Worker。既存のvite-plugin-pwa生成SW（Workbox）が`index.html`をprecache済みのため、通常のページロードではナビゲーションリクエストがSWのfetchハンドラでインターセプトされてしまう。その結果、移行ページのインラインスクリプトが実行される前に、古いアプリの内容がキャッシュから返ってしまう可能性がある。ブラウザはページロード時にSWスクリプト自体の更新確認を行う仕様のため、このファイルへの差し替えが検出されると、`install`時に`skipWaiting()`で即座に新SWへ切り替わる。`activate`時には全キャッシュ削除・SW自身の`unregister()`・開いているタブの`navigate()`（リロード）を行う。リロード後はSWが存在しないため、移行ページのインラインスクリプトが確実に実行される（PWAとしてインストール済みの端末でも、初回アクセス時に一度リロードが入る形で新URLへ到達する）
+
 ## 関連issue
 
 - #1319（親issue）
@@ -109,3 +116,4 @@ Task 1〜12が完了した時点でも、`promote-canary.yml`（週次の自動�
 - #1329（Task 10、手動切り替えリンク）
 - #1330（Task 11、管理者ロールバック）
 - #1331（Task 12、1週間後の自動昇格）
+- #1332（Task 13、旧URL(GitHub Pages)の移行ページ）
