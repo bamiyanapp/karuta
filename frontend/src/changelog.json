@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.85.1",
+    "version": "1.85.2",
     "date": "2026/10/04",
+    "body": "### Bug Fixes\n\n* **ci:** deploy-infra.ymlのARN抽出でgreedy sedによる破損を修正する ([#1352](https://github.com/bamiyanapp/karuta/issues/1352)) ([b02c419](https://github.com/bamiyanapp/karuta/commit/b02c4190cb4e4c143bbad19b15aad4060a4f1e66)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)"
+  },
+  {
+    "version": "1.85.1",
+    "date": "2026/10/04 02:21",
     "body": "### Bug Fixes\n\n* **infra:** serverless.ymlのoutputsをresources.Outputsへ修正する ([#1350](https://github.com/bamiyanapp/karuta/issues/1350)) ([918e9a3](https://github.com/bamiyanapp/karuta/commit/918e9a390b939a85dece5ecd0e4ab8c35906a0d4)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)"
   },
   {

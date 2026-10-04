@@ -1,3 +1,10 @@
+## [1.85.2](https://github.com/bamiyanapp/karuta/compare/v1.85.1...v1.85.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* **ci:** deploy-infra.ymlのARN抽出でgreedy sedによる破損を修正する ([#1352](https://github.com/bamiyanapp/karuta/issues/1352)) ([b02c419](https://github.com/bamiyanapp/karuta/commit/b02c4190cb4e4c143bbad19b15aad4060a4f1e66)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)
+
 ## [1.85.1](https://github.com/bamiyanapp/karuta/compare/v1.85.0...v1.85.1) (2026-10-04)
 
 
