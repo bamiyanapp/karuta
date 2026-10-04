@@ -1,3 +1,10 @@
+# [1.93.0](https://github.com/bamiyanapp/karuta/compare/v1.92.0...v1.93.0) (2026-10-04)
+
+
+### Features
+
+* **frontend:** ErrorBoundaryの自動フォールバック先をstableへ設定する ([#1377](https://github.com/bamiyanapp/karuta/issues/1377)) ([a30e8d5](https://github.com/bamiyanapp/karuta/commit/a30e8d5ea742659a3c34e5595be26ef98c58b537))
+
 # [1.92.0](https://github.com/bamiyanapp/karuta/compare/v1.91.0...v1.92.0) (2026-10-04)
 
 
