@@ -44,6 +44,9 @@ jobs:
           DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "Domain: ${DOMAIN}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: "1. /stable/への明示アクセスは常にstableの内容を返す"
         id: content
