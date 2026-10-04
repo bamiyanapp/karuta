@@ -41,6 +41,12 @@
 - `npm run build:stable` / `npm run build:canary`（`vite build --mode <stage>`）: 対応するビルドを生成
 - 既存の`npm run build`（mode未指定）は従来どおり`dev`ステージを指すため、既存のビルドコマンド・CIには影響しない
 
+### 補足: 管理者ロールバック（Task 11）
+
+`.github/workflows/rollback-to-stable.yml`（`workflow_dispatch`）を手動実行すると、KVSの`force_stable`を`true`に設定し、既存の`canary` Cookie保持者も含めて全アクセスを`stable`へ強制的に切り替える。実行にはリポジトリへの書き込み権限とAWS認証情報（Secrets）が必要なため、誰でも実行できるわけではない。
+
+通常運用への復帰（`force_stable`を`false`へ戻す操作）は、誤toggleを避けるため本workflowの対象外とする。Task 12（自動昇格）経由、または必要に応じて別途手動対応する。
+
 ## 関連issue
 
 - #1319（親issue）
@@ -48,3 +54,4 @@
 - #1321, #1322（S3+CloudFrontインフラ・CloudFront Functions重み付けルーティング）
 - #1324（Task 5、フロントエンドstage別APIベースURL）
 - #1325（Task 6、CDワークフローのcanaryデプロイフロー新設）
+- #1330（Task 11、管理者ロールバック）
