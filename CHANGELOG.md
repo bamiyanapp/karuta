@@ -1,3 +1,10 @@
+## [1.85.3](https://github.com/bamiyanapp/karuta/compare/v1.85.2...v1.85.3) (2026-10-04)
+
+
+### Bug Fixes
+
+* **infra:** viewer-request関数でルートパスのindex.html補完を追加する ([#1354](https://github.com/bamiyanapp/karuta/issues/1354)) ([d281cce](https://github.com/bamiyanapp/karuta/commit/d281cce259c1959892c9084906c72c7cbd22f896)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)
+
 ## [1.85.2](https://github.com/bamiyanapp/karuta/compare/v1.85.1...v1.85.2) (2026-10-04)
 
 
