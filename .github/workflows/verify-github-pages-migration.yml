@@ -1,0 +1,100 @@
+name: Verify GitHub Pages Migration (issue #1332)
+run-name: Verify GitHub Pages Migration (manual)
+
+# issue #1332（ブルーグリーンデプロイ導入 Task 13）の受け入れ基準を、実際に
+# デプロイ済みのGitHub Pages URLへHTTPリクエストを送って自動検証する。
+#
+# 検証するのは以下の静的な内容のみ。
+# 1. 旧URL（GitHub Pages）が移行ページ（index.html）を返すこと
+# 2. 移行ページ内の__NEW_URL__プレースホルダーが、実際のCloudFrontドメインへ
+#    正しく置換されていること（未置換のまま残っていないこと）
+# 3. kill switch用のsw.jsが配信されていること
+#
+# Service Worker解除・キャッシュ削除・自動リダイレクトといったJS側の実際の
+# 動作、およびPWAとしてインストール済みの端末での挙動は、ブラウザでのみ
+# 確認可能なため本workflowの対象外とする（CLAUDE.md「開発環境の制約」参照。
+# 実機確認はスマートフォンブラウザから実行可能）
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ap-northeast-1
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Resolve CloudFront domain
+        id: resolve
+        working-directory: infra
+        run: |
+          set -eu
+          DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "Domain: ${DOMAIN}"
+
+      - name: "1-2. GitHub Pagesが移行ページを返し、新URLへのプレースホルダーが置換済みであること"
+        id: content
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          BODY=$(curl -sS "https://bamiyanapp.github.io/karuta/" --max-time 15)
+          OK=true
+          if echo "$BODY" | grep -q "__NEW_URL__"; then
+            echo "__NEW_URL__プレースホルダーが未置換のまま残っている" >&2
+            OK=false
+          fi
+          if ! echo "$BODY" | grep -qF "https://${DOMAIN}/"; then
+            echo "新URL（CloudFrontドメイン）への参照が見つからない" >&2
+            OK=false
+          fi
+          echo "content_ok=${OK}" >> "$GITHUB_OUTPUT"
+
+      - name: "3. kill switch用のsw.jsが配信されていること"
+        id: sw
+        run: |
+          set -eu
+          BODY=$(curl -sS "https://bamiyanapp.github.io/karuta/sw.js" --max-time 15)
+          if echo "$BODY" | grep -q "skipWaiting" && echo "$BODY" | grep -q "unregister"; then
+            echo "sw_ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sw_ok=false" >> "$GITHUB_OUTPUT"
+            echo "sw.jsの内容がkill switchの実装と一致しない" >&2
+          fi
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1332 自動検証結果"
+            echo ""
+            echo "### 1-2. 移行ページの内容・新URLプレースホルダー置換"
+            echo "${{ steps.content.outputs.content_ok == 'true' && '確認できた' || '確認できなかった' }}"
+            echo ""
+            echo "### 3. kill switch用sw.jsの配信"
+            echo "${{ steps.sw.outputs.sw_ok == 'true' && '確認できた' || '確認できなかった' }}"
+            echo ""
+            echo "### 対象外（ブラウザでのみ確認可能）"
+            echo "- Service Worker解除・キャッシュ削除・自動リダイレクトの実際の動作"
+            echo "- PWAとしてインストール済みの端末での挙動"
+          } >> "$GITHUB_STEP_SUMMARY"
