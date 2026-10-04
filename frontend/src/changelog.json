@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.94.0",
+    "version": "1.95.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **ci:** stable/canaryプレフィックス単体更新用workflowを新設する ([#1384](https://github.com/bamiyanapp/karuta/issues/1384)) ([11fbea8](https://github.com/bamiyanapp/karuta/commit/11fbea8b15fb9502bee026d6974224017f337a5c))"
+  },
+  {
+    "version": "1.94.0",
+    "date": "2026/10/04 08:20",
     "body": "### Features\n\n* **frontend:** canary版向けに手動stable切り替えリンクを追加する ([#1382](https://github.com/bamiyanapp/karuta/issues/1382)) ([97acca0](https://github.com/bamiyanapp/karuta/commit/97acca09145a22cf0be90f54beaa2fcdc931400c))"
   },
   {

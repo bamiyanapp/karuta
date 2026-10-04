@@ -1,3 +1,10 @@
+# [1.95.0](https://github.com/bamiyanapp/karuta/compare/v1.94.0...v1.95.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** stable/canaryプレフィックス単体更新用workflowを新設する ([#1384](https://github.com/bamiyanapp/karuta/issues/1384)) ([11fbea8](https://github.com/bamiyanapp/karuta/commit/11fbea8b15fb9502bee026d6974224017f337a5c))
+
 # [1.94.0](https://github.com/bamiyanapp/karuta/compare/v1.93.1...v1.94.0) (2026-10-04)
 
 
