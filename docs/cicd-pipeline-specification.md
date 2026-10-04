@@ -14,7 +14,9 @@ karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保
 
 `render-mermaid-diagrams`ジョブのキャッシュバスティング用コミット（[dev-standards#723](https://github.com/bamiyanapp/dev-standards/issues/723)）にも同じGH013制約があった。こちらはPR経由のフォールバックを持たず`continue-on-error: true`で握り消される。そのため、push拒否されてもCIの見た目だけでは失敗に気づけなかった。
 
-対応として、`main`のruleset（Repository Settings → Rules → Rulesets）のBypass listへRepository adminを追加した。しかしこれだけでは解消しなかった（同じGH013エラーが再現した）。`BOT_TOKEN`がfine-grained PATだったため、トークン自体にAdministration（Read and write）権限も追加したが、それでも解消しなかった。fine-grained PATはどれだけ権限を付与してもブランチ保護ルール・Rulesetのバイパスができない制約があるため、`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替えた。classic PATはアカウントの実際の権限をそのまま引き継ぐため、Repository adminロールのBypass設定が機能する。
+対応として、`main`のruleset（Repository Settings → Rules → Rulesets）のBypass listへRepository adminを追加した。しかしこれだけでは解消しなかった（同じGH013エラーが再現した）。`BOT_TOKEN`がfine-grained PATだったため、トークン自体にAdministration（Read and write）権限も追加したが、それでも解消しなかった。
+
+`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替える対応を行ったが、一度目はkaruta側のSecretのみ更新し、dev-standards側のSecretが新しいトークン値に更新されていなかったため、同じGH013エラーが再現した。karuta・dev-standards双方のSecretをclassic PATの値へ更新し直したことで、ようやく解消した。
 
 ## E2Eテスト（`ci.yml` 固有）
 
