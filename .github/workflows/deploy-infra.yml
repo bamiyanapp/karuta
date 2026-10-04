@@ -9,7 +9,12 @@ run-name: Deploy Infra (manual)
 # 頻繁に走る通常のCDには適さないため、手動workflow_dispatchとする
 # （スマートフォンのGitHub Web/モバイルアプリのActionsタブから実行可能）
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      seed_verification_assets:
+        description: "trueの場合、issue #1321/#1322の受け入れ基準確認用に、stable/・canary/各配下へ区別可能な最小限のプレースホルダーページを配置する（既存オブジェクトは上書きする）。Task 4〜6で実際のCDパイプラインからのビルド成果物配置に置き換わるまでの、一時的な動作確認用"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -77,6 +82,40 @@ jobs:
 
           seed_default "canary_weight" "10"
           seed_default "force_stable" "false"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Seed verification placeholder assets (issue #1321/#1322)
+        if: inputs.seed_verification_assets
+        working-directory: infra
+        run: |
+          set -eu
+          BUCKET=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendBucketName" | sed -E 's/^[^:]*: *//')
+          echo "Bucket: ${BUCKET}"
+
+          for VARIANT in stable canary; do
+            if [ "$VARIANT" = "stable" ]; then
+              LABEL="STABLE"; BG="#e3f2fd"
+            else
+              LABEL="CANARY"; BG="#fff3e0"
+            fi
+            # YAMLブロックスカラー内でのheredoc終端行はインデント要件が衝突する
+            # ため（plain heredocの終端行は行頭に空白が無い必要があるが、YAMLの
+            # 内側ではその行だけ浅いインデントにできない）、printfで1行ずつ書く
+            {
+              printf '%s\n' "<!doctype html>"
+              printf '%s\n' "<html lang=\"ja\">"
+              printf '%s\n' "<head><meta charset=\"utf-8\"><title>karuta infra verification: ${LABEL}</title></head>"
+              printf '%s\n' "<body style=\"font-family: sans-serif; background: ${BG}; text-align: center; padding: 4rem;\">"
+              printf '  <h1>%s</h1>\n' "${LABEL}"
+              printf '  <p>issue #1321 / #1322 %s（%s/配下）</p>\n' "動作確認用ページ" "${VARIANT}"
+              printf '%s\n' "</body>"
+              printf '%s\n' "</html>"
+            } > "/tmp/${VARIANT}-index.html"
+            aws s3 cp "/tmp/${VARIANT}-index.html" "s3://${BUCKET}/${VARIANT}/index.html" --content-type text/html
+            echo "${VARIANT}/index.html を配置した"
+          done
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
