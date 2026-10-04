@@ -38,7 +38,7 @@ jobs:
         working-directory: infra
         run: |
           set -eu
-          DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed 's/.*: *//')
+          DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "CloudFront domain: https://${DOMAIN}"
         env:
@@ -54,7 +54,13 @@ jobs:
         working-directory: infra
         run: |
           set -eu
-          KVS_ARN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "RoutingKeyValueStoreArn" | sed 's/.*: *//')
+          # ARN自体が複数のコロンを含むため、`sed 's/.*: *//'`（greedy）だと最後の
+          # コロン以降しか残らずARNが壊れる（実機で発生: 本来
+          # `arn:aws:cloudfront::123456789012:key-value-store/<uuid>`のはずが
+          # `key-value-store/<uuid>`のみになり、aws cliが「KVS ARN must be a
+          # valid ARN」で失敗した）。キー名自体にはコロンが無いため、最初の
+          # コロンまでだけを取り除く
+          KVS_ARN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
           echo "KVS ARN: ${KVS_ARN}"
 
           seed_default() {
