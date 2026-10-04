@@ -1,3 +1,10 @@
+# [1.92.0](https://github.com/bamiyanapp/karuta/compare/v1.91.0...v1.92.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** カナリアの直列化（同時1件・キュー待ち）を実装する ([#1374](https://github.com/bamiyanapp/karuta/issues/1374)) ([d84781b](https://github.com/bamiyanapp/karuta/commit/d84781b5811731fc786df46216c478c35a1c27ff))
+
 # [1.91.0](https://github.com/bamiyanapp/karuta/compare/v1.90.0...v1.91.0) (2026-10-04)
 
 
