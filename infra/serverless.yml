@@ -197,6 +197,13 @@ resources:
               }
 
               request.uri = '/' + bucket + request.uri;
+              // S3オリジン（REST APIエンドポイント）はURIが"/"で終わる場合に
+              // index.htmlを自動補完しない（S3静的website hosting機能は未使用の
+              // ため）。ルートパス("/")はプレフィックス付与だけでは
+              // "/stable/"のようにスラッシュで終わってしまい404になる
+              if (request.uri.endsWith('/')) {
+                  request.uri += 'index.html';
+              }
 
               if (isNewAssignment) {
                   request.headers[NEW_ASSIGNMENT_HEADER] = { value: bucket };
