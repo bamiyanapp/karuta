@@ -1,0 +1,107 @@
+name: Verify Stable Fallback (issue #1328)
+run-name: Verify Stable Fallback (manual)
+
+# issue #1328（ブルーグリーンデプロイ導入 Task 9）の受け入れ基準を、実際に
+# デプロイ済みのCloudFront URLへHTTPリクエストを送って自動検証する。
+#
+# 検証するのは以下2点。
+# 1. /stable/への明示アクセスは常にstableの内容を返す
+# 2. /stable/への明示アクセスにより、以後のCookie無しリクエスト（通常の"/"）も
+#    stableへ固定される（force_stable等の全体設定には影響しない一時的な
+#    固定で、Cookieの寿命は1週間）
+#
+# ErrorBoundary自体の自動遷移（JS側の挙動）は実機のブラウザでのみ確認可能
+# なため、本workflowの対象外（CloudFront Functions側のロジックのみ検証）
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Resolve CloudFront domain
+        id: resolve
+        working-directory: infra
+        run: |
+          set -eu
+          DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "Domain: ${DOMAIN}"
+
+      - name: "1. /stable/への明示アクセスは常にstableの内容を返す"
+        id: content
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          BODY=$(curl -sS "https://${DOMAIN}/stable/index.html" --max-time 15)
+          if echo "$BODY" | grep -qi "stable"; then
+            echo "content_ok=true" >> "$GITHUB_OUTPUT"
+            echo "/stable/index.html はSTABLEの内容を返した"
+          else
+            echo "content_ok=false" >> "$GITHUB_OUTPUT"
+            echo "/stable/index.html がSTABLEの内容を返さなかった" >&2
+          fi
+
+      - name: "2. /stable/への明示アクセスでcanary Cookieがstableへ固定される"
+        id: cookie
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          JAR=$(mktemp)
+
+          # canary Cookieを持たない状態で/stable/へアクセスし、新たに
+          # canary=stableのCookieが発行されることを確認する
+          curl -sS "https://${DOMAIN}/stable/index.html" --max-time 15 -c "$JAR" >/dev/null
+          if grep -q "canary.*stable" "$JAR"; then
+            echo "set_cookie_ok=true" >> "$GITHUB_OUTPUT"
+            echo "/stable/アクセス後、canary=stableのCookieが発行された"
+          else
+            echo "set_cookie_ok=false" >> "$GITHUB_OUTPUT"
+            echo "/stable/アクセス後もcanary=stableのCookieが発行されなかった" >&2
+            cat "$JAR" >&2
+          fi
+
+          # 発行されたCookieを使って通常のルートパス("/")へアクセスし、
+          # Cookie無し判定の重み付け抽選を経由せずstableへ固定されることを確認する
+          N=5
+          NON_STABLE_COUNT=0
+          for i in $(seq 1 "$N"); do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "$JAR" -c "$JAR")
+            if ! echo "$BODY" | grep -qi "stable"; then
+              NON_STABLE_COUNT=$((NON_STABLE_COUNT + 1))
+            fi
+          done
+          echo "non_stable_count=${NON_STABLE_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "固定後の通常アクセス${N}回中stable以外になった回数: ${NON_STABLE_COUNT}（0が正常）"
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1328 自動検証結果"
+            echo ""
+            echo "### 1. /stable/への明示アクセスの内容"
+            echo "${{ steps.content.outputs.content_ok == 'true' && '確認できた（STABLEの内容を返した）' || '確認できなかった' }}"
+            echo ""
+            echo "### 2. canary Cookieのstable固定"
+            echo "Cookie発行: ${{ steps.cookie.outputs.set_cookie_ok == 'true' && '確認できた' || '確認できなかった' }}"
+            echo "固定後の通常アクセス5回中stable以外になった回数: ${{ steps.cookie.outputs.non_stable_count }}（0が正常）"
+          } >> "$GITHUB_STEP_SUMMARY"
