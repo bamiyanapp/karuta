@@ -101,3 +101,76 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # issue #1325（ブルーグリーンデプロイ導入 Task 6）: mainへのマージ時に
+  # canaryステージへも自動デプロイする。既存のdeploy-backend（devステージ）・
+  # build-and-deploy-frontend（GitHub Pages）は、stableへの本番カットオーバー
+  # （docs/blue-green-stage-migration.md手順6、要ユーザー承認）が完了するまでの
+  # 暫定措置としてそのまま残し、本番トラフィックへの影響が無いよう並行稼働させる。
+  # stableステージは本ジョブでは一切変更しない（Task 12の自動昇格経由でのみ反映）
+  deploy-backend-canary:
+    needs: release
+    if: success() && needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    env:
+      OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
+      OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
+          # 理由はbuild-and-deploy-frontendジョブの同名ステップのコメントを参照（issue #1274）
+          ref: ${{ needs.release.outputs.release_commit_sha }}
+          fetch-depth: 0
+          submodules: true # backend配下のdev-standards symlink（clientErrorReporting.js等）解決に必要
+      - name: 🚀 Deploy Backend to canary stage (osls, Serverless Framework v3 OSS fork)
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.41.0
+        with:
+          working-directory: backend
+          node-version: 22
+          deploy-command: npx osls deploy --stage canary
+          workspaces: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # DynamoDBテーブルはdev/stable/canary全ステージで共有（issue #1320で
+      # serverless-data.ymlへ分離済み、issue #1323で確認済み）のため、
+      # deploy-backendジョブのseed.js実行で十分であり、ここでの再実行は不要
+
+  build-and-deploy-frontend-canary:
+    needs: release
+    if: success() && needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.release_commit_sha }}
+          fetch-depth: 0
+          submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
+      - name: Build frontend (canary)
+        working-directory: frontend
+        run: npm run build:canary
+      - name: Deploy to S3 canary/ and invalidate CloudFront cache
+        run: |
+          set -eu
+          # infra/serverless.ymlのスタック名はosls既定の命名規則（${service}-${stage}）
+          # によりkaruta-infra-sharedで固定（issue #1321参照）
+          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
+          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
+          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
+          aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
+          # DefaultCacheBehaviorがCachingOptimized（オリジン側Cache-Controlに従う）
+          # のため、同期しただけでは最大24時間古いキャッシュが返り続ける。canary/配下
+          # のみを明示的に無効化する
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-northeast-1
