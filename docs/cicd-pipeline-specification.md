@@ -16,7 +16,7 @@ karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保
 
 対応として、`main`のruleset（Repository Settings → Rules → Rulesets）のBypass listへRepository adminを追加した。しかしこれだけでは解消しなかった（同じGH013エラーが再現した）。`BOT_TOKEN`がfine-grained PATだったため、トークン自体にAdministration（Read and write）権限も追加したが、それでも解消しなかった。
 
-`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替える対応を行ったが、一度目はkaruta側のSecretのみ更新し、dev-standards側のSecretが新しいトークン値に更新されていなかったため、同じGH013エラーが再現した。karuta・dev-standards双方のSecretをclassic PATの値へ更新し直したことで、ようやく解消した。
+`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替えたが、一度目はkaruta側のSecretのみ更新し、dev-standards側のSecretが新しいトークン値に更新されていなかったため、同じGH013エラーが再現した。karuta・dev-standards双方のSecretをclassic PATの値へ更新し直したことで、ようやく解消した。
 
 ## E2Eテスト（`ci.yml` 固有）
 
