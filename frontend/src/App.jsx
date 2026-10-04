@@ -24,6 +24,7 @@ import ResultCard from "./components/ResultCard";
 import QuizCompletionScreen from "./components/QuizCompletionScreen";
 import SettingsFooter from "./components/SettingsFooter";
 import AppVersionInfo from "./components/AppVersionInfo";
+import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
@@ -1080,6 +1081,7 @@ function App() {
               maxPlayers={maxPlayers}
             />
             <AppVersionInfo />
+            <StableSwitchLink />
           </footer>
         </aside>
       </div>
