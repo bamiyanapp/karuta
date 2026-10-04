@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.84.0",
+    "date": "2026/10/04",
+    "body": "### Features\n\n* **infra:** S3+CloudFront最小インフラを構築する ([795b66c](https://github.com/bamiyanapp/karuta/commit/795b66c7d8307172674152f695f39cd35f341bb7)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)"
+  },
+  {
     "version": "1.83.2",
-    "date": "2026/10/03",
+    "date": "2026/10/03 23:19",
     "body": "### Bug Fixes\n\n* **ci:** IMPORT change setの結果を標準出力にも出す ([#1344](https://github.com/bamiyanapp/karuta/issues/1344)) ([98454e8](https://github.com/bamiyanapp/karuta/commit/98454e80ab744aaf034ba1a7097fcd0448964ab0)), closes [#1320](https://github.com/bamiyanapp/karuta/issues/1320)"
   },
   {

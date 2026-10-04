@@ -1,3 +1,10 @@
+# [1.84.0](https://github.com/bamiyanapp/karuta/compare/v1.83.2...v1.84.0) (2026-10-04)
+
+
+### Features
+
+* **infra:** S3+CloudFront最小インフラを構築する ([795b66c](https://github.com/bamiyanapp/karuta/commit/795b66c7d8307172674152f695f39cd35f341bb7)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)
+
 ## [1.83.2](https://github.com/bamiyanapp/karuta/compare/v1.83.1...v1.83.2) (2026-10-03)
 
 
