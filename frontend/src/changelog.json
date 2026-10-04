@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.93.1",
+    "version": "1.94.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **frontend:** canary版向けに手動stable切り替えリンクを追加する ([#1382](https://github.com/bamiyanapp/karuta/issues/1382)) ([97acca0](https://github.com/bamiyanapp/karuta/commit/97acca09145a22cf0be90f54beaa2fcdc931400c))"
+  },
+  {
+    "version": "1.93.1",
+    "date": "2026/10/04 08:05",
     "body": "### Bug Fixes\n\n* **ci:** verify-stable-fallback.ymlにAWS認証情報を渡す ([#1380](https://github.com/bamiyanapp/karuta/issues/1380)) ([a104c8e](https://github.com/bamiyanapp/karuta/commit/a104c8ecf22c85d37ce2d7ef8c0adc93969761f9))"
   },
   {

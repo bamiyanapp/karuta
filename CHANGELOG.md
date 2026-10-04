@@ -1,3 +1,10 @@
+# [1.94.0](https://github.com/bamiyanapp/karuta/compare/v1.93.1...v1.94.0) (2026-10-04)
+
+
+### Features
+
+* **frontend:** canary版向けに手動stable切り替えリンクを追加する ([#1382](https://github.com/bamiyanapp/karuta/issues/1382)) ([97acca0](https://github.com/bamiyanapp/karuta/commit/97acca09145a22cf0be90f54beaa2fcdc931400c))
+
 ## [1.93.1](https://github.com/bamiyanapp/karuta/compare/v1.93.0...v1.93.1) (2026-10-04)
 
 
