@@ -1,0 +1,157 @@
+name: Verify Blue-Green Routing (issue #1322)
+run-name: Verify Blue-Green Routing (manual)
+
+# issue #1322（ブルーグリーンデプロイ導入 Task 3）の受け入れ基準を、
+# 実際にデプロイ済みのCloudFront URLへHTTPリクエストを送って自動検証する。
+# サンドボックス環境のネットワーク制限により、Claudeの実行環境からは
+# 直接検証できないため、GitHub Actionsランナー（インターネットに到達可能）
+# から実行する。
+#
+# 検証するのは以下3点（issue #1322の受け入れ基準）。
+# 1. Cookie無しでアクセスした場合、約10%の確率でcanaryが選ばれる
+# 2. 一度付与されたCookieの値通りに2回目以降のアクセスが固定される
+# 3. KVSのforce_stableをtrueにすると、Cookieに関わらず常にstableになる
+#
+# このワークフローは検証専用で、デプロイやKVSの既定値を変更する副作用を
+# 残さない（force_stable検証後は必ずfalseへ戻す）。
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Resolve CloudFront domain and KVS ARN
+        id: resolve
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          DOMAIN=$(echo "$INFO" | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+          echo "Domain: ${DOMAIN}"
+          echo "KVS ARN: ${KVS_ARN}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: "1. 重み付け抽選（Cookie無し、約10%がcanaryになることを確認）"
+        id: weight
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          N=50
+          CANARY_COUNT=0
+          for i in $(seq 1 "$N"); do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15)
+            if echo "$BODY" | grep -q "CANARY"; then
+              CANARY_COUNT=$((CANARY_COUNT + 1))
+            fi
+          done
+          echo "canary_count=${CANARY_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "total=${N}" >> "$GITHUB_OUTPUT"
+          echo "${N}回中${CANARY_COUNT}回がcanary（$((CANARY_COUNT * 100 / N))%）"
+
+      - name: "2. Cookie固定化（1回目の結果が2回目以降も維持されることを確認）"
+        id: sticky
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          JAR=$(mktemp)
+
+          FIRST_BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -c "$JAR")
+          FIRST_VARIANT=$(echo "$FIRST_BODY" | grep -o "CANARY\|STABLE" | head -1)
+          echo "1回目: ${FIRST_VARIANT}"
+
+          MISMATCH=0
+          for i in 1 2 3; do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "$JAR" -c "$JAR")
+            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
+            echo "$((i + 1))回目: ${VARIANT}"
+            if [ "$VARIANT" != "$FIRST_VARIANT" ]; then
+              MISMATCH=1
+            fi
+          done
+          echo "mismatch=${MISMATCH}" >> "$GITHUB_OUTPUT"
+          echo "first_variant=${FIRST_VARIANT}" >> "$GITHUB_OUTPUT"
+
+      - name: "3. force_stable強制切り替えの準備（KVSをtrueに設定）"
+        working-directory: infra
+        run: |
+          set -eu
+          KVS_ARN="${{ steps.resolve.outputs.kvs_arn }}"
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "force_stable" --value "true" >/dev/null
+          echo "force_stable を true に設定した（KVS更新は再デプロイ無しで即座に反映される想定）"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: "4. force_stable=true時、Cookieに関わらず常にstableになることを確認"
+        id: force_stable_check
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          N=10
+          NON_STABLE_COUNT=0
+          for i in $(seq 1 "$N"); do
+            # canary Cookieを明示的に持たせた状態でもforce_stableが優先され
+            # stableになることを確認する（curlの-bは'='を含む文字列を
+            # ファイル名ではなく生のCookieとして解釈する）
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
+            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
+            if [ "$VARIANT" != "STABLE" ]; then
+              NON_STABLE_COUNT=$((NON_STABLE_COUNT + 1))
+            fi
+          done
+          echo "non_stable_count=${NON_STABLE_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "${N}回中stable以外になった回数: ${NON_STABLE_COUNT}"
+
+      - name: "5. force_stableを既定値(false)へ戻す"
+        if: always()
+        working-directory: infra
+        run: |
+          set -eu
+          KVS_ARN="${{ steps.resolve.outputs.kvs_arn }}"
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "force_stable" --value "false" >/dev/null
+          echo "force_stable を既定値(false)へ戻した"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1322 自動検証結果"
+            echo ""
+            echo "### 1. 重み付け抽選（Cookie無し）"
+            echo "${{ steps.weight.outputs.total }}回中${{ steps.weight.outputs.canary_count }}回がcanary"
+            echo ""
+            echo "### 2. Cookie固定化"
+            echo "1回目の結果: ${{ steps.sticky.outputs.first_variant }} / 以降不一致: ${{ steps.sticky.outputs.mismatch == '1' && 'あり（NG）' || 'なし（OK）' }}"
+            echo ""
+            echo "### 3. force_stable強制切り替え"
+            echo "10回中stable以外になった回数: ${{ steps.force_stable_check.outputs.non_stable_count }}（0が正常）"
+          } >> "$GITHUB_STEP_SUMMARY"
