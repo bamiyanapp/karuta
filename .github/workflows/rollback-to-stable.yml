@@ -1,0 +1,109 @@
+name: Rollback to Stable (force_stable)
+run-name: Rollback to Stable (manual)
+
+# issue #1330（ブルーグリーンデプロイ導入 Task 11）: 管理者が問題を検知した際、
+# 再デプロイ無しで即座に全トラフィックをstableへ戻す。CloudFront Functionsの
+# KVS（force_stable）をtrueに設定する。
+#
+# 実行には、このリポジトリへの書き込み権限（workflow_dispatch実行権限）と
+# AWS認証情報（Secrets、このworkflow内でのみ利用可能）が必要なため、
+# 誰でも実行できるわけではない（issue #1330の受け入れ基準）。
+#
+# force_stableをfalse（通常運用）へ戻す操作は、本workflowの対象外とする。
+# 誤ってtoggleしてしまう事故を避けるため、本workflowには「戻す」機能を
+# 持たせない。復帰はTask 12（自動昇格、#1331）経由、または必要に応じて
+# 別途手動でAWS CLIを実行する運用とする
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Resolve CloudFront domain and KVS ARN
+        id: resolve
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          DOMAIN=$(echo "$INFO" | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+          echo "Domain: ${DOMAIN}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: force_stableをtrueに設定する
+        working-directory: infra
+        run: |
+          set -eu
+          KVS_ARN="${{ steps.resolve.outputs.kvs_arn }}"
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "force_stable" --value "true" >/dev/null
+          echo "force_stable を true に設定した"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: 反映を確認する（KVS伝播待ち、既存canary Cookie保持者も含む）
+        id: verify
+        run: |
+          set -eu
+          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          # KVS更新のCloudFrontエッジ拠点への伝播は非同期（issue #1322の実機
+          # 検証で最大30秒程度かかることを確認済み）。伝播を確認できるまで
+          # 一定間隔でリトライする（最大120秒）
+          MAX_WAIT_ATTEMPTS=12
+          WAIT_SECONDS=10
+          PROPAGATED=0
+          for attempt in $(seq 1 "$MAX_WAIT_ATTEMPTS"); do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
+            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
+            if [ "$VARIANT" = "STABLE" ]; then
+              PROPAGATED=1
+              echo "反映を確認した（${attempt}回目、待機合計約$(( (attempt - 1) * WAIT_SECONDS ))秒）"
+              break
+            fi
+            echo "${attempt}回目: まだ反映されていない（${VARIANT}）。${WAIT_SECONDS}秒待機して再試行する"
+            sleep "$WAIT_SECONDS"
+          done
+          echo "propagated=${PROPAGATED}" >> "$GITHUB_OUTPUT"
+          if [ "$PROPAGATED" -ne 1 ]; then
+            echo "force_stable=trueが$((MAX_WAIT_ATTEMPTS * WAIT_SECONDS))秒経っても反映されなかった" >&2
+            exit 1
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1330 管理者ロールバック実行結果"
+            echo ""
+            echo "force_stable: true に設定した"
+            echo "反映確認: ${{ steps.verify.outputs.propagated == '1' && '全アクセスがstableになることを確認した' || '確認できなかった（要調査）' }}"
+            echo ""
+            echo "通常運用への復帰（force_stableをfalseへ戻す）は、本workflowでは行わない。Task 12（自動昇格）経由、または別途手動対応が必要。"
+          } >> "$GITHUB_STEP_SUMMARY"
