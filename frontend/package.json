@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:stable": "vite build --mode stable",
+    "build:canary": "vite build --mode canary",
     "lint": "eslint . --max-warnings 0 && npm run lint:css",
     "lint:css": "stylelint --config ../stylelint.config.cjs \"src/**/*.css\" --ignore-pattern \"src/bootstrap-theme.css\" --ignore-pattern \"src/common-theme.css\"",
     "preview": "vite preview",

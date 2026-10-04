@@ -38,3 +38,10 @@ dist-ssr
 # ignoreしているが、.env.exampleは実際の値を含まないテンプレートのため
 # 追跡対象にする
 !.env.example
+
+# stable/canaryそれぞれのAPIベースURLを埋め込むためのVite mode別env
+# ファイル（issue #1324）。既存のAPIエンドポイントURL自体はconfig.jsの
+# devステージ用フォールバック値も同様にリポジトリへ直接書かれており、
+# 認証情報を含まないため追跡対象にする
+!.env.stable
+!.env.canary
