@@ -23,6 +23,13 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 # へアクセスし続けてしまい、API呼び出しが失敗する可能性がある。issue #1331の
 # 受け入れ基準はこのケースを対象としていないため、既知の限界として残す
 # （必要になった場合は別issueとしてバックログ化する）
+#
+# issue #1326（Task 7、カナリアの直列化）: 本workflowの実行ごとに、昇格処理
+# （上記）とは独立して「canaryが空いたか・キュー待ちの更新が無いか」も確認する。
+# canaryが空いている（スタックが存在しない、またはforce_stable=trueでロール
+# バック済み）状態で、cd.yml側がキュー待ちにした更新（canary_queue_pending=
+# true）があれば、最新のmain HEADを新しいcanaryとしてデプロイし、キューを
+# クリアする
 on:
   schedule:
     - cron: "37 17 * * *" # 毎日 02:37 JST（UTC 17:37）に判定する
@@ -53,6 +60,15 @@ jobs:
       - name: Install dependencies
         run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
 
+      - name: KVS ARNを解決する
+        id: kvs
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+
       - name: 昇格対象かどうかを判定する
         id: check
         run: |
@@ -78,10 +94,7 @@ jobs:
             exit 0
           fi
 
-          INFO=$(cd infra && npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
-          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
-          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
-
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
           FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
           if [ "$FORCE_STABLE" = "true" ]; then
             echo "force_stableがtrue（ロールバック済み）のため対象外"
@@ -95,7 +108,7 @@ jobs:
         if: steps.check.outputs.eligible == 'true'
         run: |
           set -eu
-          KVS_ARN="${{ steps.check.outputs.kvs_arn }}"
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
           ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "100" >/dev/null
           echo "canary_weight を 100 に設定した"
@@ -131,12 +144,67 @@ jobs:
         if: steps.check.outputs.eligible == 'true'
         run: |
           set -eu
-          KVS_ARN="${{ steps.check.outputs.kvs_arn }}"
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
           ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "10" >/dev/null
           ETAG2=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "force_stable" --value "false" >/dev/null
           echo "KVSを既定値（canary_weight=10, force_stable=false）へリセットした"
+
+      - name: "5. canaryが空いているか・キュー待ちの更新が無いかを確認する（issue #1326）"
+        id: queue
+        run: |
+          set -eu
+          FREE=false
+          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
+            FREE=true
+          else
+            KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+            FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
+            if [ "$FORCE_STABLE" = "true" ]; then
+              FREE=true
+            fi
+          fi
+          echo "canaryの空き状況: ${FREE}"
+
+          PENDING=false
+          if [ "$FREE" = "true" ]; then
+            KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+            PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
+          fi
+          echo "キュー待ちの更新: ${PENDING}"
+          echo "process=$([ "$FREE" = "true" ] && [ "$PENDING" = "true" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: "5. キュー待ちのbackendを新しいcanaryとしてデプロイする"
+        if: steps.queue.outputs.process == 'true'
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.41.0
+        with:
+          working-directory: backend
+          node-version: 22
+          deploy-command: npx osls deploy --stage canary
+          workspaces: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: "5. キュー待ちのfrontendを新しいcanaryとしてデプロイする"
+        if: steps.queue.outputs.process == 'true'
+        run: |
+          set -eu
+          npm run build:canary --workspace=frontend
+          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
+          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
+          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
+          aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
+
+      - name: キュー待ちの更新を処理したら、canary_queue_pendingをfalseへリセットする
+        if: steps.queue.outputs.process == 'true'
+        run: |
+          set -eu
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "false" >/dev/null
+          echo "canary_queue_pending を false へリセットした"
 
       - name: Write summary
         if: always()
@@ -146,4 +214,6 @@ jobs:
             echo "## issue #1331 自動昇格 実行結果"
             echo ""
             echo "昇格対象: ${{ steps.check.outputs.eligible == 'true' && 'はい（昇格を実行した）' || 'いいえ（対象外のためスキップした）' }}"
+            echo ""
+            echo "キュー待ち更新の処理（issue #1326）: ${{ steps.queue.outputs.process == 'true' && 'はい（新しいcanaryとしてデプロイした）' || 'いいえ' }}"
           } >> "$GITHUB_STEP_SUMMARY"

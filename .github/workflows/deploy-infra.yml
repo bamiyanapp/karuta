@@ -82,6 +82,9 @@ jobs:
 
           seed_default "canary_weight" "10"
           seed_default "force_stable" "false"
+          # issue #1326（Task 7、カナリアの直列化）: canary使用中に別の更新が
+          # マージされた際のキュー待ちフラグ
+          seed_default "canary_queue_pending" "false"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -55,7 +55,13 @@
 - 昇格はbackend（`osls deploy --stage stable`）・frontend（`npm run build:stable`のビルドをS3の`stable/`配下へ同期）の両方を対象とする
 - 昇格後、`canary`スタックを`osls remove`で削除し、KVSを既定値（`canary_weight=10`、`force_stable=false`）へリセットする
 
-既知の制約として、Task 7（カナリア直列化）が未実装のため、1週間以内に複数回mainへマージされるとcanaryスタックが都度再デプロイされ、タイマーもリセットされてしまう。また、昇格時点で既に`canary` Cookieを持つユーザーは、canaryバックエンドスタック削除後もそのエンドポイントへアクセスし続けてしまう可能性がある（最大1週間）。両方とも、issue #1331の受け入れ基準の対象外のため既知の限界として残す。
+既知の制約として、昇格時点で既に`canary` Cookieを持つユーザーは、canaryバックエンドスタック削除後もそのエンドポイントへアクセスし続けてしまう可能性がある（最大1週間）。issue #1331の受け入れ基準の対象外のため既知の限界として残す。
+
+### 補足: カナリアの直列化（Task 7）
+
+同時に進行中のカナリアを常に1件のみに制限する。`cd.yml`の`check-canary-lock`ジョブが、mainマージ時にcanaryが既に使用中（canaryスタックが存在し、かつ`force_stable`が`true`でない）かどうかを判定する。使用中の場合、`deploy-backend-canary`・`build-and-deploy-frontend-canary`は実行せず、KVSの`canary_queue_pending`を`true`にしてキュー待ちにする。
+
+キュー待ちの解放は、専用の監視workflowを新設せず、Task 12の`promote-canary.yml`（毎日定時実行）に相乗りさせた。実行ごとに「canaryが空いたか（スタックが存在しない、または`force_stable=true`でロールバック済み）」と「キュー待ちの更新が無いか」を確認し、両方が真であれば最新のmain HEADを新しいcanaryとしてデプロイし、`canary_queue_pending`を`false`へ戻す。
 
 ## 関連issue
 
@@ -64,5 +70,6 @@
 - #1321, #1322（S3+CloudFrontインフラ・CloudFront Functions重み付けルーティング）
 - #1324（Task 5、フロントエンドstage別APIベースURL）
 - #1325（Task 6、CDワークフローのcanaryデプロイフロー新設）
+- #1326（Task 7、カナリアの直列化）
 - #1330（Task 11、管理者ロールバック）
 - #1331（Task 12、1週間後の自動昇格）
