@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.85.3",
+    "version": "1.86.0",
     "date": "2026/10/04",
+    "body": "### Features\n\n* **ci:** deploy-infra.ymlへ検証用プレースホルダー配置オプションを追加する ([#1356](https://github.com/bamiyanapp/karuta/issues/1356)) ([17f772c](https://github.com/bamiyanapp/karuta/commit/17f772c4c7978ce2a7075701e8a9835e045d16e1)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)"
+  },
+  {
+    "version": "1.85.3",
+    "date": "2026/10/04 02:40",
     "body": "### Bug Fixes\n\n* **infra:** viewer-request関数でルートパスのindex.html補完を追加する ([#1354](https://github.com/bamiyanapp/karuta/issues/1354)) ([d281cce](https://github.com/bamiyanapp/karuta/commit/d281cce259c1959892c9084906c72c7cbd22f896)), closes [#1322](https://github.com/bamiyanapp/karuta/issues/1322)"
   },
   {
