@@ -260,6 +260,12 @@ resources:
   Outputs:
     FrontendDistributionDomainName:
       Value: !GetAtt FrontendDistribution.DomainName
+    # Task 6（#1325）のCDワークフローが、ビルド成果物同期後に対象パスのみ
+    # CloudFrontキャッシュを無効化するために使う（DefaultCacheBehaviorの
+    # CachePolicyIdがCachingOptimizedのため、無効化しないと最大24時間反映が
+    # 遅れる）
+    FrontendDistributionId:
+      Value: !Ref FrontendDistribution
     FrontendBucketName:
       Value: !Ref FrontendBucket
     RoutingKeyValueStoreArn:
