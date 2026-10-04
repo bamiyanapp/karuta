@@ -1,3 +1,10 @@
+## [1.85.1](https://github.com/bamiyanapp/karuta/compare/v1.85.0...v1.85.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **infra:** serverless.ymlのoutputsをresources.Outputsへ修正する ([#1350](https://github.com/bamiyanapp/karuta/issues/1350)) ([918e9a3](https://github.com/bamiyanapp/karuta/commit/918e9a390b939a85dece5ecd0e4ab8c35906a0d4)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)
+
 # [1.85.0](https://github.com/bamiyanapp/karuta/compare/v1.84.0...v1.85.0) (2026-10-04)
 
 
