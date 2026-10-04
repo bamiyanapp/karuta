@@ -1,3 +1,10 @@
+# [1.91.0](https://github.com/bamiyanapp/karuta/compare/v1.90.0...v1.91.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** canaryからstableへの1週間後自動昇格workflowを新設する ([#1372](https://github.com/bamiyanapp/karuta/issues/1372)) ([24dd5c7](https://github.com/bamiyanapp/karuta/commit/24dd5c7bb707fb5992e1cbd4a2a907a944d19d96)), closes [#1331](https://github.com/bamiyanapp/karuta/issues/1331)
+
 # [1.90.0](https://github.com/bamiyanapp/karuta/compare/v1.89.0...v1.90.0) (2026-10-04)
 
 
