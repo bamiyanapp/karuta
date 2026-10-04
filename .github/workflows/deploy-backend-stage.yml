@@ -1,0 +1,71 @@
+name: Deploy Backend Stage
+run-name: Deploy Backend Stage (manual, ${{ inputs.stage }})
+
+# issue #1323（ブルーグリーンデプロイ導入 Task 4）: backend/serverless.ymlは
+# すでにstageに依存しない構成になっている（DynamoDBテーブル等のステートフル
+# リソースはissue #1320でserverless-data.ymlへ分離済み、IAMポリシー・環境変数の
+# テーブル名も固定文字列でstageを含まない）。そのため`osls deploy --stage
+# <任意の名前>`はコード変更無しでそのまま独立したCloudFormationスタック
+# （Serverless Frameworkの既定命名規則`${service}-${stage}`、例:
+# karuta-app-stable・karuta-app-canary）としてデプロイできる。
+#
+# 本ワークフローはstable/canaryそれぞれへの手動デプロイ用。CDパイプラインへの
+# 統合（mainマージ時にcanaryへ自動デプロイする等）はTask 6（#1325）の範囲。
+#
+# 現行の本番は明示的なstage指定が無いままデプロイされており、Serverless
+# Frameworkの既定値であるstage「dev」として稼働している
+# （docs/blue-green-stage-migration.md参照）。本ワークフローで新たにstable/
+# canaryへデプロイしても、既存のdevスタックには一切影響しない
+# （デプロイ単位が完全に独立したCloudFormationスタックのため）。
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "デプロイ先のstage"
+        required: true
+        type: choice
+        options:
+          - stable
+          - canary
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
+      OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.41.0
+        with:
+          working-directory: backend
+          node-version: 22
+          deploy-command: npx osls deploy --stage ${{ inputs.stage }}
+          workspaces: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Show endpoints
+        working-directory: backend
+        run: |
+          set -eu
+          INFO=$(npx osls info --stage ${{ inputs.stage }} --verbose 2>/dev/null)
+          echo "$INFO"
+          {
+            echo "## backend デプロイ結果（stage: ${{ inputs.stage }}）"
+            echo ""
+            echo '```'
+            echo "$INFO"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

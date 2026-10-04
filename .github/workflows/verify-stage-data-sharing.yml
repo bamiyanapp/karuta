@@ -1,0 +1,115 @@
+name: Verify Stage Data Sharing (issue #1323)
+run-name: Verify Stage Data Sharing (manual)
+
+# issue #1323（ブルーグリーンデプロイ導入 Task 4）の受け入れ基準のうち、
+# 「両ステージとも同一のDynamoDBテーブルを参照することを確認する」を検証する。
+# 前提: deploy-backend-stage.ymlでstable・canaryの両方を先にデプロイしておくこと。
+#
+# karuta-comments（コメント機能）テーブルを使い、一方のstageのAPIへ投稿した
+# コメントが、もう一方のstageのAPIから読み取れることを確認する。実際の本番
+# データ（コメント一覧、ユーザーに表示される）を使うテーブルのため、検証用の
+# コメントは分かりやすいマーカーを付け、確認後に直接DynamoDBから削除する
+# （postComment/getComments APIにはdelete相当のエンドポイントが無いため、
+# AWS CLIで直接削除する）
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ap-northeast-1
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Resolve stable/canary endpoints
+        id: resolve
+        working-directory: backend
+        run: |
+          set -eu
+          for STAGE in stable canary; do
+            INFO=$(npx osls info --stage "$STAGE" --verbose 2>/dev/null)
+            POST_URL=$(echo "$INFO" | grep -E "POST.*post-comment" | sed -E 's/.*(https:\/\/[^ ]+).*/\1/')
+            GET_URL=$(echo "$INFO" | grep -E "GET.*get-comments" | sed -E 's/.*(https:\/\/[^ ]+).*/\1/')
+            echo "${STAGE}_post_url=${POST_URL}" >> "$GITHUB_OUTPUT"
+            echo "${STAGE}_get_url=${GET_URL}" >> "$GITHUB_OUTPUT"
+            echo "${STAGE} post: ${POST_URL}"
+            echo "${STAGE} get: ${GET_URL}"
+          done
+
+      - name: "stable経由で投稿→canary経由で読み取り、同一テーブルを共有していることを確認する"
+        id: stable_to_canary
+        run: |
+          set -eu
+          MARKER="bg-task4-verify-$(date +%s)-$$"
+          curl -sS -X POST "${{ steps.resolve.outputs.stable_post_url }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"phraseId\":\"bg-task4-verification\",\"category\":\"verification\",\"phrase\":\"verification\",\"comment\":\"[BG Task4 動作確認用。自動削除されます] ${MARKER}\"}" \
+            --max-time 15 >/dev/null
+
+          sleep 2
+          BODY=$(curl -sS "${{ steps.resolve.outputs.canary_get_url }}" --max-time 15)
+          if echo "$BODY" | grep -q "$MARKER"; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "stable経由で投稿したコメントをcanary経由で読み取れた（同一テーブル共有を確認）"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "stable経由で投稿したコメントがcanary経由で見つからなかった" >&2
+          fi
+          echo "marker=${MARKER}" >> "$GITHUB_OUTPUT"
+
+      - name: マーカー付き検証用コメントをDynamoDBから直接削除する
+        if: always()
+        working-directory: backend
+        run: |
+          set -eu
+          MARKER="${{ steps.stable_to_canary.outputs.marker }}"
+          if [ -z "$MARKER" ]; then
+            echo "マーカーが無いためスキップ"
+            exit 0
+          fi
+          node -e "
+            const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+            const { DynamoDBDocumentClient, ScanCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+            const client = new DynamoDBClient({ region: 'ap-northeast-1' });
+            const docClient = DynamoDBDocumentClient.from(client);
+            (async () => {
+              const result = await docClient.send(new ScanCommand({ TableName: 'karuta-comments' }));
+              const items = (result.Items || []).filter((i) => i.comment && i.comment.includes('${MARKER}'));
+              for (const item of items) {
+                await docClient.send(new DeleteCommand({ TableName: 'karuta-comments', Key: { id: item.id } }));
+                console.log('削除した: ' + item.id);
+              }
+              if (items.length === 0) {
+                console.log('削除対象が見つからなかった（投稿自体が失敗していた可能性）');
+              }
+            })();
+          "
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1323 自動検証結果（stable/canary間のDynamoDB共有）"
+            echo ""
+            echo "stable経由で投稿→canary経由で読み取り: ${{ steps.stable_to_canary.outputs.found == 'true' && '成功（同一テーブルを共有している）' || '失敗' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
