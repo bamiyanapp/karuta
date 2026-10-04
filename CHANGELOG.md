@@ -1,3 +1,10 @@
+# [1.86.0](https://github.com/bamiyanapp/karuta/compare/v1.85.3...v1.86.0) (2026-10-04)
+
+
+### Features
+
+* **ci:** deploy-infra.ymlへ検証用プレースホルダー配置オプションを追加する ([#1356](https://github.com/bamiyanapp/karuta/issues/1356)) ([17f772c](https://github.com/bamiyanapp/karuta/commit/17f772c4c7978ce2a7075701e8a9835e045d16e1)), closes [#1321](https://github.com/bamiyanapp/karuta/issues/1321)
+
 ## [1.85.3](https://github.com/bamiyanapp/karuta/compare/v1.85.2...v1.85.3) (2026-10-04)
 
 
