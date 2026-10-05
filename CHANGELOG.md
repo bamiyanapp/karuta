@@ -1,3 +1,10 @@
+## [1.96.1](https://github.com/bamiyanapp/karuta/compare/v1.96.0...v1.96.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **backend:** CORS許可オリジンへ本番CloudFrontドメインを追加する ([#1408](https://github.com/bamiyanapp/karuta/issues/1408)) ([cf8336a](https://github.com/bamiyanapp/karuta/commit/cf8336afa0b8c10393b7fe3852fb815ff482fa13))
+
 # [1.96.0](https://github.com/bamiyanapp/karuta/compare/v1.95.0...v1.96.0) (2026-10-04)
 
 
