@@ -98,4 +98,4 @@ graph LR
 
 </details>
 
-![サーバレス構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/serverless-architecture.png?fc8d89a44f83ca96ec2306db3087dcf47eadefa3)
+![サーバレス構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/serverless-architecture.png?1401bdb8c95ac23df824d0a2332d63a0df2298a6)
