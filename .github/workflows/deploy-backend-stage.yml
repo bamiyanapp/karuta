@@ -44,7 +44,7 @@ jobs:
           submodules: true
 
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.55.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.56.1
         with:
           working-directory: backend
           node-version: 22
