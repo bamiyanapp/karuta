@@ -10,10 +10,12 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const pollyClient = new PollyClient({ region: "ap-northeast-1" });
 const crypto = require("crypto");
 
-// フロントエンド（GitHub Pages）およびローカル開発サーバーのオリジンのみ許可し、
-// CORSを介した第三者からの無制限なAPI呼び出し（Amazon Pollyの課金濫用等）を防ぐ
+// フロントエンド（本番CloudFront・移行前のGitHub Pages）およびローカル開発サーバーの
+// オリジンのみ許可し、CORSを介した第三者からの無制限なAPI呼び出し（Amazon Pollyの
+// 課金濫用等）を防ぐ
 const ALLOWED_ORIGINS = [
-  "https://bamiyanapp.github.io",
+  "https://d2o6qgma31ysgl.cloudfront.net", // 本番フロントエンド（issue #1332でGitHub Pagesから移行）
+  "https://bamiyanapp.github.io", // 移行ページ（kill switch、issue #1332）。配信中は残す
   "http://localhost:5173", // npm run dev（Vite開発サーバー）
   "http://localhost:4173", // npm run preview（Viteプレビューサーバー）
 ];

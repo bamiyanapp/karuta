@@ -109,7 +109,8 @@ custom:
   quizRoomsTableName: karuta-quiz-rooms # 追加（クイズ大会モード）
   quizRoomConnectionsTableName: karuta-quiz-room-connections # 追加（クイズ大会モード）
   allowedOrigins:
-    - https://bamiyanapp.github.io
+    - https://d2o6qgma31ysgl.cloudfront.net # 本番フロントエンド（issue #1332でGitHub Pagesから移行）
+    - https://bamiyanapp.github.io # 移行ページ（kill switch、issue #1332）。配信中は残す
     - http://localhost:5173 # npm run dev（Vite開発サーバー）
     - http://localhost:4173 # npm run preview（Viteプレビューサーバー）
 

@@ -27,8 +27,12 @@ describe('resolveAllowedOrigin', () => {
   });
 
   it('falls back to the production origin when the request origin is not on the allow-list (or missing entirely)', () => {
-    expect(resolveAllowedOrigin({ headers: { origin: 'https://evil.example.com' } })).toBe('https://bamiyanapp.github.io');
-    expect(resolveAllowedOrigin({})).toBe('https://bamiyanapp.github.io');
+    expect(resolveAllowedOrigin({ headers: { origin: 'https://evil.example.com' } })).toBe('https://d2o6qgma31ysgl.cloudfront.net');
+    expect(resolveAllowedOrigin({})).toBe('https://d2o6qgma31ysgl.cloudfront.net');
+  });
+
+  it('reflects the GitHub Pages migration page origin (kill switch, issue #1332)', () => {
+    expect(resolveAllowedOrigin({ headers: { origin: 'https://bamiyanapp.github.io' } })).toBe('https://bamiyanapp.github.io');
   });
 });
 
@@ -374,7 +378,7 @@ describe('postComment', () => {
             }),
         };
         const response = await postComment(event);
-        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://d2o6qgma31ysgl.cloudfront.net');
     });
 
     it('should reflect the local dev server origin so `npm run dev` against the deployed API keeps working', async () => {
@@ -404,7 +408,7 @@ describe('postComment', () => {
             }),
         };
         const response = await postComment(event);
-        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://bamiyanapp.github.io');
+        expect(response.headers['Access-Control-Allow-Origin']).toBe('https://d2o6qgma31ysgl.cloudfront.net');
     });
 
     it('should also read a capitalized Origin header (some proxy integrations do not lowercase it)', async () => {
