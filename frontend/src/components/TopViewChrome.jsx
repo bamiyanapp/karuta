@@ -18,13 +18,10 @@ export function TopViewFooterLinks({ setView, className = "text-center d-flex fl
       <button onClick={() => setView("all-phrases")} className="btn btn-link text-decoration-none text-muted">
         全札一覧を見る →
       </button>
-      <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-        指摘された内容を確認する
+      <button onClick={() => setView("share")} className="btn btn-link text-decoration-none text-muted small">
+        このアプリを共有する
       </button>
-      <button onClick={() => setView("changelog")} className="btn btn-link text-decoration-none text-muted small">
-        更新履歴を見る
-      </button>
-      <AppVersionInfo />
+      <AppVersionInfo setView={setView} />
     </div>
   );
 }

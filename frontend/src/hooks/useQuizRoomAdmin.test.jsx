@@ -1181,7 +1181,7 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     fireEvent.click(screen.getByText('← 戻る'));
 
-    await screen.findByText('どなた向けに遊びますか？');
+    await screen.findByText('じぶんではじめる');
     expect(screen.queryByText('次の札')).not.toBeInTheDocument();
   });
 
@@ -1225,7 +1225,7 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     await screen.findByText('次の札');
-    expect(screen.queryByText('どなた向けに遊びますか？')).not.toBeInTheDocument();
+    expect(screen.queryByText('じぶんではじめる')).not.toBeInTheDocument();
   });
 
   it("reuses the shared (already-unlocked) narration element for the admin's own quiz-room reading, instead of creating a fresh never-unlocked Audio element each time (issue #997)", async () => {
@@ -1290,7 +1290,11 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
   });
 
-  it('places the quiz-room join link below the open-room list, and the footer links (all-phrases/comments/changelog) at the very bottom, with the label changed to "他のクイズ大会に参加する" when rooms are open (issue #502)', async () => {
+  // issue #1429: トップページの「クイズ大会に参加する」導線は「みんなで遊ぶ」という
+  // 「じぶんではじめる」と同デザインの枠に統合された。枠内の表示順は参加ボタン→
+  // 開設中ルーム一覧。フッターリンクは全札一覧・共有・バージョン情報のみに絞られ、
+  // 指摘内容・更新履歴へのリンクは他画面へ移設した（本テストの対象外）
+  it('places the quiz-room join button above the open-room list inside the "みんなで遊ぶ" box, with the label changed to "他のクイズ大会に参加する" when rooms are open (issue #502, #1429)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('/quiz-rooms')) {
         return { ok: true, json: async () => ({ rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1' }] }) };
@@ -1308,16 +1312,14 @@ describe('useQuizRoomAdmin (via App)', () => {
     const joinOtherLink = screen.getByText('他のクイズ大会に参加する');
     expect(joinOtherLink).toBeInTheDocument();
 
-    // 表示順: 開設中ルーム一覧 → 「他のクイズ大会に参加する」 → 全札一覧等のフッターリンク（最下部）
+    // 表示順: 「他のクイズ大会に参加する」→ 開設中ルーム一覧 → 全札一覧等のフッターリンク（最下部）
     const openRoomHeading = screen.getByText('開設中のクイズ大会ルーム');
     const allPhrasesLink = screen.getByText(/全札一覧を見る/);
-    const commentsLink = screen.getByText('指摘された内容を確認する');
-    const changelogLink = screen.getByText('更新履歴を見る');
+    const shareLink = screen.getByText('このアプリを共有する');
 
-    expect(openRoomHeading.compareDocumentPosition(joinOtherLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(joinOtherLink.compareDocumentPosition(allPhrasesLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(allPhrasesLink.compareDocumentPosition(commentsLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(commentsLink.compareDocumentPosition(changelogLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(joinOtherLink.compareDocumentPosition(openRoomHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(openRoomHeading.compareDocumentPosition(allPhrasesLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(allPhrasesLink.compareDocumentPosition(shareLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('does not log an error when the quiz-rooms endpoint responds with a non-JSON-bearing failure (e.g. no response body at all)', async () => {

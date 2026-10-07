@@ -17,6 +17,7 @@ import PrintEfudaView from "./views/PrintEfudaView";
 import AllPhrasesView from "./views/AllPhrasesView";
 import CommentsView from "./views/CommentsView";
 import ChangelogView from "./views/ChangelogView";
+import ShareView from "./views/ShareView";
 import QuizRoomView from "./views/QuizRoomView";
 import QuizRoomInfoView from "./views/QuizRoomInfoView";
 import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
@@ -625,6 +626,8 @@ function App() {
       document.title = "更新履歴 | かるた読み上げアプリ";
     } else if (view === "all-phrases") {
       document.title = "全札一覧 | かるた読み上げアプリ";
+    } else if (view === "share") {
+      document.title = "アプリを共有 | かるた読み上げアプリ";
     } else if (view === "print-efuda") {
       document.title = `${categoryLabel}の絵札印刷 | かるた読み上げアプリ`;
     } else if (detailPhraseId && detailPhrase) {
@@ -798,6 +801,10 @@ function App() {
 
   if (view === "changelog") {
     return <ChangelogView setView={setView} />;
+  }
+
+  if (view === "share") {
+    return <ShareView setView={setView} />;
   }
 
   if (view === "quiz-room") {
