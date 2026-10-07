@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.96.2",
+    "version": "1.97.0",
     "date": "2026/10/07",
+    "body": "### Features\n\n* **frontend:** UI改善(共有画面・トップデザイン・リンク移設) ([#1430](https://github.com/bamiyanapp/karuta/issues/1430)) ([fa998b3](https://github.com/bamiyanapp/karuta/commit/fa998b334383abea3d1edddb69599f5f91f0cd9f))"
+  },
+  {
+    "version": "1.96.2",
+    "date": "2026/10/07 23:31",
     "body": "### Bug Fixes\n\n* **ci:** stableがcanaryを追い越している場合は自動昇格をスキップする ([#1431](https://github.com/bamiyanapp/karuta/issues/1431)) ([752b86d](https://github.com/bamiyanapp/karuta/commit/752b86d68a70390f9308ef37e58ea64d2f47a086))"
   },
   {

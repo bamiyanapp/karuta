@@ -1,3 +1,10 @@
+# [1.97.0](https://github.com/bamiyanapp/karuta/compare/v1.96.2...v1.97.0) (2026-10-07)
+
+
+### Features
+
+* **frontend:** UI改善(共有画面・トップデザイン・リンク移設) ([#1430](https://github.com/bamiyanapp/karuta/issues/1430)) ([fa998b3](https://github.com/bamiyanapp/karuta/commit/fa998b334383abea3d1edddb69599f5f91f0cd9f))
+
 ## [1.96.2](https://github.com/bamiyanapp/karuta/compare/v1.96.1...v1.96.2) (2026-10-07)
 
 
