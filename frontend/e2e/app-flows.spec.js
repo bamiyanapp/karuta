@@ -10,7 +10,10 @@ import { captureScreenshot } from './screenshot.js';
 // 汚す可能性があるもの（かるたの誤り指摘の実送信、絵札PDFの実生成）は行わず、
 // フォームの表示確認や画面遷移・表示内容の確認にとどめる
 test('normal read-aloud flow (category select -> phrase -> result), then browses print/reference views (issue #576)', async ({ browser }, testInfo) => {
-  const context = await browser.newContext();
+  // アプリ共有画面（issue #1429）のURLコピー（navigator.clipboard.writeText）の
+  // 成功経路を検証するため、quiz-room.spec.jsの招待URLコピーテストと同様に
+  // clipboard-write権限を付与する
+  const context = await browser.newContext({ permissions: ['clipboard-write'] });
   const page = await context.newPage();
   await startCoverage(page);
 
@@ -86,6 +89,17 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // issue #795: エントリの増加でページ全体の縦幅が際限なく長くなるため、
     // 画面上部（ビューポート内）のみを撮影する
     await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面', { fullPage: false });
+    await page.getByRole('button', { name: '← 戻る' }).click();
+    await expect(page.getByText('こども向け')).toBeVisible();
+
+    // アプリ共有画面（issue #1429で新規追加）。URLコピー・QRコード表示を確認する
+    await dismissPwaToastIfPresent();
+    await page.getByText('このアプリを共有する').click();
+    await expect(page.getByRole('heading', { name: 'このアプリを共有する' })).toBeVisible();
+    await expect(page.getByAltText('共有用QRコード')).toBeVisible();
+    await page.getByRole('button', { name: 'コピー' }).click();
+    await expect(page.getByText('コピーしました')).toBeVisible();
+    await captureScreenshot(page, testInfo, 'share-view', 'アプリ共有画面：URLコピー直後の状態');
     await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
