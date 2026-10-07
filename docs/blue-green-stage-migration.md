@@ -57,6 +57,14 @@
 
 既知の制約として、昇格時点で既に`canary` Cookieを持つユーザーは、canaryバックエンドスタック削除後もそのエンドポイントへアクセスし続けてしまう可能性がある（最大1週間）。issue #1331の受け入れ基準の対象外のため既知の限界として残す。
 
+### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止（issue #1411）
+
+本番障害等で`deploy-backend-stage.yml`（`stage: stable`）を緊急手動実行してstableへ直接デプロイした場合、その内容はcanaryを経由していない。この状態で`promote-canary.yml`の自動昇格が発火すると、canaryの古いコード（緊急修正前の内容）でstableが上書きされ、緊急対応した内容が退行してしまう（issue #1407の緊急対応時に実際に発覚した）。
+
+これを防ぐため、昇格可否の判定に「stableの最終更新時刻がcanaryより新しいか」のチェックを追加した。stableがcanaryを追い越している場合、自動昇格は安全側にスキップされ、Job Summaryに要対応の警告が出力される。
+
+**緊急デプロイ後の運用**: `deploy-backend-stage.yml`でstableへ緊急デプロイした後は、できるだけ早く同じ内容をcanaryへも反映する（`deploy-backend-stage.yml`を`stage: canary`で手動実行する等）こと。そうしない限り、上記ガードにより自動昇格が永続的にスキップされ続ける（canaryが人手で更新されるまで、昇格は進まない）。
+
 ### 補足: カナリアの直列化（Task 7）
 
 同時に進行中のカナリアを常に1件のみに制限する。`cd.yml`の`check-canary-lock`ジョブが、mainマージ時にcanaryが既に使用中（canaryスタックが存在し、かつ`force_stable`が`true`でない）かどうかを判定する。使用中の場合、`deploy-backend-canary`・`build-and-deploy-frontend-canary`は実行せず、KVSの`canary_queue_pending`を`true`にしてキュー待ちにする。

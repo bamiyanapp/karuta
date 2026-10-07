@@ -102,6 +102,26 @@ jobs:
             exit 0
           fi
 
+          # issue #1411: deploy-backend-stage.yml（緊急手動デプロイ）でstableへ直接
+          # デプロイした場合、canaryを経由していないためcanaryがstableより古い内容の
+          # ままになることがある。この状態で昇格すると、緊急対応した内容がcanaryの
+          # 古いコードで上書きされ退行してしまう。stableスタックの最終更新時刻が
+          # canaryより新しい（＝canaryを追い越している）場合は、昇格を安全側に
+          # スキップする
+          if aws cloudformation describe-stacks --stack-name karuta-app-stable >/dev/null 2>&1; then
+            STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].LastUpdatedTime" --output text)
+            if [ "$STABLE_LAST_UPDATED" = "None" ]; then
+              STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].CreationTime" --output text)
+            fi
+            STABLE_LAST_UPDATED_EPOCH=$(date -d "$STABLE_LAST_UPDATED" +%s)
+            if [ "$STABLE_LAST_UPDATED_EPOCH" -gt "$LAST_UPDATED_EPOCH" ]; then
+              echo "stableの最終更新（${STABLE_LAST_UPDATED}）がcanaryより新しいため対象外（緊急デプロイ等でcanaryを追い越している可能性がある）"
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "stable_ahead_of_canary=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
           echo "eligible=true" >> "$GITHUB_OUTPUT"
 
       - name: 1. KVSの重みをcanary 100%へ更新する
@@ -215,5 +235,16 @@ jobs:
             echo ""
             echo "昇格対象: ${{ steps.check.outputs.eligible == 'true' && 'はい（昇格を実行した）' || 'いいえ（対象外のためスキップした）' }}"
             echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.check.outputs.stable_ahead_of_canary }}" = "true" ]; then
+            {
+              echo "**⚠️ 要確認（issue #1411）**: stableの最終更新がcanaryより新しいため、今回の昇格をスキップした。"
+              echo "緊急手動デプロイ（\`deploy-backend-stage.yml\`でstage=stable）等でstableがcanaryを追い越している可能性がある。"
+              echo "このままでは今後も昇格が永続的にスキップされ続ける。canaryを最新mainの内容で更新する（\`deploy-backend-stage.yml\`でstage=canaryを手動実行する等）か、"
+              echo "この状況の対応方針を人間が判断すること。"
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          {
             echo "キュー待ち更新の処理（issue #1326）: ${{ steps.queue.outputs.process == 'true' && 'はい（新しいcanaryとしてデプロイした）' || 'いいえ' }}"
           } >> "$GITHUB_STEP_SUMMARY"
