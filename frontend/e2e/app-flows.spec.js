@@ -23,8 +23,8 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
 
   // PWAの「オフラインで利用可能になりました」トースト（PwaUpdatePrompt.jsx）は
   // position: fixedで画面下部に表示され、5秒後に自動で消えるが、それまでの間は
-  // 同じ位置にあるトップ画面のフッターリンク（全札一覧を見る／更新履歴を見る／
-  // 指摘された内容を確認するなど）を覆いクリックをブロックすることがある
+  // 同じ位置にあるトップ画面のフッターリンク（全札一覧を見る／このアプリを共有する／
+  // バージョン情報リンク等、issue #1429）を覆いクリックをブロックすることがある
   // （PwaUpdatePrompt.jsx自身のコメントに既知の不具合として記載あり）。
   // このテストはそのフッターリンクを実際にクリックするため、都度出現していれば
   // 明示的に閉じる
@@ -39,10 +39,11 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
   try {
     await page.goto('/');
 
-    // 参照系画面（全札一覧・更新履歴・指摘一覧）は、どなた向けかを選ぶ前の
+    // 参照系画面（全札一覧・更新履歴・指摘一覧）への導線は、どなた向けかを選ぶ前の
     // トップ画面（App.jsxの`selectedCategories.length === 0 && !division`）にしか
-    // ボタンが無い。カテゴリ選択後のゲーム画面には存在しないため、division選択前に
-    // 先に一通り確認しておく
+    // 無い。カテゴリ選択後のゲーム画面には存在しないため、division選択前に
+    // 先に一通り確認しておく。指摘一覧は全札一覧画面上部（issue #1429）、更新履歴は
+    // バージョン情報のリンク（同issue）から、それぞれ経由して確認する
     // 全札一覧画面: 検索・絞り込み・詳細画面への遷移
     await dismissPwaToastIfPresent();
     await page.getByText('全札一覧を見る →').click();
@@ -66,13 +67,18 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByRole('heading', { name: '全札一覧' })).toBeVisible();
 
-    // 全札一覧から戻る（division未選択のままなのでトップ画面に戻る）
+    // 指摘一覧画面（issue #1429でトップページから全札一覧画面上部へ移設した導線）
+    await page.getByText('指摘された内容を確認する').click();
+    await expect(page.getByRole('heading', { name: '指摘された内容一覧' })).toBeVisible();
+    await captureScreenshot(page, testInfo, 'comments-view', '指摘された内容一覧画面');
     await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByText('こども向け')).toBeVisible();
 
-    // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）
+    // 更新履歴画面（changelog.jsonをビルド時に同梱しているだけで通信は発生しない）。
+    // issue #1429で専用の「更新履歴を見る」ボタンは削除し、バージョン情報
+    // （AppVersionInfo）自体をリンクにした
     await dismissPwaToastIfPresent();
-    await page.getByText('更新履歴を見る').click();
+    await page.getByRole('button', { name: /^v\d/ }).click();
     // changelog.json本体の各エントリ文中にも「更新履歴」という語が複数回登場するため
     // （例: 本機能自体の追加を記録したエントリ）、getByTextでは複数要素にマッチして
     // strict mode violationになる。見出し要素に限定する
@@ -82,12 +88,6 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     await captureScreenshot(page, testInfo, 'changelog-view', '更新履歴画面', { fullPage: false });
     await page.getByRole('button', { name: '← 戻る' }).click();
     await expect(page.getByText('こども向け')).toBeVisible();
-
-    // 指摘一覧画面
-    await dismissPwaToastIfPresent();
-    await page.getByText('指摘された内容を確認する').click();
-    await expect(page.getByRole('heading', { name: '指摘された内容一覧' })).toBeVisible();
-    await captureScreenshot(page, testInfo, 'comments-view', '指摘された内容一覧画面');
 
     // ここから通常の読み上げフロー（カテゴリ選択→読み上げ→結果表示）
     await page.goto('/');
