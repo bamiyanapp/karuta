@@ -1,3 +1,10 @@
+## [1.96.2](https://github.com/bamiyanapp/karuta/compare/v1.96.1...v1.96.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **ci:** stableがcanaryを追い越している場合は自動昇格をスキップする ([#1431](https://github.com/bamiyanapp/karuta/issues/1431)) ([752b86d](https://github.com/bamiyanapp/karuta/commit/752b86d68a70390f9308ef37e58ea64d2f47a086))
+
 ## [1.96.1](https://github.com/bamiyanapp/karuta/compare/v1.96.0...v1.96.1) (2026-10-05)
 
 
