@@ -206,8 +206,8 @@ describe('App', () => {
     await screen.findByRole('button', { name: /Cat1/ });
 
     expect(screen.getByText(/全札一覧を見る/)).toBeInTheDocument();
-    expect(screen.getByText(/指摘された内容を確認する/)).toBeInTheDocument();
-    expect(screen.getByText(/更新履歴を見る/)).toBeInTheDocument();
+    expect(screen.getByText(/このアプリを共有する/)).toBeInTheDocument();
+    expect(screen.getByText(/v\d+\.\d+\.\d+/)).toBeInTheDocument();
   });
 
   it('navigates straight to the game screen on a single tap for the kids division, skipping the decide button and confirmation modal', async () => {
@@ -260,11 +260,12 @@ describe('App', () => {
     fireEvent.click(screen.getByText('← 戻る'));
 
     await waitFor(() => {
-      expect(screen.getByText('どなた向けに遊びますか？')).toBeInTheDocument();
+      expect(screen.getByText('じぶんではじめる')).toBeInTheDocument();
     });
   });
 
-  it('navigates to comments view', async () => {
+  // 指摘された内容を確認するリンクはトップページから全札一覧画面上部へ移設した（issue #1429）
+  it('navigates to comments view from the all-phrases screen', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ categories: [] }),
@@ -272,12 +273,18 @@ describe('App', () => {
     await act(async () => {
       render(<App />);
     });
-    
+
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) {
         return {
           ok: true,
           json: async () => ({ categories: [] }),
+        };
+      }
+      if (url.includes('get-phrases-list')) {
+        return {
+          ok: true,
+          json: async () => ({ phrases: [] }),
         };
       }
       if (url.includes('get-comments')) {
@@ -289,7 +296,8 @@ describe('App', () => {
       return { ok: false };
     });
 
-    const commentsLink = screen.getByText(/指摘された内容を確認する/i);
+    fireEvent.click(screen.getByText(/全札一覧を見る/));
+    const commentsLink = await screen.findByText(/指摘された内容を確認する/i);
     fireEvent.click(commentsLink);
 
     await waitFor(() => {

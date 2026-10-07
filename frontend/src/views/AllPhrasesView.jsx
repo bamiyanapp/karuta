@@ -49,6 +49,13 @@ function AllPhrasesView({
         title="全札一覧"
       />
 
+      {/* 指摘された事項一覧へのリンクはトップページから本画面上部へ移設した（issue #1429） */}
+      <div className="text-end mb-3">
+        <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
+          指摘された内容を確認する →
+        </button>
+      </div>
+
       <main className="mx-auto" style={{ maxWidth: "1200px" }}>
         {allPhrases.length === 0 ? (
           <p className="text-muted text-center py-5">読み込み中...</p>

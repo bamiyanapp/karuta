@@ -24,8 +24,8 @@ function DivisionSelectView({
     <div className="container py-5 mx-auto">
       <HeroHeader />
 
-      <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 text-center mb-4 text-dark">どなた向けに遊びますか？</h2>
+      <main className="category-selection-container p-4 mx-auto mb-4" style={{ maxWidth: "600px" }}>
+        <h2 className="h4 text-center mb-4 text-dark">じぶんではじめる</h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
           <button
             onClick={() => selectDivision("kids")}
@@ -42,36 +42,41 @@ function DivisionSelectView({
         </div>
       </main>
 
-      {openQuizRooms.length > 0 && (
-        <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
-          <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
-          <div className="list-group shadow-sm rounded">
-            {openQuizRooms.map((room) => (
-              <button
-                key={room.roomId}
-                onClick={() => joinQuizRoom(room.roomId)}
-                className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
-              >
-                <span className="fw-bold notranslate">{room.roomId}</span>
-                <span className="d-flex align-items-center gap-2">
-                  <span className={`badge rounded-pill ${roomStatusBadgeClass(room.status)}`}>
-                    {room.status}
-                  </span>
-                  {formatRoomCategories(room.categories) && (
-                    <span className="text-muted small notranslate">{formatRoomCategories(room.categories)}</span>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
+      <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
+        <h2 className="h4 text-center mb-4 text-dark">みんなで遊ぶ</h2>
+        <div className="d-flex flex-wrap gap-3 justify-content-center">
+          <button
+            onClick={() => setView("quiz-room")}
+            className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
+          >
+            {openQuizRooms.length > 0 ? "他のクイズ大会に参加する" : "クイズ大会に参加する"}
+          </button>
         </div>
-      )}
-
-      <div className="text-center mt-4">
-        <button onClick={() => setView("quiz-room")} className="btn btn-link text-decoration-none text-muted small">
-          {openQuizRooms.length > 0 ? "他のクイズ大会に参加する" : "クイズ大会に参加する"}
-        </button>
-      </div>
+        {openQuizRooms.length > 0 && (
+          <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
+            <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
+            <div className="list-group shadow-sm rounded">
+              {openQuizRooms.map((room) => (
+                <button
+                  key={room.roomId}
+                  onClick={() => joinQuizRoom(room.roomId)}
+                  className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
+                >
+                  <span className="fw-bold notranslate">{room.roomId}</span>
+                  <span className="d-flex align-items-center gap-2">
+                    <span className={`badge rounded-pill ${roomStatusBadgeClass(room.status)}`}>
+                      {room.status}
+                    </span>
+                    {formatRoomCategories(room.categories) && (
+                      <span className="text-muted small notranslate">{formatRoomCategories(room.categories)}</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
 
       <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
     </div>
