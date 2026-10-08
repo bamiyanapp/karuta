@@ -28,5 +28,5 @@
     "js-yaml": "^5.0.0",
     "semantic-release": "^25.0.2"
   },
-  "version": "1.97.0"
+  "version": "1.97.1"
 }

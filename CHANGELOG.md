@@ -1,3 +1,10 @@
+## [1.97.1](https://github.com/bamiyanapp/karuta/compare/v1.97.0...v1.97.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **ci:** 自動昇格の猶予期間を1週間から1日へ短縮する ([#1443](https://github.com/bamiyanapp/karuta/issues/1443)) ([3af8bde](https://github.com/bamiyanapp/karuta/commit/3af8bdebc80302b28d7c366b4753648fdbe625cd))
+
 # [1.97.0](https://github.com/bamiyanapp/karuta/compare/v1.96.2...v1.97.0) (2026-10-07)
 
 
