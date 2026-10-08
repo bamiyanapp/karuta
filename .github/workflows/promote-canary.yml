@@ -1,17 +1,18 @@
 name: Promote Canary to Stable
 run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'scheduled' || 'manual' }})
 
-# issue #1331（ブルーグリーンデプロイ導入 Task 12）: canaryデプロイから1週間、
+# issue #1331（ブルーグリーンデプロイ導入 Task 12）: canaryデプロイから一定の
+# 猶予期間（GRACE_PERIOD_DAYS、issue #1442で1週間→1日へ短縮）が経過し、
 # force_stable（Task 11、#1330）によるロールバックが行われていなければ、
 # canaryの内容をstableへ自動的に昇格し、canaryスタックを削除する。
 #
-# 「1週間経過」の判定は、専用のタイムスタンプ管理を新設せず、backendの
+# 「猶予期間経過」の判定は、専用のタイムスタンプ管理を新設せず、backendの
 # CloudFormationスタック（karuta-app-canary）のLastUpdatedTime（未更新の場合は
-# CreationTime）をそのまま使う。Task 7（カナリア直列化、#1326）が未実装のため、
-# 1週間以内に複数回mainへマージされるとcanaryスタックが都度再デプロイされ、
-# このタイマーもその都度リセットされてしまう（1週間以上マージが無い状態が
-# 続かないと昇格しない）点は既知の制約。Task 7実装後、キュー機構によりこの
-# 制約は解消される想定。
+# CreationTime）をそのまま使う。カナリア直列化（issue #1326）により、同時に
+# 進行中のcanaryトライアルは1件に制限されキュー待ちになるため、猶予期間中に
+# 複数回mainへマージされてもタイマーのリセット自体は起きない。ただし、
+# 猶予期間を過ぎても別の問題（例: issue #1411のガード）で昇格自体がスキップ
+# され続ける場合、キュー待ちの更新も処理されず詰まる点は別途注意が必要。
 #
 # issue本文はbackendスタックの昇格のみを明記しているが、frontendの昇格
 # （canaryビルドをstable/プレフィックスへ同期）が無いと、昇格後もstableの
@@ -73,6 +74,9 @@ jobs:
         id: check
         run: |
           set -eu
+          # issue #1442: 猶予期間を1週間から1日へ短縮した
+          GRACE_PERIOD_DAYS=1
+
           if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
             echo "canaryスタックが存在しないため対象外"
             echo "eligible=false" >> "$GITHUB_OUTPUT"
@@ -88,8 +92,8 @@ jobs:
           ELAPSED_DAYS=$(( (NOW_EPOCH - LAST_UPDATED_EPOCH) / 86400 ))
           echo "canaryスタックの最終更新から${ELAPSED_DAYS}日経過（${LAST_UPDATED}）"
 
-          if [ "$ELAPSED_DAYS" -lt 7 ]; then
-            echo "1週間未経過のため対象外"
+          if [ "$ELAPSED_DAYS" -lt "$GRACE_PERIOD_DAYS" ]; then
+            echo "猶予期間（${GRACE_PERIOD_DAYS}日）未経過のため対象外"
             echo "eligible=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
