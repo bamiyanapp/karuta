@@ -116,21 +116,16 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  # issue #1326（ブルーグリーンデプロイ導入 Task 7）: 進行中のcanaryトライアル
-  # （canaryスタックが存在し、かつforce_stableがtrueでない＝ロールバック未確定）
-  # が既にある場合、新しい更新を即座にcanaryへデプロイせずキュー待ちにする
-  # （KVSのcanary_queue_pendingをtrueにする）。キュー待ちの解放はTask 12の
-  # promote-canary.ymlが毎日の定期実行時に行う（canaryが解決済み＝canaryが
-  # 削除済み、またはforce_stable=trueになった時点で、キュー待ちの最新main HEAD
-  # を新しいcanaryとしてデプロイする）。「1週間につき1件のみ」という制約の
-  # 実現に専用のジョブキューサービスを新設せず、既存のKVS（issue #1322で
-  # 導入済み）を状態保持先として再利用した
-  check-canary-lock:
+  # issue #1449（#1326を置き換え）: canaryへのデプロイをmainマージ毎から日次
+  # バッチへ変更する。mainへのマージ時はKVSのcanary_queue_pendingをtrueに
+  # するだけとし、実際のcanaryデプロイはpromote-canary.ymlの定期実行（1日1回）
+  # が、その時点の最新main HEADをまとめて反映する。頻繁なマージがあっても
+  # canaryへの反映は1日1回にまとまり、昇格の検証対象となるリリース単位が
+  # 整理される
+  queue-canary-update:
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      locked: ${{ steps.check.outputs.locked }}
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -147,131 +142,12 @@ jobs:
       - name: Install infra dependencies
         working-directory: infra
         run: npm ci
-      - name: canaryが使用中かどうかを判定する
-        id: check
-        working-directory: infra
-        run: |
-          set -eu
-          LOCKED=false
-          if aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
-            INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
-            KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
-            FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
-            if [ "$FORCE_STABLE" != "true" ]; then
-              LOCKED=true
-              ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-              aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "true" >/dev/null
-              echo "canaryが使用中のため、今回の更新はキュー待ちにする（canary_queue_pending=true）"
-            fi
-          fi
-          echo "locked=${LOCKED}" >> "$GITHUB_OUTPUT"
-
-  # issue #1325（ブルーグリーンデプロイ導入 Task 6）: mainへのマージ時に
-  # canaryステージへも自動デプロイする。既存のdeploy-backend（devステージ）・
-  # build-and-deploy-frontend（GitHub Pages）は、stableへの本番カットオーバー
-  # （docs/blue-green-stage-migration.md手順6、要ユーザー承認）が完了するまでの
-  # 暫定措置としてそのまま残し、本番トラフィックへの影響が無いよう並行稼働させる。
-  # stableステージは本ジョブでは一切変更しない（Task 12の自動昇格経由でのみ反映）。
-  # check-canary-lockがlocked=trueと判定した場合はスキップし、キュー待ちにする
-  # （issue #1326、Task 7）
-  deploy-backend-canary:
-    needs: [release, check-canary-lock]
-    if: success() && needs.release.outputs.new_release_published == 'true' && needs.check-canary-lock.outputs.locked == 'false'
-    runs-on: ubuntu-latest
-    env:
-      OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
-      OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
-          # 理由はbuild-and-deploy-frontendジョブの同名ステップのコメントを参照（issue #1274）
-          ref: ${{ needs.release.outputs.release_commit_sha }}
-          fetch-depth: 0
-          submodules: true # backend配下のdev-standards symlink（clientErrorReporting.js等）解決に必要
-      - name: 🚀 Deploy Backend to canary stage (osls, Serverless Framework v3 OSS fork)
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.2
-        with:
-          working-directory: backend
-          node-version: 22
-          deploy-command: npx osls deploy --stage canary
-          workspaces: true
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # DynamoDBテーブルはdev/stable/canary全ステージで共有（issue #1320で
-      # serverless-data.ymlへ分離済み、issue #1323で確認済み）のため、
-      # deploy-backendジョブのseed.js実行で十分であり、ここでの再実行は不要
-
-  build-and-deploy-frontend-canary:
-    needs: [release, check-canary-lock]
-    if: success() && needs.release.outputs.new_release_published == 'true' && needs.check-canary-lock.outputs.locked == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release.outputs.release_commit_sha }}
-          fetch-depth: 0
-          submodules: true # frontend/src配下のdev-standards symlink（bootstrap-theme.css等）解決に必要
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-      - name: Install dependencies
-        run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
-      - name: Build frontend (canary)
-        working-directory: frontend
-        run: npm run build:canary
-      - name: Deploy to S3 canary/ and invalidate CloudFront cache
-        run: |
-          set -eu
-          # infra/serverless.ymlのスタック名はosls既定の命名規則（${service}-${stage}）
-          # によりkaruta-infra-sharedで固定（issue #1321参照）
-          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
-          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
-          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
-          aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
-          # DefaultCacheBehaviorがCachingOptimized（オリジン側Cache-Controlに従う）
-          # のため、同期しただけでは最大24時間古いキャッシュが返り続ける。canary/配下
-          # のみを明示的に無効化する
-          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-northeast-1
-
-  # issue #1326（Task 7）: canaryへ実際にデプロイできた（locked=falseだった）
-  # 場合のみ実行される。deploy-backend-canary・build-and-deploy-frontend-canary
-  # のいずれかがスキップされた（locked=true）場合、GitHub Actionsの既定動作で
-  # このジョブも自動的にスキップされる（needsで指定したジョブがスキップされた
-  # 場合、それに依存するジョブも既定でスキップされる）。最新のmain HEADを
-  # 使って新規にcanaryデプロイできたため、以前キュー待ちにしていた更新の要求は
-  # 満たされたとみなし、canary_queue_pendingをリセットする
-  clear-canary-queue:
-    needs: [deploy-backend-canary, build-and-deploy-frontend-canary]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-      - name: Install infra dependencies
-        working-directory: infra
-        run: npm ci
-      - name: canary_queue_pendingをfalseへリセットする
+      - name: canary_queue_pendingをtrueにする
         working-directory: infra
         run: |
           set -eu
           INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
           KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
           ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "false" >/dev/null
-          echo "canary_queue_pending を false へリセットした"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "true" >/dev/null
+          echo "canary_queue_pending を true にした（promote-canary.ymlの定期実行で反映される）"

@@ -8,11 +8,7 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 #
 # 「猶予期間経過」の判定は、専用のタイムスタンプ管理を新設せず、backendの
 # CloudFormationスタック（karuta-app-canary）のLastUpdatedTime（未更新の場合は
-# CreationTime）をそのまま使う。カナリア直列化（issue #1326）により、同時に
-# 進行中のcanaryトライアルは1件に制限されキュー待ちになるため、猶予期間中に
-# 複数回mainへマージされてもタイマーのリセット自体は起きない。ただし、
-# 猶予期間を過ぎても別の問題（例: issue #1411のガード）で昇格自体がスキップ
-# され続ける場合、キュー待ちの更新も処理されず詰まる点は別途注意が必要。
+# CreationTime）をそのまま使う。
 #
 # issue本文はbackendスタックの昇格のみを明記しているが、frontendの昇格
 # （canaryビルドをstable/プレフィックスへ同期）が無いと、昇格後もstableの
@@ -25,12 +21,19 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 # 受け入れ基準はこのケースを対象としていないため、既知の限界として残す
 # （必要になった場合は別issueとしてバックログ化する）
 #
-# issue #1326（Task 7、カナリアの直列化）: 本workflowの実行ごとに、昇格処理
-# （上記）とは独立して「canaryが空いたか・キュー待ちの更新が無いか」も確認する。
-# canaryが空いている（スタックが存在しない、またはforce_stable=trueでロール
-# バック済み）状態で、cd.yml側がキュー待ちにした更新（canary_queue_pending=
-# true）があれば、最新のmain HEADを新しいcanaryとしてデプロイし、キューを
-# クリアする
+# issue #1449（#1326を置き換え）: canaryへのデプロイはmainマージ毎ではなく、
+# 本workflowの日次実行でまとめて行う（バッチ化）。cd.ymlはマージ時にKVSの
+# canary_queue_pendingをtrueにするだけで、実際のデプロイは行わない。本
+# workflowの実行ごとに、昇格処理（上記）とは独立して「canaryを最新化すべきか」
+# を判定する。canaryが空いている（スタックが存在しない、またはforce_stable=
+# trueでロールバック済み）状態でキュー待ちの更新があれば、最新のmain HEADを
+# 新しいcanaryとしてデプロイし、キューをクリアする。
+#
+# issue #1448（#1411を補完）: 「stableがcanaryを追い越している」と判定した
+# 場合（緊急手動デプロイ等でcanaryが古い内容のままロックされている状態）、
+# 昇格をスキップするだけでなく、canaryを最新のmain HEADで強制的に最新化する。
+# 古くて意味の無いトライアルを上書きしても実害は無く、これにより詰まりが
+# 自動的に解消される（キュー待ちかどうかに関わらず最新化する）
 on:
   schedule:
     - cron: "37 17 * * *" # 毎日 02:37 JST（UTC 17:37）に判定する
@@ -175,32 +178,42 @@ jobs:
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "force_stable" --value "false" >/dev/null
           echo "KVSを既定値（canary_weight=10, force_stable=false）へリセットした"
 
-      - name: "5. canaryが空いているか・キュー待ちの更新が無いかを確認する（issue #1326）"
-        id: queue
+      - name: "5. canaryを最新化すべきか判定する（issue #1448・#1449）"
+        id: refresh
         run: |
           set -eu
-          FREE=false
-          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
-            FREE=true
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+          REFRESH=false
+
+          if [ "${{ steps.check.outputs.stable_ahead_of_canary }}" = "true" ]; then
+            # issue #1448: stableがcanaryより新しい＝canaryは古くて意味の無い
+            # トライアルのため、キュー待ちの有無に関わらず強制的に最新化する
+            REFRESH=true
+            echo "stableがcanaryより新しいため、canaryを最新のmain HEADで強制的に最新化する"
           else
-            KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-            FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
-            if [ "$FORCE_STABLE" = "true" ]; then
+            FREE=false
+            if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
               FREE=true
+            else
+              FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
+              if [ "$FORCE_STABLE" = "true" ]; then
+                FREE=true
+              fi
+            fi
+            echo "canaryの空き状況: ${FREE}"
+
+            if [ "$FREE" = "true" ]; then
+              PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
+              echo "キュー待ちの更新: ${PENDING}"
+              if [ "$PENDING" = "true" ]; then
+                REFRESH=true
+              fi
             fi
           fi
-          echo "canaryの空き状況: ${FREE}"
+          echo "refresh=${REFRESH}" >> "$GITHUB_OUTPUT"
 
-          PENDING=false
-          if [ "$FREE" = "true" ]; then
-            KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-            PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
-          fi
-          echo "キュー待ちの更新: ${PENDING}"
-          echo "process=$([ "$FREE" = "true" ] && [ "$PENDING" = "true" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-
-      - name: "5. キュー待ちのbackendを新しいcanaryとしてデプロイする"
-        if: steps.queue.outputs.process == 'true'
+      - name: "5. 最新のmain HEADでbackend canaryをデプロイする"
+        if: steps.refresh.outputs.refresh == 'true'
         uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.2
         with:
           working-directory: backend
@@ -210,8 +223,8 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: "5. キュー待ちのfrontendを新しいcanaryとしてデプロイする"
-        if: steps.queue.outputs.process == 'true'
+      - name: "5. 最新のmain HEADでfrontend canaryをデプロイする"
+        if: steps.refresh.outputs.refresh == 'true'
         run: |
           set -eu
           npm run build:canary --workspace=frontend
@@ -221,8 +234,8 @@ jobs:
           aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
           aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
 
-      - name: キュー待ちの更新を処理したら、canary_queue_pendingをfalseへリセットする
-        if: steps.queue.outputs.process == 'true'
+      - name: canaryを最新化したら、canary_queue_pendingをfalseへリセットする
+        if: steps.refresh.outputs.refresh == 'true'
         run: |
           set -eu
           KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
@@ -242,13 +255,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ steps.check.outputs.stable_ahead_of_canary }}" = "true" ]; then
             {
-              echo "**⚠️ 要確認（issue #1411）**: stableの最終更新がcanaryより新しいため、今回の昇格をスキップした。"
-              echo "緊急手動デプロイ（\`deploy-backend-stage.yml\`でstage=stable）等でstableがcanaryを追い越している可能性がある。"
-              echo "このままでは今後も昇格が永続的にスキップされ続ける。canaryを最新mainの内容で更新する（\`deploy-backend-stage.yml\`でstage=canaryを手動実行する等）か、"
-              echo "この状況の対応方針を人間が判断すること。"
+              echo "**stableがcanaryより新しいため今回の昇格をスキップし、canaryを自動で最新化した（issue #1448）**: 緊急手動デプロイ（\`deploy-backend-stage.yml\`でstage=stable）等でstableがcanaryを追い越していた可能性がある。canaryは最新のmain HEADへ更新済みのため、次回以降のサイクルで正しく検証・昇格が進む見込み。"
               echo ""
             } >> "$GITHUB_STEP_SUMMARY"
           fi
           {
-            echo "キュー待ち更新の処理（issue #1326）: ${{ steps.queue.outputs.process == 'true' && 'はい（新しいcanaryとしてデプロイした）' || 'いいえ' }}"
+            echo "canaryの最新化（issue #1449、日次バッチ）: ${{ steps.refresh.outputs.refresh == 'true' && 'はい（最新main HEADでcanaryを更新した）' || 'いいえ' }}"
           } >> "$GITHUB_STEP_SUMMARY"
