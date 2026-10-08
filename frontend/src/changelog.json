@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.97.1",
+    "version": "1.97.2",
     "date": "2026/10/08",
+    "body": "### Bug Fixes\n\n* **ci:** canaryの渋滞を解消し、デプロイを日次バッチ化する ([#1450](https://github.com/bamiyanapp/karuta/issues/1450)) ([e04dbae](https://github.com/bamiyanapp/karuta/commit/e04dbaee581f3069e5223366e26994f9a65e44ae))"
+  },
+  {
+    "version": "1.97.1",
+    "date": "2026/10/08 21:35",
     "body": "### Bug Fixes\n\n* **ci:** 自動昇格の猶予期間を1週間から1日へ短縮する ([#1443](https://github.com/bamiyanapp/karuta/issues/1443)) ([3af8bde](https://github.com/bamiyanapp/karuta/commit/3af8bdebc80302b28d7c366b4753648fdbe625cd))"
   },
   {

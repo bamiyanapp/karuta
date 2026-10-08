@@ -1,3 +1,10 @@
+## [1.97.2](https://github.com/bamiyanapp/karuta/compare/v1.97.1...v1.97.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **ci:** canaryの渋滞を解消し、デプロイを日次バッチ化する ([#1450](https://github.com/bamiyanapp/karuta/issues/1450)) ([e04dbae](https://github.com/bamiyanapp/karuta/commit/e04dbaee581f3069e5223366e26994f9a65e44ae))
+
 ## [1.97.1](https://github.com/bamiyanapp/karuta/compare/v1.97.0...v1.97.1) (2026-10-08)
 
 
