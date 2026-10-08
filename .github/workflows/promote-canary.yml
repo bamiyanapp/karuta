@@ -135,7 +135,7 @@ jobs:
 
       - name: "2. canaryのコードでbackend stableスタックを再デプロイする（昇格）"
         if: steps.check.outputs.eligible == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.2
         with:
           working-directory: backend
           node-version: 22
@@ -197,7 +197,7 @@ jobs:
 
       - name: "5. キュー待ちのbackendを新しいcanaryとしてデプロイする"
         if: steps.queue.outputs.process == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.1
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.2
         with:
           working-directory: backend
           node-version: 22
