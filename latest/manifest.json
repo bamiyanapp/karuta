@@ -38,5 +38,10 @@
     "sourceFile": "docs/quiz-room-operations.md",
     "index": 2,
     "fileName": "quiz-room-operations-2.png"
+  },
+  {
+    "sourceFile": "docs/blue-green-stage-migration.md",
+    "index": 1,
+    "fileName": "blue-green-stage-migration.png"
   }
 ]
