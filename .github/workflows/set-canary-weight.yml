@@ -1,0 +1,72 @@
+name: Set Canary Weight
+run-name: Set Canary Weight (${{ inputs.weight }}%)
+
+# issue #1447: CloudFront FunctionsのKVS（canary_weight）を任意の値へ変更する
+# 手段が無く、重みを直接書き換えるにはAWS CLIの手動実行が必要だった。
+# スマートフォンからは実行できない（CLAUDE.md「開発環境の制約」）ため、
+# GitHub ActionsのActions画面から安全に変更できる専用ワークフローを新設する。
+on:
+  workflow_dispatch:
+    inputs:
+      weight:
+        description: "canaryへ振り分ける割合（0〜100の整数%）"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  set-weight:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: 入力値を検証する
+        run: |
+          set -eu
+          WEIGHT="${{ inputs.weight }}"
+          if ! echo "$WEIGHT" | grep -Eq '^[0-9]+$' || [ "$WEIGHT" -lt 0 ] || [ "$WEIGHT" -gt 100 ]; then
+            echo "weightは0〜100の整数で指定すること（指定値: ${WEIGHT}）" >&2
+            exit 1
+          fi
+
+      - name: canary_weightを設定する
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "${{ inputs.weight }}" >/dev/null
+          echo "canary_weight を ${{ inputs.weight }} に設定した"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-northeast-1
+
+      - name: Write summary
+        run: |
+          set -eu
+          {
+            echo "## canary_weight 変更結果"
+            echo ""
+            echo "canary_weight を **${{ inputs.weight }}%** に設定した。"
+            echo ""
+            echo "KVS更新のCloudFrontエッジ拠点への伝播は非同期（最大数分）のため、反映までしばらく待つこと。確実にcanary版を見たい場合は、重みに関わらず\`/canary/\`へ直接アクセスする方法もある。"
+          } >> "$GITHUB_STEP_SUMMARY"

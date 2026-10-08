@@ -14,6 +14,30 @@
 
 `backend/serverless.yml`のテーブル名・バケット名（`custom.tableName`等）は固定文字列で、stage名を含まない。IAMポリシー・Lambda関数の環境変数もこれらの固定文字列を直接参照している。そのため、どのstageにデプロイしても同じDynamoDBテーブル・S3バケットを参照する。Lambda関数名・API Gateway自体はServerless Frameworkの既定命名規則（`${service}-${stage}-...`）でstageごとに自動的に分離されるため、`stable`と`canary`は互いに影響しない。
 
+## コミットのライフサイクル（dev→canary→stable、issue #1448・#1449）
+
+mainへのマージから本番反映までの流れと、2つの独立したタイマーの関係を示す。
+
+```mermaid
+flowchart TD
+    A["mainへマージ"] --> B["dev/GitHub Pagesへ即時デプロイ<br/>（旧経路、本番影響無し）"]
+    A --> C["cd.ymlのqueue-canary-update<br/>canary_queue_pending=trueにする<br/>（デプロイ自体は行わない）"]
+    C --> D{"promote-canary.ymlの<br/>日次実行（タイマー1）"}
+    D -->|"canaryが空いている<br/>＋キュー待ちがある"| E["最新main HEADをcanaryへデプロイ<br/>（複数回マージが1回にまとまる）"]
+    D -->|"canaryが使用中"| D
+    E --> F{"canaryデプロイから<br/>1日経過？（タイマー2）"}
+    F -->|"未経過"| F
+    F -->|"経過＋force_stableでない"| G{"stableがcanaryより<br/>新しい？"}
+    G -->|"いいえ"| H["stableへ昇格・canary削除<br/>・KVSを既定値へリセット"]
+    G -->|"はい（緊急デプロイ等）"| I["昇格せず、canaryを<br/>最新main HEADで強制的に最新化"]
+    I --> F
+    H --> D
+```
+
+- **タイマー1（反映頻度、issue #1449）**: mainマージ毎ではなく、`promote-canary.yml`の日次実行時にまとめてcanaryへ反映する。1日に複数回マージされても、canaryへの反映は1日1回にまとまる
+- **タイマー2（昇格までの猶予期間、issue #1442）**: canaryへの最新反映（上記）から1日経過し、かつ管理者ロールバック（`force_stable`）が行われていなければstableへ自動昇格する。1週間だった猶予期間を1日へ短縮した
+- **詰まりの自動解消（issue #1448）**: 緊急手動デプロイ等でstableがcanaryより新しくなった場合、昇格はスキップされるが、canary自体は強制的に最新化される。これによりタイマー1・2がリセットされ、次のサイクルで正常に進行する
+
 ## 移行手順
 
 1. **`stable`・`canary`へ先行デプロイする**（本番トラフィックには影響しない）。`.github/workflows/deploy-backend-stage.yml`を`stage: stable`・`stage: canary`それぞれで手動実行する。
@@ -57,19 +81,23 @@
 
 既知の制約として、昇格時点で既に`canary` Cookieを持つユーザーは、canaryバックエンドスタック削除後もそのエンドポイントへアクセスし続けてしまう可能性がある（最大1週間）。issue #1331の受け入れ基準の対象外のため既知の限界として残す。
 
-### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止（issue #1411）
+### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止（issue #1411・#1448）
 
 本番障害等で`deploy-backend-stage.yml`（`stage: stable`）を緊急手動実行してstableへ直接デプロイした場合、その内容はcanaryを経由していない。この状態で`promote-canary.yml`の自動昇格が発火すると、canaryの古いコード（緊急修正前の内容）でstableが上書きされ、緊急対応した内容が退行してしまう（issue #1407の緊急対応時に実際に発覚した）。
 
-これを防ぐため、昇格可否の判定に「stableの最終更新時刻がcanaryより新しいか」のチェックを追加した。stableがcanaryを追い越している場合、自動昇格は安全側にスキップされ、Job Summaryに要対応の警告が出力される。
+これを防ぐため、昇格可否の判定に「stableの最終更新時刻がcanaryより新しいか」のチェックを追加した。stableがcanaryを追い越している場合、自動昇格は安全側にスキップされる。
 
-**緊急デプロイ後の運用**: `deploy-backend-stage.yml`でstableへ緊急デプロイした後は、できるだけ早く同じ内容をcanaryへも反映する（`deploy-backend-stage.yml`を`stage: canary`で手動実行する等）こと。そうしない限り、上記ガードにより自動昇格が永続的にスキップされ続ける（canaryが人手で更新されるまで、昇格は進まない）。
+当初（issue #1411）はスキップしてJob Summaryへ警告を出すだけだった。この状態を解消する手段が無いため、一度発生すると昇格が永続的にスキップされ続け、キュー待ちの更新も処理されない詰まりが起きた（karuta#1429のUI改善が実際にこの詰まりで本番に反映されない事態が発生した）。issue #1448で、スキップするだけでなく**canaryを最新のmain HEADで強制的に最新化する**よう変更し、詰まりが自動的に解消されるようにした。
 
-### 補足: カナリアの直列化（Task 7）
+### 補足: カナリアへのデプロイの日次バッチ化（issue #1449、#1326を置き換え）
 
-同時に進行中のカナリアを常に1件のみに制限する。`cd.yml`の`check-canary-lock`ジョブが、mainマージ時にcanaryが既に使用中（canaryスタックが存在し、かつ`force_stable`が`true`でない）かどうかを判定する。使用中の場合、`deploy-backend-canary`・`build-and-deploy-frontend-canary`は実行せず、KVSの`canary_queue_pending`を`true`にしてキュー待ちにする。
+当初（issue #1326）はmainマージ毎に即座にcanaryへデプロイし、既に進行中のカナリアがあればキュー待ちにする方式だった。issue #1449で、canaryへのデプロイをmainマージ毎から日次バッチへ変更した。
 
-キュー待ちの解放は、専用の監視workflowを新設せず、Task 12の`promote-canary.yml`（毎日定時実行）に相乗りさせた。実行ごとに「canaryが空いたか（スタックが存在しない、または`force_stable=true`でロールバック済み）」と「キュー待ちの更新が無いか」を確認し、両方が真であれば最新のmain HEADを新しいcanaryとしてデプロイし、`canary_queue_pending`を`false`へ戻す。
+- `cd.yml`の`queue-canary-update`ジョブは、mainへのマージ時にKVSの`canary_queue_pending`を`true`にするだけで、canaryへの実デプロイは行わない
+- `promote-canary.yml`（毎日定時実行）が、実行ごとに「canaryが空いたか（スタックが存在しない、または`force_stable=true`でロールバック済み）」と「キュー待ちの更新が無いか」を確認する。両方が真であれば最新のmain HEADを新しいcanaryとしてデプロイし、`canary_queue_pending`を`false`へ戻す
+- 上記の「stableがcanaryを追い越している」場合（issue #1448）も、この最新化ロジックに統合されており、キュー待ちの有無に関わらず強制的に最新化される
+
+これにより、1日の間に複数回マージされても、canaryへの反映は1日1回にまとまる。
 
 ### 補足: sticky Cookie動作のフロントエンド側確認（Task 8）
 
@@ -118,10 +146,14 @@ Task 1〜12が完了した時点でも、`promote-canary.yml`（週次の自動�
 - #1321, #1322（S3+CloudFrontインフラ・CloudFront Functions重み付けルーティング）
 - #1324（Task 5、フロントエンドstage別APIベースURL）
 - #1325（Task 6、CDワークフローのcanaryデプロイフロー新設）
-- #1326（Task 7、カナリアの直列化）
+- #1326（Task 7、カナリアの直列化。#1449で置き換え）
 - #1327（Task 8、sticky Cookie動作のフロントエンド側確認）
 - #1328（Task 9、ErrorBoundary連動の自動フォールバック）
 - #1329（Task 10、手動切り替えリンク）
 - #1330（Task 11、管理者ロールバック）
-- #1331（Task 12、1週間後の自動昇格）
+- #1331（Task 12、自動昇格）
 - #1332（Task 13、旧URL(GitHub Pages)の移行ページ）
+- #1411（stableがcanaryを追い越している場合の昇格スキップ）
+- #1442（自動昇格の猶予期間を1週間から1日へ短縮）
+- #1448（詰まり解消: canaryを自動で最新化する）
+- #1449（canaryへのデプロイを日次バッチ化、#1326を置き換え）
