@@ -154,7 +154,6 @@ const CATEGORIES_KANA_FROM_PHRASE = new Set(['おばけかるた', '百人一首
 // かなの導出規則がテキスト先頭文字では検証できないカテゴリ
 // （概念ベース・日本語読み・ショートカットキー等）
 const CATEGORIES_SKIP_KANA_MATCH = new Set([
-  'Git大ピンチ',       // サブコマンドの概念文字（git switch -c → B など）
   'Windows大ピンチ',   // Ctrl+X の X 部分をkanaとするため先頭文字と不一致
   'Webアプリ大ピンチ', // 英単語の日本語カタカナ読み（Cookie → く など）
   'セキュリティ大ピンチ', // 略語の日本語読み（SQL → え など）
@@ -162,6 +161,17 @@ const CATEGORIES_SKIP_KANA_MATCH = new Set([
   'いろはかるた（意味）', // 同上
   '国旗王',            // 漢字句のかな読みが由来
 ]);
+
+// Git大ピンチ（issue #1453）: answerは「git <サブコマンド>」形式で、kanaはgitという
+// 固定語ではなくサブコマンドの頭文字と一致する規則になっている。複数コマンドを
+// 「→」で連結している行（例: "git stash → git switch"）は最初のコマンドの
+// サブコマンドを対象とする。固定プレフィックス"git "を剥がしてから先頭文字判定に
+// 渡すため、通常のexpectedKana()では扱えず専用の抽出関数で対応する
+function extractGitSubcommand(answer) {
+  const firstCommand = answer.split('→')[0].trim();
+  const words = firstCommand.split(/\s+/);
+  return words[0] === 'git' ? words[1] : firstCommand;
+}
 
 // 大ピンチずかんで主概念文字をkanaとする意図的な例外行
 const ROWS_SKIP_KANA_MATCH = new Set([
@@ -178,7 +188,14 @@ const kanaMatchCases = records
   .flatMap((r) => {
     const hasAnswer = r.answer && r.answer.trim() !== '' && r.answer.trim() !== '-';
     const usePhrase = !hasAnswer || CATEGORIES_KANA_FROM_PHRASE.has(r.category);
-    const target = usePhrase ? r.phrase : r.answer;
+    let target;
+    if (usePhrase) {
+      target = r.phrase;
+    } else if (r.category === 'Git大ピンチ') {
+      target = extractGitSubcommand(r.answer);
+    } else {
+      target = r.answer;
+    }
     const expected = expectedKana(target);
     if (expected === null) return [];
     return [[r.id, r.category, r.kana, target, expected]];
