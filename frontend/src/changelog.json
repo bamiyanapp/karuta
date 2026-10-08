@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.97.2",
+    "version": "1.97.3",
     "date": "2026/10/08",
+    "body": "### Bug Fixes\n\n* **data:** Git大ピンチのkanaデータ3件を修正し、かな整合チェック対象にする ([#1454](https://github.com/bamiyanapp/karuta/issues/1454)) ([5bd04f6](https://github.com/bamiyanapp/karuta/commit/5bd04f6c2c723194af32928fcc58f46bda2b8997))"
+  },
+  {
+    "version": "1.97.2",
+    "date": "2026/10/08 21:58",
     "body": "### Bug Fixes\n\n* **ci:** canaryの渋滞を解消し、デプロイを日次バッチ化する ([#1450](https://github.com/bamiyanapp/karuta/issues/1450)) ([e04dbae](https://github.com/bamiyanapp/karuta/commit/e04dbaee581f3069e5223366e26994f9a65e44ae))"
   },
   {

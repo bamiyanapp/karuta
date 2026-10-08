@@ -1,3 +1,10 @@
+## [1.97.3](https://github.com/bamiyanapp/karuta/compare/v1.97.2...v1.97.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **data:** Git大ピンチのkanaデータ3件を修正し、かな整合チェック対象にする ([#1454](https://github.com/bamiyanapp/karuta/issues/1454)) ([5bd04f6](https://github.com/bamiyanapp/karuta/commit/5bd04f6c2c723194af32928fcc58f46bda2b8997))
+
 ## [1.97.2](https://github.com/bamiyanapp/karuta/compare/v1.97.1...v1.97.2) (2026-10-08)
 
 
