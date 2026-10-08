@@ -437,7 +437,7 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 1203,Git大ピンチ,12,S,コミットしたつもりが「nothing to commit」だった,"You thought you committed, but nothing happened.",git status → git add → git commit,engineer,変更した内容がステージング（コミット対象への登録）されていないと「nothing to commit」と表示される。「git status」で状態を確認し、「git add」でステージしてから「git commit」する必要がある。
 1204,Git大ピンチ,15,D,レビューで「何を変更したの？」と聞かれ固まった,Someone asked what changed.,git diff,engineer,変更前後の差分を具体的に示すのが「git diff」。これを確認していれば、何を変更したのかすぐに説明できる。
 1205,Git大ピンチ,28,L,昨日から壊れてるらしい。いつ壊した？,The bug appeared yesterday. Which commit caused it?,git log,engineer,これまでのコミットの履歴を時系列で確認できるのが「git log」。いつどんな変更が入ったかを遡って調べられる。
-1206,Git大ピンチ,16,B,mainで直接開発していたことに気付いた,You accidentally developed on main.,git switch -c,engineer,mainブランチで直接作業を続けるのは危険なため、気付いた時点で「git switch -c」により新しい作業用ブランチを作って切り替えるべき。
+1206,Git大ピンチ,16,S,mainで直接開発していたことに気付いた,You accidentally developed on main.,git switch -c,engineer,mainブランチで直接作業を続けるのは危険なため、気付いた時点で「git switch -c」により新しい作業用ブランチを作って切り替えるべき。
 1207,Git大ピンチ,20,M,レビューOK！でも取り込み方が分からない,The PR was approved. Now what?,git merge,engineer,レビューが通ったブランチの変更を、別のブランチ（main等）へ取り込むのが「git merge」。
 1208,Git大ピンチ,21,R,コミット履歴が「fix」「fix2」「fix3」だらけ,Your commit history is messy.,git rebase -i,engineer,細かすぎる・分かりにくいコミット履歴を、後からまとめたり整理したりできるのが「git rebase -i」（対話的リベース）。
 1209,Git大ピンチ,29,S,上司に呼ばれた。今の作業を消さずに別ブランチへ行きたい,You must switch tasks immediately.,git stash,engineer,今の作業中の変更をコミットせずに一時的に退避させ、あとで元に戻せるようにするのが「git stash」。
@@ -467,11 +467,11 @@ id,category,level,kana,phrase,phrase_en,answer,group,explanation
 1233,Git大ピンチ,27,C,レビュー後に1文字だけ直したい,You only need to fix one typo after review.,git commit --amend,engineer,レビュー指摘のようなちょっとした修正は、新しいコミットを作らず「git commit --amend」で直前のコミットに含めてしまえる。
 1234,Git大ピンチ,42,T,リリース版がどのコミットか誰も覚えていない,Nobody knows which commit was released.,git tag,engineer,リリースのタイミングで「git tag」を付けておけば、後からどのコミットがそのバージョンかすぐに分かる。
 1235,Git大ピンチ,36,B,「このコード誰が書いた？」全員目をそらした,Nobody admits writing the code.,git blame,engineer,各行を最後に変更した人・コミットを表示する「git blame」を使えば、誰の変更かすぐに特定できる。
-1236,Git大ピンチ,43,R,間違えて別ブランチで1時間作業してしまった,You worked on the wrong branch for an hour.,git stash → git switch → git stash pop,engineer,気付いた時点で「git stash」で今の変更を退避し、「git switch」で本来のブランチへ移動してから「git stash pop」で変更を戻せば、作業内容を失わずに済む。
+1236,Git大ピンチ,43,S,間違えて別ブランチで1時間作業してしまった,You worked on the wrong branch for an hour.,git stash → git switch → git stash pop,engineer,気付いた時点で「git stash」で今の変更を退避し、「git switch」で本来のブランチへ移動してから「git stash pop」で変更を戻せば、作業内容を失わずに済む。
 1237,Git大ピンチ,48,C,「その修正だけ持ってきて」と言われた,Only bring over that one fix.,git cherry-pick,engineer,別のブランチにある特定のコミット1つだけを選んで取り込みたいときに使うのが「git cherry-pick」。
 1238,Git大ピンチ,49,S,マージした瞬間にビルドが壊れた,The build broke immediately after merging.,git show,engineer,「git show」でマージによって取り込まれたコミットの内容を確認すれば、どの変更がビルドを壊したのか特定しやすくなる。
 1239,Git大ピンチ,37,R,リモートが多すぎてpush先を間違えそう,Too many remotes to remember.,git remote -v,engineer,「git remote -v」で登録済みのリモート一覧とURLを確認しておけば、pushする先を間違えにくくなる。
-1240,Git大ピンチ,18,G,新しいPCなのにコミットできない,Git isn't configured on the new PC.,git config --global,engineer,新しい環境ではユーザー名やメールアドレスがGitに設定されておらず、「git config --global」で設定するまでコミットできないことがある。
+1240,Git大ピンチ,18,C,新しいPCなのにコミットできない,Git isn't configured on the new PC.,git config --global,engineer,新しい環境ではユーザー名やメールアドレスがGitに設定されておらず、「git config --global」で設定するまでコミットできないことがある。
 1301,SQLかるた,-,S,取得する列を指定する,Specify which columns to retrieve.,SELECT,engineer,-
 1302,SQLかるた,-,F,データを取得するテーブルを指定する,Specify the table to retrieve data from.,FROM,engineer,-
 1303,SQLかるた,-,W,条件に一致するデータを取得する,Retrieve data that matches a condition.,WHERE,engineer,-
