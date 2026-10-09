@@ -1,3 +1,10 @@
+# [1.98.0](https://github.com/bamiyanapp/karuta/compare/v1.97.4...v1.98.0) (2026-10-09)
+
+
+### Features
+
+* **canary:** canary/stableの運用可視性を改善する ([#1463](https://github.com/bamiyanapp/karuta/issues/1463)) ([1f38dcc](https://github.com/bamiyanapp/karuta/commit/1f38dcccf5862dd1d9df1956f1167eed0ef613ce))
+
 ## [1.97.4](https://github.com/bamiyanapp/karuta/compare/v1.97.3...v1.97.4) (2026-10-09)
 
 
