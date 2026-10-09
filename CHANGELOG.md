@@ -1,3 +1,10 @@
+## [1.97.4](https://github.com/bamiyanapp/karuta/compare/v1.97.3...v1.97.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **ci:** dependency-risk自動クローズ機能を有効化する ([#1460](https://github.com/bamiyanapp/karuta/issues/1460)) ([5284cfc](https://github.com/bamiyanapp/karuta/commit/5284cfc58e082855ac855cce34582dc10b4bcc60))
+
 ## [1.97.3](https://github.com/bamiyanapp/karuta/compare/v1.97.2...v1.97.3) (2026-10-08)
 
 

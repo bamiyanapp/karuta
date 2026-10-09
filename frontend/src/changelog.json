@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.97.4",
+    "date": "2026/10/09",
+    "body": "### Bug Fixes\n\n* **ci:** dependency-risk自動クローズ機能を有効化する ([#1460](https://github.com/bamiyanapp/karuta/issues/1460)) ([5284cfc](https://github.com/bamiyanapp/karuta/commit/5284cfc58e082855ac855cce34582dc10b4bcc60))"
+  },
+  {
     "version": "1.97.3",
-    "date": "2026/10/08",
+    "date": "2026/10/08 23:08",
     "body": "### Bug Fixes\n\n* **data:** Git大ピンチのkanaデータ3件を修正し、かな整合チェック対象にする ([#1454](https://github.com/bamiyanapp/karuta/issues/1454)) ([5bd04f6](https://github.com/bamiyanapp/karuta/commit/5bd04f6c2c723194af32928fcc58f46bda2b8997))"
   },
   {
