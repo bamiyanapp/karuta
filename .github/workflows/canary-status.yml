@@ -1,0 +1,102 @@
+name: Canary Status
+run-name: Canary Status (manual)
+
+# issue #1462: canaryの運用状態（現在の重み・ロールバック状態・キュー待ち・
+# canaryスタックの最終更新時刻・昇格予定日時）は、CloudFront KVSと
+# CloudFormationスタックの情報をAWS CLIで見るしかなく、PR・CIのログからは
+# 掴めなかった。スマートフォンのGitHub Actions画面から手動実行するだけで
+# 現在の状態をJob Summaryへ出力する、デプロイを一切行わない状態確認専用の
+# workflow。昇格猶予期間（GRACE_PERIOD_DAYS）はpromote-canary.ymlと同じ値を使う
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: KVS ARNを解決する
+        id: kvs
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: 現在の運用状態を取得する
+        id: status
+        run: |
+          set -eu
+          GRACE_PERIOD_DAYS=1 # promote-canary.ymlと同じ値（issue #1442）
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+
+          CANARY_WEIGHT=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_weight" --query Value --output text 2>/dev/null || echo "（未設定）")
+          FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
+          PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
+          echo "canary_weight=${CANARY_WEIGHT}" >> "$GITHUB_OUTPUT"
+          echo "force_stable=${FORCE_STABLE}" >> "$GITHUB_OUTPUT"
+          echo "canary_queue_pending=${PENDING}" >> "$GITHUB_OUTPUT"
+
+          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
+            echo "canary_exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "canary_exists=true" >> "$GITHUB_OUTPUT"
+
+          LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].LastUpdatedTime" --output text)
+          if [ "$LAST_UPDATED" = "None" ]; then
+            LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].CreationTime" --output text)
+          fi
+          echo "canary_last_updated=${LAST_UPDATED}" >> "$GITHUB_OUTPUT"
+
+          LAST_UPDATED_EPOCH=$(date -d "$LAST_UPDATED" +%s)
+          ELIGIBLE_EPOCH=$(( LAST_UPDATED_EPOCH + GRACE_PERIOD_DAYS * 86400 ))
+          ELIGIBLE_AT=$(date -u -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
+          echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## canary運用状態（issue #1462）"
+            echo ""
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| canary_weight（canaryへ振り分ける割合） | ${{ steps.status.outputs.canary_weight }}% |"
+            echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
+            echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
+            echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo ""
+              echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

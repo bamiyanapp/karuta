@@ -22,6 +22,11 @@ provider:
   runtime: nodejs22.x
   region: ap-northeast-1
   environment:
+    # issue #1462: フロントエンドが「表示中のフロント/バックエンドのバージョン・
+    # stageが一致しているか」を自己診断できるようにするため、デプロイ時点の
+    # ルートpackage.jsonのバージョンとデプロイ先stage名をそのまま注入する
+    APP_VERSION: ${file(../package.json):version}
+    APP_STAGE: ${sls:stage}
     TABLE_NAME: ${self:custom.tableName}
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
     POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
@@ -128,6 +133,14 @@ functions:
     events:
       - http:
           path: get-categories
+          method: get
+          cors:
+            origins: ${self:custom.allowedOrigins}
+  getVersion: # 追加（issue #1462）。表示中のバックエンドのバージョン・stageを返す
+    handler: handler.getVersion
+    events:
+      - http:
+          path: get-version
           method: get
           cors:
             origins: ${self:custom.allowedOrigins}
