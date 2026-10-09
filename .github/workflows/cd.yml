@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.61.2
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.68.1
     with:
       enable_release: true
       enable_changelog_json: true
@@ -60,7 +60,7 @@ jobs:
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.61.2
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.68.1
         with:
           working-directory: github-pages-migration
           build-command: sed -i "s|__NEW_URL__|https://${{ steps.resolve.outputs.domain }}/|" index.html
@@ -101,7 +101,7 @@ jobs:
         # マージ後の初回デプロイで実際に発生、#663でも別パッケージで再発）への対策
         # （ファイルディスクリプタ上限のハードリミットまでの引き上げ）を含め、
         # dev-standardsの共通複合action化した（bamiyanapp/dev-standards#147）
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.61.2
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.68.1
         with:
           working-directory: backend
           node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する

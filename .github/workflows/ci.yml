@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.61.2
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.68.1
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -107,5 +107,9 @@ jobs:
       # Renovate等が作成した依存更新PRのうち、重要パスに影響するもの・既知のCVE/KEV・
       # Supply Chain異常等でHighと判定されたものは、人間のレビューを経るまで自動マージされない
       enable_dependency_risk_gating: true
+      # 適用リスクHigh・維持リスクLow（放置する方が安全）のbot作成PRを自動コメント・
+      # クローズする（dev-standards#746 Phase 1、issue #1459）。PR #1458で本来クローズ
+      # されるべきPRが残っていたのは、本フラグ自体が未設定だったため
+      enable_dependency_risk_auto_close: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
