@@ -501,6 +501,18 @@ exports.getPhrasesList = async (event) => {
   }
 };
 
+// issue #1462: 今表示中の画面がcanary/stableのどちらか、フロント・バックエンドの
+// デプロイ内容が一致しているかをユーザー自身が確認できるようにするための軽量な
+// バージョン応答。APP_VERSION・APP_STAGEはserverless.ymlでデプロイ時のルート
+// package.json・stage名からそのまま注入される（CD側の追加対応は不要）
+exports.getVersion = async (event) => {
+  const allowedOrigin = resolveAllowedOrigin(event);
+  return jsonResponse(allowedOrigin, 200, {
+    version: process.env.APP_VERSION || null,
+    stage: process.env.APP_STAGE || null,
+  });
+};
+
 exports.getCategories = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {

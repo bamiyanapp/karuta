@@ -91,11 +91,15 @@ function confirmName(name = 'たろう') {
   fireEvent.click(screen.getByText('決定'));
 }
 
-// ルームコードの事前確認（issue #616）用のfetch（GET /quiz-room?roomId=...）は
-// roomIdが設定されるたびに必ず1回発生するため、フレーズ音声取得（/get-phrase）用の
-// fetch呼び出し回数・URLだけを見たいテストではこのヘルパーで除外する
+// ルームコードの事前確認（issue #616）用のfetch（GET /quiz-room?roomId=...）、
+// およびAppVersionInfo（issue #1462）が常に発行するバックエンドバージョン確認用の
+// fetch（GET /get-version）は、roomIdが設定されるたびや画面表示のたびに必ず発生するため、
+// フレーズ音声取得（/get-phrase）用のfetch呼び出し回数・URLだけを見たいテストでは
+// このヘルパーで除外する
 function audioFetchCalls() {
-  return fetch.mock.calls.filter(([url]) => !url.includes('/quiz-room?'));
+  return fetch.mock.calls.filter(
+    ([url]) => !url.includes('/quiz-room?') && !url.includes('/get-version')
+  );
 }
 
 window.fetch = vi.fn();
