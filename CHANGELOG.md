@@ -1,3 +1,10 @@
+## [1.102.4](https://github.com/bamiyanapp/karuta/compare/v1.102.3...v1.102.4) (2026-10-10)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのmain pushを新ブランチ+PR squash merge方式に変更する ([#1508](https://github.com/bamiyanapp/karuta/issues/1508)) ([a666c75](https://github.com/bamiyanapp/karuta/commit/a666c75ead3702250c6bdf5d97de29cf4204627d))
+
 ## [1.102.3](https://github.com/bamiyanapp/karuta/compare/v1.102.2...v1.102.3) (2026-10-10)
 
 

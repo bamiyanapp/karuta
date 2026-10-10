@@ -28,5 +28,5 @@
     "js-yaml": "^5.4.3",
     "semantic-release": "^25.0.2"
   },
-  "version": "1.102.3"
+  "version": "1.102.4"
 }
