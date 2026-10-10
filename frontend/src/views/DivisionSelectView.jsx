@@ -1,4 +1,5 @@
 import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
+import CanaryStableToggleLink from "../components/CanaryStableToggleLink";
 
 function roomStatusBadgeClass(status) {
   if (status === "進行中") return "text-bg-success";
@@ -79,6 +80,7 @@ function DivisionSelectView({
       </main>
 
       <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
+      <CanaryStableToggleLink />
     </div>
   );
 }
