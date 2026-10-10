@@ -1,0 +1,1 @@
+when the admin reloads mid-game, the quiz room association is lost and the participant gets no notification (issue #640)
