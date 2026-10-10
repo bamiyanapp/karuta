@@ -1,5 +1,5 @@
 name: Canary Status
-run-name: Canary Status (manual)
+run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || 'manual' }})
 
 # issue #1462: canaryの運用状態（現在の重み・ロールバック状態・キュー待ち・
 # canaryスタックの最終更新時刻・昇格予定日時）は、CloudFront KVSと
@@ -7,11 +7,18 @@ run-name: Canary Status (manual)
 # 掴めなかった。スマートフォンのGitHub Actions画面から手動実行するだけで
 # 現在の状態をJob Summaryへ出力する、デプロイを一切行わない状態確認専用の
 # workflow。昇格猶予期間（GRACE_PERIOD_DAYS）はpromote-canary.ymlと同じ値を使う
+#
+# issue #1472: Job Summaryは実行ごとに使い捨てで、Gitからは可視化できな
+# かった。1時間おきのscheduleで自動実行し、取得結果をdocs/generated/
+# canary-status.mdへコミットすることで、スマートフォンからGitHubの
+# ファイルビュー・コミット履歴だけで最新状態を確認できるようにする
 on:
+  schedule:
+    - cron: "6 * * * *" # 1時間おき（分を0からずらし、他ワークフローとの同時実行集中を避ける）
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   status:
@@ -75,6 +82,23 @@ jobs:
           ELIGIBLE_AT=$(date -u -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
           echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
 
+      # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
+      # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
+      # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
+      - name: 次回promote-canary.yml実行予定を計算する
+        id: schedule
+        run: |
+          set -eu
+          NOW_EPOCH=$(date -u +%s)
+          TODAY_RUN_EPOCH=$(date -u -d "today 17:37" +%s)
+          if [ "$NOW_EPOCH" -lt "$TODAY_RUN_EPOCH" ]; then
+            NEXT_RUN_EPOCH=$TODAY_RUN_EPOCH
+          else
+            NEXT_RUN_EPOCH=$(date -u -d "tomorrow 17:37" +%s)
+          fi
+          NEXT_RUN_AT=$(date -u -d "@${NEXT_RUN_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
+          echo "next_promote_run_at=${NEXT_RUN_AT}" >> "$GITHUB_OUTPUT"
+
       - name: Write summary
         if: always()
         run: |
@@ -88,6 +112,7 @@ jobs:
             echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
+            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 UTC 17:37 / JST 02:37固定） |"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
@@ -100,3 +125,50 @@ jobs:
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # issue #1472: Gitから可視化できるよう、Job Summaryと同じ内容を
+      # リポジトリ内のファイルへも書き出す
+      - name: docs/generated/canary-status.mdを生成する
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "# canary運用状態"
+            echo ""
+            echo "このファイルは\`canary-status.yml\`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。"
+            echo ""
+            echo "最終更新日時: $(date -u +"%Y-%m-%dT%H:%M:%SZ")。"
+            echo ""
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| canary_weight（canaryへ振り分ける割合） | ${{ steps.status.outputs.canary_weight }}% |"
+            echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
+            echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
+            echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
+            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 UTC 17:37 / JST 02:37固定） |"
+          } > docs/generated/canary-status.md
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
+            } >> docs/generated/canary-status.md
+          else
+            {
+              echo ""
+              echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
+            } >> docs/generated/canary-status.md
+          fi
+
+      - name: 変更があればコミット・pushする
+        if: always()
+        run: |
+          set -eu
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- docs/generated/canary-status.md; then
+            echo "変更なし。コミットをスキップする。"
+            exit 0
+          fi
+          git add docs/generated/canary-status.md
+          git commit -m "chore(canary): canary運用状態を更新する [skip ci]"
+          git push origin HEAD:main
