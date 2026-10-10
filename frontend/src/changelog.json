@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.99.0",
+    "date": "2026/10/10",
+    "body": "### Features\n\n* **canary:** canary運用状態をGitから可視化できるようにする ([#1473](https://github.com/bamiyanapp/karuta/issues/1473)) ([71bb5a0](https://github.com/bamiyanapp/karuta/commit/71bb5a03ea6b13603ddd5dad287071aa20917894)), closes [#1472](https://github.com/bamiyanapp/karuta/issues/1472)"
+  },
+  {
     "version": "1.98.0",
-    "date": "2026/10/09",
+    "date": "2026/10/09 12:23",
     "body": "### Features\n\n* **canary:** canary/stableの運用可視性を改善する ([#1463](https://github.com/bamiyanapp/karuta/issues/1463)) ([1f38dcc](https://github.com/bamiyanapp/karuta/commit/1f38dcccf5862dd1d9df1956f1167eed0ef613ce))"
   },
   {

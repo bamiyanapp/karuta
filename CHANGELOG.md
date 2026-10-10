@@ -1,3 +1,10 @@
+# [1.99.0](https://github.com/bamiyanapp/karuta/compare/v1.98.0...v1.99.0) (2026-10-10)
+
+
+### Features
+
+* **canary:** canary運用状態をGitから可視化できるようにする ([#1473](https://github.com/bamiyanapp/karuta/issues/1473)) ([71bb5a0](https://github.com/bamiyanapp/karuta/commit/71bb5a03ea6b13603ddd5dad287071aa20917894)), closes [#1472](https://github.com/bamiyanapp/karuta/issues/1472)
+
 # [1.98.0](https://github.com/bamiyanapp/karuta/compare/v1.97.4...v1.98.0) (2026-10-09)
 
 
