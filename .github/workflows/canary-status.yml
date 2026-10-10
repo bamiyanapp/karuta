@@ -147,6 +147,32 @@ jobs:
             echo "IN_CANARY_LINKS_EOF"
           } >> "$GITHUB_OUTPUT"
 
+      # issue #1523: canaryが古いバージョンを配信し続けていた不具合（issue #1511）の
+      # 調査時、実際にどのバージョンが配信されているかをドキュメントから確認できず、
+      # 実機のブラウザ確認に頼る必要があった。各stageの/get-versionエンドポイント
+      # （backend/handler.js、issue #1462で追加済み）を叩き、配信中のバージョンを
+      # 取得する。疎通不可の場合も他の取得処理と同様にエラーにせず「取得できなかった」
+      # 旨を表示する
+      - name: canary/stableの配信中バージョンを取得する
+        id: version
+        run: |
+          set -eu
+          fetch_version() {
+            local url="$1"
+            local body
+            if ! body=$(curl -fsS --max-time 10 "${url}/get-version" 2>/dev/null); then
+              echo "（取得できなかった）"
+              return
+            fi
+            local version
+            version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
+            echo "$version"
+          }
+          CANARY_VERSION=$(fetch_version "$(grep -oE 'https://[^ ]+' frontend/.env.canary | head -1)")
+          STABLE_VERSION=$(fetch_version "$(grep -oE 'https://[^ ]+' frontend/.env.stable | head -1)")
+          echo "canary_version=${CANARY_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "stable_version=${STABLE_VERSION}" >> "$GITHUB_OUTPUT"
+
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
       # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
@@ -181,7 +207,9 @@ jobs:
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
               echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
@@ -224,7 +252,9 @@ jobs:
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
               echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
