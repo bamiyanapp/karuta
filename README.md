@@ -121,6 +121,8 @@ graph TD
 
 `stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
 
+現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は、`canary-status.yml`が1時間おきに自動更新する[canary運用状態](docs/generated/canary-status.md)を参照してください。
+
 ## 運用
 
 ### クイズ大会モードの運用手順
