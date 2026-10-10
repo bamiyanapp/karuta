@@ -1,0 +1,68 @@
+name: Diagnose Canary Version (temporary)
+
+# issue #1511の調査用一時workflow。S3上のcanaryオブジェクトの実際の内容・
+# タイムスタンプと、CloudFront経由で実際に返っているレスポンスを突き合わせ、
+# どちらに不整合があるかを特定する。調査完了後は削除する
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: S3上のcanary/index.htmlの内容・タイムスタンプを確認する
+        run: |
+          set -eu
+          {
+            echo "## S3上のcanary/index.html"
+            echo ""
+            echo '```'
+            aws s3api head-object --bucket karuta-frontend-608682096349 --key canary/index.html
+            echo '```'
+            echo ""
+            echo "### 内容（抜粋）"
+            echo ""
+            echo '```html'
+            aws s3 cp s3://karuta-frontend-608682096349/canary/index.html - | grep -oE '<script[^>]*src="[^"]*"' || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: CloudFront経由のレスポンスを確認する
+        run: |
+          set -eu
+          {
+            echo ""
+            echo "## CloudFront経由（https://d2o6qgma31ysgl.cloudfront.net/canary/）のレスポンス"
+            echo ""
+            echo "### レスポンスヘッダー"
+            echo ""
+            echo '```'
+            curl -sS -D - -o /tmp/canary-response.html "https://d2o6qgma31ysgl.cloudfront.net/canary/" || echo "curl failed with exit code $?"
+            echo '```'
+            echo ""
+            echo "### 本文中のscriptタグ（抜粋）"
+            echo ""
+            echo '```html'
+            grep -oE '<script[^>]*src="[^"]*"' /tmp/canary-response.html || echo "(見つからなかった、またはcurl自体が失敗した)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: CloudFrontディストリビューションのbehavior設定を確認する
+        run: |
+          set -eu
+          DIST_ID="E2LLXTNJMENR3F"
+          {
+            echo ""
+            echo "## CloudFrontディストリビューションのオリジン・behavior設定"
+            echo ""
+            echo '```json'
+            aws cloudfront get-distribution-config --id "$DIST_ID" --query "DistributionConfig.{Origins:Origins,DefaultCacheBehavior:DefaultCacheBehavior,CacheBehaviors:CacheBehaviors}" --output json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
