@@ -1,3 +1,10 @@
+# [1.100.0](https://github.com/bamiyanapp/karuta/compare/v1.99.0...v1.100.0) (2026-10-10)
+
+
+### Features
+
+* **canary:** キューイング中の変更をPRリンクで表示する ([#1476](https://github.com/bamiyanapp/karuta/issues/1476)) ([8334b00](https://github.com/bamiyanapp/karuta/commit/8334b00c3f070d232ecd3be5b9ff33916a537e39)), closes [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1475](https://github.com/bamiyanapp/karuta/issues/1475)
+
 # [1.99.0](https://github.com/bamiyanapp/karuta/compare/v1.98.0...v1.99.0) (2026-10-10)
 
 
