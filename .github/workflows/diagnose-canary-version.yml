@@ -32,7 +32,7 @@ jobs:
             echo '```html'
             aws s3 cp s3://karuta-frontend-608682096349/canary/index.html - | grep -oE '<script[^>]*src="[^"]*"' || true
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: CloudFront経由のレスポンスを確認する
         run: |
@@ -52,7 +52,7 @@ jobs:
             echo '```html'
             grep -oE '<script[^>]*src="[^"]*"' /tmp/canary-response.html || echo "(見つからなかった、またはcurl自体が失敗した)"
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: CloudFrontディストリビューションのbehavior設定を確認する
         run: |
@@ -65,4 +65,4 @@ jobs:
             echo '```json'
             aws cloudfront get-distribution-config --id "$DIST_ID" --query "DistributionConfig.{Origins:Origins,DefaultCacheBehavior:DefaultCacheBehavior,CacheBehaviors:CacheBehaviors}" --output json
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
