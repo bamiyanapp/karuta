@@ -1,3 +1,10 @@
+# [1.103.0](https://github.com/bamiyanapp/karuta/compare/v1.102.5...v1.103.0) (2026-10-10)
+
+
+### Features
+
+* **frontend:** トップ画面にcanary/stable相互切り替えボタンを追加する ([#1524](https://github.com/bamiyanapp/karuta/issues/1524)) ([713f1c2](https://github.com/bamiyanapp/karuta/commit/713f1c2edf88faa58494e764535f337abf903cdb))
+
 ## [1.102.5](https://github.com/bamiyanapp/karuta/compare/v1.102.4...v1.102.5) (2026-10-10)
 
 

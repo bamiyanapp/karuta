@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.102.5",
+    "version": "1.103.0",
     "date": "2026/10/10",
+    "body": "### Features\n\n* **frontend:** トップ画面にcanary/stable相互切り替えボタンを追加する ([#1524](https://github.com/bamiyanapp/karuta/issues/1524)) ([713f1c2](https://github.com/bamiyanapp/karuta/commit/713f1c2edf88faa58494e764535f337abf903cdb))"
+  },
+  {
+    "version": "1.102.5",
+    "date": "2026/10/10 09:33",
     "body": "### Bug Fixes\n\n* **canary:** KVSのcanary_existsをtrueへ修正し、/canary/明示アクセスを修復する ([#1516](https://github.com/bamiyanapp/karuta/issues/1516)) ([4e0018a](https://github.com/bamiyanapp/karuta/commit/4e0018af6e75832e02edf178800b8f2de9b4bf86))"
   },
   {
