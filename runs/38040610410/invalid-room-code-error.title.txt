@@ -1,0 +1,1 @@
+joining with a room code that does not exist shows an immediate error instead of retrying the WebSocket connection (issue #616)
