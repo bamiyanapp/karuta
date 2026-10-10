@@ -1,0 +1,1 @@
+admin judges a buzz, and the responder vs. other participants end up in different states (issue #545, #546)
