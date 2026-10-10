@@ -144,7 +144,7 @@ graph TD
 
 ## かるた情報の追加・更新
 
-かるたの情報（フレーズや難易度など）は、以下の手順で追加・更新できます。
+かるたの情報（フレーズや難易度など）は、以下の手順で追加・更新できます。CSV→DynamoDB同期の冪等性・データ整合の設計方針は[backend/seed.jsの冪等性・データ整合の設計方針](docs/csv-seed-idempotency-design.md)を参照してください。
 
 1. `backend/phrases.csv` を編集します。
    - `category`: かるたのカテゴリ名
