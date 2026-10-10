@@ -1,0 +1,1 @@
+admin creates a quiz room and a participant sees the same card update in real time
