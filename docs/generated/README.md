@@ -19,5 +19,6 @@ npm run docs:generate
 | [external-services.md](./external-services.md) | `backend/serverless.yml`のIAMポリシー・設定ファイルの存在 | [#907](https://github.com/bamiyanapp/karuta/issues/907) |
 | [env-vars.md](./env-vars.md) | `backend/serverless.yml`の`environment:`・`frontend/src/config.js` | [#908](https://github.com/bamiyanapp/karuta/issues/908) |
 | [api-usage.md](./api-usage.md) | `frontend/src`配下のAPI呼び出し箇所 | [#909](https://github.com/bamiyanapp/karuta/issues/909) |
+| [canary-status.md](./canary-status.md) | `.github/workflows/canary-status.yml`が1時間おきに取得するcanary運用状態（AWS CloudFront KVS・CloudFormationの実際の状態）。他の行と異なり`npm run docs:generate`では再生成されない | [#1472](https://github.com/bamiyanapp/karuta/issues/1472) |
 
 生成タイミングのCI組み込み（PRごとの自動再生成・ドリフト検知等）は未対応。方針は[issue #900](https://github.com/bamiyanapp/karuta/issues/900)の検討事項を参照し、別途フォローアップで対応する。
