@@ -29,7 +29,7 @@ jobs:
           submodules: true
 
       - name: 🚀 Deploy Infra (osls, Serverless Framework v3 OSS fork)
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.71.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.71.2
         with:
           working-directory: infra
           node-version: 22
