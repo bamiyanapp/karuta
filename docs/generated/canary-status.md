@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-11 00:13:20 JST。
+最終更新日時: 2026-10-11 04:59:18 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -15,7 +15,7 @@
 | canaryの最終更新 | 2026-10-10 20:39:10 JST |
 | canaryの配信中バージョン | 1.104.0 |
 | 本番昇格の条件を満たす日時 | 2026-10-11 20:39:10 JST以降 |
-| 次回の定期チェック予定 | 2026-10-11 02:37:00 JST |
+| 次回の定期チェック予定 | 2026-10-12 02:37:00 JST |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
@@ -114,6 +114,7 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1546 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1546)
 - [#1545 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1545)
 - [#1544 fix(frontend): 全札一覧の指摘内容確認リンクをスクロールで画面外へ流れるようにする](https://github.com/bamiyanapp/karuta/pull/1544)
 - [#1543 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1543)
