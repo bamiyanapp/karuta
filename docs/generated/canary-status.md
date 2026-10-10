@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-10 20:16:47 JST。
+最終更新日時: 2026-10-10 20:45:48 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -12,15 +12,16 @@
 | canaryスタックが存在するか | true |
 | stableの最終更新 | 2026-10-06 08:07:12 JST |
 | stableの配信中バージョン | （取得できなかった） |
-| canaryの最終更新 | 2026-10-10 20:11:52 JST |
+| canaryの最終更新 | 2026-10-10 20:39:10 JST |
 | canaryの配信中バージョン | 1.104.0 |
-| 本番昇格の条件を満たす日時 | 2026-10-11 20:11:52 JST以降 |
+| 本番昇格の条件を満たす日時 | 2026-10-11 20:39:10 JST以降 |
 | 次回の定期チェック予定 | 2026-10-11 02:37:00 JST |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
 stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。
 
+- [#1536 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1536)
 - [#1534 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1534)
 - [#1533 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1533)
 - [#1532 feat(ci): canary-status.mdにcanary/stableの配信中バージョンを追記する](https://github.com/bamiyanapp/karuta/pull/1532)
