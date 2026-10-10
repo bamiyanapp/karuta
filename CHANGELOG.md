@@ -1,3 +1,10 @@
+## [1.102.2](https://github.com/bamiyanapp/karuta/compare/v1.102.1...v1.102.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのpush失敗時にmainを取り込んでリトライする ([#1502](https://github.com/bamiyanapp/karuta/issues/1502)) ([9969c74](https://github.com/bamiyanapp/karuta/commit/9969c747a7ec09d06a6cb2b2f7e041d1716b960f)), closes [#1501](https://github.com/bamiyanapp/karuta/issues/1501)
+
 ## [1.102.1](https://github.com/bamiyanapp/karuta/compare/v1.102.0...v1.102.1) (2026-10-10)
 
 

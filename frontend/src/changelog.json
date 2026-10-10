@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.102.1",
+    "version": "1.102.2",
     "date": "2026/10/10",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのpush失敗時にmainを取り込んでリトライする ([#1502](https://github.com/bamiyanapp/karuta/issues/1502)) ([9969c74](https://github.com/bamiyanapp/karuta/commit/9969c747a7ec09d06a6cb2b2f7e041d1716b960f)), closes [#1501](https://github.com/bamiyanapp/karuta/issues/1501)"
+  },
+  {
+    "version": "1.102.1",
+    "date": "2026/10/10 04:10",
     "body": "### Bug Fixes\n\n* **canary:** canaryスタックが存在しない状態での/canary/明示アクセスをstableへフォールバックする ([#1491](https://github.com/bamiyanapp/karuta/issues/1491)) ([7091df4](https://github.com/bamiyanapp/karuta/commit/7091df4d5fb5f4f5d59b1fee9c4af0dd815e8450)), closes [#1489](https://github.com/bamiyanapp/karuta/issues/1489)"
   },
   {
