@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-10 20:04:41 JST。
+最終更新日時: 2026-10-10 20:16:47 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -12,51 +12,16 @@
 | canaryスタックが存在するか | true |
 | stableの最終更新 | 2026-10-06 08:07:12 JST |
 | stableの配信中バージョン | （取得できなかった） |
-| canaryの最終更新 | 2026-10-09 07:26:44 JST |
-| canaryの配信中バージョン | （取得できなかった） |
-| 本番昇格の条件を満たす日時 | 2026-10-10 07:26:44 JST以降 |
+| canaryの最終更新 | 2026-10-10 20:11:52 JST |
+| canaryの配信中バージョン | 1.104.0 |
+| 本番昇格の条件を満たす日時 | 2026-10-11 20:11:52 JST以降 |
 | 次回の定期チェック予定 | 2026-10-11 02:37:00 JST |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
 stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。
 
-- [#1451 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1451)
-- [#1450 fix(ci): canaryの渋滞を解消し、デプロイを日次バッチ化する](https://github.com/bamiyanapp/karuta/pull/1450)
-- [#1446 chore(deps-dev): bump handlebars](https://github.com/bamiyanapp/karuta/pull/1446)
-- [#1445 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1445)
-- [#1443 fix(ci): 自動昇格の猶予期間を1週間から1日へ短縮する](https://github.com/bamiyanapp/karuta/pull/1443)
-- [#1441 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1441)
-- [#1439 docs(quiz-room): 管理者セッション断の説明を現状の挙動に合わせて修正する](https://github.com/bamiyanapp/karuta/pull/1439)
-- [#1440 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1440)
-- [#1438 chore(deps): update dependency @vitejs/plugin-react to v6.1.2](https://github.com/bamiyanapp/karuta/pull/1438)
-- [#1437 docs(quiz-room): 正常系・管理者セッション断をmermaid化する](https://github.com/bamiyanapp/karuta/pull/1437)
-- [#1435 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1435)
-- [#1434 chore(deps): update bamiyanapp/dev-standards action to v2.61.2](https://github.com/bamiyanapp/karuta/pull/1434)
-- [#1433 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1433)
-- [#1430 feat(frontend): UI改善(共有画面・トップデザイン・リンク移設)](https://github.com/bamiyanapp/karuta/pull/1430)
-- [#1432 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1432)
-- [#1431 fix(ci): stableがcanaryを追い越している場合は自動昇格をスキップする](https://github.com/bamiyanapp/karuta/pull/1431)
-- [#1428 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1428)
-- [#1427 chore(deps): update bamiyanapp/dev-standards action to v2.61.1](https://github.com/bamiyanapp/karuta/pull/1427)
-- [#1425 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1425)
-- [#1424 chore(deps): update bamiyanapp/dev-standards action to v2.60.0](https://github.com/bamiyanapp/karuta/pull/1424)
-- [#1422 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1422)
-- [#1421 chore(deps): update bamiyanapp/dev-standards action to v2.59.3](https://github.com/bamiyanapp/karuta/pull/1421)
-- [#1420 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1420)
-- [#1417 chore(deps): update dependency eslint-plugin-n to v18.4.1](https://github.com/bamiyanapp/karuta/pull/1417)
-- [#1419 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1419)
-- [#1418 chore(deps): update bamiyanapp/dev-standards action to v2.58.1](https://github.com/bamiyanapp/karuta/pull/1418)
-- [#1416 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1416)
-- [#1415 chore(deps): update bamiyanapp/dev-standards action to v2.57.1](https://github.com/bamiyanapp/karuta/pull/1415)
-- [#1414 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1414)
-- [#1413 chore(deps): update bamiyanapp/dev-standards action to v2.56.1](https://github.com/bamiyanapp/karuta/pull/1413)
-- [#1412 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1412)
-
-## キューイング中の変更
-
-canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
-
+- [#1534 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1534)
 - [#1533 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1533)
 - [#1532 feat(ci): canary-status.mdにcanary/stableの配信中バージョンを追記する](https://github.com/bamiyanapp/karuta/pull/1532)
 - [#1531 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1531)
@@ -112,3 +77,40 @@ canary最終更新以降にmainへマージされたPRの一覧。canaryにも�
 - [#1456 chore(deps): update dependency vite to v8.3.3](https://github.com/bamiyanapp/karuta/pull/1456)
 - [#1455 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1455)
 - [#1454 fix(data): Git大ピンチのkanaデータ3件を修正し、かな整合チェック対象にする](https://github.com/bamiyanapp/karuta/pull/1454)
+- [#1451 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1451)
+- [#1450 fix(ci): canaryの渋滞を解消し、デプロイを日次バッチ化する](https://github.com/bamiyanapp/karuta/pull/1450)
+- [#1446 chore(deps-dev): bump handlebars](https://github.com/bamiyanapp/karuta/pull/1446)
+- [#1445 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1445)
+- [#1443 fix(ci): 自動昇格の猶予期間を1週間から1日へ短縮する](https://github.com/bamiyanapp/karuta/pull/1443)
+- [#1441 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1441)
+- [#1439 docs(quiz-room): 管理者セッション断の説明を現状の挙動に合わせて修正する](https://github.com/bamiyanapp/karuta/pull/1439)
+- [#1440 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1440)
+- [#1438 chore(deps): update dependency @vitejs/plugin-react to v6.1.2](https://github.com/bamiyanapp/karuta/pull/1438)
+- [#1437 docs(quiz-room): 正常系・管理者セッション断をmermaid化する](https://github.com/bamiyanapp/karuta/pull/1437)
+- [#1435 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1435)
+- [#1434 chore(deps): update bamiyanapp/dev-standards action to v2.61.2](https://github.com/bamiyanapp/karuta/pull/1434)
+- [#1433 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1433)
+- [#1430 feat(frontend): UI改善(共有画面・トップデザイン・リンク移設)](https://github.com/bamiyanapp/karuta/pull/1430)
+- [#1432 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1432)
+- [#1431 fix(ci): stableがcanaryを追い越している場合は自動昇格をスキップする](https://github.com/bamiyanapp/karuta/pull/1431)
+- [#1428 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1428)
+- [#1427 chore(deps): update bamiyanapp/dev-standards action to v2.61.1](https://github.com/bamiyanapp/karuta/pull/1427)
+- [#1425 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1425)
+- [#1424 chore(deps): update bamiyanapp/dev-standards action to v2.60.0](https://github.com/bamiyanapp/karuta/pull/1424)
+- [#1422 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1422)
+- [#1421 chore(deps): update bamiyanapp/dev-standards action to v2.59.3](https://github.com/bamiyanapp/karuta/pull/1421)
+- [#1420 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1420)
+- [#1417 chore(deps): update dependency eslint-plugin-n to v18.4.1](https://github.com/bamiyanapp/karuta/pull/1417)
+- [#1419 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1419)
+- [#1418 chore(deps): update bamiyanapp/dev-standards action to v2.58.1](https://github.com/bamiyanapp/karuta/pull/1418)
+- [#1416 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1416)
+- [#1415 chore(deps): update bamiyanapp/dev-standards action to v2.57.1](https://github.com/bamiyanapp/karuta/pull/1415)
+- [#1414 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1414)
+- [#1413 chore(deps): update bamiyanapp/dev-standards action to v2.56.1](https://github.com/bamiyanapp/karuta/pull/1413)
+- [#1412 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1412)
+
+## キューイング中の変更
+
+canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
+
+（該当するPRが見つからなかった）
