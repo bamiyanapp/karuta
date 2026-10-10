@@ -257,4 +257,21 @@ jobs:
           fi
           git add docs/generated/canary-status.md
           git commit -m "chore(canary): canary運用状態を更新する [skip ci]"
-          git push origin HEAD:main
+
+          # issue #1501: checkoutからpushまでの間に別のコミットがmainへ先に積まれ、
+          # non-fast-forwardでpushが失敗することがある。mainを取り込んでリトライする。
+          # 本ファイルは毎回フルで再生成する内容のため、コンフリクト時は自分側
+          # （今回生成した最新状態）を優先してよい
+          MAX_RETRIES=3
+          for i in $(seq 1 "$MAX_RETRIES"); do
+            if git push origin HEAD:main; then
+              echo "pushに成功した"
+              exit 0
+            fi
+            echo "push失敗（試行${i}/${MAX_RETRIES}）。mainを取り込んでリトライする"
+            git fetch origin main
+            git rebase -X ours origin/main
+          done
+
+          echo "push再試行後も失敗した" >&2
+          exit 1
