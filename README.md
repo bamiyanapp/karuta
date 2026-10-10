@@ -99,7 +99,7 @@ graph TD
 
 </details>
 
-![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README.png?322eb0e5a0693ead26fe06817beea8891c092b78)
+![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README.png?6b43ba5f0116ccca058bfc322cc228527302d2a5)
 
 ### Backend API (AWS Lambda)
 
