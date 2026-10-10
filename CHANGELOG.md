@@ -1,3 +1,10 @@
+# [1.101.0](https://github.com/bamiyanapp/karuta/compare/v1.100.0...v1.101.0) (2026-10-10)
+
+
+### Features
+
+* **canary:** canary反映済み・stable昇格待ちのPR一覧を追加し時刻表示をJSTに統一する ([#1479](https://github.com/bamiyanapp/karuta/issues/1479)) ([322eb0e](https://github.com/bamiyanapp/karuta/commit/322eb0e5a0693ead26fe06817beea8891c092b78)), closes [#1478](https://github.com/bamiyanapp/karuta/issues/1478)
+
 # [1.100.0](https://github.com/bamiyanapp/karuta/compare/v1.99.0...v1.100.0) (2026-10-10)
 
 
