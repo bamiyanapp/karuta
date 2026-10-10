@@ -177,13 +177,13 @@ jobs:
             echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
-            echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
-              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
               echo "### canaryに反映済み・stable昇格待ちの変更"
               echo ""
@@ -195,6 +195,7 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
+              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> "$GITHUB_STEP_SUMMARY"
@@ -219,13 +220,13 @@ jobs:
             echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
-            echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
           } > docs/generated/canary-status.md
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
-              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
               echo "## canaryに反映済み・stable昇格待ちの変更"
               echo ""
@@ -241,6 +242,7 @@ jobs:
             } >> docs/generated/canary-status.md
           else
             {
+              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo ""
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> docs/generated/canary-status.md
