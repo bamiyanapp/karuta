@@ -85,6 +85,10 @@ jobs:
           # issue #1326（Task 7、カナリアの直列化）: canary使用中に別の更新が
           # マージされた際のキュー待ちフラグ
           seed_default "canary_queue_pending" "false"
+          # issue #1489: canaryスタックが実際に存在するかどうか。promote-canary.yml
+          # がcanaryのデプロイ・削除に合わせて更新する。canaryスタックが存在しない
+          # 状態で/canary/へ明示アクセスした際のstableへのフォールバック判定に使う
+          seed_default "canary_exists" "false"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
