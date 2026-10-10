@@ -1,3 +1,10 @@
+# [1.102.0](https://github.com/bamiyanapp/karuta/compare/v1.101.0...v1.102.0) (2026-10-10)
+
+
+### Features
+
+* **canary:** canary-status.mdのPRリンクをタイトル付きで表示する ([#1482](https://github.com/bamiyanapp/karuta/issues/1482)) ([6b43ba5](https://github.com/bamiyanapp/karuta/commit/6b43ba5f0116ccca058bfc322cc228527302d2a5)), closes [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1481](https://github.com/bamiyanapp/karuta/issues/1481)
+
 # [1.101.0](https://github.com/bamiyanapp/karuta/compare/v1.100.0...v1.101.0) (2026-10-10)
 
 

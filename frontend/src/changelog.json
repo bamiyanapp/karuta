@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.101.0",
+    "version": "1.102.0",
     "date": "2026/10/10",
+    "body": "### Features\n\n* **canary:** canary-status.mdのPRリンクをタイトル付きで表示する ([#1482](https://github.com/bamiyanapp/karuta/issues/1482)) ([6b43ba5](https://github.com/bamiyanapp/karuta/commit/6b43ba5f0116ccca058bfc322cc228527302d2a5)), closes [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1481](https://github.com/bamiyanapp/karuta/issues/1481)"
+  },
+  {
+    "version": "1.101.0",
+    "date": "2026/10/10 03:18",
     "body": "### Features\n\n* **canary:** canary反映済み・stable昇格待ちのPR一覧を追加し時刻表示をJSTに統一する ([#1479](https://github.com/bamiyanapp/karuta/issues/1479)) ([322eb0e](https://github.com/bamiyanapp/karuta/commit/322eb0e5a0693ead26fe06817beea8891c092b78)), closes [#1478](https://github.com/bamiyanapp/karuta/issues/1478)"
   },
   {
