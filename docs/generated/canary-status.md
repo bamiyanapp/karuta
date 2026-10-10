@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-10 17:42:59 JST。
+最終更新日時: 2026-10-10 20:04:41 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -10,10 +10,12 @@
 | force_stable（管理者ロールバック中か） | false |
 | canary_queue_pending（反映待ちのマージがあるか） | true |
 | canaryスタックが存在するか | true |
-| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | 2026-10-11 02:37:00 JST（毎日 JST 02:37固定） |
-| canaryの最終更新 | 2026-10-09 07:26:44 JST |
 | stableの最終更新 | 2026-10-06 08:07:12 JST |
-| 次回promote-canary.yml実行時に昇格対象になる日時 | 2026-10-10 07:26:44 JST（force_stable=falseかつstableがcanaryより新しくない場合） |
+| stableの配信中バージョン | （取得できなかった） |
+| canaryの最終更新 | 2026-10-09 07:26:44 JST |
+| canaryの配信中バージョン | （取得できなかった） |
+| 本番昇格の条件を満たす日時 | 2026-10-10 07:26:44 JST以降 |
+| 次回の定期チェック予定 | 2026-10-11 02:37:00 JST |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
@@ -55,6 +57,24 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1533 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1533)
+- [#1532 feat(ci): canary-status.mdにcanary/stableの配信中バージョンを追記する](https://github.com/bamiyanapp/karuta/pull/1532)
+- [#1531 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1531)
+- [#1530 docs(ci): canary-status.mdの日時項目の表現を平易にする](https://github.com/bamiyanapp/karuta/pull/1530)
+- [#1528 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1528)
+- [#1527 chore(ci): dev-standards参照をv2.71.2へ更新する](https://github.com/bamiyanapp/karuta/pull/1527)
+- [#1525 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1525)
+- [#1524 feat(frontend): トップ画面にcanary/stable相互切り替えボタンを追加する](https://github.com/bamiyanapp/karuta/pull/1524)
+- [#1522 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1522)
+- [#1521 chore(ci): dev-standards参照をv2.71.0へ更新する](https://github.com/bamiyanapp/karuta/pull/1521)
+- [#1520 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1520)
+- [#1518 chore(ci): 調査用の一時workflowを削除する](https://github.com/bamiyanapp/karuta/pull/1518)
+- [#1517 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1517)
+- [#1516 fix(canary): KVSのcanary_existsをtrueへ修正し、/canary/明示アクセスを修復する](https://github.com/bamiyanapp/karuta/pull/1516)
+- [#1515 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1515)
+- [#1513 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1513)
+- [#1510 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1510)
+- [#1509 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1509)
 - [#1508 fix(ci): canary-status.ymlのmain pushを新ブランチ+PR squash merge方式に変更する](https://github.com/bamiyanapp/karuta/pull/1508)
 - [#1506 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1506)
 - [#1504 fix(deps): package-lock.jsonをbackend/package.jsonの依存バージョン宣言に同期させる](https://github.com/bamiyanapp/karuta/pull/1504)
