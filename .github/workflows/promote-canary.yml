@@ -176,7 +176,12 @@ jobs:
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "10" >/dev/null
           ETAG2=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "force_stable" --value "false" >/dev/null
-          echo "KVSを既定値（canary_weight=10, force_stable=false）へリセットした"
+          # issue #1489: 直前のステップでcanaryスタックを削除したため、
+          # /canary/への明示アクセス時にstableへフォールバックできるよう
+          # canary_existsをfalseへ更新する
+          ETAG3=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG3" --key "canary_exists" --value "false" >/dev/null
+          echo "KVSを既定値（canary_weight=10, force_stable=false, canary_exists=false）へリセットした"
 
       - name: "5. canaryを最新化すべきか判定する（issue #1448・#1449）"
         id: refresh
@@ -234,14 +239,18 @@ jobs:
           aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
           aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
 
-      - name: canaryを最新化したら、canary_queue_pendingをfalseへリセットする
+      - name: canaryを最新化したら、canary_queue_pendingをfalseへリセットし、canary_existsをtrueにする
         if: steps.refresh.outputs.refresh == 'true'
         run: |
           set -eu
           KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
           ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "false" >/dev/null
-          echo "canary_queue_pending を false へリセットした"
+          # issue #1489: 直前のステップでcanaryのbackend/frontend両方を実際に
+          # デプロイしたため、/canary/への明示アクセスが素通しされてよい状態になった
+          ETAG2=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "canary_exists" --value "true" >/dev/null
+          echo "canary_queue_pending を false へ、canary_exists を true へ更新した"
 
       - name: Write summary
         if: always()

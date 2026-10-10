@@ -155,12 +155,14 @@ resources:
 
           var KVS_WEIGHT_KEY = 'canary_weight';
           var KVS_FORCE_STABLE_KEY = 'force_stable';
+          var KVS_CANARY_EXISTS_KEY = 'canary_exists';
           var DEFAULT_WEIGHT_PERCENT = 10;
           var COOKIE_NAME = 'canary';
           var NEW_ASSIGNMENT_HEADER = 'x-bg-new-assignment';
 
           async function handler(event) {
               var request = event.request;
+              var kvsHandle = cf.kvs();
 
               // issue #1321の動作確認・Task 10（#1329、手動切り替えリンク）との
               // 前方互換のため、明示的に/stable/または/canary/で始まるリクエストは
@@ -172,6 +174,30 @@ resources:
               // 表面化する）
               var isExplicitStable = request.uri === '/stable' || request.uri.indexOf('/stable/') === 0;
               var isExplicitCanary = request.uri === '/canary' || request.uri.indexOf('/canary/') === 0;
+
+              // issue #1489: canaryスタックが存在しない状態（昇格直後等）で
+              // /canary/へ明示アクセスすると、S3に対応するオブジェクトが
+              // 無くAccess Deniedとなり白画面になる。ErrorBoundaryはReact
+              // アプリ起動後にのみ効くため、index.html自体が取得できない
+              // このケースは救済できない。canary_exists（promote-canary.ymlが
+              // canaryのデプロイ・削除に合わせて更新、issue #1448で既存の
+              // force_stable/canary_weight同様KVS管理）がtrueでなければ、
+              // /canary/明示アクセスもstable固定へ読み替える
+              if (isExplicitCanary) {
+                  var canaryExists = false;
+                  try {
+                      var canaryExistsValue = await kvsHandle.get(KVS_CANARY_EXISTS_KEY);
+                      canaryExists = canaryExistsValue === 'true';
+                  } catch (err) {
+                      // KVSに未設定の場合は既定値(false)のまま進める
+                  }
+                  if (!canaryExists) {
+                      isExplicitCanary = false;
+                      isExplicitStable = true;
+                      request.uri = request.uri.replace(/^\/canary/, '/stable');
+                  }
+              }
+
               if (isExplicitStable || isExplicitCanary) {
                   if (request.uri.endsWith('/')) {
                       request.uri += 'index.html';
@@ -188,8 +214,6 @@ resources:
                   }
                   return request;
               }
-
-              var kvsHandle = cf.kvs();
 
               var forceStable = false;
               try {

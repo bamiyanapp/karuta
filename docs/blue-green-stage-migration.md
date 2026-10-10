@@ -117,6 +117,12 @@ issue記載の「`canary` Cookieを削除してから再読み込みする」方
 
 `.github/workflows/verify-stable-fallback.yml`（`workflow_dispatch`）で、実デプロイ済みのCloudFront URLを対象に自動検証する。検証内容は「`/stable/`への明示アクセスが常にstableの内容を返すこと」と「`/stable/`アクセス後、以後のCookie無し通常アクセスもstableへ固定されること」の2点である。ErrorBoundary自体の自動遷移ロジック（JS側の挙動）はブラウザでのみ確認可能なため対象外とし、単体テストで検証した。
 
+### 補足: canaryスタックが存在しない状態での/canary/明示アクセス対策（issue #1489）
+
+上記のErrorBoundaryによる自動フォールバックは、canaryアプリ自体が起動した後にエラーが起きた場合にのみ機能する。canaryスタック自体が存在しない状態（昇格直後でまだ新規canaryが作られていない等）で`/canary/`へ明示アクセスすると、S3に対応するオブジェクトが無く`index.html`自体を取得できないため、ErrorBoundaryが発火する前に白画面になってしまう。
+
+この対策として、KVSに`canary_exists`キーを新設した。`promote-canary.yml`がcanaryのデプロイ・削除に合わせて更新する（デプロイ成功時に`true`、削除時に`false`）。`ViewerRequestFunction`は`/canary/`への明示アクセス時にこのキーを確認し、`true`でなければ`/stable/`への明示アクセスと同様に扱う（stableへ読み替え、以後の通常アクセスも`stable` Cookieで固定する）。
+
 ### 補足: 手動切り替えリンク（Task 10）
 
 ErrorBoundaryが検知できない軽微な不具合（クラッシュに至らない表示崩れ等）向けに、`frontend/src/components/StableSwitchLink.jsx`をフッターへ追加した。`import.meta.env.MODE`が`canary`のビルドでのみ表示し、クリックすると`/stable${検索クエリ}`へ遷移する。Task 9で追加した`ViewerRequestFunction`側のstable固定ロジックをそのまま再利用するため、CloudFront Functions側の追加変更は不要だった。
