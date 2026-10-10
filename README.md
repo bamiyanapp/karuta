@@ -40,6 +40,8 @@
 
 ## Architecture
 
+自動生成ドキュメントの一覧は[docs/generated/README.md](docs/generated/README.md)を参照してください。以下はその一部を個別に示したもの。
+
 ### System Architecture
 
 `backend/serverless.yml`の実際の定義から自動生成されるサーバレス構成図（関数単位のリソース依存関係、issue #919）を参照: [docs/generated/serverless-architecture.md](docs/generated/serverless-architecture.md)
@@ -99,7 +101,7 @@ graph TD
 
 </details>
 
-![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README.png?1f2d0cfeaceecc74982445dbbbc0ff8d7fdb7576)
+![Screen Transitions (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/README.png?5cc9fdf4a4e1b89651e3fc1a1850c3701ebbf30a)
 
 ### Backend API (AWS Lambda)
 
