@@ -62,4 +62,4 @@ sequenceDiagram
 
 </details>
 
-![WebSocket API 通信フロー (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/websocket-api.png?6b43ba5f0116ccca058bfc322cc228527302d2a5)
+![WebSocket API 通信フロー (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/websocket-api.png?5cc9fdf4a4e1b89651e3fc1a1850c3701ebbf30a)
