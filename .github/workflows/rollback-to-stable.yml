@@ -12,7 +12,12 @@ run-name: Rollback to Stable (manual)
 # force_stableをfalse（通常運用）へ戻す操作は、本workflowの対象外とする。
 # 誤ってtoggleしてしまう事故を避けるため、本workflowには「戻す」機能を
 # 持たせない。復帰はTask 12（自動昇格、#1331）経由、または必要に応じて
-# 別途手動でAWS CLIを実行する運用とする
+# 別途手動でAWS CLIを実行する運用とする。
+#
+# issue #1548: force_stableをtrueに設定する処理自体が、後からdev-standards側で
+# reusable-rollback-to-stable.ymlへ一般化された（bamiyanapp/dev-standards#756）。
+# KVS ARNの解決方法（osls info）・反映確認（canary Cookie付きでの実アクセス確認）
+# はプロダクト固有のためkaruta側に残し、KVS更新処理のみ共通actionへ委譲する
 on:
   workflow_dispatch: {}
 
@@ -20,8 +25,11 @@ permissions:
   contents: read
 
 jobs:
-  rollback:
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      domain: ${{ steps.resolve.outputs.domain }}
+      kvs_arn: ${{ steps.resolve.outputs.kvs_arn }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -52,23 +60,25 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: force_stableをtrueに設定する
-        working-directory: infra
-        run: |
-          set -eu
-          KVS_ARN="${{ steps.resolve.outputs.kvs_arn }}"
-          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "force_stable" --value "true" >/dev/null
-          echo "force_stable を true に設定した"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  rollback:
+    needs: resolve
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-rollback-to-stable.yml@v2.74.0
+    with:
+      kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
+      kvs_key: force_stable
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+  verify:
+    needs: [resolve, rollback]
+    runs-on: ubuntu-latest
+    steps:
       - name: 反映を確認する（KVS伝播待ち、既存canary Cookie保持者も含む）
         id: verify
         run: |
           set -eu
-          DOMAIN="${{ steps.resolve.outputs.domain }}"
+          DOMAIN="${{ needs.resolve.outputs.domain }}"
           # KVS更新のCloudFrontエッジ拠点への伝播は非同期（issue #1322の実機
           # 検証で最大30秒程度かかることを確認済み）。伝播を確認できるまで
           # 一定間隔でリトライする（最大120秒）
@@ -91,9 +101,6 @@ jobs:
             echo "force_stable=trueが$((MAX_WAIT_ATTEMPTS * WAIT_SECONDS))秒経っても反映されなかった" >&2
             exit 1
           fi
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Write summary
         if: always()
