@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.102.2",
+    "version": "1.102.3",
     "date": "2026/10/10",
+    "body": "### Bug Fixes\n\n* **deps:** package-lock.jsonをbackend/package.jsonの依存バージョン宣言に同期させる ([#1504](https://github.com/bamiyanapp/karuta/issues/1504)) ([a021433](https://github.com/bamiyanapp/karuta/commit/a021433f94d5d032807f849e17a975e2d80612f9)), closes [#1503](https://github.com/bamiyanapp/karuta/issues/1503)"
+  },
+  {
+    "version": "1.102.2",
+    "date": "2026/10/10 08:17",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのpush失敗時にmainを取り込んでリトライする ([#1502](https://github.com/bamiyanapp/karuta/issues/1502)) ([9969c74](https://github.com/bamiyanapp/karuta/commit/9969c747a7ec09d06a6cb2b2f7e041d1716b960f)), closes [#1501](https://github.com/bamiyanapp/karuta/issues/1501)"
   },
   {

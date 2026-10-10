@@ -1,3 +1,10 @@
+## [1.102.3](https://github.com/bamiyanapp/karuta/compare/v1.102.2...v1.102.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** package-lock.jsonをbackend/package.jsonの依存バージョン宣言に同期させる ([#1504](https://github.com/bamiyanapp/karuta/issues/1504)) ([a021433](https://github.com/bamiyanapp/karuta/commit/a021433f94d5d032807f849e17a975e2d80612f9)), closes [#1503](https://github.com/bamiyanapp/karuta/issues/1503)
+
 ## [1.102.2](https://github.com/bamiyanapp/karuta/compare/v1.102.1...v1.102.2) (2026-10-10)
 
 
