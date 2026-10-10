@@ -1,3 +1,10 @@
+## [1.104.1](https://github.com/bamiyanapp/karuta/compare/v1.104.0...v1.104.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* **ci:** deploy-backend-stage.ymlにcanary占有中の誤デプロイを防ぐガードを追加する ([#1539](https://github.com/bamiyanapp/karuta/issues/1539)) ([9cc9021](https://github.com/bamiyanapp/karuta/commit/9cc9021403f8be76af942bf564e45a4adec432b9)), closes [#1538](https://github.com/bamiyanapp/karuta/issues/1538)
+
 # [1.104.0](https://github.com/bamiyanapp/karuta/compare/v1.103.0...v1.104.0) (2026-10-10)
 
 
