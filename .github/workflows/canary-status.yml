@@ -76,11 +76,11 @@ jobs:
           if [ "$LAST_UPDATED" = "None" ]; then
             LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].CreationTime" --output text)
           fi
-          echo "canary_last_updated=${LAST_UPDATED}" >> "$GITHUB_OUTPUT"
-
           LAST_UPDATED_EPOCH=$(date -d "$LAST_UPDATED" +%s)
+          echo "canary_last_updated=$(TZ=Asia/Tokyo date -d "@${LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
+
           ELIGIBLE_EPOCH=$(( LAST_UPDATED_EPOCH + GRACE_PERIOD_DAYS * 86400 ))
-          ELIGIBLE_AT=$(date -u -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
+          ELIGIBLE_AT=$(TZ=Asia/Tokyo date -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
           echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
 
           # issue #1475: canaryの最終更新以降にmainへマージされたPRをリンクで示す。
@@ -99,6 +99,42 @@ jobs:
             echo "PR_LINKS_EOF"
           } >> "$GITHUB_OUTPUT"
 
+          # issue #1478: 「canaryには反映済みだがstableへはまだ昇格していない」PRを
+          # 区別して示す。stableスタックのLastUpdatedTime（promote-canary.ymlの
+          # stable_ahead_of_canary判定と同じ取得方法）からcanaryの最終更新時刻までの
+          # 間にmainへマージされたPRが対象
+          if aws cloudformation describe-stacks --stack-name karuta-app-stable >/dev/null 2>&1; then
+            STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].LastUpdatedTime" --output text)
+            if [ "$STABLE_LAST_UPDATED" = "None" ]; then
+              STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].CreationTime" --output text)
+            fi
+            STABLE_LAST_UPDATED_EPOCH=$(date -d "$STABLE_LAST_UPDATED" +%s)
+            echo "stable_last_updated=$(TZ=Asia/Tokyo date -d "@${STABLE_LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
+
+            if [ "$STABLE_LAST_UPDATED_EPOCH" -gt "$LAST_UPDATED_EPOCH" ]; then
+              # promote-canary.ymlのstable_ahead_of_canaryと同じ状態（緊急デプロイ等で
+              # stableがcanaryを追い越している）。この場合「反映済み・昇格待ち」の
+              # 区間自体が存在しないため対象外とする
+              IN_CANARY_PR_NUMBERS=""
+            else
+              IN_CANARY_PR_NUMBERS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -oE '\(#[0-9]+\)' | grep -oE '[0-9]+' | awk '!seen[$0]++')
+            fi
+          else
+            echo "stable_last_updated=" >> "$GITHUB_OUTPUT"
+            IN_CANARY_PR_NUMBERS=""
+          fi
+          {
+            echo "in_canary_pr_links<<IN_CANARY_LINKS_EOF"
+            if [ -n "$IN_CANARY_PR_NUMBERS" ]; then
+              while IFS= read -r num; do
+                echo "- https://github.com/bamiyanapp/karuta/pull/${num}"
+              done <<< "$IN_CANARY_PR_NUMBERS"
+            else
+              echo "（該当するPRが見つからなかった）"
+            fi
+            echo "IN_CANARY_LINKS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
       # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
@@ -113,7 +149,7 @@ jobs:
           else
             NEXT_RUN_EPOCH=$(date -u -d "tomorrow 17:37" +%s)
           fi
-          NEXT_RUN_AT=$(date -u -d "@${NEXT_RUN_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
+          NEXT_RUN_AT=$(TZ=Asia/Tokyo date -d "@${NEXT_RUN_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
           echo "next_promote_run_at=${NEXT_RUN_AT}" >> "$GITHUB_OUTPUT"
 
       - name: Write summary
@@ -129,14 +165,19 @@ jobs:
             echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
-            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 UTC 17:37 / JST 02:37固定） |"
+            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 JST 02:37固定） |"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
               echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
               echo ""
-              echo "### キューイング中の変更（canary最終更新以降にmainへマージされたPR）"
+              echo "### canaryに反映済み・stable昇格待ちの変更"
+              echo ""
+              echo "${{ steps.status.outputs.in_canary_pr_links }}"
+              echo ""
+              echo "### キューイング中の変更（canaryにも未反映・canary最終更新以降にmainへマージされたPR）"
               echo ""
               echo "${{ steps.status.outputs.queued_pr_links }}"
             } >> "$GITHUB_STEP_SUMMARY"
@@ -158,7 +199,7 @@ jobs:
             echo ""
             echo "このファイルは\`canary-status.yml\`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。"
             echo ""
-            echo "最終更新日時: $(date -u +"%Y-%m-%dT%H:%M:%SZ")。"
+            echo "最終更新日時: $(TZ=Asia/Tokyo date +"%Y-%m-%d %H:%M:%S JST")。"
             echo ""
             echo "| 項目 | 値 |"
             echo "|---|---|"
@@ -166,16 +207,23 @@ jobs:
             echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
-            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 UTC 17:37 / JST 02:37固定） |"
+            echo "| 次回promote-canary.ymlのスケジュール実行予定（適用スケジュール） | ${{ steps.schedule.outputs.next_promote_run_at }}（毎日 JST 02:37固定） |"
           } > docs/generated/canary-status.md
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
               echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
+              echo ""
+              echo "## canaryに反映済み・stable昇格待ちの変更"
+              echo ""
+              echo "stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。"
+              echo ""
+              echo "${{ steps.status.outputs.in_canary_pr_links }}"
               echo ""
               echo "## キューイング中の変更"
               echo ""
-              echo "canary最終更新以降にmainへマージされたPRの一覧。これらは次回canary更新時にまとめて反映される。"
+              echo "canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。"
               echo ""
               echo "${{ steps.status.outputs.queued_pr_links }}"
             } >> docs/generated/canary-status.md
