@@ -40,6 +40,8 @@
 
 ## Architecture
 
+自動生成ドキュメントの一覧は[docs/generated/README.md](docs/generated/README.md)を参照してください。以下はその一部を個別に示したもの。
+
 ### System Architecture
 
 `backend/serverless.yml`の実際の定義から自動生成されるサーバレス構成図（関数単位のリソース依存関係、issue #919）を参照: [docs/generated/serverless-architecture.md](docs/generated/serverless-architecture.md)
