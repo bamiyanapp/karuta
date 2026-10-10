@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   status:
@@ -245,7 +246,15 @@ jobs:
             } >> docs/generated/canary-status.md
           fi
 
-      - name: 変更があればコミット・pushする
+      # issue #1507: mainブランチはリポジトリルール（Rulesets）で「変更は必ずPR経由」
+      # となっており、mainへの直接push（git push origin HEAD:main）はGH013エラーで
+      # 常に拒否される。issue #1501で追加したリトライ（non-fast-forward対策）は
+      # この拒否自体を解消できない（リトライしても毎回同じ理由で失敗する）。
+      # reusable-ci.ymlのrender-mermaid-diagramsジョブと同じ「新ブランチへpush→
+      # PR作成→API経由でsquash merge」方式に切り替える。PRのマージはAPI経由の
+      # 操作であり「変更は必ずPR経由」のルール自体を満たす
+      - name: 変更があればコミットする
+        id: commit
         if: always()
         run: |
           set -eu
@@ -253,25 +262,94 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git diff --quiet -- docs/generated/canary-status.md; then
             echo "変更なし。コミットをスキップする。"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git add docs/generated/canary-status.md
           git commit -m "chore(canary): canary運用状態を更新する [skip ci]"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
-          # issue #1501: checkoutからpushまでの間に別のコミットがmainへ先に積まれ、
-          # non-fast-forwardでpushが失敗することがある。mainを取り込んでリトライする。
-          # 本ファイルは毎回フルで再生成する内容のため、コンフリクト時は自分側
-          # （今回生成した最新状態）を優先してよい
-          MAX_RETRIES=3
-          for i in $(seq 1 "$MAX_RETRIES"); do
-            if git push origin HEAD:main; then
-              echo "pushに成功した"
-              exit 0
-            fi
-            echo "push失敗（試行${i}/${MAX_RETRIES}）。mainを取り込んでリトライする"
-            git fetch origin main
-            git rebase -X ours origin/main
-          done
+      # 新規ブランチへのpushはmainのルール対象外。force pushにしているのは、
+      # 過去の失敗試行で同名ブランチが残骸として残っていると、通常のpushが
+      # non-fast-forwardで拒否され以後の実行が恒久的に失敗し続けるため
+      # （reusable-ci.ymlの同種ステップ・dev-standards#481と同根の対策）
+      - name: コミットを新しいブランチへpushする
+        id: push-branch
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -eu
+          BRANCH="chore/canary-status-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git push --force origin "$BRANCH"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
 
-          echo "push再試行後も失敗した" >&2
-          exit 1
+      - name: PRを作成してsquash mergeする
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const branch = "${{ steps.push-branch.outputs.branch }}";
+            const baseBranch = "${{ github.ref_name }}";
+
+            let pr;
+            try {
+              ({ data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: branch,
+                base: baseBranch,
+                title: "chore(canary): canary運用状態を更新する [skip ci]",
+                body: "canary-status.ymlによる自動PRです（issue #1507）。",
+              }));
+              console.log(`Created canary-status PR #${pr.number}`);
+            } catch (error) {
+              if (!error.message.includes("A pull request already exists")) {
+                throw error;
+              }
+              const { data: existingPrs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branch}`,
+                state: "open",
+              });
+              if (existingPrs.length === 0) {
+                throw error;
+              }
+              pr = existingPrs[0];
+              console.log(`Reusing existing canary-status PR #${pr.number}`);
+            }
+
+            // pushで作成したブランチ直後はGitHub側のmergeable判定が追いついていない
+            // ことがあるため、短い間隔でリトライする
+            const maxAttempts = 5;
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              try {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  merge_method: "squash",
+                });
+                console.log(`Successfully merged canary-status PR #${pr.number}`);
+                break;
+              } catch (error) {
+                if (attempt === maxAttempts) {
+                  console.error(`Failed to merge canary-status PR #${pr.number}:`, error.message);
+                  throw error;
+                }
+                console.log(`Merge attempt ${attempt} failed (${error.message}), retrying...`);
+                await new Promise((resolve) => setTimeout(resolve, attempt * 3000));
+              }
+            }
+
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branch}`,
+              });
+            } catch (error) {
+              if (!(error.status === 422 || error.message.includes("Reference does not exist"))) {
+                console.error(`Failed to delete branch ${branch}:`, error.message);
+              }
+            }
