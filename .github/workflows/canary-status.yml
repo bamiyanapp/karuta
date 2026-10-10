@@ -59,6 +59,17 @@ jobs:
           GRACE_PERIOD_DAYS=1 # promote-canary.ymlと同じ値（issue #1442）
           KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
 
+          # issue #1481: URLだけでは判別できないため、タイトル付きのMarkdownリンクとして
+          # 表示する。squash mergeのコミット件名は末尾の"(#1234)"を除けばPRタイトル
+          # そのものなので、GitHub APIを呼ばずに件名から直接組み立てる
+          pr_link() {
+            local subject="$1"
+            local num title
+            num=$(echo "$subject" | grep -oE '#[0-9]+\)$' | tr -d '#)')
+            title=$(echo "$subject" | sed -E 's/ *\(#[0-9]+\)$//')
+            echo "- [#${num} ${title}](https://github.com/bamiyanapp/karuta/pull/${num})"
+          }
+
           CANARY_WEIGHT=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_weight" --query Value --output text 2>/dev/null || echo "（未設定）")
           FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
           PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
@@ -84,15 +95,15 @@ jobs:
           echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
 
           # issue #1475: canaryの最終更新以降にmainへマージされたPRをリンクで示す。
-          # squash mergeのコミットメッセージ末尾に付くGitHub標準の"(#1234)"形式から
-          # PR番号を抽出する（重複は保持順でuniqする）
-          PR_NUMBERS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -oE '\(#[0-9]+\)' | grep -oE '[0-9]+' | awk '!seen[$0]++')
+          # squash mergeのコミットメッセージ末尾に付くGitHub標準の"(#1234)"形式を
+          # 持つ件名のみを対象とする（重複は保持順でuniqする）
+          PR_SUBJECTS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | awk '!seen[$0]++')
           {
             echo "queued_pr_links<<PR_LINKS_EOF"
-            if [ -n "$PR_NUMBERS" ]; then
-              while IFS= read -r num; do
-                echo "- https://github.com/bamiyanapp/karuta/pull/${num}"
-              done <<< "$PR_NUMBERS"
+            if [ -n "$PR_SUBJECTS" ]; then
+              while IFS= read -r subject; do
+                pr_link "$subject"
+              done <<< "$PR_SUBJECTS"
             else
               echo "（該当するPRが見つからなかった）"
             fi
@@ -115,20 +126,20 @@ jobs:
               # promote-canary.ymlのstable_ahead_of_canaryと同じ状態（緊急デプロイ等で
               # stableがcanaryを追い越している）。この場合「反映済み・昇格待ち」の
               # 区間自体が存在しないため対象外とする
-              IN_CANARY_PR_NUMBERS=""
+              IN_CANARY_PR_SUBJECTS=""
             else
-              IN_CANARY_PR_NUMBERS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -oE '\(#[0-9]+\)' | grep -oE '[0-9]+' | awk '!seen[$0]++')
+              IN_CANARY_PR_SUBJECTS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | awk '!seen[$0]++')
             fi
           else
             echo "stable_last_updated=" >> "$GITHUB_OUTPUT"
-            IN_CANARY_PR_NUMBERS=""
+            IN_CANARY_PR_SUBJECTS=""
           fi
           {
             echo "in_canary_pr_links<<IN_CANARY_LINKS_EOF"
-            if [ -n "$IN_CANARY_PR_NUMBERS" ]; then
-              while IFS= read -r num; do
-                echo "- https://github.com/bamiyanapp/karuta/pull/${num}"
-              done <<< "$IN_CANARY_PR_NUMBERS"
+            if [ -n "$IN_CANARY_PR_SUBJECTS" ]; then
+              while IFS= read -r subject; do
+                pr_link "$subject"
+              done <<< "$IN_CANARY_PR_SUBJECTS"
             else
               echo "（該当するPRが見つからなかった）"
             fi
