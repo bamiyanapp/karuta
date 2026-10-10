@@ -19,26 +19,26 @@
 
 stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。
 
-- https://github.com/bamiyanapp/karuta/pull/1430
-- https://github.com/bamiyanapp/karuta/pull/1429
+- [#1430 feat(frontend): UI改善(共有画面・トップデザイン・リンク移設)](https://github.com/bamiyanapp/karuta/pull/1430)
+- [#1429 feat: UI改善4点を実装](https://github.com/bamiyanapp/karuta/pull/1429)
 
 ## キューイング中の変更
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
-- https://github.com/bamiyanapp/karuta/pull/1474
-- https://github.com/bamiyanapp/karuta/pull/1473
-- https://github.com/bamiyanapp/karuta/pull/1471
-- https://github.com/bamiyanapp/karuta/pull/1469
-- https://github.com/bamiyanapp/karuta/pull/1470
-- https://github.com/bamiyanapp/karuta/pull/1466
-- https://github.com/bamiyanapp/karuta/pull/1467
-- https://github.com/bamiyanapp/karuta/pull/1465
-- https://github.com/bamiyanapp/karuta/pull/1464
-- https://github.com/bamiyanapp/karuta/pull/1463
-- https://github.com/bamiyanapp/karuta/pull/1461
-- https://github.com/bamiyanapp/karuta/pull/1460
-- https://github.com/bamiyanapp/karuta/pull/1457
-- https://github.com/bamiyanapp/karuta/pull/1456
-- https://github.com/bamiyanapp/karuta/pull/1455
-- https://github.com/bamiyanapp/karuta/pull/1454
+- [#1474 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1474)
+- [#1473 feat(canary): canary運用状態をGitから可視化できるようにする](https://github.com/bamiyanapp/karuta/pull/1473)
+- [#1471 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1471)
+- [#1469 chore(ci): dev-standards参照をv2.69.0へ更新する](https://github.com/bamiyanapp/karuta/pull/1469)
+- [#1470 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1470)
+- [#1466 docs: README.mdの文をsentence-length閾値100で分割する](https://github.com/bamiyanapp/karuta/pull/1466)
+- [#1467 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1467)
+- [#1465 chore(deps): update aws-sdk-js-v3 monorepo to v3.1147.0](https://github.com/bamiyanapp/karuta/pull/1465)
+- [#1464 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1464)
+- [#1463 feat(canary): canary/stableの運用可視性を改善する](https://github.com/bamiyanapp/karuta/pull/1463)
+- [#1461 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1461)
+- [#1460 fix(ci): dependency-risk自動クローズ機能を有効化する](https://github.com/bamiyanapp/karuta/pull/1460)
+- [#1457 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1457)
+- [#1456 chore(deps): update dependency vite to v8.3.3](https://github.com/bamiyanapp/karuta/pull/1456)
+- [#1455 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1455)
+- [#1454 fix(data): Git大ピンチのkanaデータ3件を修正し、かな整合チェック対象にする](https://github.com/bamiyanapp/karuta/pull/1454)
