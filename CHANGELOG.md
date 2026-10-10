@@ -1,3 +1,10 @@
+## [1.104.2](https://github.com/bamiyanapp/karuta/compare/v1.104.1...v1.104.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* **frontend:** 全札一覧の指摘内容確認リンクをスクロールで画面外へ流れるようにする ([#1544](https://github.com/bamiyanapp/karuta/issues/1544)) ([4572f2b](https://github.com/bamiyanapp/karuta/commit/4572f2b649fae7cfb280e8ae3eb11834cf56f931)), closes [#1542](https://github.com/bamiyanapp/karuta/issues/1542)
+
 ## [1.104.1](https://github.com/bamiyanapp/karuta/compare/v1.104.0...v1.104.1) (2026-10-10)
 
 
