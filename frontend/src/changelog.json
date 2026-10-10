@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.102.4",
+    "version": "1.102.5",
     "date": "2026/10/10",
+    "body": "### Bug Fixes\n\n* **canary:** KVSのcanary_existsをtrueへ修正し、/canary/明示アクセスを修復する ([#1516](https://github.com/bamiyanapp/karuta/issues/1516)) ([4e0018a](https://github.com/bamiyanapp/karuta/commit/4e0018af6e75832e02edf178800b8f2de9b4bf86))"
+  },
+  {
+    "version": "1.102.4",
+    "date": "2026/10/10 09:14",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのmain pushを新ブランチ+PR squash merge方式に変更する ([#1508](https://github.com/bamiyanapp/karuta/issues/1508)) ([a666c75](https://github.com/bamiyanapp/karuta/commit/a666c75ead3702250c6bdf5d97de29cf4204627d))"
   },
   {

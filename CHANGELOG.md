@@ -1,3 +1,10 @@
+## [1.102.5](https://github.com/bamiyanapp/karuta/compare/v1.102.4...v1.102.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* **canary:** KVSのcanary_existsをtrueへ修正し、/canary/明示アクセスを修復する ([#1516](https://github.com/bamiyanapp/karuta/issues/1516)) ([4e0018a](https://github.com/bamiyanapp/karuta/commit/4e0018af6e75832e02edf178800b8f2de9b4bf86))
+
 ## [1.102.4](https://github.com/bamiyanapp/karuta/compare/v1.102.3...v1.102.4) (2026-10-10)
 
 
