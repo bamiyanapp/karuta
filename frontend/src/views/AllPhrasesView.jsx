@@ -49,18 +49,29 @@ function AllPhrasesView({
         title="全札一覧"
       />
 
-      {/* 指摘された事項一覧へのリンクはトップページから本画面上部へ移設した（issue #1429） */}
-      <div className="text-end mb-3">
-        <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
-          指摘された内容を確認する →
-        </button>
-      </div>
-
       <main className="mx-auto" style={{ maxWidth: "1200px" }}>
         {allPhrases.length === 0 ? (
-          <p className="text-muted text-center py-5">読み込み中...</p>
+          <>
+            {/* 指摘された事項一覧へのリンクはトップページから本画面上部へ移設した
+                （issue #1429）。全札の読み込み状況に関わらず常に到達できるよう、
+                読み込み中もここで表示する */}
+            <div className="text-end mb-3">
+              <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
+                指摘された内容を確認する →
+              </button>
+            </div>
+            <p className="text-muted text-center py-5">読み込み中...</p>
+          </>
         ) : (
           <div className="all-phrases-scroll-container">
+            {/* 読み込み後は種別フィルタボタンと同じスクロール領域内に置き、
+                スクロールすると画面外へ流れる挙動を揃える（issue #1542） */}
+            <div className="text-end mb-3">
+              <button onClick={() => setView("comments")} className="btn btn-link text-decoration-none text-muted small">
+                指摘された内容を確認する →
+              </button>
+            </div>
+
             <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
               <span className="text-muted small fw-bold me-1">対象:</span>
               <button
