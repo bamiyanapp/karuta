@@ -17,6 +17,60 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: KVS ARNを解決する
+        id: kvs
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: issue #1511 canary_existsの現在値を確認し、canaryスタックが実在すればtrueへ修正する
+        run: |
+          set -eu
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+          CURRENT=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_exists" --query Value --output text 2>/dev/null || echo "(未設定)")
+          echo "## canary_existsの修正（issue #1511）" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "修正前のcanary_exists: ${CURRENT}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
+            echo "canaryスタックが実在しないため、修正をスキップする" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [ "$CURRENT" = "true" ]; then
+            echo "既にtrueのため、修正をスキップする" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
+          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_exists" --value "true" >/dev/null
+          echo "canary_existsをtrueへ修正した" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          # 修正前の誤ったstableレスポンス（Set-Cookie: canary=stable含む）が
+          # /canary/へのアクセスに対してキャッシュされている可能性があるため、
+          # 修正を即時反映させるためinvalidationも行う
+          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
+          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*' '/canary'
+          echo "CloudFront invalidation（/canary/*）を発行した" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: S3上のcanary/index.htmlの内容・タイムスタンプを確認する
         run: |
           set -eu
