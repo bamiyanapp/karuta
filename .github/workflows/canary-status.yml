@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           submodules: true
+          fetch-depth: 0 # issue #1475: canary最終更新以降のコミット履歴からPRリンクを抽出するために全履歴が必要
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -82,6 +83,22 @@ jobs:
           ELIGIBLE_AT=$(date -u -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%dT%H:%M:%SZ")
           echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
 
+          # issue #1475: canaryの最終更新以降にmainへマージされたPRをリンクで示す。
+          # squash mergeのコミットメッセージ末尾に付くGitHub標準の"(#1234)"形式から
+          # PR番号を抽出する（重複は保持順でuniqする）
+          PR_NUMBERS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -oE '\(#[0-9]+\)' | grep -oE '[0-9]+' | awk '!seen[$0]++')
+          {
+            echo "queued_pr_links<<PR_LINKS_EOF"
+            if [ -n "$PR_NUMBERS" ]; then
+              while IFS= read -r num; do
+                echo "- https://github.com/bamiyanapp/karuta/pull/${num}"
+              done <<< "$PR_NUMBERS"
+            else
+              echo "（該当するPRが見つからなかった）"
+            fi
+            echo "PR_LINKS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
       # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
@@ -118,6 +135,10 @@ jobs:
             {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
+              echo ""
+              echo "### キューイング中の変更（canary最終更新以降にmainへマージされたPR）"
+              echo ""
+              echo "${{ steps.status.outputs.queued_pr_links }}"
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
@@ -151,6 +172,12 @@ jobs:
             {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| 次回promote-canary.yml実行時に昇格対象になる日時 | ${{ steps.status.outputs.promotion_eligible_at }}（force_stable=falseかつstableがcanaryより新しくない場合） |"
+              echo ""
+              echo "## キューイング中の変更"
+              echo ""
+              echo "canary最終更新以降にmainへマージされたPRの一覧。これらは次回canary更新時にまとめて反映される。"
+              echo ""
+              echo "${{ steps.status.outputs.queued_pr_links }}"
             } >> docs/generated/canary-status.md
           else
             {
