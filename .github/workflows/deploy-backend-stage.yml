@@ -27,6 +27,11 @@ on:
         options:
           - stable
           - canary
+      force:
+        description: "canaryが占有中（promote-canary.ymlの猶予期間カウント中）でも強制デプロイする（issue #1538）"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,11 +42,40 @@ jobs:
     env:
       OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
       OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           submodules: true
+
+      # issue #1538: このworkflowはpromote-canary.ymlの「canaryが空いていない
+      # 限り新規変更をキューイングする」設計（issue #1449）を素通りし、直接
+      # canaryスタックへデプロイしてしまう。これによりcanaryのLastUpdatedTime
+      # が書き換わり、昇格猶予期間の起点が意図せず前進する事故が実際に起きた。
+      # canaryが占有中（スタックが存在しforce_stableでない）場合は、force
+      # 入力が無い限りデプロイを停止する
+      - name: canaryの占有状態を確認する（stage=canaryのみ）
+        if: inputs.stage == 'canary' && inputs.force != true
+        working-directory: infra
+        run: |
+          set -eu
+          npm ci
+          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
+            echo "canaryスタックは存在しない（空き状態）ため、デプロイを続行する"
+            exit 0
+          fi
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
+          if [ "$FORCE_STABLE" = "true" ]; then
+            echo "force_stable=trueのため、canaryは空き状態とみなしデプロイを続行する"
+            exit 0
+          fi
+          echo "::error::canaryは現在占有中（promote-canary.ymlの猶予期間カウント中）です。このworkflowで直接デプロイすると、canaryのLastUpdatedTimeが書き換わり昇格スケジュールが意図せず延長されます。通常の変更はcd.ymlのマージ経路（canary_queue_pending=true）でキューイングされ、canaryが空いた時点で反映されます。緊急時のみforce入力をtrueにして再実行してください。"
+          exit 1
 
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
         uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.71.2
@@ -66,6 +100,3 @@ jobs:
             echo "$INFO"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
