@@ -117,9 +117,9 @@ graph TD
 
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
 
-本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴う、単一ステージ運用からstable/canary構成への移行手順については、[単一ステージ運用からstable/canaryへの移行手順](docs/blue-green-stage-migration.md) を参照してください。
+本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴い、単一ステージ運用からstable/canary構成への移行が必要になった。移行手順は[単一ステージ運用からstable/canaryへの移行手順](docs/blue-green-stage-migration.md) を参照してください。
 
-`stable`・`canary`が同一DynamoDBテーブルを共存期間中に共有することに伴うスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
+`stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
 
 ## 運用
 
@@ -135,8 +135,8 @@ graph TD
   - 永続的なデータを保持するテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`）において PITR を有効化しています。
   - 過去 35 日間の任意の時点にデータを復旧できます。
   - 意図しないデータ削除や更新ミスが発生した際の保険として機能します。
-  - クイズ大会モードのテーブル（`karuta-quiz-rooms`, `karuta-quiz-room-connections`）は、TTLによる自動削除を前提とした一時的なデータのみを保持するため、PITRの対象外としています。
-- **オンデマンドバックアップ**: データ層の構成変更作業（issue #1320等）の直前に、特定のタイミングの状態を明示的に残すための手動バックアップを取得できます。手順は[DynamoDBオンデマンドバックアップ・復旧手順](docs/data-backup-restore.md)を参照してください。
+  - クイズ大会モードのテーブル（`karuta-quiz-rooms`, `karuta-quiz-room-connections`）は、TTLによる自動削除を前提とした一時的なデータのみを保持します。そのためPITRの対象外としています。
+- **オンデマンドバックアップ**: データ層の構成変更作業（issue #1320等）の直前には、手動バックアップを取得できます。これにより特定のタイミングの状態を明示的に残せます。手順は[DynamoDBオンデマンドバックアップ・復旧手順](docs/data-backup-restore.md)を参照してください。
 
 ## かるた情報の追加・更新
 
