@@ -1,3 +1,10 @@
+## [1.102.1](https://github.com/bamiyanapp/karuta/compare/v1.102.0...v1.102.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* **canary:** canaryスタックが存在しない状態での/canary/明示アクセスをstableへフォールバックする ([#1491](https://github.com/bamiyanapp/karuta/issues/1491)) ([7091df4](https://github.com/bamiyanapp/karuta/commit/7091df4d5fb5f4f5d59b1fee9c4af0dd815e8450)), closes [#1489](https://github.com/bamiyanapp/karuta/issues/1489)
+
 # [1.102.0](https://github.com/bamiyanapp/karuta/compare/v1.101.0...v1.102.0) (2026-10-10)
 
 

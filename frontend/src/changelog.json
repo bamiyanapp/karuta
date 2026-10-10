@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.102.0",
+    "version": "1.102.1",
     "date": "2026/10/10",
+    "body": "### Bug Fixes\n\n* **canary:** canaryスタックが存在しない状態での/canary/明示アクセスをstableへフォールバックする ([#1491](https://github.com/bamiyanapp/karuta/issues/1491)) ([7091df4](https://github.com/bamiyanapp/karuta/commit/7091df4d5fb5f4f5d59b1fee9c4af0dd815e8450)), closes [#1489](https://github.com/bamiyanapp/karuta/issues/1489)"
+  },
+  {
+    "version": "1.102.0",
+    "date": "2026/10/10 03:41",
     "body": "### Features\n\n* **canary:** canary-status.mdのPRリンクをタイトル付きで表示する ([#1482](https://github.com/bamiyanapp/karuta/issues/1482)) ([6b43ba5](https://github.com/bamiyanapp/karuta/commit/6b43ba5f0116ccca058bfc322cc228527302d2a5)), closes [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1234](https://github.com/bamiyanapp/karuta/issues/1234) [#1481](https://github.com/bamiyanapp/karuta/issues/1481)"
   },
   {
