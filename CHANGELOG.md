@@ -1,3 +1,10 @@
+# [1.104.0](https://github.com/bamiyanapp/karuta/compare/v1.103.0...v1.104.0) (2026-10-10)
+
+
+### Features
+
+* **ci:** canary-status.mdにcanary/stableの配信中バージョンを追記する ([#1532](https://github.com/bamiyanapp/karuta/issues/1532)) ([118013b](https://github.com/bamiyanapp/karuta/commit/118013b1ec0e89a64100e04a550a843078b613aa)), closes [#1523](https://github.com/bamiyanapp/karuta/issues/1523)
+
 # [1.103.0](https://github.com/bamiyanapp/karuta/compare/v1.102.5...v1.103.0) (2026-10-10)
 
 
