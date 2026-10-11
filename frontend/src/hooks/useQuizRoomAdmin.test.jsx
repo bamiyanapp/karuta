@@ -1284,7 +1284,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       render(<App />);
     });
 
-    await screen.findByText('かるた読み上げアプリ');
+    await screen.findByText('かるた読み上げ');
     expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
     // openQuizRoomsが0件の場合は「他の」を付けない（issue #502）
     expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
@@ -1337,7 +1337,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       render(<App />);
     });
 
-    await screen.findByText('かるた読み上げアプリ');
+    await screen.findByText('かるた読み上げ');
     const quizRoomsErrors = consoleErrorSpy.mock.calls.filter(
       (call) => typeof call[0] === 'string' && call[0].includes('Failed to fetch open quiz rooms')
     );

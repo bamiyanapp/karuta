@@ -17,7 +17,7 @@ export default defineConfig({
         registerType: 'prompt',
         injectRegister: 'auto',
         manifest: {
-          name: 'かるた読み上げアプリ',
+          name: 'かるた読み上げ',
           short_name: 'かるた',
           start_url: './',
           scope: './',
