@@ -34,6 +34,14 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 # 昇格をスキップするだけでなく、canaryを最新のmain HEADで強制的に最新化する。
 # 古くて意味の無いトライアルを上書きしても実害は無く、これにより詰まりが
 # 自動的に解消される（キュー待ちかどうかに関わらず最新化する）
+#
+# issue #1548: dev-standards側のreusable-promote-canary.ymlへの移行を検討したが、
+# issue #1489のcanary_existsキー管理（dev-standards#876で解消済み）に加え、
+# issue #1448の「stableがcanaryを追い越した場合、キュー待ちの有無に関わらず
+# canaryを強制リフレッシュする」ロジックがreusable workflow側に無いという
+# 2つ目のギャップが見つかった。このギャップを無視すると、緊急手動デプロイ後に
+# canaryが永久に古い内容のまま詰まり続ける既知の不具合（#1411対応前の状態）が
+# 再発するため、本ファイルの移行は見送る（dev-standards側へ別途issueを起票済み）
 on:
   schedule:
     - cron: "37 17 * * *" # 毎日 02:37 JST（UTC 17:37）に判定する
@@ -142,7 +150,7 @@ jobs:
 
       - name: "2. canaryのコードでbackend stableスタックを再デプロイする（昇格）"
         if: steps.check.outputs.eligible == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.74.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.75.0
         with:
           working-directory: backend
           node-version: 22
@@ -219,7 +227,7 @@ jobs:
 
       - name: "5. 最新のmain HEADでbackend canaryをデプロイする"
         if: steps.refresh.outputs.refresh == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.74.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.75.0
         with:
           working-directory: backend
           node-version: 22
