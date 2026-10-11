@@ -7,7 +7,7 @@ export function HeroHeader() {
   return (
     <header className="text-center mb-5">
       <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
-      <h1 className="display-4 fw-bold">かるた読み上げアプリ</h1>
+      <h1 className="display-4 fw-bold">かるた読み上げ</h1>
     </header>
   );
 }

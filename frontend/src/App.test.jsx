@@ -62,7 +62,7 @@ describe('App', () => {
       render(<App />);
     });
 
-    expect(screen.getByText('かるた読み上げアプリ')).toBeInTheDocument();
+    expect(screen.getByText('かるた読み上げ')).toBeInTheDocument();
     expect(screen.getByText('こども向け')).toBeInTheDocument();
     expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
   });
@@ -2283,7 +2283,7 @@ describe('App', () => {
     fireEvent.click(allPhrasesLink);
 
     await waitFor(() => {
-      expect(document.title).toBe('全札一覧 | かるた読み上げアプリ');
+      expect(document.title).toBe('全札一覧 | かるた読み上げ');
     });
   });
 
