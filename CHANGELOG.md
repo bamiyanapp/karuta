@@ -1,3 +1,10 @@
+## [1.106.2](https://github.com/bamiyanapp/karuta/compare/v1.106.1...v1.106.2) (2026-10-11)
+
+
+### Bug Fixes
+
+* **frontend:** StableSwitchLinkのタップ時エラー修正・配置改善・表記簡潔化 ([#1563](https://github.com/bamiyanapp/karuta/issues/1563)) ([a6ce7af](https://github.com/bamiyanapp/karuta/commit/a6ce7af82f7dbe6ff6ded99621aa14d93d5495ea))
+
 ## [1.106.1](https://github.com/bamiyanapp/karuta/compare/v1.106.0...v1.106.1) (2026-10-11)
 
 
