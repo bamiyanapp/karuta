@@ -32,6 +32,9 @@ describe("CanaryStableToggleLink（issue #1499）", () => {
     vi.stubGlobal("location", { ...window.location, search: "?category=foo" });
     render(<CanaryStableToggleLink />);
     const link = screen.getByRole("link", { name: "stable版を見る" });
-    expect(link).toHaveAttribute("href", "/stable?category=foo");
+    // issue #1540で判明した同根の不具合（末尾スラッシュ無しだとCloudFront
+    // Functions側のindex.html自動補完が効かずエラーになる）を踏まえ、
+    // /stable/の形を維持する
+    expect(link).toHaveAttribute("href", "/stable/?category=foo");
   });
 });

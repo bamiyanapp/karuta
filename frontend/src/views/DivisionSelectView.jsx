@@ -1,5 +1,6 @@
 import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
 import CanaryStableToggleLink from "../components/CanaryStableToggleLink";
+import StableSwitchLink from "../components/StableSwitchLink";
 
 function roomStatusBadgeClass(status) {
   if (status === "進行中") return "text-bg-success";
@@ -81,6 +82,9 @@ function DivisionSelectView({
 
       <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
       <CanaryStableToggleLink />
+      {/* issue #1540: StableSwitchLinkはApp.jsxのフッター内にしか置かれておらず、
+          別レイアウトで早期returnするこの画面には表示されていなかった */}
+      <StableSwitchLink />
     </div>
   );
 }
