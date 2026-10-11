@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.106.0",
+    "version": "1.106.1",
     "date": "2026/10/11",
+    "body": "### Bug Fixes\n\n* **deps:** package-lock.jsonを実際の依存解決結果と再同期する ([#1560](https://github.com/bamiyanapp/karuta/issues/1560)) ([19d42c0](https://github.com/bamiyanapp/karuta/commit/19d42c0667ea4ea392593155c2198839243ec394))"
+  },
+  {
+    "version": "1.106.0",
+    "date": "2026/10/11 04:11",
     "body": "### Features\n\n* **frontend:** アプリタイトル表記を「かるた読み上げ」へ統一する ([#1559](https://github.com/bamiyanapp/karuta/issues/1559)) ([cdd12bf](https://github.com/bamiyanapp/karuta/commit/cdd12bf03b0ad5d326d8e100ac74282c0a9a423e))"
   },
   {

@@ -1,3 +1,10 @@
+## [1.106.1](https://github.com/bamiyanapp/karuta/compare/v1.106.0...v1.106.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **deps:** package-lock.jsonを実際の依存解決結果と再同期する ([#1560](https://github.com/bamiyanapp/karuta/issues/1560)) ([19d42c0](https://github.com/bamiyanapp/karuta/commit/19d42c0667ea4ea392593155c2198839243ec394))
+
 # [1.106.0](https://github.com/bamiyanapp/karuta/compare/v1.105.0...v1.106.0) (2026-10-11)
 
 
