@@ -6,10 +6,6 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 # force_stable（Task 11、#1330）によるロールバックが行われていなければ、
 # canaryの内容をstableへ自動的に昇格し、canaryスタックを削除する。
 #
-# 「猶予期間経過」の判定は、専用のタイムスタンプ管理を新設せず、backendの
-# CloudFormationスタック（karuta-app-canary）のLastUpdatedTime（未更新の場合は
-# CreationTime）をそのまま使う。
-#
 # issue本文はbackendスタックの昇格のみを明記しているが、frontendの昇格
 # （canaryビルドをstable/プレフィックスへ同期）が無いと、昇格後もstableの
 # フロントエンドがcanaryの内容と一致しない。本workflowではbackend・frontend
@@ -23,25 +19,18 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 #
 # issue #1449（#1326を置き換え）: canaryへのデプロイはmainマージ毎ではなく、
 # 本workflowの日次実行でまとめて行う（バッチ化）。cd.ymlはマージ時にKVSの
-# canary_queue_pendingをtrueにするだけで、実際のデプロイは行わない。本
-# workflowの実行ごとに、昇格処理（上記）とは独立して「canaryを最新化すべきか」
-# を判定する。canaryが空いている（スタックが存在しない、またはforce_stable=
-# trueでロールバック済み）状態でキュー待ちの更新があれば、最新のmain HEADを
-# 新しいcanaryとしてデプロイし、キューをクリアする。
+# canary_queue_pendingをtrueにするだけで、実際のデプロイは行わない。
 #
 # issue #1448（#1411を補完）: 「stableがcanaryを追い越している」と判定した
 # 場合（緊急手動デプロイ等でcanaryが古い内容のままロックされている状態）、
 # 昇格をスキップするだけでなく、canaryを最新のmain HEADで強制的に最新化する。
-# 古くて意味の無いトライアルを上書きしても実害は無く、これにより詰まりが
-# 自動的に解消される（キュー待ちかどうかに関わらず最新化する）
 #
-# issue #1548: dev-standards側のreusable-promote-canary.ymlへの移行を検討したが、
-# issue #1489のcanary_existsキー管理（dev-standards#876で解消済み）に加え、
-# issue #1448の「stableがcanaryを追い越した場合、キュー待ちの有無に関わらず
-# canaryを強制リフレッシュする」ロジックがreusable workflow側に無いという
-# 2つ目のギャップが見つかった。このギャップを無視すると、緊急手動デプロイ後に
-# canaryが永久に古い内容のまま詰まり続ける既知の不具合（#1411対応前の状態）が
-# 再発するため、本ファイルの移行は見送る（dev-standards側へ別途issueを起票済み）
+# issue #1548: 判定・昇格・キュー処理ロジック自体が、後からdev-standards側で
+# reusable-promote-canary.ymlへ一般化された（bamiyanapp/dev-standards#757）。
+# KVS ARNの解決方法（osls info）はプロダクト固有のためkaruta側に残し、
+# それ以外のロジックは共通workflowへ委譲する。issue #1489のcanary_existsキー
+# 管理（dev-standards#876）・issue #1448の強制リフレッシュ（dev-standards#878）
+# は、いずれもdev-standards側で解消済みのため移行できた
 on:
   schedule:
     - cron: "37 17 * * *" # 毎日 02:37 JST（UTC 17:37）に判定する
@@ -50,14 +39,11 @@ on:
 permissions:
   contents: read
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ap-northeast-1
-
 jobs:
-  promote:
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      kvs_arn: ${{ steps.kvs.outputs.kvs_arn }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -69,8 +55,9 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
 
       - name: KVS ARNを解決する
         id: kvs
@@ -80,202 +67,50 @@ jobs:
           INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
           KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
           echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: 昇格対象かどうかを判定する
-        id: check
-        run: |
-          set -eu
-          # issue #1442: 猶予期間を1週間から1日へ短縮した
-          GRACE_PERIOD_DAYS=1
+  promote:
+    needs: resolve
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.75.1
+    with:
+      canary_stack_name: karuta-app-canary
+      stable_stack_name: karuta-app-stable
+      kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
+      grace_period_days: 1 # issue #1442: 猶予期間を1週間から1日へ短縮した
+      backend_working_directory: backend
+      backend_deploy_command_stable: npx osls deploy --stage stable
+      backend_remove_canary_command: npx osls remove --stage canary
+      backend_deploy_command_canary: npx osls deploy --stage canary
+      frontend_build_command_stable: npm run build:stable --workspace=frontend
+      frontend_build_command_canary: npm run build:canary --workspace=frontend
+      infra_stack_name: karuta-infra-shared
+      canary_exists_kvs_key: canary_exists # issue #1489
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
-            echo "canaryスタックが存在しないため対象外"
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].LastUpdatedTime" --output text)
-          if [ "$LAST_UPDATED" = "None" ]; then
-            LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].CreationTime" --output text)
-          fi
-          LAST_UPDATED_EPOCH=$(date -d "$LAST_UPDATED" +%s)
-          NOW_EPOCH=$(date -u +%s)
-          ELAPSED_DAYS=$(( (NOW_EPOCH - LAST_UPDATED_EPOCH) / 86400 ))
-          echo "canaryスタックの最終更新から${ELAPSED_DAYS}日経過（${LAST_UPDATED}）"
-
-          if [ "$ELAPSED_DAYS" -lt "$GRACE_PERIOD_DAYS" ]; then
-            echo "猶予期間（${GRACE_PERIOD_DAYS}日）未経過のため対象外"
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-          FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
-          if [ "$FORCE_STABLE" = "true" ]; then
-            echo "force_stableがtrue（ロールバック済み）のため対象外"
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # issue #1411: deploy-backend-stage.yml（緊急手動デプロイ）でstableへ直接
-          # デプロイした場合、canaryを経由していないためcanaryがstableより古い内容の
-          # ままになることがある。この状態で昇格すると、緊急対応した内容がcanaryの
-          # 古いコードで上書きされ退行してしまう。stableスタックの最終更新時刻が
-          # canaryより新しい（＝canaryを追い越している）場合は、昇格を安全側に
-          # スキップする
-          if aws cloudformation describe-stacks --stack-name karuta-app-stable >/dev/null 2>&1; then
-            STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].LastUpdatedTime" --output text)
-            if [ "$STABLE_LAST_UPDATED" = "None" ]; then
-              STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].CreationTime" --output text)
-            fi
-            STABLE_LAST_UPDATED_EPOCH=$(date -d "$STABLE_LAST_UPDATED" +%s)
-            if [ "$STABLE_LAST_UPDATED_EPOCH" -gt "$LAST_UPDATED_EPOCH" ]; then
-              echo "stableの最終更新（${STABLE_LAST_UPDATED}）がcanaryより新しいため対象外（緊急デプロイ等でcanaryを追い越している可能性がある）"
-              echo "eligible=false" >> "$GITHUB_OUTPUT"
-              echo "stable_ahead_of_canary=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-
-          echo "eligible=true" >> "$GITHUB_OUTPUT"
-
-      - name: 1. KVSの重みをcanary 100%へ更新する
-        if: steps.check.outputs.eligible == 'true'
-        run: |
-          set -eu
-          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "100" >/dev/null
-          echo "canary_weight を 100 に設定した"
-
-      - name: "2. canaryのコードでbackend stableスタックを再デプロイする（昇格）"
-        if: steps.check.outputs.eligible == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.75.0
-        with:
-          working-directory: backend
-          node-version: 22
-          deploy-command: npx osls deploy --stage stable
-          workspaces: true
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: "2. canaryのビルドでfrontend stable/を再デプロイする（昇格）"
-        if: steps.check.outputs.eligible == 'true'
-        run: |
-          set -eu
-          npm run build:stable --workspace=frontend
-          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
-          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
-          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
-          aws s3 sync frontend/dist "s3://${BUCKET}/stable/" --delete
-          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/stable/*'
-
-      - name: 3. canaryスタックを削除する
-        if: steps.check.outputs.eligible == 'true'
-        working-directory: backend
-        run: npx osls remove --stage canary
-
-      - name: 4. KVSをリセットする（重みを既定値10%、force_stableをfalseへ）
-        if: steps.check.outputs.eligible == 'true'
-        run: |
-          set -eu
-          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "10" >/dev/null
-          ETAG2=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "force_stable" --value "false" >/dev/null
-          # issue #1489: 直前のステップでcanaryスタックを削除したため、
-          # /canary/への明示アクセス時にstableへフォールバックできるよう
-          # canary_existsをfalseへ更新する
-          ETAG3=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG3" --key "canary_exists" --value "false" >/dev/null
-          echo "KVSを既定値（canary_weight=10, force_stable=false, canary_exists=false）へリセットした"
-
-      - name: "5. canaryを最新化すべきか判定する（issue #1448・#1449）"
-        id: refresh
-        run: |
-          set -eu
-          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-          REFRESH=false
-
-          if [ "${{ steps.check.outputs.stable_ahead_of_canary }}" = "true" ]; then
-            # issue #1448: stableがcanaryより新しい＝canaryは古くて意味の無い
-            # トライアルのため、キュー待ちの有無に関わらず強制的に最新化する
-            REFRESH=true
-            echo "stableがcanaryより新しいため、canaryを最新のmain HEADで強制的に最新化する"
-          else
-            FREE=false
-            if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
-              FREE=true
-            else
-              FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
-              if [ "$FORCE_STABLE" = "true" ]; then
-                FREE=true
-              fi
-            fi
-            echo "canaryの空き状況: ${FREE}"
-
-            if [ "$FREE" = "true" ]; then
-              PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
-              echo "キュー待ちの更新: ${PENDING}"
-              if [ "$PENDING" = "true" ]; then
-                REFRESH=true
-              fi
-            fi
-          fi
-          echo "refresh=${REFRESH}" >> "$GITHUB_OUTPUT"
-
-      - name: "5. 最新のmain HEADでbackend canaryをデプロイする"
-        if: steps.refresh.outputs.refresh == 'true'
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.75.0
-        with:
-          working-directory: backend
-          node-version: 22
-          deploy-command: npx osls deploy --stage canary
-          workspaces: true
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: "5. 最新のmain HEADでfrontend canaryをデプロイする"
-        if: steps.refresh.outputs.refresh == 'true'
-        run: |
-          set -eu
-          npm run build:canary --workspace=frontend
-          OUTPUTS=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs" --output json)
-          BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendBucketName") | .OutputValue')
-          DIST_ID=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FrontendDistributionId") | .OutputValue')
-          aws s3 sync frontend/dist "s3://${BUCKET}/canary/" --delete
-          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths '/canary/*'
-
-      - name: canaryを最新化したら、canary_queue_pendingをfalseへリセットし、canary_existsをtrueにする
-        if: steps.refresh.outputs.refresh == 'true'
-        run: |
-          set -eu
-          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
-          ETAG=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_queue_pending" --value "false" >/dev/null
-          # issue #1489: 直前のステップでcanaryのbackend/frontend両方を実際に
-          # デプロイしたため、/canary/への明示アクセスが素通しされてよい状態になった
-          ETAG2=$(aws cloudfront-keyvaluestore describe-key-value-store --region us-east-1 --kvs-arn "$KVS_ARN" --query ETag --output text)
-          aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG2" --key "canary_exists" --value "true" >/dev/null
-          echo "canary_queue_pending を false へ、canary_exists を true へ更新した"
-
+  summary:
+    needs: promote
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
       - name: Write summary
-        if: always()
         run: |
           set -eu
           {
             echo "## issue #1331 自動昇格 実行結果"
             echo ""
-            echo "昇格対象: ${{ steps.check.outputs.eligible == 'true' && 'はい（昇格を実行した）' || 'いいえ（対象外のためスキップした）' }}"
+            echo "昇格対象: ${{ needs.promote.outputs.eligible == 'true' && 'はい（昇格を実行した）' || 'いいえ（対象外のためスキップした）' }}"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ steps.check.outputs.stable_ahead_of_canary }}" = "true" ]; then
+          if [ "${{ needs.promote.outputs.stable_ahead_of_canary }}" = "true" ]; then
             {
               echo "**stableがcanaryより新しいため今回の昇格をスキップし、canaryを自動で最新化した（issue #1448）**: 緊急手動デプロイ（\`deploy-backend-stage.yml\`でstage=stable）等でstableがcanaryを追い越していた可能性がある。canaryは最新のmain HEADへ更新済みのため、次回以降のサイクルで正しく検証・昇格が進む見込み。"
               echo ""
             } >> "$GITHUB_STEP_SUMMARY"
           fi
           {
-            echo "canaryの最新化（issue #1449、日次バッチ）: ${{ steps.refresh.outputs.refresh == 'true' && 'はい（最新main HEADでcanaryを更新した）' || 'いいえ' }}"
+            echo "canaryの最新化（issue #1449、日次バッチ）: ${{ needs.promote.outputs.queue_processed == 'true' && 'はい（最新main HEADでcanaryを更新した）' || 'いいえ' }}"
           } >> "$GITHUB_STEP_SUMMARY"
