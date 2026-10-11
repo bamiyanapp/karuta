@@ -1,3 +1,11 @@
+## [1.108.1](https://github.com/bamiyanapp/karuta/compare/v1.108.0...v1.108.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのフロントバージョン取得失敗時にHTTPステータス等を診断ログへ出力する ([#1577](https://github.com/bamiyanapp/karuta/issues/1577)) ([770467f](https://github.com/bamiyanapp/karuta/commit/770467f58341af5fdebe38bc3d447ed311d8030f)), closes [#1576](https://github.com/bamiyanapp/karuta/issues/1576)
+* **ci:** dev-standards submoduleを更新しcommit-via-prのaction.yml読み込み失敗を解消する ([#1571](https://github.com/bamiyanapp/karuta/issues/1571)) ([16333c2](https://github.com/bamiyanapp/karuta/commit/16333c24e14a6b380bf57da4ce7e734a446e65fd)), closes [#1570](https://github.com/bamiyanapp/karuta/issues/1570)
+
 # [1.108.0](https://github.com/bamiyanapp/karuta/compare/v1.107.0...v1.108.0) (2026-10-11)
 
 
