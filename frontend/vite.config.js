@@ -1,25 +1,10 @@
-import { writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import getAppVersionDefine from './getAppVersionDefine.js' // symlink
+import createVersionJsonPlugin from './createVersionJsonPlugin.js' // symlink
 
 const appVersionDefine = getAppVersionDefine(new URL('../package.json', import.meta.url))
-
-// issue #1565: canary-status.ymlがバックエンドの/get-versionしか見ておらず、
-// フロントエンドの実際のデプロイ済みバージョンを検知できなかった。__APP_VERSION__は
-// Viteのdefineでビルド時にJSバンドルへ直接埋め込まれるだけでindex.htmlには現れないため、
-// curlのみ（JS実行無し）で取得できる専用の静的ファイルとしてdist直下へ書き出す
-function writeVersionJsonPlugin() {
-  return {
-    name: 'write-version-json',
-    writeBundle(options) {
-      const version = JSON.parse(appVersionDefine.__APP_VERSION__)
-      const buildTime = JSON.parse(appVersionDefine.__APP_BUILD_TIME__)
-      writeFileSync(`${options.dir}/version.json`, JSON.stringify({ version, buildTime }))
-    },
-  }
-}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -31,15 +16,20 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    writeVersionJsonPlugin(),
-      VitePWA({
-        registerType: 'prompt',
-        injectRegister: 'auto',
-        manifest: {
-          name: 'かるた読み上げ',
-          short_name: 'かるた',
-          start_url: './',
-          scope: './',
+    // issue #1565: canary-status.ymlがバックエンドの/get-versionしか見ておらず、
+    // フロントエンドの実際のデプロイ済みバージョンを検知できなかった。__APP_VERSION__は
+    // Viteのdefineでビルド時にJSバンドルへ直接埋め込まれるだけでindex.htmlには現れないため、
+    // curlのみ（JS実行無し）で取得できる専用の静的ファイルversion.jsonをdist直下へ書き出す
+    // （issue #1567でkaruta固有実装からdev-standards共有ヘルパーへ移行済み）
+    createVersionJsonPlugin(new URL('../package.json', import.meta.url)),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: 'auto',
+      manifest: {
+        name: 'かるた読み上げ',
+        short_name: 'かるた',
+        start_url: './',
+        scope: './',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#ffffff',
