@@ -150,6 +150,28 @@
   box-shadow: 0 0 0 3px rgb(45 90 39 / 40%);
 }
 
+/* issue #1519: トップ画面の開設中クイズ大会ルーム一覧で、進行状況を
+   テキストバッジではなくボタンの背景色で表現する。進行中は.selectedと
+   同じ緑を再利用する。開催前・終了はグレー系で揃え、終了のみ明度を落として
+   区別する（終了したルームへの参加自体は引き続き許可する。join操作自体は
+   useQuizRoomAdmin.jsのjoinQuizRoomがstatusを見ずに処理するため、既存の
+   挙動を変えない） */
+.btn-karuta-room-pending {
+  background-color: #6c757d;
+}
+
+.btn-karuta-room-pending:hover {
+  background-color: #5c636a;
+}
+
+.btn-karuta-room-finished {
+  background-color: #495057;
+}
+
+.btn-karuta-room-finished:hover {
+  background-color: #343a40;
+}
+
 .progress-bar-karuta {
   background-color: #e44d26;
 }

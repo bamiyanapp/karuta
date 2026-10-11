@@ -2,10 +2,11 @@ import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
 import CanaryStableToggleLink from "../components/CanaryStableToggleLink";
 import StableSwitchLink from "../components/StableSwitchLink";
 
-function roomStatusBadgeClass(status) {
-  if (status === "進行中") return "text-bg-success";
-  if (status === "終了") return "text-bg-dark";
-  return "text-bg-secondary";
+// issue #1519: 進行状況をテキストバッジではなくボタンの背景色で表現する
+function roomStatusButtonClass(status) {
+  if (status === "進行中") return "selected";
+  if (status === "終了") return "btn-karuta-room-finished";
+  return "btn-karuta-room-pending";
 }
 
 // ルーム開設時に選択されていたかるた種類（issue #1256）を一覧表示用の短い文字列にする。
@@ -45,34 +46,29 @@ function DivisionSelectView({
       </main>
 
       <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 text-center mb-4 text-dark">みんなで遊ぶ</h2>
+        <h2 className="h4 text-center mb-4 text-dark">クイズ大会に参加する</h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
           <button
             onClick={() => setView("quiz-room")}
             className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
           >
-            {openQuizRooms.length > 0 ? "他のクイズ大会に参加する" : "クイズ大会に参加する"}
+            {openQuizRooms.length > 0 ? "他の大会に参加する" : "クイズ大会に参加する"}
           </button>
         </div>
         {openQuizRooms.length > 0 && (
           <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
             <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
-            <div className="list-group shadow-sm rounded">
+            <div className="d-flex flex-wrap gap-2 justify-content-center">
               {openQuizRooms.map((room) => (
                 <button
                   key={room.roomId}
                   onClick={() => joinQuizRoom(room.roomId)}
-                  className="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
+                  className={`btn fw-bold rounded-pill shadow-sm btn-karuta ${roomStatusButtonClass(room.status)}`}
                 >
-                  <span className="fw-bold notranslate">{room.roomId}</span>
-                  <span className="d-flex align-items-center gap-2">
-                    <span className={`badge rounded-pill ${roomStatusBadgeClass(room.status)}`}>
-                      {room.status}
-                    </span>
-                    {formatRoomCategories(room.categories) && (
-                      <span className="text-muted small notranslate">{formatRoomCategories(room.categories)}</span>
-                    )}
-                  </span>
+                  <span className="d-block notranslate">{room.roomId}</span>
+                  {formatRoomCategories(room.categories) && (
+                    <span className="d-block fw-normal small notranslate">{formatRoomCategories(room.categories)}</span>
+                  )}
                 </button>
               ))}
             </div>
