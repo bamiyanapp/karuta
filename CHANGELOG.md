@@ -1,3 +1,10 @@
+# [1.106.0](https://github.com/bamiyanapp/karuta/compare/v1.105.0...v1.106.0) (2026-10-11)
+
+
+### Features
+
+* **frontend:** アプリタイトル表記を「かるた読み上げ」へ統一する ([#1559](https://github.com/bamiyanapp/karuta/issues/1559)) ([cdd12bf](https://github.com/bamiyanapp/karuta/commit/cdd12bf03b0ad5d326d8e100ac74282c0a9a423e))
+
 # [1.105.0](https://github.com/bamiyanapp/karuta/compare/v1.104.2...v1.105.0) (2026-10-11)
 
 
