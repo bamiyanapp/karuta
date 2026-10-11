@@ -1,7 +1,25 @@
+import { writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import getAppVersionDefine from './getAppVersionDefine.js' // symlink
+
+const appVersionDefine = getAppVersionDefine(new URL('../package.json', import.meta.url))
+
+// issue #1565: canary-status.ymlがバックエンドの/get-versionしか見ておらず、
+// フロントエンドの実際のデプロイ済みバージョンを検知できなかった。__APP_VERSION__は
+// Viteのdefineでビルド時にJSバンドルへ直接埋め込まれるだけでindex.htmlには現れないため、
+// curlのみ（JS実行無し）で取得できる専用の静的ファイルとしてdist直下へ書き出す
+function writeVersionJsonPlugin() {
+  return {
+    name: 'write-version-json',
+    writeBundle(options) {
+      const version = JSON.parse(appVersionDefine.__APP_VERSION__)
+      const buildTime = JSON.parse(appVersionDefine.__APP_BUILD_TIME__)
+      writeFileSync(`${options.dir}/version.json`, JSON.stringify({ version, buildTime }))
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -9,10 +27,11 @@ export default defineConfig({
   // docs/frontend-ui-conventions.md参照）。__APP_VERSION__・
   // __APP_BUILD_TIME__をビルド時にpackage.jsonのversion・ビルド時刻から埋め込む
   define: {
-    ...getAppVersionDefine(new URL('../package.json', import.meta.url)),
+    ...appVersionDefine,
   },
   plugins: [
     react(),
+    writeVersionJsonPlugin(),
       VitePWA({
         registerType: 'prompt',
         injectRegister: 'auto',
