@@ -176,10 +176,22 @@ jobs:
             version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
             echo "$version"
           }
+          # issue #1576: 常に「（取得できなかった）」になる原因を特定するため、
+          # 失敗時はHTTPステータスコード・curlのエラー内容をジョブログ（標準エラー）
+          # へ出力する。標準出力は呼び出し元が$()で捕捉するため、診断ログは
+          # 必ず標準エラーへ出す
           fetch_frontend_version() {
             local url="$1"
-            local body
-            if ! body=$(curl -fsS --max-time 10 "${url}" 2>/dev/null); then
+            local body http_code curl_exit
+            body=$(curl -sS --max-time 10 -w '\n%{http_code}' "${url}" 2>/tmp/curl_stderr)
+            curl_exit=$?
+            http_code=$(echo "$body" | tail -1)
+            body=$(echo "$body" | sed '$d')
+            if [ "$curl_exit" -ne 0 ] || [ "$http_code" != "200" ]; then
+              echo "診断: ${url} の取得に失敗（curl exit=${curl_exit}, HTTP=${http_code}）" >&2
+              if [ -s /tmp/curl_stderr ]; then
+                echo "診断: curlエラー出力: $(cat /tmp/curl_stderr)" >&2
+              fi
               echo "（取得できなかった）"
               return
             fi
