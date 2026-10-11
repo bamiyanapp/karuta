@@ -1,3 +1,10 @@
+# [1.105.0](https://github.com/bamiyanapp/karuta/compare/v1.104.2...v1.105.0) (2026-10-11)
+
+
+### Features
+
+* **ci:** dev-standards側で提供されているが未有効化だった品質チェックを有効化する ([#1556](https://github.com/bamiyanapp/karuta/issues/1556)) ([8691aa6](https://github.com/bamiyanapp/karuta/commit/8691aa6c49344802b90ae0764f98632454f01120)), closes [#1548](https://github.com/bamiyanapp/karuta/issues/1548) [dev-standards#880](https://github.com/dev-standards/issues/880)
+
 ## [1.104.2](https://github.com/bamiyanapp/karuta/compare/v1.104.1...v1.104.2) (2026-10-10)
 
 
