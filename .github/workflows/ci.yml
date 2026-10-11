@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.75.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.75.4
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -95,12 +95,12 @@ jobs:
       enable_text_lint: true
       text_lint_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
       # Markdownドキュメント間の相対リンクが実在するファイルを指しているかを
-      # 検証する（bamiyanapp/dev-standards#603）。.claude/skills/配下は対象外
-      # とする。一部のSKILL.mdがdev-standards自身のdocs/への相対リンクを
-      # 含んでおり、symlink経由で取り込まれた際にリンク切れになるため
-      # （bamiyanapp/dev-standards#880、修正待ち）
+      # 検証する（bamiyanapp/dev-standards#603）。一部のSKILL.mdがdev-standards
+      # 自身のdocs/への相対リンクを含み、symlink経由で取り込まれた際にリンク切れ
+      # になる問題（bamiyanapp/dev-standards#880）はdev-standards側で修正済み
+      # （絶対URL化、PR #883）のため、.claude/skills/配下も対象に含める
       enable_dead_link_check: true
-      dead_link_check_paths: "docs/*.md\nREADME.md\nCLAUDE.md"
+      dead_link_check_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
       # Markdownドキュメント間の丸ごとコピペ重複を検知する
       # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
       # 導入直後のためレポート表示のみとする
