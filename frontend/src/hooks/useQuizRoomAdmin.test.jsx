@@ -1055,10 +1055,11 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     expect(await screen.findByText('開設中のクイズ大会ルーム')).toBeInTheDocument();
+    // issue #1519: 進行状況はテキストバッジではなくボタンの背景色で表現するため、
+    // ステータス文字列自体（「開始前」等）はもう表示されない
     expect(screen.getByText('ABC123')).toBeInTheDocument();
     expect(screen.getByText('Cat1')).toBeInTheDocument();
     expect(screen.getByText('DEF456')).toBeInTheDocument();
-    expect(screen.getByText('開始前')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('ABC123'));
 
@@ -1286,15 +1287,18 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     await screen.findByText('かるた読み上げ');
     expect(screen.queryByText('開設中のクイズ大会ルーム')).not.toBeInTheDocument();
-    // openQuizRoomsが0件の場合は「他の」を付けない（issue #502）
-    expect(screen.getByText('クイズ大会に参加する')).toBeInTheDocument();
+    // openQuizRoomsが0件の場合は「他の」を付けない（issue #502）。issue #1519で
+    // 見出し自体も同じ文言「クイズ大会に参加する」になったため、ボタンをroleで特定する
+    expect(screen.getByRole('button', { name: 'クイズ大会に参加する' })).toBeInTheDocument();
   });
 
-  // issue #1429: トップページの「クイズ大会に参加する」導線は「みんなで遊ぶ」という
+  // issue #1429: トップページの「クイズ大会に参加する」導線は「クイズ大会に参加する」という
   // 「じぶんではじめる」と同デザインの枠に統合された。枠内の表示順は参加ボタン→
   // 開設中ルーム一覧。フッターリンクは全札一覧・共有・バージョン情報のみに絞られ、
-  // 指摘内容・更新履歴へのリンクは他画面へ移設した（本テストの対象外）
-  it('places the quiz-room join button above the open-room list inside the "みんなで遊ぶ" box, with the label changed to "他のクイズ大会に参加する" when rooms are open (issue #502, #1429)', async () => {
+  // 指摘内容・更新履歴へのリンクは他画面へ移設した（本テストの対象外）。
+  // issue #1519: 見出しを「みんなで遊ぶ」から「クイズ大会に参加する」へ改め、
+  // 文言を「他のクイズ大会に参加する」から「他の大会に参加する」へ短縮した
+  it('places the quiz-room join button above the open-room list inside the "クイズ大会に参加する" box, with the label changed to "他の大会に参加する" when rooms are open (issue #502, #1429, #1519)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('/quiz-rooms')) {
         return { ok: true, json: async () => ({ rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1' }] }) };
@@ -1308,8 +1312,10 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     await screen.findByText('開設中のクイズ大会ルーム');
-    expect(screen.queryByText('クイズ大会に参加する')).not.toBeInTheDocument();
-    const joinOtherLink = screen.getByText('他のクイズ大会に参加する');
+    // issue #1519で見出し自体も「クイズ大会に参加する」になったため、
+    // ボタンがroomあり時の文言に変わっていることをroleで確認する
+    expect(screen.queryByRole('button', { name: 'クイズ大会に参加する' })).not.toBeInTheDocument();
+    const joinOtherLink = screen.getByText('他の大会に参加する');
     expect(joinOtherLink).toBeInTheDocument();
 
     // 表示順: 「他のクイズ大会に参加する」→ 開設中ルーム一覧 → 全札一覧等のフッターリンク（最下部）
