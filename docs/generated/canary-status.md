@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-12 06:14:19 JST。
+最終更新日時: 2026-10-12 06:46:11 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -38,5 +38,7 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1580 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1580)
+- [#1579 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1579)
 - [#1577 fix(ci): canary-status.ymlのフロントバージョン取得失敗時にHTTPステータス等を診断ログへ出力する](https://github.com/bamiyanapp/karuta/pull/1577)
 - [#1578 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1578)
