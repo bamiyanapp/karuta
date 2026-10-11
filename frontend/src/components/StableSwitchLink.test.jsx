@@ -13,18 +13,20 @@ describe("StableSwitchLink（issue #1329）", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("canaryビルドでは/stableへのリンクを表示する", () => {
+  it("canaryビルドでは/stable/へのリンクを表示する", () => {
     vi.stubEnv("MODE", "canary");
     render(<StableSwitchLink />);
-    const link = screen.getByRole("link", { name: /安定版への切り替え/ });
-    expect(link).toHaveAttribute("href", expect.stringContaining("/stable"));
+    const link = screen.getByRole("link", { name: "画面に問題がある場合はこちら" });
+    expect(link).toHaveAttribute("href", expect.stringContaining("/stable/"));
   });
 
-  it("canaryビルドでは現在のクエリ文字列を維持したまま/stableへ遷移する", () => {
+  it("canaryビルドでは現在のクエリ文字列を維持したまま/stable/へ遷移する", () => {
     vi.stubEnv("MODE", "canary");
     vi.stubGlobal("location", { ...window.location, search: "?category=foo" });
     render(<StableSwitchLink />);
-    const link = screen.getByRole("link", { name: /安定版への切り替え/ });
-    expect(link).toHaveAttribute("href", "/stable?category=foo");
+    const link = screen.getByRole("link", { name: "画面に問題がある場合はこちら" });
+    // issue #1540: 末尾スラッシュ無しだとCloudFront Functions側のindex.html
+    // 自動補完が効かずエラーになるため、/stable/の形を維持する
+    expect(link).toHaveAttribute("href", "/stable/?category=foo");
   });
 });

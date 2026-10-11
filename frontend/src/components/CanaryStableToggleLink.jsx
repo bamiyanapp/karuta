@@ -15,7 +15,10 @@ export default function CanaryStableToggleLink() {
 
   return (
     <div className="text-center mt-2">
-      <a href={`/${target}${window.location.search}`} className="btn btn-sm btn-outline-secondary rounded-pill">
+      {/* issue #1540で判明した同根の不具合（StableSwitchLink参照）: 末尾
+          スラッシュ無しだとCloudFront Functions側のindex.html自動補完が
+          効かずエラーになるため、スラッシュを付与する */}
+      <a href={`/${target}/${window.location.search}`} className="btn btn-sm btn-outline-secondary rounded-pill">
         {label}
       </a>
     </div>
