@@ -40,6 +40,13 @@ jobs:
       # しきい値をさらに引き下げた（issue #877）
       enable_duplication_check: true
       duplication_threshold: 1
+      # 独自実装したworkflow・composite actionが、後からdev-standards側で
+      # reusable workflow・composite actionへ一般化されたのに追従せず、
+      # 同じロジックが両方に残ったまま放置される事故を検知する
+      # （bamiyanapp/dev-standards#874、karuta issue #1548で実際に発覚）。
+      # 導入直後のため、実測値に基づくラチェット閾値はまだ設定せず
+      # レポート表示のみとする（duplication_thresholdと同様の方針）
+      enable_workflow_duplication_check: true
       # frontend/backend間の越境import・循環依存を検知するdependency-cruiserを
       # 有効化する（bamiyanapp/dev-standards#523、issue #1216）。事前検証で
       # karutaの既存コードに違反が無いことを確認済み
@@ -87,6 +94,28 @@ jobs:
       # textlintチェックを有効化する（issue #1179）
       enable_text_lint: true
       text_lint_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
+      # Markdownドキュメント間の相対リンクが実在するファイルを指しているかを
+      # 検証する（bamiyanapp/dev-standards#603）。.claude/skills/配下は対象外
+      # とする。一部のSKILL.mdがdev-standards自身のdocs/への相対リンクを
+      # 含んでおり、symlink経由で取り込まれた際にリンク切れになるため
+      # （bamiyanapp/dev-standards#880、修正待ち）
+      enable_dead_link_check: true
+      dead_link_check_paths: "docs/*.md\nREADME.md\nCLAUDE.md"
+      # Markdownドキュメント間の丸ごとコピペ重複を検知する
+      # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
+      # 導入直後のためレポート表示のみとする
+      # docs/配下にベンダーアイコン等の非Markdownアセット（docs/resources/）が
+      # あるため、ディレクトリ指定ではなく拡張子で絞り込む
+      enable_doc_duplication_check: true
+      doc_duplication_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
+      # README.md・CLAUDE.mdから辿れない「孤立ドキュメント」を検知する
+      # （bamiyanapp/dev-standards#848）
+      # .claude/skills/配下は対象外とする。CLAUDE.md「Skills」節はSKILL.mdへの
+      # 個別リンクではなく箇条書きで列挙する運用のため、リンク到達性の判定に
+      # 合わない（dev-standards自身のci.ymlもdocs/**/*.mdのみを対象にしている）
+      enable_doc_reachability_check: true
+      doc_reachability_entry_points: "README.md\nCLAUDE.md"
+      doc_reachability_paths: "docs/*.md"
       # push時CI軽量化（issue #973、dev-standards#187バックログ③）。PRの
       # 「base_branchと同期済みでなければマージ不可」（up-to-date required）
       # ＋Squash merge運用のもとでは、squash merge直後のpush-to-main上のツリーは
