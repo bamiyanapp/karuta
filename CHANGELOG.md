@@ -1,3 +1,10 @@
+# [1.108.0](https://github.com/bamiyanapp/karuta/compare/v1.107.0...v1.108.0) (2026-10-11)
+
+
+### Features
+
+* **ci:** canary-status.mdへフロントエンドの配信中バージョンを追加する ([#1566](https://github.com/bamiyanapp/karuta/issues/1566)) ([8a06132](https://github.com/bamiyanapp/karuta/commit/8a06132d67077c100a1e0ea5a0552529d5f5ff37))
+
 # [1.107.0](https://github.com/bamiyanapp/karuta/compare/v1.106.2...v1.107.0) (2026-10-11)
 
 

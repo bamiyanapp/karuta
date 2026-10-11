@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.107.0",
+    "version": "1.108.0",
     "date": "2026/10/11",
+    "body": "### Features\n\n* **ci:** canary-status.mdへフロントエンドの配信中バージョンを追加する ([#1566](https://github.com/bamiyanapp/karuta/issues/1566)) ([8a06132](https://github.com/bamiyanapp/karuta/commit/8a06132d67077c100a1e0ea5a0552529d5f5ff37))"
+  },
+  {
+    "version": "1.107.0",
+    "date": "2026/10/11 05:06",
     "body": "### Features\n\n* **frontend:** トップ画面「みんなで遊ぶ」セクションのラベル・デザインを改善する ([#1564](https://github.com/bamiyanapp/karuta/issues/1564)) ([810f92f](https://github.com/bamiyanapp/karuta/commit/810f92fba970b02c4143705124c7bbd0437a88a3))"
   },
   {
