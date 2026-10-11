@@ -1,3 +1,10 @@
+# [1.107.0](https://github.com/bamiyanapp/karuta/compare/v1.106.2...v1.107.0) (2026-10-11)
+
+
+### Features
+
+* **frontend:** トップ画面「みんなで遊ぶ」セクションのラベル・デザインを改善する ([#1564](https://github.com/bamiyanapp/karuta/issues/1564)) ([810f92f](https://github.com/bamiyanapp/karuta/commit/810f92fba970b02c4143705124c7bbd0437a88a3))
+
 ## [1.106.2](https://github.com/bamiyanapp/karuta/compare/v1.106.1...v1.106.2) (2026-10-11)
 
 
