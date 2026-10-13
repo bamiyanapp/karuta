@@ -44,6 +44,12 @@ jobs:
         working-directory: infra
         run: npm ci
 
+      # issue #1591: backendのAPIエンドポイントをosls infoから動的解決する
+      # ために、backendの依存関係もインストールする
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
       - name: KVS ARN・フロントエンド配信ドメインを解決する
         id: kvs
         working-directory: infra
@@ -199,8 +205,20 @@ jobs:
             version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
             echo "$version"
           }
-          CANARY_BACKEND_VERSION=$(fetch_backend_version "$(grep -oE 'https://[^ ]+' frontend/.env.canary | head -1)")
-          STABLE_BACKEND_VERSION=$(fetch_backend_version "$(grep -oE 'https://[^ ]+' frontend/.env.stable | head -1)")
+          # issue #1591: frontend/.env.<stage>は静的ファイルで、canaryスタックが
+          # 削除・再作成されるたびに実際のAPIエンドポイントと食い違う（過去に
+          # #1558の誤検出の原因にもなった）。osls infoから現在のエンドポイントを
+          # 都度解決する
+          resolve_backend_url() {
+            local stage="$1"
+            local info
+            info=$(cd backend && npx osls info --stage "${stage}" --verbose 2>/dev/null)
+            echo "$info" | grep -oE "https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${stage}" | head -1
+          }
+          CANARY_URL=$(resolve_backend_url canary)
+          STABLE_URL=$(resolve_backend_url stable)
+          CANARY_BACKEND_VERSION=$(fetch_backend_version "$CANARY_URL")
+          STABLE_BACKEND_VERSION=$(fetch_backend_version "$STABLE_URL")
           echo "canary_backend_version=${CANARY_BACKEND_VERSION}" >> "$GITHUB_OUTPUT"
           echo "stable_backend_version=${STABLE_BACKEND_VERSION}" >> "$GITHUB_OUTPUT"
 
