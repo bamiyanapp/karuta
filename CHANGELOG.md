@@ -1,3 +1,10 @@
+## [1.108.3](https://github.com/bamiyanapp/karuta/compare/v1.108.2...v1.108.3) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのbackendバージョン取得もosls infoから動的解決する ([#1596](https://github.com/bamiyanapp/karuta/issues/1596)) ([5a74c0c](https://github.com/bamiyanapp/karuta/commit/5a74c0c5891b2ab0e8e53fce8e34ac5bf07771e5)), closes [#1595](https://github.com/bamiyanapp/karuta/issues/1595)
+
 ## [1.108.2](https://github.com/bamiyanapp/karuta/compare/v1.108.1...v1.108.2) (2026-10-13)
 
 

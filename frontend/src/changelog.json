@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.108.2",
+    "version": "1.108.3",
     "date": "2026/10/13",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのbackendバージョン取得もosls infoから動的解決する ([#1596](https://github.com/bamiyanapp/karuta/issues/1596)) ([5a74c0c](https://github.com/bamiyanapp/karuta/commit/5a74c0c5891b2ab0e8e53fce8e34ac5bf07771e5)), closes [#1595](https://github.com/bamiyanapp/karuta/issues/1595)"
+  },
+  {
+    "version": "1.108.2",
+    "date": "2026/10/13 09:47",
     "body": "### Bug Fixes\n\n* **ci:** stable/canaryのAPIベースURLをデプロイ時にosls infoから動的解決する ([#1592](https://github.com/bamiyanapp/karuta/issues/1592)) ([5db77c8](https://github.com/bamiyanapp/karuta/commit/5db77c8cc4fd9b239b8516c639438f73428a255d)), closes [#1591](https://github.com/bamiyanapp/karuta/issues/1591)"
   },
   {
