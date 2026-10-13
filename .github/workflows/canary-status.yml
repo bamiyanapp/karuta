@@ -9,12 +9,17 @@ run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || '
 # workflow。昇格猶予期間（GRACE_PERIOD_DAYS）はpromote-canary.ymlと同じ値を使う
 #
 # issue #1472: Job Summaryは実行ごとに使い捨てで、Gitからは可視化できな
-# かった。1時間おきのscheduleで自動実行し、取得結果をdocs/generated/
+# かった。scheduleで自動実行し、取得結果をdocs/generated/
 # canary-status.mdへコミットすることで、スマートフォンからGitHubの
 # ファイルビュー・コミット履歴だけで最新状態を確認できるようにする
+#
+# issue #1597: 当初1時間おきで実行していたが、状態確認は人間がPRレビュー等の
+# タイミングで見るものであり、1時間おきの頻度に必要性がなく実行回数・
+# コミット数が過剰だった。1日1回（promote-canary.ymlの昇格判定と時刻が
+# 重複しないよう、その15分後の02:52 JSTに設定）へ減らす
 on:
   schedule:
-    - cron: "6 * * * *" # 1時間おき（分を0からずらし、他ワークフローとの同時実行集中を避ける）
+    - cron: "52 17 * * *" # 1日1回 02:52 JST（promote-canary.ymlの判定直後）
   workflow_dispatch: {}
 
 permissions:
