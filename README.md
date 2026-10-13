@@ -25,18 +25,7 @@
 
 ## Tech Stack
 
-| 技術 | 名称 | 説明 |
-| :---: | :--- | :--- |
-| <img src="https://cdn.simpleicons.org/react/61DAFB" width="20" height="20" /> | **React** | ユーザーインターフェース構築のためのJavaScriptライブラリ。最新のv19を使用。 |
-| <img src="https://cdn.simpleicons.org/vite/646CFF" width="20" height="20" /> | **Vite** | 高速なビルドツールおよび開発サーバー。 |
-| <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Database/32/Arch_Amazon-DynamoDB_32.svg" width="20" height="20" /> | **DynamoDB** | フルマネージドなNoSQLデータベース。フレーズや統計情報を格納。 |
-| <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Compute/32/Arch_AWS-Lambda_32.svg" width="20" height="20" /> | **AWS Lambda** | サーバーレスなイベント駆動型コンピューティングサービス。 |
-| <img src="https://cdn.simpleicons.org/serverless/FD5750" width="20" height="20" /> | **Serverless Framework** | サーバーレスアプリケーションの構成・デプロイを管理するフレームワーク。デプロイCLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)を使用（issue #611）。 |
-| <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Artificial-Intelligence/32/Arch_Amazon-Polly_32.svg" width="20" height="20" /> | **Amazon Polly** | テキストをリアルな音声に変換するクラウドサービス。 |
-| <img src="https://cdn.simpleicons.org/githubactions/2088FF" width="20" height="20" /> | **GitHub Actions** | CI/CD（継続的インテグレーション/継続的デプロイ）を自動化。 |
-| <img src="https://cdn.simpleicons.org/vitest/6E9F18" width="20" height="20" /> | **Vitest** | Viteネイティブで高速なユニットテストフレームワーク。 |
-| <img src="./docs/resources/aws-icons/Asset-Package_07312025.49d3aab7f9e6131e51ade8f7c6c8b961ee7d3bb1/Architecture-Service-Icons_07312025/Arch_Networking-Content-Delivery/32/Arch_Amazon-API-Gateway_32.svg" width="20" height="20" /> | **API Gateway (WebSocket)** | クイズ大会モードの読み札・結果・早押し等をリアルタイムに同期するWebSocket API。 |
-| - | **qrcode** | クイズ大会モードの参加用招待URLをQRコード化するJavaScriptライブラリ。 |
+使用技術の一覧は[Tech Stack](docs/tech-stack.md)を参照してください。
 
 ## Architecture
 
@@ -123,40 +112,8 @@ graph TD
 
 `stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
 
-現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は、`canary-status.yml`が1時間おきに自動更新する[canary運用状態](docs/generated/canary-status.md)を参照してください。
+現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は、`canary-status.yml`が1日1回自動更新する[canary運用状態](docs/generated/canary-status.md)を参照してください。
 
 ## 運用
 
-### クイズ大会モードの運用手順
-
-正常系・異常系（管理者のセッション断、誤ったルームコードでの参加、ルームの終了等）の挙動、および対応するテスト・手動確認手順については、[クイズ大会モード 運用手順](docs/quiz-room-operations.md) を参照してください。
-
-### バックアップと復旧
-
-本システムでは、データの保護と可用性向上のため、以下のバックアップ体制をとっています。
-
-- **DynamoDB Point-in-Time Recovery (PITR)**:
-  - 永続的なデータを保持するテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`）において PITR を有効化しています。
-  - 過去 35 日間の任意の時点にデータを復旧できます。
-  - 意図しないデータ削除や更新ミスが発生した際の保険として機能します。
-  - クイズ大会モードのテーブル（`karuta-quiz-rooms`, `karuta-quiz-room-connections`）は、TTLによる自動削除を前提とした一時的なデータのみを保持します。そのためPITRの対象外としています。
-- **オンデマンドバックアップ**: データ層の構成変更作業（issue #1320等）の直前には、手動バックアップを取得できます。これにより特定のタイミングの状態を明示的に残せます。手順は[DynamoDBオンデマンドバックアップ・復旧手順](docs/data-backup-restore.md)を参照してください。
-
-## かるた情報の追加・更新
-
-かるたの情報（フレーズや難易度など）は、以下の手順で追加・更新できます。CSV→DynamoDB同期の冪等性・データ整合の設計方針は[backend/seed.jsの冪等性・データ整合の設計方針](docs/csv-seed-idempotency-design.md)を参照してください。
-
-1. `backend/phrases.csv` を編集します。
-   - `category`: かるたのカテゴリ名
-   - `id`: 一意のID
-   - `phrase`: 読み上げテキスト
-   - `kana`: 読み（かな）
-   - `phrase_en`: 英語テキスト（任意）
-   - `answer`: 答え（取り札）のテキスト
-   - `level`: 難易度。数字のみの文字列（例: `3`）は数値として扱われる。`-`または数字以外の文字列（例: `初級`・`上級`）は、カテゴリ独自の難易度表記としてそのまま文字列で保持される（`backend/seed.js`の`parseLevel()`参照）
-   - `group`: 対象区分（`kids`: こども向け / `engineer`: エンジニア向け）
-2. PRを作成し、`main` へマージします。
-3. GitHub Actions の CD ワークフローが自動的に実行され、DynamoDB のデータが更新されます。
-   - 既存のアイテムの統計情報（読み上げ回数や平均時間）は維持されます。
-   - CSV から削除されたアイテムは、データベースからも削除されます。
-4. デプロイ後、アプリで新しいカテゴリが選択できることを確認します。表示されない場合は、CDワークフローの `deploy-backend` ジョブが実際に実行された（スキップされていない）ことを確認してください。
+クイズ大会モードの運用手順、バックアップと復旧、かるた情報（フレーズ等）の追加・更新手順については、[運用](docs/operations.md)を参照してください。
