@@ -1,3 +1,10 @@
+## [1.108.2](https://github.com/bamiyanapp/karuta/compare/v1.108.1...v1.108.2) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** stable/canaryのAPIベースURLをデプロイ時にosls infoから動的解決する ([#1592](https://github.com/bamiyanapp/karuta/issues/1592)) ([5db77c8](https://github.com/bamiyanapp/karuta/commit/5db77c8cc4fd9b239b8516c639438f73428a255d)), closes [#1591](https://github.com/bamiyanapp/karuta/issues/1591)
+
 ## [1.108.1](https://github.com/bamiyanapp/karuta/compare/v1.108.0...v1.108.1) (2026-10-11)
 
 
