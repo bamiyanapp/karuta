@@ -25,6 +25,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: read # issue #1609: 直近のpromote-canary.yml実行をgh run listで取得するために必要
 
 jobs:
   status:
@@ -238,7 +239,13 @@ jobs:
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
       # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
-      - name: 次回promote-canary.yml実行予定を計算する
+      #
+      # issue #1609: この時刻はcronの発火時刻に過ぎず、発火しても猶予期間
+      # （grace_period_hours等）未経過ならeligible=falseで何も反映されずに
+      # 終了する。「この時刻にcanaryが更新される」という誤解を避けるため、
+      # 表示上も「cron発火予定」であることを明示し、実際に昇格・反映が行われる
+      # 条件（本番昇格の条件を満たす日時）とは別の行として示す
+      - name: 次回promote-canary.yml cron発火予定を計算する
         id: schedule
         run: |
           set -eu
@@ -251,6 +258,35 @@ jobs:
           fi
           NEXT_RUN_AT=$(TZ=Asia/Tokyo date -d "@${NEXT_RUN_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
           echo "next_promote_run_at=${NEXT_RUN_AT}" >> "$GITHUB_OUTPUT"
+
+      # issue #1609: チャット上の会話等で「run 11」のようにpromote-canary.ymlの
+      # 実行を指す場合、どの実行を指しているかがドキュメント単独から追跡できな
+      # かった。直近の実行（run番号・実行ログへのリンク・開始時刻・結果）を
+      # gh run listで取得し、ドキュメントに載せる
+      - name: 直近のpromote-canary.yml実行を取得する
+        id: last_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          RUN_JSON=$(gh run list --workflow=promote-canary.yml --limit 1 --json databaseId,conclusion,status,createdAt,url --jq '.[0] // {}')
+          RUN_ID=$(echo "$RUN_JSON" | jq -r '.databaseId // ""')
+          RUN_URL=$(echo "$RUN_JSON" | jq -r '.url // ""')
+          RUN_RESULT=$(echo "$RUN_JSON" | jq -r '(.conclusion // .status) // ""')
+          RUN_CREATED_AT=$(echo "$RUN_JSON" | jq -r '.createdAt // ""')
+          if [ -n "$RUN_CREATED_AT" ]; then
+            RUN_CREATED_AT_JST=$(TZ=Asia/Tokyo date -d "$RUN_CREATED_AT" +"%Y-%m-%d %H:%M:%S JST")
+          else
+            RUN_CREATED_AT_JST="（取得できなかった）"
+          fi
+          if [ -n "$RUN_ID" ] && [ -n "$RUN_URL" ]; then
+            RUN_LINK="[run ${RUN_ID}](${RUN_URL})"
+          else
+            RUN_LINK="（取得できなかった）"
+          fi
+          echo "run_link=${RUN_LINK}" >> "$GITHUB_OUTPUT"
+          echo "run_result=${RUN_RESULT:-（取得できなかった）}" >> "$GITHUB_OUTPUT"
+          echo "run_created_at=${RUN_CREATED_AT_JST}" >> "$GITHUB_OUTPUT"
 
       - name: Write summary
         if: always()
@@ -274,8 +310,9 @@ jobs:
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| canaryの配信中バージョン（backend） | ${{ steps.version.outputs.canary_backend_version }} |"
               echo "| canaryの配信中バージョン（frontend） | ${{ steps.version.outputs.canary_frontend_version }} |"
-              echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
-              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
               echo ""
               echo "### canaryに反映済み・stable昇格待ちの変更"
               echo ""
@@ -287,7 +324,8 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
-              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 次回のpromote-canary.yml cron発火予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
               echo ""
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> "$GITHUB_STEP_SUMMARY"
@@ -302,7 +340,7 @@ jobs:
           {
             echo "# canary運用状態"
             echo ""
-            echo "このファイルは\`canary-status.yml\`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。"
+            echo "このファイルは\`canary-status.yml\`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。"
             echo ""
             echo "最終更新日時: $(TZ=Asia/Tokyo date +"%Y-%m-%d %H:%M:%S JST")。"
             echo ""
@@ -321,8 +359,9 @@ jobs:
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| canaryの配信中バージョン（backend） | ${{ steps.version.outputs.canary_backend_version }} |"
               echo "| canaryの配信中バージョン（frontend） | ${{ steps.version.outputs.canary_frontend_version }} |"
-              echo "| 本番昇格の条件を満たす日時 | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
-              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
               echo ""
               echo "## canaryに反映済み・stable昇格待ちの変更"
               echo ""
@@ -338,7 +377,8 @@ jobs:
             } >> docs/generated/canary-status.md
           else
             {
-              echo "| 次回の定期チェック予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 次回のpromote-canary.yml cron発火予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
               echo ""
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> docs/generated/canary-status.md
