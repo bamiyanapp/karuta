@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1時間おきのスケジュール実行）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-13 10:14:37 JST。
+最終更新日時: 2026-10-13 18:16:09 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -29,4 +29,4 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
-（該当するPRが見つからなかった）
+- [#1587 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1587)
