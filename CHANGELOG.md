@@ -1,3 +1,11 @@
+## [1.108.6](https://github.com/bamiyanapp/karuta/compare/v1.108.5...v1.108.6) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** canary昇格の猶予期間を1日(24時間)から20時間に変更する ([#1611](https://github.com/bamiyanapp/karuta/issues/1611)) ([b499340](https://github.com/bamiyanapp/karuta/commit/b4993403445473033f1f9caaa8a96db80bc1302d)), closes [#1610](https://github.com/bamiyanapp/karuta/issues/1610)
+* **docs:** canary-status.mdに直近のpromote-canary.yml実行への参照を追加する ([#1612](https://github.com/bamiyanapp/karuta/issues/1612)) ([42e1de2](https://github.com/bamiyanapp/karuta/commit/42e1de2af5a8435ada522d8677fdd36a64e7fd0c)), closes [#1609](https://github.com/bamiyanapp/karuta/issues/1609)
+
 ## [1.108.5](https://github.com/bamiyanapp/karuta/compare/v1.108.4...v1.108.5) (2026-10-13)
 
 

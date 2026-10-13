@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.108.5",
+    "version": "1.108.6",
     "date": "2026/10/13",
+    "body": "### Bug Fixes\n\n* **ci:** canary昇格の猶予期間を1日(24時間)から20時間に変更する ([#1611](https://github.com/bamiyanapp/karuta/issues/1611)) ([b499340](https://github.com/bamiyanapp/karuta/commit/b4993403445473033f1f9caaa8a96db80bc1302d)), closes [#1610](https://github.com/bamiyanapp/karuta/issues/1610)\n* **docs:** canary-status.mdに直近のpromote-canary.yml実行への参照を追加する ([#1612](https://github.com/bamiyanapp/karuta/issues/1612)) ([42e1de2](https://github.com/bamiyanapp/karuta/commit/42e1de2af5a8435ada522d8677fdd36a64e7fd0c)), closes [#1609](https://github.com/bamiyanapp/karuta/issues/1609)"
+  },
+  {
+    "version": "1.108.5",
+    "date": "2026/10/13 10:23",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのnpm ciをリポジトリルートで1回に統合する ([#1602](https://github.com/bamiyanapp/karuta/issues/1602)) ([ac6c1dd](https://github.com/bamiyanapp/karuta/commit/ac6c1dd29a6a3a06686979b4eab4cdbc92c540be)), closes [#1601](https://github.com/bamiyanapp/karuta/issues/1601)"
   },
   {
