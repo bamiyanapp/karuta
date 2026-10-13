@@ -45,14 +45,16 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install infra dependencies
-        working-directory: infra
-        run: npm ci
-
-      # issue #1591: backendのAPIエンドポイントをosls infoから動的解決する
-      # ために、backendの依存関係もインストールする
-      - name: Install backend dependencies
-        working-directory: backend
+      # issue #1601: npm workspaces構成（issue #608）ではルートに単一の
+      # package-lock.jsonしかなく、サブディレクトリ内で個別にnpm ciを
+      # 2回（infra・backend）実行すると、2回目の実行が1回目でリンクされた
+      # 別ワークスペースのnode_modules/.bin（osls等）を消してしまい、
+      # 後続のosls呼び出しがcommand not found（exit 127）で失敗する
+      # 回帰を引き起こした（PR #1596で追加した2回目のnpm ciが原因）。
+      # dev-standardsの共通action（deploy-serverless）の`workspaces: true`
+      # オプションと同じ理由で、依存インストールはリポジトリルートで
+      # 1回にまとめる
+      - name: Install dependencies
         run: npm ci
 
       - name: KVS ARN・フロントエンド配信ドメインを解決する
