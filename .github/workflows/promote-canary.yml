@@ -37,7 +37,10 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  # issue #919: reusable-promote-canary.ymlがcanary_tag_name（canaryが実際に
+  # 検証したコミットを記録するgitタグ）をpushするために、呼び出し元である
+  # 本workflowもcontents: writeが必要
+  contents: write
 
 jobs:
   resolve:
@@ -73,7 +76,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.78.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.78.1
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
