@@ -48,6 +48,24 @@ jobs:
       - name: Install dependencies
         run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
 
+      # issue #1591: frontend/.env.<stage>の静的なAPI Gateway URLは、対象
+      # スタックを削除・再作成するたびに実際の値と食い違う（手動更新が前提
+      # だが更新が怠られ、ビルドに古いURLが焼き込まれ続けていた）。ビルド
+      # 直前に現在のエンドポイントをosls infoから再取得し、.env.<stage>を
+      # 都度上書きしてから使う
+      - name: 現在のAPIエンドポイントを解決し.env.${{ inputs.stage }}を更新する
+        working-directory: backend
+        run: |
+          set -eu
+          INFO=$(npx osls info --stage ${{ inputs.stage }} --verbose 2>/dev/null)
+          API_URL=$(echo "$INFO" | grep -oE 'https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${{ inputs.stage }}' | head -1)
+          WS_URL=$(echo "$INFO" | grep -oE 'wss://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${{ inputs.stage }}' | head -1)
+          if [ -z "$API_URL" ] || [ -z "$WS_URL" ]; then
+            echo "${{ inputs.stage }}のAPIエンドポイントをosls infoから取得できなかった" >&2
+            exit 1
+          fi
+          printf 'VITE_API_BASE_URL=%s\nVITE_WS_BASE_URL=%s\n' "$API_URL" "$WS_URL" > ../frontend/.env.${{ inputs.stage }}
+
       - name: Build frontend
         working-directory: frontend
         run: npm run build:${{ inputs.stage }}
