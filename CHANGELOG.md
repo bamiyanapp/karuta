@@ -1,3 +1,10 @@
+## [1.108.5](https://github.com/bamiyanapp/karuta/compare/v1.108.4...v1.108.5) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのnpm ciをリポジトリルートで1回に統合する ([#1602](https://github.com/bamiyanapp/karuta/issues/1602)) ([ac6c1dd](https://github.com/bamiyanapp/karuta/commit/ac6c1dd29a6a3a06686979b4eab4cdbc92c540be)), closes [#1601](https://github.com/bamiyanapp/karuta/issues/1601)
+
 ## [1.108.4](https://github.com/bamiyanapp/karuta/compare/v1.108.3...v1.108.4) (2026-10-13)
 
 

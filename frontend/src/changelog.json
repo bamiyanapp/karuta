@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.108.4",
+    "version": "1.108.5",
     "date": "2026/10/13",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのnpm ciをリポジトリルートで1回に統合する ([#1602](https://github.com/bamiyanapp/karuta/issues/1602)) ([ac6c1dd](https://github.com/bamiyanapp/karuta/commit/ac6c1dd29a6a3a06686979b4eab4cdbc92c540be)), closes [#1601](https://github.com/bamiyanapp/karuta/issues/1601)"
+  },
+  {
+    "version": "1.108.4",
+    "date": "2026/10/13 10:06",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlの実行頻度を1時間おきから1日1回に減らす ([#1598](https://github.com/bamiyanapp/karuta/issues/1598)) ([042496b](https://github.com/bamiyanapp/karuta/commit/042496b075807b831d446bcaa0c1b771d81664ee)), closes [#1597](https://github.com/bamiyanapp/karuta/issues/1597)"
   },
   {
