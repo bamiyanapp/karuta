@@ -1,3 +1,10 @@
+## [1.108.4](https://github.com/bamiyanapp/karuta/compare/v1.108.3...v1.108.4) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlの実行頻度を1時間おきから1日1回に減らす ([#1598](https://github.com/bamiyanapp/karuta/issues/1598)) ([042496b](https://github.com/bamiyanapp/karuta/commit/042496b075807b831d446bcaa0c1b771d81664ee)), closes [#1597](https://github.com/bamiyanapp/karuta/issues/1597)
+
 ## [1.108.3](https://github.com/bamiyanapp/karuta/compare/v1.108.2...v1.108.3) (2026-10-13)
 
 

@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.108.3",
+    "version": "1.108.4",
     "date": "2026/10/13",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlの実行頻度を1時間おきから1日1回に減らす ([#1598](https://github.com/bamiyanapp/karuta/issues/1598)) ([042496b](https://github.com/bamiyanapp/karuta/commit/042496b075807b831d446bcaa0c1b771d81664ee)), closes [#1597](https://github.com/bamiyanapp/karuta/issues/1597)"
+  },
+  {
+    "version": "1.108.3",
+    "date": "2026/10/13 10:00",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのbackendバージョン取得もosls infoから動的解決する ([#1596](https://github.com/bamiyanapp/karuta/issues/1596)) ([5a74c0c](https://github.com/bamiyanapp/karuta/commit/5a74c0c5891b2ab0e8e53fce8e34ac5bf07771e5)), closes [#1595](https://github.com/bamiyanapp/karuta/issues/1595)"
   },
   {
