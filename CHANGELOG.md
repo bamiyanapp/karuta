@@ -1,3 +1,10 @@
+## [1.108.7](https://github.com/bamiyanapp/karuta/compare/v1.108.6...v1.108.7) (2026-10-13)
+
+
+### Bug Fixes
+
+* **ci:** canaryが実際に検証したコミットのみをstableへ昇格する ([#1616](https://github.com/bamiyanapp/karuta/issues/1616)) ([64f099b](https://github.com/bamiyanapp/karuta/commit/64f099b60dfd08d07f5615ca6263bbabb8914df3)), closes [#919](https://github.com/bamiyanapp/karuta/issues/919)
+
 ## [1.108.6](https://github.com/bamiyanapp/karuta/compare/v1.108.5...v1.108.6) (2026-10-13)
 
 
