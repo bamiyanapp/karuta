@@ -83,8 +83,38 @@ jobs:
       backend_deploy_command_stable: npx osls deploy --stage stable
       backend_remove_canary_command: npx osls remove --stage canary
       backend_deploy_command_canary: npx osls deploy --stage canary
-      frontend_build_command_stable: npm run build:stable --workspace=frontend
-      frontend_build_command_canary: npm run build:canary --workspace=frontend
+      # issue #1591: frontend/.env.<stage>に書かれたAPI Gateway URLは
+      # スタック削除・再作成（本workflowのcanary昇格・再デプロイ）ごとに
+      # 変わるのに、静的ファイルのため手動更新が必要だった。canaryは毎日
+      # 削除・再作成されるため、更新を一度でも怠るとビルドに古いURLが
+      # 焼き込まれ、canary版がAPIを一切呼べなくなる事故が実際に発生した。
+      # ビルド直前にbackend deployが直前に出力した現在のエンドポイントを
+      # osls infoから再取得し、.env.<stage>を都度上書きしてから
+      # ビルドすることで、手動更新への依存を無くす
+      frontend_build_command_stable: |
+        cd backend
+        INFO=$(npx osls info --stage stable --verbose 2>/dev/null)
+        cd ..
+        API_URL=$(echo "$INFO" | grep -oE 'https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/stable' | head -1)
+        WS_URL=$(echo "$INFO" | grep -oE 'wss://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/stable' | head -1)
+        if [ -z "$API_URL" ] || [ -z "$WS_URL" ]; then
+          echo "stableのAPIエンドポイントをosls infoから取得できなかった" >&2
+          exit 1
+        fi
+        printf 'VITE_API_BASE_URL=%s\nVITE_WS_BASE_URL=%s\n' "$API_URL" "$WS_URL" > frontend/.env.stable
+        npm run build:stable --workspace=frontend
+      frontend_build_command_canary: |
+        cd backend
+        INFO=$(npx osls info --stage canary --verbose 2>/dev/null)
+        cd ..
+        API_URL=$(echo "$INFO" | grep -oE 'https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/canary' | head -1)
+        WS_URL=$(echo "$INFO" | grep -oE 'wss://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/canary' | head -1)
+        if [ -z "$API_URL" ] || [ -z "$WS_URL" ]; then
+          echo "canaryのAPIエンドポイントをosls infoから取得できなかった" >&2
+          exit 1
+        fi
+        printf 'VITE_API_BASE_URL=%s\nVITE_WS_BASE_URL=%s\n' "$API_URL" "$WS_URL" > frontend/.env.canary
+        npm run build:canary --workspace=frontend
       infra_stack_name: karuta-infra-shared
       canary_exists_kvs_key: canary_exists # issue #1489
     secrets:
