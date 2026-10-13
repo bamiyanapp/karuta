@@ -73,12 +73,19 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.75.4
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.78.0
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
       kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
-      grace_period_days: 1 # issue #1442: 猶予期間を1週間から1日へ短縮した
+      # issue #1442: 猶予期間を1週間から1日へ短縮した。issue #1610:
+      # GitHub Actionsのscheduleトリガーは発火時刻が数時間単位でずれることが
+      # あり、日単位（24時間）の判定では前回canary更新からの経過時間がわずかに
+      # 24時間へ届かず昇格が1サイクル分遅延するケースが実際に発生した
+      # （2026-10-13、実測で約22時間4分のケースを確認）。dev-standards#916
+      # （PR #917、v2.78.0）で追加されたgrace_period_hoursを使い、時間単位
+      # （20時間）で猶予期間を指定する
+      grace_period_hours: 20
       backend_working_directory: backend
       backend_deploy_command_stable: npx osls deploy --stage stable
       backend_remove_canary_command: npx osls remove --stage canary
