@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.108.8",
+    "date": "2026/10/14",
+    "body": "### Bug Fixes\n\n* **docs:** canary-status.mdのバージョン表示をbackend/frontend個別表示から1行に統合する ([#1624](https://github.com/bamiyanapp/karuta/issues/1624)) ([f8f51a7](https://github.com/bamiyanapp/karuta/commit/f8f51a778e4fb0989c3938919b671352ab323fe1)), closes [#1623](https://github.com/bamiyanapp/karuta/issues/1623)"
+  },
+  {
     "version": "1.108.7",
-    "date": "2026/10/13",
+    "date": "2026/10/13 23:49",
     "body": "### Bug Fixes\n\n* **ci:** canaryが実際に検証したコミットのみをstableへ昇格する ([#1616](https://github.com/bamiyanapp/karuta/issues/1616)) ([64f099b](https://github.com/bamiyanapp/karuta/commit/64f099b60dfd08d07f5615ca6263bbabb8914df3)), closes [#919](https://github.com/bamiyanapp/karuta/issues/919)"
   },
   {

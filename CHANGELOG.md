@@ -1,3 +1,10 @@
+## [1.108.8](https://github.com/bamiyanapp/karuta/compare/v1.108.7...v1.108.8) (2026-10-14)
+
+
+### Bug Fixes
+
+* **docs:** canary-status.mdのバージョン表示をbackend/frontend個別表示から1行に統合する ([#1624](https://github.com/bamiyanapp/karuta/issues/1624)) ([f8f51a7](https://github.com/bamiyanapp/karuta/commit/f8f51a778e4fb0989c3938919b671352ab323fe1)), closes [#1623](https://github.com/bamiyanapp/karuta/issues/1623)
+
 ## [1.108.7](https://github.com/bamiyanapp/karuta/compare/v1.108.6...v1.108.7) (2026-10-13)
 
 
