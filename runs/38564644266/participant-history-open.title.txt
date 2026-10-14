@@ -1,0 +1,1 @@
+participant can open and close the "read-aloud history" panel after a phrase is broadcast (issue #576)
