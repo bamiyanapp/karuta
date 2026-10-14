@@ -236,6 +236,23 @@ jobs:
           echo "canary_frontend_version=${CANARY_FRONTEND_VERSION}" >> "$GITHUB_OUTPUT"
           echo "stable_frontend_version=${STABLE_FRONTEND_VERSION}" >> "$GITHUB_OUTPUT"
 
+          # issue #1623: backend・frontendは単一のmonorepoバージョンから
+          # ビルドされ、通常は常に同じ値になる（issue #1565で分離したのは
+          # デプロイの部分失敗を検知するための診断用途）。一致時は1行に
+          # まとめ、不一致時（デプロイの部分失敗を示す異常值）のみ両方を
+          # 明示して警告表示する
+          combine_version() {
+            local backend="$1"
+            local frontend="$2"
+            if [ "$backend" = "$frontend" ]; then
+              echo "$backend"
+            else
+              echo "⚠️ 不一致（backend: ${backend} / frontend: ${frontend}）"
+            fi
+          }
+          echo "canary_version=$(combine_version "$CANARY_BACKEND_VERSION" "$CANARY_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
+          echo "stable_version=$(combine_version "$STABLE_BACKEND_VERSION" "$STABLE_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
+
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
       # UTC 17:37）なので、今から見た直近の次回実行時刻を計算する
@@ -305,11 +322,9 @@ jobs:
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
-              echo "| stableの配信中バージョン（backend） | ${{ steps.version.outputs.stable_backend_version }} |"
-              echo "| stableの配信中バージョン（frontend） | ${{ steps.version.outputs.stable_frontend_version }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
-              echo "| canaryの配信中バージョン（backend） | ${{ steps.version.outputs.canary_backend_version }} |"
-              echo "| canaryの配信中バージョン（frontend） | ${{ steps.version.outputs.canary_frontend_version }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
               echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
@@ -354,11 +369,9 @@ jobs:
           if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
-              echo "| stableの配信中バージョン（backend） | ${{ steps.version.outputs.stable_backend_version }} |"
-              echo "| stableの配信中バージョン（frontend） | ${{ steps.version.outputs.stable_frontend_version }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
-              echo "| canaryの配信中バージョン（backend） | ${{ steps.version.outputs.canary_backend_version }} |"
-              echo "| canaryの配信中バージョン（frontend） | ${{ steps.version.outputs.canary_frontend_version }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
               echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
               echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
