@@ -1,0 +1,114 @@
+name: Clear force_stable (resume normal routing)
+run-name: Clear force_stable (manual)
+
+# issue #1662: force_stableをfalse（通常運用、canary_weightによる分散
+# ルーティング）へ戻す専用workflow。
+#
+# `rollback-to-stable.yml`はコメントで明記している通り、意図的に「戻す」機能を
+# 持たない設計だった。しかし`reusable-promote-canary.yml`の自動昇格は
+# force_stable=trueの間は判定自体を必ず弾くため、「復帰は自動昇格経由」という
+# 想定は成立せず、force_stableが誤ってtrueのまま残ると、スマートフォンだけでは
+# 復帰できない状態になっていた（dev-standards/docs/blue-green-stage-pattern.md
+# 「自動昇格ワークフローの判定マトリクス」参照）。
+#
+# 誤operationへの抑制は、rollback-to-stable.ymlと対になる専用workflow（本
+# workflow）として分離し、workflow_dispatch実行権限という既存の抑制に委ねる
+# （bamiyanapp/dev-standards#948でreusable-rollback-to-stable.ymlへ追加された
+# value inputを使う）
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      domain: ${{ steps.resolve.outputs.domain }}
+      kvs_arn: ${{ steps.resolve.outputs.kvs_arn }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Resolve CloudFront domain and KVS ARN
+        id: resolve
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          DOMAIN=$(echo "$INFO" | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+          echo "Domain: ${DOMAIN}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  clear:
+    needs: resolve
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-rollback-to-stable.yml@v2.81.0
+    with:
+      kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
+      kvs_key: force_stable
+      value: "false"
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  verify:
+    needs: [resolve, clear]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 反映を確認する（KVS伝播待ち、canary Cookie保持者のルーティング確認）
+        id: verify
+        run: |
+          set -eu
+          DOMAIN="${{ needs.resolve.outputs.domain }}"
+          # KVS更新のCloudFrontエッジ拠点への伝播は非同期（issue #1322の実機
+          # 検証で最大30秒程度かかることを確認済み）。伝播を確認できるまで
+          # 一定間隔でリトライする（最大120秒）。
+          # canary Cookieを付けてアクセスし、CANARYへ戻ることを確認する
+          # （force_stable=trueの間は全アクセスがSTABLEに固定されていたため）
+          MAX_WAIT_ATTEMPTS=12
+          WAIT_SECONDS=10
+          PROPAGATED=0
+          for attempt in $(seq 1 "$MAX_WAIT_ATTEMPTS"); do
+            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
+            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
+            if [ "$VARIANT" = "CANARY" ]; then
+              PROPAGATED=1
+              echo "反映を確認した（${attempt}回目、待機合計約$(( (attempt - 1) * WAIT_SECONDS ))秒）"
+              break
+            fi
+            echo "${attempt}回目: まだ反映されていない（${VARIANT}）。${WAIT_SECONDS}秒待機して再試行する"
+            sleep "$WAIT_SECONDS"
+          done
+          echo "propagated=${PROPAGATED}" >> "$GITHUB_OUTPUT"
+          if [ "$PROPAGATED" -ne 1 ]; then
+            echo "force_stable=falseが$((MAX_WAIT_ATTEMPTS * WAIT_SECONDS))秒経っても反映されなかった" >&2
+            exit 1
+          fi
+
+      - name: Write summary
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## issue #1662 force_stable解除実行結果"
+            echo ""
+            echo "force_stable: false に設定した"
+            echo "反映確認: ${{ steps.verify.outputs.propagated == '1' && 'canary Cookie保持者がcanaryへルーティングされることを確認した（通常運用へ復帰）' || '確認できなかった（要調査）' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
