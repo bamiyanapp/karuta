@@ -2,13 +2,13 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-16 07:14:58 JST。
+最終更新日時: 2026-10-16 08:12:16 JST。
 
 | 項目 | 値 |
 |---|---|
 | canary_weight（canaryへ振り分ける割合） | 10% |
-| force_stable（管理者ロールバック中か） | true |
-| canary_queue_pending（反映待ちのマージがあるか） | false |
+| force_stable（管理者ロールバック中か） | false |
+| canary_queue_pending（反映待ちのマージがあるか） | true |
 | canaryスタックが存在するか | true |
 | stableの最終更新 | 2026-10-14 08:52:09 JST |
 | stableの配信中バージョン | 1.108.6 |
@@ -36,4 +36,4 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
-（該当するPRが見つからなかった）
+- [#1664 feat(ci): force_stableをfalseへ戻す専用workflowを追加する](https://github.com/bamiyanapp/karuta/pull/1664)
