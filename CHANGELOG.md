@@ -1,3 +1,12 @@
+## [1.111.3](https://github.com/bamiyanapp/karuta/compare/v1.111.2...v1.111.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlの猶予期間表示を20時間に揃える ([5f5531c](https://github.com/bamiyanapp/karuta/commit/5f5531c585d2ce4b48244a52291c34b2584015de)), closes [#1652](https://github.com/bamiyanapp/karuta/issues/1652)
+* **ci:** canary関連workflowの定期実行時刻を0時JSTへ変更し、canary-status.ymlの独自scheduleを廃止する ([ba8aea6](https://github.com/bamiyanapp/karuta/commit/ba8aea6c2d4130f372ab1489be69f299bf1e18ee)), closes [#1655](https://github.com/bamiyanapp/karuta/issues/1655)
+* **deps:** oslsをv4系へ更新しaws-sdk(v2系、EOL)依存を解消する ([d684627](https://github.com/bamiyanapp/karuta/commit/d684627726e4833fa2d2ea75a78b38c3bb2f39ed)), closes [#1658](https://github.com/bamiyanapp/karuta/issues/1658)
+
 ## [1.111.2](https://github.com/bamiyanapp/karuta/compare/v1.111.1...v1.111.2) (2026-10-15)
 
 
