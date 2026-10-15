@@ -125,7 +125,15 @@ jobs:
           # issue #1475: canaryの最終更新以降にmainへマージされたPRをリンクで示す。
           # squash mergeのコミットメッセージ末尾に付くGitHub標準の"(#1234)"形式を
           # 持つ件名のみを対象とする（重複は保持順でuniqする）
-          PR_SUBJECTS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | awk '!seen[$0]++')
+          #
+          # issue #1622: 上記だけでは、semantic-releaseが新バージョンを発行しない
+          # 種類のコミット（chore・docs等）も表示されてしまい、実際にはcanaryへ
+          # 反映される実体を持たないPRが「キューイング中の変更」に混在していた。
+          # .releaserc.cjs（dev-standards/release-config.cjs）のreleaseRulesで
+          # リリース対象となるconventional commitsタイプ（feat/fix/refactor、
+          # および過去のコミット履歴対応のFeat/fix・Fix/tech）のみに絞り込む
+          RELEASE_TYPE_REGEX='^(feat|fix|refactor|feat/fix|fix/tech)(\(|!|:)'
+          PR_SUBJECTS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
           {
             echo "queued_pr_links<<PR_LINKS_EOF"
             if [ -n "$PR_SUBJECTS" ]; then
@@ -156,7 +164,8 @@ jobs:
               # 区間自体が存在しないため対象外とする
               IN_CANARY_PR_SUBJECTS=""
             else
-              IN_CANARY_PR_SUBJECTS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | awk '!seen[$0]++')
+              # issue #1622: 同様にリリース対象タイプのみへ絞り込む
+              IN_CANARY_PR_SUBJECTS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
             fi
           else
             echo "stable_last_updated=" >> "$GITHUB_OUTPUT"
