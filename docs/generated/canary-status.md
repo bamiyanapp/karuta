@@ -2,11 +2,11 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-15 14:18:33 JST。
+最終更新日時: 2026-10-15 17:21:24 JST。
 
 | 項目 | 値 |
 |---|---|
-| canary_weight（canaryへ振り分ける割合） | 100% |
+| canary_weight（canaryへ振り分ける割合） | 10% |
 | force_stable（管理者ロールバック中か） | true |
 | canary_queue_pending（反映待ちのマージがあるか） | true |
 | canaryスタックが存在するか | true |
@@ -28,6 +28,11 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1631 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1631)
+- [#1629 fix(ci): promote-canary.ymlが参照するdev-standardsタグをv2.78.2へ更新する](https://github.com/bamiyanapp/karuta/pull/1629)
+- [#1630 chore(ci): mermaid図のキャッシュバスティング用クエリ文字列を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1630)
+- [#1628 chore(deps): update bamiyanapp/dev-standards action to v2.77.2](https://github.com/bamiyanapp/karuta/pull/1628)
+- [#1627 chore(canary): canary運用状態を更新する [skip ci]](https://github.com/bamiyanapp/karuta/pull/1627)
 - [#1626 chore(deps): update bamiyanapp/dev-standards action to v2.77.1](https://github.com/bamiyanapp/karuta/pull/1626)
 - [#1625 chore(deps): update bamiyanapp/dev-standards action to v2.77.1](https://github.com/bamiyanapp/karuta/pull/1625)
 - [#1624 fix(docs): canary-status.mdのバージョン表示をbackend/frontend個別表示から1行に統合する](https://github.com/bamiyanapp/karuta/pull/1624)
