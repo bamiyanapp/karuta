@@ -1,3 +1,10 @@
+## [1.111.1](https://github.com/bamiyanapp/karuta/compare/v1.111.0...v1.111.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **frontend:** axe既存違反（region・label・landmark-one-main）を解消する ([#1650](https://github.com/bamiyanapp/karuta/issues/1650)) ([6d81a10](https://github.com/bamiyanapp/karuta/commit/6d81a103cfb63d7fc59cfc5cf485e38ab0cc168c)), closes [#1646](https://github.com/bamiyanapp/karuta/issues/1646)
+
 # [1.111.0](https://github.com/bamiyanapp/karuta/compare/v1.110.1...v1.111.0) (2026-10-15)
 
 

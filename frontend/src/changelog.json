@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.111.0",
+    "version": "1.111.1",
     "date": "2026/10/15",
+    "body": "### Bug Fixes\n\n* **frontend:** axe既存違反（region・label・landmark-one-main）を解消する ([#1650](https://github.com/bamiyanapp/karuta/issues/1650)) ([6d81a10](https://github.com/bamiyanapp/karuta/commit/6d81a103cfb63d7fc59cfc5cf485e38ab0cc168c)), closes [#1646](https://github.com/bamiyanapp/karuta/issues/1646)"
+  },
+  {
+    "version": "1.111.0",
+    "date": "2026/10/15 12:38",
     "body": "### Features\n\n* **ci:** Lighthouse CIによるパフォーマンス・アクセシビリティスコア監視を導入する ([#1643](https://github.com/bamiyanapp/karuta/issues/1643)) ([5d21633](https://github.com/bamiyanapp/karuta/commit/5d21633a15a3a9d74bd0ed0c3d5b07ba3021251a))"
   },
   {
