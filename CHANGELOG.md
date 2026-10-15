@@ -1,3 +1,10 @@
+## [1.109.1](https://github.com/bamiyanapp/karuta/compare/v1.109.0...v1.109.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **docs:** canary-status.mdのキューイング中の変更から非リリース対象PRを除外する ([#1637](https://github.com/bamiyanapp/karuta/issues/1637)) ([f5caa56](https://github.com/bamiyanapp/karuta/commit/f5caa56a82e86e7206f9d475a6a08d6b7c6d36b6)), closes [#1622](https://github.com/bamiyanapp/karuta/issues/1622)
+
 # [1.109.0](https://github.com/bamiyanapp/karuta/compare/v1.108.9...v1.109.0) (2026-10-15)
 
 
