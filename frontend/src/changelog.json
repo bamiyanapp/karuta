@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.110.1",
+    "version": "1.111.0",
     "date": "2026/10/15",
+    "body": "### Features\n\n* **ci:** Lighthouse CIによるパフォーマンス・アクセシビリティスコア監視を導入する ([#1643](https://github.com/bamiyanapp/karuta/issues/1643)) ([5d21633](https://github.com/bamiyanapp/karuta/commit/5d21633a15a3a9d74bd0ed0c3d5b07ba3021251a))"
+  },
+  {
+    "version": "1.110.1",
+    "date": "2026/10/15 12:24",
     "body": "### Bug Fixes\n\n* **frontend:** DivisionSelectViewの重複main landmarkを解消する ([#1645](https://github.com/bamiyanapp/karuta/issues/1645)) ([6b3be9c](https://github.com/bamiyanapp/karuta/commit/6b3be9c6a324b697bad55239ada0b5a73e646668)), closes [#1640](https://github.com/bamiyanapp/karuta/issues/1640)"
   },
   {

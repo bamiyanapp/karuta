@@ -1,3 +1,10 @@
+# [1.111.0](https://github.com/bamiyanapp/karuta/compare/v1.110.1...v1.111.0) (2026-10-15)
+
+
+### Features
+
+* **ci:** Lighthouse CIによるパフォーマンス・アクセシビリティスコア監視を導入する ([#1643](https://github.com/bamiyanapp/karuta/issues/1643)) ([5d21633](https://github.com/bamiyanapp/karuta/commit/5d21633a15a3a9d74bd0ed0c3d5b07ba3021251a))
+
 ## [1.110.1](https://github.com/bamiyanapp/karuta/compare/v1.110.0...v1.110.1) (2026-10-15)
 
 
