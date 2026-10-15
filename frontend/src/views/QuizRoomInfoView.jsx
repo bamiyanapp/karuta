@@ -52,34 +52,38 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
       <header className="mb-4">
         <h1 className="h4 fw-bold">クイズ大会モードのルーム情報</h1>
       </header>
-      <ShareUrlCard url={inviteUrl} codeLabel="ルームコード" codeValue={roomId} qrAltText="参加用QRコード" />
-      <QuizRoomParticipantTable
-        participantNames={quizRoomParticipants}
-        points={quizRoomPoints}
-        answerCounts={quizRoomAnswerCounts}
-        className="mt-5"
-        footer={(
-          <div className="text-end mt-2">
-            <button type="button" onClick={handleResetPoints} className="btn btn-sm btn-outline-danger">
-              ポイントをリセット
-            </button>
-          </div>
-        )}
-      />
-      <div className="mt-5">
-        <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
-          ルームを閉じる
-        </button>
-      </div>
-      <div className="mt-3">
-        <button type="button" onClick={handleResumeReading} disabled={resuming} className="btn btn-sm btn-outline-dark rounded-pill px-3">
-          {resuming ? "再開中..." : "かるたを再開する"}
-        </button>
-      </div>
-      <div className="mt-3">
-        <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
-      </div>
-      <AppVersionInfo />
+      <main>
+        <ShareUrlCard url={inviteUrl} codeLabel="ルームコード" codeValue={roomId} qrAltText="参加用QRコード" />
+        <QuizRoomParticipantTable
+          participantNames={quizRoomParticipants}
+          points={quizRoomPoints}
+          answerCounts={quizRoomAnswerCounts}
+          className="mt-5"
+          footer={(
+            <div className="text-end mt-2">
+              <button type="button" onClick={handleResetPoints} className="btn btn-sm btn-outline-danger">
+                ポイントをリセット
+              </button>
+            </div>
+          )}
+        />
+        <div className="mt-5">
+          <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
+            ルームを閉じる
+          </button>
+        </div>
+        <div className="mt-3">
+          <button type="button" onClick={handleResumeReading} disabled={resuming} className="btn btn-sm btn-outline-dark rounded-pill px-3">
+            {resuming ? "再開中..." : "かるたを再開する"}
+          </button>
+        </div>
+        <div className="mt-3">
+          <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
+        </div>
+      </main>
+      <footer>
+        <AppVersionInfo />
+      </footer>
     </div>
   );
 }

@@ -90,8 +90,10 @@ function DivisionSelectView({
         </div>
       </section>
 
-      <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
-      <CanaryStableToggleLink />
+      <footer>
+        <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
+        <CanaryStableToggleLink />
+      </footer>
     </div>
   );
 }
