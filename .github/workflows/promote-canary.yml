@@ -33,7 +33,9 @@ run-name: Promote Canary to Stable (${{ github.event_name == 'schedule' && 'sche
 # は、いずれもdev-standards側で解消済みのため移行できた
 on:
   schedule:
-    - cron: "37 17 * * *" # 毎日 02:37 JST（UTC 17:37）に判定する
+    # GitHub Actionsのscheduleトリガーは発火時刻が数時間ずれることがあるため
+    # （issue #1610参照）、遅延を加味して0時ちょうどに設定する
+    - cron: "0 15 * * *" # 毎日 00:00 JST（UTC 15:00）に判定する
   workflow_dispatch: {}
 
 permissions:
