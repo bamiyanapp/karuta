@@ -1,3 +1,10 @@
+## [1.111.2](https://github.com/bamiyanapp/karuta/compare/v1.111.1...v1.111.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlの猶予期間表示を揃え、定期実行時刻を0時JSTへ変更する ([#1653](https://github.com/bamiyanapp/karuta/issues/1653)) ([b8ea446](https://github.com/bamiyanapp/karuta/commit/b8ea446d7821e0ce74064551ea24b42dc4c683cc)), closes [#1652](https://github.com/bamiyanapp/karuta/issues/1652) [#1655](https://github.com/bamiyanapp/karuta/issues/1655)
+
 ## [1.111.1](https://github.com/bamiyanapp/karuta/compare/v1.111.0...v1.111.1) (2026-10-15)
 
 

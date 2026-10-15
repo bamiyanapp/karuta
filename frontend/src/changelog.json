@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.111.1",
+    "version": "1.111.2",
     "date": "2026/10/15",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlの猶予期間表示を揃え、定期実行時刻を0時JSTへ変更する ([#1653](https://github.com/bamiyanapp/karuta/issues/1653)) ([b8ea446](https://github.com/bamiyanapp/karuta/commit/b8ea446d7821e0ce74064551ea24b42dc4c683cc)), closes [#1652](https://github.com/bamiyanapp/karuta/issues/1652) [#1655](https://github.com/bamiyanapp/karuta/issues/1655)"
+  },
+  {
+    "version": "1.111.1",
+    "date": "2026/10/15 14:20",
     "body": "### Bug Fixes\n\n* **frontend:** axe既存違反（region・label・landmark-one-main）を解消する ([#1650](https://github.com/bamiyanapp/karuta/issues/1650)) ([6d81a10](https://github.com/bamiyanapp/karuta/commit/6d81a103cfb63d7fc59cfc5cf485e38ab0cc168c)), closes [#1646](https://github.com/bamiyanapp/karuta/issues/1646)"
   },
   {
