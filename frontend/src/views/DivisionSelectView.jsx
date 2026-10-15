@@ -38,6 +38,8 @@ function DivisionSelectView({
     <div className="container py-5 mx-auto">
       <HeroHeader />
 
+      {/* issue #1644: main landmarkはページ内で1つに限定する（axeのlandmark-no-duplicate-main）。
+          後続のセクションはsectionへ変更した */}
       <main className="category-selection-container p-4 mx-auto mb-4" style={{ maxWidth: "600px" }}>
         <h2 className="h4 text-center mb-4 text-dark">じぶんではじめる</h2>
         <div className="d-flex flex-wrap gap-3 justify-content-center">
@@ -56,7 +58,7 @@ function DivisionSelectView({
         </div>
       </main>
 
-      <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
+      <section className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
         <h2 className="h4 text-center mb-4 text-dark">クイズ大会に参加する</h2>
         {sortedOpenQuizRooms.length > 0 && (
           <div className="mx-auto mb-4" style={{ maxWidth: "400px" }}>
@@ -86,7 +88,7 @@ function DivisionSelectView({
             {sortedOpenQuizRooms.length > 0 ? "他の大会に参加する" : "クイズ大会に参加する"}
           </button>
         </div>
-      </main>
+      </section>
 
       <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
       <CanaryStableToggleLink />

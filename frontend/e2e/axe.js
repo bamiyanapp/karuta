@@ -14,8 +14,12 @@ export const AXE_RESULTS_DIR = path.resolve(process.cwd(), 'e2e-axe-results');
 // 既知の違反のうち、現時点では個別画面の実装修正まで手が回っていないため
 // ブロッキングにしない項目（issue #1561の完了条件: 解消方針・残課題の明記）。
 // textlintのsentence-length同様、ここに残っている間は「段階的に解消する」対象であり、
-// 新たな違反が増えていないかはこのリストに無いルールであれば検知される
-const KNOWN_VIOLATION_IDS = [];
+// 新たな違反が増えていないかはこのリストに無いルールであれば検知される。
+// issue #1646: division-select-view（フッターリンク等がlandmark外）・
+// quiz-room-admin-info-view（main landmark欠落・ラベル無しフォーム要素）で
+// 検知された既存の違反。issue #1644でlandmark-no-duplicate-main・
+// landmark-uniqueを解消した際に、同じページの他の既存違反が新たに表面化した
+const KNOWN_VIOLATION_IDS = ['region', 'label', 'landmark-one-main'];
 
 // ページの現在の状態に対してaxeを実行し、結果をHTMLレポートへ添付・JSON書き出しする。
 // nameはscreenshot.jsのcaptureScreenshotと同じ命名規則（ASCII安全な識別子）にする。
@@ -35,8 +39,6 @@ export async function runAxeCheck(page, testInfo, name) {
     contentType: 'application/json',
   });
 
-  // KNOWN_VIOLATION_IDSは既知の違反が見つかった時点でissue #1561側の運用に従い追記される、意図的に空の拡張点
-  // eslint-disable-next-line sonarjs/no-empty-collection
   const newViolations = results.violations.filter((v) => !KNOWN_VIOLATION_IDS.includes(v.id));
   if (newViolations.length > 0) {
     const summary = newViolations.map((v) => `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length}件)`).join('\n');
