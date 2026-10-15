@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
 import { captureScreenshot } from './screenshot.js';
+import { runAxeCheck } from './axe.js';
 
 // クイズ大会モード（issue #470）の管理者→参加者リアルタイム同期を、実際にデプロイ済みの
 // バックエンド（REST API + WebSocket API）に対してブラウザ2つ（別コンテキスト＝別端末相当）で検証する。
@@ -28,6 +29,8 @@ test('admin creates a quiz room and a participant sees the same card update in r
 
     const roomCode = (await adminPage.locator('p.h3.fw-bold.notranslate').innerText()).trim();
     expect(roomCode).toMatch(/^[A-Z2-9]{6}$/);
+    // issue #1561: クイズ大会モードのルーム情報画面（管理者）に対するアクセシビリティ検査
+    await runAxeCheck(adminPage, testInfo, 'quiz-room-admin-info-view');
 
     // ルーム情報表示は別画面への遷移になった（issue #547）。通常のゲーム画面に戻る
     await adminPage.getByText('← 戻る').click();
@@ -43,6 +46,8 @@ test('admin creates a quiz room and a participant sees the same card update in r
     await participantPage.getByText('決定').click();
     await expect(participantPage.getByText('接続状態: 接続済み')).toBeVisible({ timeout: 15000 });
     await expect(participantPage.getByText('ホストの操作を待っています...')).toBeVisible();
+    // issue #1561: クイズ大会モード（参加者）画面に対するアクセシビリティ検査
+    await runAxeCheck(participantPage, testInfo, 'quiz-room-participant-view');
 
     await nextButton.click();
 

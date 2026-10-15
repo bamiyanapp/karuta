@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
 import { captureScreenshot } from './screenshot.js';
+import { runAxeCheck } from './axe.js';
 
 // issue #576対応: E2EのJSカバレッジを引き上げるため、これまでquiz-room.spec.jsの
 // クイズ大会モードでしかカバーできていなかった通常モード（カテゴリ選択→読み上げ→
@@ -106,6 +107,8 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     // ここから通常の読み上げフロー（カテゴリ選択→読み上げ→結果表示）
     await page.goto('/');
     await dismissPwaToastIfPresent();
+    // issue #1561: division選択画面（トップ画面）に対するアクセシビリティ検査
+    await runAxeCheck(page, testInfo, 'division-select-view');
     await page.getByText('こども向け').click();
     // こども向けは1タップで即座に読み上げ画面へ遷移する（App.jsxのtoggleDraftCategory）
     await page.getByRole('button', { name: /おばけかるた/ }).click();
@@ -113,6 +116,8 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
     const nextButton = page.getByRole('button', { name: '次の札' });
     await expect(nextButton).toBeVisible();
     await expect(page.getByText('読み上げ済み 0 / 全45枚')).toBeVisible();
+    // issue #1561: 読み上げ画面（かるた選択直後、次の札を読む前の状態）に対する検査
+    await runAxeCheck(page, testInfo, 'game-view-before-read');
 
     await nextButton.click();
     // /get-phraseはPolly合成（未キャッシュ時）・Lambdaコールドスタートを伴うことがある
