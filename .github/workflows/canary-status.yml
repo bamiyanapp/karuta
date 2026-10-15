@@ -307,6 +307,19 @@ jobs:
       # 実行を指す場合、どの実行を指しているかがドキュメント単独から追跡できな
       # かった。直近の実行（run番号・実行ログへのリンク・開始時刻・結果）を
       # gh run listで取得し、ドキュメントに載せる
+      # issue #1666・dev-standards#950: force_stable（kill switch）がtrueの
+      # まま長時間放置されていないかを検知する。rollback-to-stable.yml（true
+      # 設定）とclear-force-stable.yml（false設定）それぞれの直近の成功実行
+      # 履歴を比較する共通composite action（dev-standards#951）を使う
+      - name: force_stableの戻し忘れを検知する
+        id: staleness
+        uses: ./dev-standards/.github/actions/check-rollback-staleness
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          set-true-workflow: rollback-to-stable.yml
+          set-false-workflow: clear-force-stable.yml
+          max-age-hours: "24"
+
       - name: 直近のpromote-canary.yml実行を取得する
         id: last_run
         env:
@@ -372,6 +385,12 @@ jobs:
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [ "${{ steps.staleness.outputs.stale }}" = "true" ]; then
+            {
+              echo ""
+              echo "⚠️ force_stableが${{ steps.staleness.outputs.since }}からtrueのまま24時間超放置されている。戻し忘れの可能性がないか確認すること（issue #1666）。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # issue #1472: Gitから可視化できるよう、Job Summaryと同じ内容を
       # リポジトリ内のファイルへも書き出す
@@ -421,6 +440,12 @@ jobs:
               echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
               echo ""
               echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
+            } >> docs/generated/canary-status.md
+          fi
+          if [ "${{ steps.staleness.outputs.stale }}" = "true" ]; then
+            {
+              echo ""
+              echo "⚠️ force_stableが${{ steps.staleness.outputs.since }}からtrueのまま24時間超放置されている。戻し忘れの可能性がないか確認すること（issue #1666）。"
             } >> docs/generated/canary-status.md
           fi
 
