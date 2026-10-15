@@ -1,5 +1,5 @@
 name: Canary Status
-run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || 'manual' }})
+run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || github.event_name == 'workflow_run' && 'after promote-canary.yml' || 'manual' }})
 
 # issue #1462: canaryの運用状態（現在の重み・ロールバック状態・キュー待ち・
 # canaryスタックの最終更新時刻・昇格予定日時）は、CloudFront KVSと
@@ -17,10 +17,19 @@ run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || '
 # タイミングで見るものであり、1時間おきの頻度に必要性がなく実行回数・
 # コミット数が過剰だった。1日1回（promote-canary.ymlの昇格判定と時刻が
 # 重複しないよう、その15分後の02:52 JSTに設定）へ減らす
+#
+# issue #1633: 上記のスケジュールだけでは、promote-canary.ymlが実行されても
+# 最大24時間、結果がドキュメントへ反映されなかった（2026-10-14〜15の
+# インシデント調査時も、最新状態確認のため都度手動実行が必要だった）。
+# promote-canary.ymlの完了（成功・失敗問わず）をトリガーに追加し、
+# 実行結果を即時反映する
 on:
   schedule:
     - cron: "52 17 * * *" # 1日1回 02:52 JST（promote-canary.ymlの判定直後）
   workflow_dispatch: {}
+  workflow_run:
+    workflows: ["Promote Canary to Stable"]
+    types: [completed]
 
 permissions:
   contents: write
