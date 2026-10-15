@@ -22,6 +22,9 @@ dist-ssr
 # E2Eの要所スクリーンショット。CI側（reusable-ci.yml）が公開ブランチへコピーする
 # 前段の一時ファイルで、リポジトリ本体には含めない（issue #568）
 /e2e-screenshots/
+# Lighthouse CI（@lhci/cli）の実行結果出力先（issue #1562）
+/.lighthouseci/
+/lhci-reports/
 
 # Editor directories and files
 .vscode/*
