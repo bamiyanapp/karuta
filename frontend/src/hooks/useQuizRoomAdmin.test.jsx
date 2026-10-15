@@ -1057,11 +1057,11 @@ describe('useQuizRoomAdmin (via App)', () => {
     expect(await screen.findByText('開設中のクイズ大会ルーム')).toBeInTheDocument();
     // issue #1519: 進行状況はテキストバッジではなくボタンの背景色で表現するため、
     // ステータス文字列自体（「開始前」等）はもう表示されない
-    expect(screen.getByText('ABC123')).toBeInTheDocument();
-    expect(screen.getByText('Cat1')).toBeInTheDocument();
+    // issue #1581: 表記を「かるた名（ルームID）」の1行表記へ変更した
+    expect(screen.getByText('Cat1（ABC123）')).toBeInTheDocument();
     expect(screen.getByText('DEF456')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('ABC123'));
+    fireEvent.click(screen.getByText('Cat1（ABC123）'));
 
     expect(await screen.findByText('クイズ大会モード（参加者）')).toBeInTheDocument();
     // 早押し機能（issue #510）: 参加者はまず名前を入力してから通常の参加者画面へ進む
@@ -1126,10 +1126,10 @@ describe('useQuizRoomAdmin (via App)', () => {
     });
 
     expect(await screen.findByText('開設中のクイズ大会ルーム')).toBeInTheDocument();
-    // 複数のかるたが紐づく場合は代表1件＋「など」で表示する
-    expect(screen.getByText('Cat1など')).toBeInTheDocument();
+    // 複数のかるたが紐づく場合は代表1件＋「など」で表示する（issue #1581で1行表記へ変更）
+    expect(screen.getByText('Cat1など（ABC123）')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('ABC123'));
+    fireEvent.click(screen.getByText('Cat1など（ABC123）'));
 
     // 参加者用の名前入力画面（「お名前」）を経由せず、直接ルーム詳細画面へ遷移する
     await screen.findByText('クイズ大会モードのルーム情報');
@@ -1177,7 +1177,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       render(<App />);
     });
 
-    fireEvent.click(await screen.findByText('ABC123'));
+    fireEvent.click(await screen.findByText('Cat1など（ABC123）'));
     await screen.findByText('クイズ大会モードのルーム情報');
 
     fireEvent.click(screen.getByText('← 戻る'));
@@ -1218,7 +1218,7 @@ describe('useQuizRoomAdmin (via App)', () => {
       render(<App />);
     });
 
-    fireEvent.click(await screen.findByText('ABC123'));
+    fireEvent.click(await screen.findByText('Cat1など（ABC123）'));
     await screen.findByText('クイズ大会モードのルーム情報');
 
     await act(async () => {
@@ -1298,7 +1298,7 @@ describe('useQuizRoomAdmin (via App)', () => {
   // 指摘内容・更新履歴へのリンクは他画面へ移設した（本テストの対象外）。
   // issue #1519: 見出しを「みんなで遊ぶ」から「クイズ大会に参加する」へ改め、
   // 文言を「他のクイズ大会に参加する」から「他の大会に参加する」へ短縮した
-  it('places the quiz-room join button above the open-room list inside the "クイズ大会に参加する" box, with the label changed to "他の大会に参加する" when rooms are open (issue #502, #1429, #1519)', async () => {
+  it('places the quiz-room join button below the open-room list inside the "クイズ大会に参加する" box, with the label changed to "他の大会に参加する" when rooms are open (issue #502, #1429, #1519, #1581)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('/quiz-rooms')) {
         return { ok: true, json: async () => ({ rooms: [{ roomId: 'ABC123', createdAt: 1, category: 'Cat1' }] }) };
@@ -1318,13 +1318,13 @@ describe('useQuizRoomAdmin (via App)', () => {
     const joinOtherLink = screen.getByText('他の大会に参加する');
     expect(joinOtherLink).toBeInTheDocument();
 
-    // 表示順: 「他のクイズ大会に参加する」→ 開設中ルーム一覧 → 全札一覧等のフッターリンク（最下部）
+    // 表示順（issue #1581で変更）: 開設中ルーム一覧 →「他のクイズ大会に参加する」→ 全札一覧等のフッターリンク（最下部）
     const openRoomHeading = screen.getByText('開設中のクイズ大会ルーム');
     const allPhrasesLink = screen.getByText(/全札一覧を見る/);
     const shareLink = screen.getByText('このアプリを共有する');
 
-    expect(joinOtherLink.compareDocumentPosition(openRoomHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(openRoomHeading.compareDocumentPosition(allPhrasesLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(openRoomHeading.compareDocumentPosition(joinOtherLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(joinOtherLink.compareDocumentPosition(allPhrasesLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(allPhrasesLink.compareDocumentPosition(shareLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 

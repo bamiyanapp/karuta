@@ -1,6 +1,5 @@
 import { HeroHeader, TopViewFooterLinks } from "../components/TopViewChrome";
 import CanaryStableToggleLink from "../components/CanaryStableToggleLink";
-import StableSwitchLink from "../components/StableSwitchLink";
 
 // issue #1519: 進行状況をテキストバッジではなくボタンの背景色で表現する
 function roomStatusButtonClass(status) {
@@ -17,12 +16,24 @@ function formatRoomCategories(categories) {
   return `${categories[0]}など`;
 }
 
+// issue #1581: 「開催中」のルームを一覧の先頭へ表示する。取得順（createdAt降順）は
+// 同じstatus内の並びとして維持したいので、安定ソートを前提にstatusのみで比較する
+function sortRoomsByStatus(rooms) {
+  return [...rooms].sort((a, b) => {
+    const aIsInProgress = a.status === "進行中" ? 0 : 1;
+    const bIsInProgress = b.status === "進行中" ? 0 : 1;
+    return aIsInProgress - bIsInProgress;
+  });
+}
+
 function DivisionSelectView({
   openQuizRooms,
   joinQuizRoom,
   selectDivision,
   setView,
 }) {
+  const sortedOpenQuizRooms = sortRoomsByStatus(openQuizRooms);
+
   return (
     <div className="container py-5 mx-auto">
       <HeroHeader />
@@ -47,40 +58,38 @@ function DivisionSelectView({
 
       <main className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
         <h2 className="h4 text-center mb-4 text-dark">クイズ大会に参加する</h2>
-        <div className="d-flex flex-wrap gap-3 justify-content-center">
-          <button
-            onClick={() => setView("quiz-room")}
-            className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
-          >
-            {openQuizRooms.length > 0 ? "他の大会に参加する" : "クイズ大会に参加する"}
-          </button>
-        </div>
-        {openQuizRooms.length > 0 && (
-          <div className="mx-auto mt-4" style={{ maxWidth: "400px" }}>
+        {sortedOpenQuizRooms.length > 0 && (
+          <div className="mx-auto mb-4" style={{ maxWidth: "400px" }}>
             <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
             <div className="d-flex flex-wrap gap-2 justify-content-center">
-              {openQuizRooms.map((room) => (
+              {sortedOpenQuizRooms.map((room) => (
                 <button
                   key={room.roomId}
                   onClick={() => joinQuizRoom(room.roomId)}
-                  className={`btn fw-bold rounded-pill shadow-sm btn-karuta ${roomStatusButtonClass(room.status)}`}
+                  className={`btn fw-bold rounded-pill shadow-sm btn-karuta text-nowrap ${roomStatusButtonClass(room.status)}`}
                 >
-                  <span className="d-block notranslate">{room.roomId}</span>
-                  {formatRoomCategories(room.categories) && (
-                    <span className="d-block fw-normal small notranslate">{formatRoomCategories(room.categories)}</span>
-                  )}
+                  <span className="notranslate">
+                    {formatRoomCategories(room.categories)
+                      ? `${formatRoomCategories(room.categories)}（${room.roomId}）`
+                      : room.roomId}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         )}
+        <div className="d-flex flex-wrap gap-3 justify-content-center">
+          <button
+            onClick={() => setView("quiz-room")}
+            className="btn btn-lg px-4 py-3 fw-bold rounded-pill shadow-sm btn-karuta"
+          >
+            {sortedOpenQuizRooms.length > 0 ? "他の大会に参加する" : "クイズ大会に参加する"}
+          </button>
+        </div>
       </main>
 
       <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
       <CanaryStableToggleLink />
-      {/* issue #1540: StableSwitchLinkはApp.jsxのフッター内にしか置かれておらず、
-          別レイアウトで早期returnするこの画面には表示されていなかった */}
-      <StableSwitchLink />
     </div>
   );
 }
