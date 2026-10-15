@@ -58,8 +58,11 @@ function DivisionSelectView({
         </div>
       </main>
 
-      <section className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
-        <h2 className="h4 text-center mb-4 text-dark">クイズ大会に参加する</h2>
+      {/* issue #1646: aria-labelledby無しの<section>はaxeのregionルール上landmarkとして
+          認識されず、配下のコンテンツが「landmarkに収まっていない」判定になるため、
+          見出しをラベルとして関連付ける */}
+      <section aria-labelledby="quiz-tournament-heading" className="category-selection-container p-4 mx-auto mb-5" style={{ maxWidth: "600px" }}>
+        <h2 id="quiz-tournament-heading" className="h4 text-center mb-4 text-dark">クイズ大会に参加する</h2>
         {sortedOpenQuizRooms.length > 0 && (
           <div className="mx-auto mb-4" style={{ maxWidth: "400px" }}>
             <p className="text-muted small text-center mb-2">開設中のクイズ大会ルーム</p>
@@ -90,8 +93,10 @@ function DivisionSelectView({
         </div>
       </section>
 
-      <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
-      <CanaryStableToggleLink />
+      <footer>
+        <TopViewFooterLinks setView={setView} className="text-center d-flex flex-column gap-2 mt-4" />
+        <CanaryStableToggleLink />
+      </footer>
     </div>
   );
 }

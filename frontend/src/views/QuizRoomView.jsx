@@ -478,87 +478,93 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
           <h1 className="h4 fw-bold">クイズ大会モード（参加者）</h1>
           <p className="text-muted small">ルーム: {joinRoomId}</p>
         </header>
-        {/* 管理者セッション復帰（issue #697）: 保存済みの管理者トークンで管理者への
-            切り替えを試みて失敗した場合のエラー表示。この時点で保存済みトークンは
-            既に破棄されているため、「管理者に切り替える」ボタン自体も表示されなくなる */}
-        {adminSessionRestoreError && <p className="text-danger small mb-3">{adminSessionRestoreError}</p>}
-        <p className="text-muted small mb-3">
-          <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
-          {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
-              自動的に再接続を試みるが、それでも復帰しない場合に手動でやり直せる導線が
-              無かったため追加する */}
-          {connectionStatus === "error" && (
-            <button
-              type="button"
-              onClick={reconnect}
-              className="btn btn-sm btn-outline-danger rounded-pill ms-2"
-            >
-              再接続
-            </button>
-          )}
-        </p>
-        <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
-        {renderParticipantContent(roomState)}
-        {renderBuzzStatus({ excludedThisRound, buzzedBy, roomState, onBuzz: handleBuzz })}
-        {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
-            統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
-            より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
-            累計回数（attempts）も併せて表示する */}
-        <QuizRoomParticipantTable
-          participantNames={participants}
-          points={points}
-          answerCounts={answerCounts}
-          highlightName={confirmedName}
-        />
-        {phraseHistory.length > 0 && (
-          <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
-            <button
-              type="button"
-              onClick={() => setShowHistory(prev => !prev)}
-              className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-            >
-              {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${phraseHistory.length}枚）`}
-            </button>
-            {showHistory && (
-              // 管理者側の「詳細・報告 →」リンク（openDetail、DetailViewへの画面遷移を伴う指摘
-              // コメント投稿につながる）はここでは出さず、閲覧専用の簡易表示にとどめる（issue #548）。
-              // クイズ大会モードの参加者は端末を共有していない不特定多数のため、管理者専用機能への
-              // 導線をそのまま公開する必要はないと判断した
-              <div className="text-start mt-3">
-                <div className="list-group shadow-sm rounded">
-                  {phraseHistory.map((p, index) => (
-                    <div key={`${p.category}-${p.id}-${phraseHistory.length - index}`} className="list-group-item d-flex align-items-center">
-                      {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
-                      <span className="text-dark">{p.phrase}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* issue #1646: main landmarkがこの画面には無く、axeのlandmark-one-main・regionに
+            抵触していたため、ヘッダー以外のコンテンツをmainで囲む */}
+        <main>
+          {/* 管理者セッション復帰（issue #697）: 保存済みの管理者トークンで管理者への
+              切り替えを試みて失敗した場合のエラー表示。この時点で保存済みトークンは
+              既に破棄されているため、「管理者に切り替える」ボタン自体も表示されなくなる */}
+          {adminSessionRestoreError && <p className="text-danger small mb-3">{adminSessionRestoreError}</p>}
+          <p className="text-muted small mb-3">
+            <span>接続状態: {CONNECTION_STATUS_LABEL[connectionStatus] || connectionStatus}</span>
+            {/* issue #614: 再接続の上限に達した場合、フォアグラウンド復帰・オンライン復帰では
+                自動的に再接続を試みるが、それでも復帰しない場合に手動でやり直せる導線が
+                無かったため追加する */}
+            {connectionStatus === "error" && (
+              <button
+                type="button"
+                onClick={reconnect}
+                className="btn btn-sm btn-outline-danger rounded-pill ms-2"
+              >
+                再接続
+              </button>
             )}
+          </p>
+          <p className="fw-bold text-dark">獲得ポイント: {points[confirmedName] || 0}</p>
+          {renderParticipantContent(roomState)}
+          {renderBuzzStatus({ excludedThisRound, buzzedBy, roomState, onBuzz: handleBuzz })}
+          {/* 参加者一覧（issue #545）: まだ得点していない参加者も0ptとして含めた1つのリストに
+              統合して表示する（管理者画面と同じ並び順）。表形式・接続ステータス表示、回答ボタン
+              より下への配置はissue #599で対応。回答数（issue #698）: 早押しして正誤判定された
+              累計回数（attempts）も併せて表示する */}
+          <QuizRoomParticipantTable
+            participantNames={participants}
+            points={points}
+            answerCounts={answerCounts}
+            highlightName={confirmedName}
+          />
+          {phraseHistory.length > 0 && (
+            <div className="mx-auto mt-4 text-center" style={{ maxWidth: "480px" }}>
+              <button
+                type="button"
+                onClick={() => setShowHistory(prev => !prev)}
+                className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+              >
+                {showHistory ? "これまでに読み上げた札を閉じる" : `これまでに読み上げた札を表示する（${phraseHistory.length}枚）`}
+              </button>
+              {showHistory && (
+                // 管理者側の「詳細・報告 →」リンク（openDetail、DetailViewへの画面遷移を伴う指摘
+                // コメント投稿につながる）はここでは出さず、閲覧専用の簡易表示にとどめる（issue #548）。
+                // クイズ大会モードの参加者は端末を共有していない不特定多数のため、管理者専用機能への
+                // 導線をそのまま公開する必要はないと判断した
+                <div className="text-start mt-3">
+                  <div className="list-group shadow-sm rounded">
+                    {phraseHistory.map((p, index) => (
+                      <div key={`${p.category}-${p.id}-${phraseHistory.length - index}`} className="list-group-item d-flex align-items-center">
+                        {p.level !== "-" && <span className="badge bg-danger me-2">Lv.{p.level}</span>}
+                        <span className="text-dark">{p.phrase}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {/* 管理者セッション復帰（issue #697）: このルームの管理者トークンが保存されている
+              場合のみ表示する。押すと保存済みトークンで管理者として再接続し、
+              管理者画面（QuizRoomInfoView）へ切り替わる */}
+          {adminSessionRoomId === joinRoomId && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (switchToAdminMode(joinRoomId)) {
+                    setView("quiz-room-info");
+                  }
+                }}
+                className="btn btn-sm btn-outline-dark rounded-pill px-3"
+              >
+                管理者に切り替える
+              </button>
+            </div>
+          )}
+          <div className="mt-5">
+            <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
           </div>
-        )}
-        {/* 管理者セッション復帰（issue #697）: このルームの管理者トークンが保存されている
-            場合のみ表示する。押すと保存済みトークンで管理者として再接続し、
-            管理者画面（QuizRoomInfoView）へ切り替わる */}
-        {adminSessionRoomId === joinRoomId && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                if (switchToAdminMode(joinRoomId)) {
-                  setView("quiz-room-info");
-                }
-              }}
-              className="btn btn-sm btn-outline-dark rounded-pill px-3"
-            >
-              管理者に切り替える
-            </button>
-          </div>
-        )}
-        <div className="mt-5">
-          <button onClick={goBack} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
-        </div>
-        <AppVersionInfo />
+        </main>
+        <footer>
+          <AppVersionInfo />
+        </footer>
       </div>
     );
   };

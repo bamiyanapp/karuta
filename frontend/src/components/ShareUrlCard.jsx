@@ -46,6 +46,7 @@ function ShareUrlCard({ url, codeLabel, codeValue, qrAltText = "共有用QRコ�
           onFocus={(e) => e.target.select()}
           className="form-control form-control-sm"
           style={{ maxWidth: "220px" }}
+          aria-label="共有URL"
         />
         <button type="button" onClick={copyUrl} className="btn btn-sm btn-outline-dark">
           {copied ? "コピーしました" : "コピー"}
