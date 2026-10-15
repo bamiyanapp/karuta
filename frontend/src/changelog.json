@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.108.9",
+    "date": "2026/10/15",
+    "body": "### Bug Fixes\n\n* **ci:** promote-canary.ymlが参照するdev-standardsタグをv2.78.2へ更新する ([#1629](https://github.com/bamiyanapp/karuta/issues/1629)) ([81a995a](https://github.com/bamiyanapp/karuta/commit/81a995a9e128c4203572371847d06fd877e51557))"
+  },
+  {
     "version": "1.108.8",
-    "date": "2026/10/14",
+    "date": "2026/10/14 23:37",
     "body": "### Bug Fixes\n\n* **docs:** canary-status.mdのバージョン表示をbackend/frontend個別表示から1行に統合する ([#1624](https://github.com/bamiyanapp/karuta/issues/1624)) ([f8f51a7](https://github.com/bamiyanapp/karuta/commit/f8f51a778e4fb0989c3938919b671352ab323fe1)), closes [#1623](https://github.com/bamiyanapp/karuta/issues/1623)"
   },
   {
