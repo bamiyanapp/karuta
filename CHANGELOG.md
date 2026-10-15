@@ -1,3 +1,10 @@
+# [1.109.0](https://github.com/bamiyanapp/karuta/compare/v1.108.9...v1.109.0) (2026-10-15)
+
+
+### Features
+
+* **ci:** canary-status.ymlをpromote-canary.yml完了時に自動実行する ([#1634](https://github.com/bamiyanapp/karuta/issues/1634)) ([9db0719](https://github.com/bamiyanapp/karuta/commit/9db0719505267f272093f7a9c2b7b0945bd520cc)), closes [#1633](https://github.com/bamiyanapp/karuta/issues/1633)
+
 ## [1.108.9](https://github.com/bamiyanapp/karuta/compare/v1.108.8...v1.108.9) (2026-10-15)
 
 
