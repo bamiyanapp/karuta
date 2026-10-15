@@ -1,3 +1,10 @@
+# [1.112.0](https://github.com/bamiyanapp/karuta/compare/v1.111.3...v1.112.0) (2026-10-15)
+
+
+### Features
+
+* **ci:** force_stableをfalseへ戻す専用workflowを追加する ([#1664](https://github.com/bamiyanapp/karuta/issues/1664)) ([28571b2](https://github.com/bamiyanapp/karuta/commit/28571b2e7ef40b1f52b189ca0b21b50d42c879fb)), closes [#1662](https://github.com/bamiyanapp/karuta/issues/1662)
+
 ## [1.111.3](https://github.com/bamiyanapp/karuta/compare/v1.111.2...v1.111.3) (2026-10-15)
 
 
