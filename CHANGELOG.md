@@ -1,3 +1,10 @@
+## [1.110.1](https://github.com/bamiyanapp/karuta/compare/v1.110.0...v1.110.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **frontend:** DivisionSelectViewの重複main landmarkを解消する ([#1645](https://github.com/bamiyanapp/karuta/issues/1645)) ([6b3be9c](https://github.com/bamiyanapp/karuta/commit/6b3be9c6a324b697bad55239ada0b5a73e646668)), closes [#1640](https://github.com/bamiyanapp/karuta/issues/1640)
+
 # [1.110.0](https://github.com/bamiyanapp/karuta/compare/v1.109.1...v1.110.0) (2026-10-15)
 
 

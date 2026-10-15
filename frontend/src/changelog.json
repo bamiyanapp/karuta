@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.110.0",
+    "version": "1.110.1",
     "date": "2026/10/15",
+    "body": "### Bug Fixes\n\n* **frontend:** DivisionSelectViewの重複main landmarkを解消する ([#1645](https://github.com/bamiyanapp/karuta/issues/1645)) ([6b3be9c](https://github.com/bamiyanapp/karuta/commit/6b3be9c6a324b697bad55239ada0b5a73e646668)), closes [#1640](https://github.com/bamiyanapp/karuta/issues/1640)"
+  },
+  {
+    "version": "1.110.0",
+    "date": "2026/10/15 11:20",
     "body": "### Features\n\n* トップ画面UI調整([#1581](https://github.com/bamiyanapp/karuta/issues/1581))・E2Eアクセシビリティ検査追加([#1561](https://github.com/bamiyanapp/karuta/issues/1561)) ([#1641](https://github.com/bamiyanapp/karuta/issues/1641)) ([bdb6b28](https://github.com/bamiyanapp/karuta/commit/bdb6b28f73f186fad3e0066e3be4818b7eb7b645))"
   },
   {
