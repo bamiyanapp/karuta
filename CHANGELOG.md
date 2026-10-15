@@ -1,3 +1,10 @@
+# [1.113.0](https://github.com/bamiyanapp/karuta/compare/v1.112.0...v1.113.0) (2026-10-15)
+
+
+### Features
+
+* **ci:** force_stableの戻し忘れをcanary-status.ymlで検知する ([#1669](https://github.com/bamiyanapp/karuta/issues/1669)) ([fba95d2](https://github.com/bamiyanapp/karuta/commit/fba95d2011457fc3109498b88e15b4a4f1daa082)), closes [#1666](https://github.com/bamiyanapp/karuta/issues/1666)
+
 # [1.112.0](https://github.com/bamiyanapp/karuta/compare/v1.111.3...v1.112.0) (2026-10-15)
 
 
