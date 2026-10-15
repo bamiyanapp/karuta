@@ -1,3 +1,10 @@
+# [1.110.0](https://github.com/bamiyanapp/karuta/compare/v1.109.1...v1.110.0) (2026-10-15)
+
+
+### Features
+
+* トップ画面UI調整([#1581](https://github.com/bamiyanapp/karuta/issues/1581))・E2Eアクセシビリティ検査追加([#1561](https://github.com/bamiyanapp/karuta/issues/1561)) ([#1641](https://github.com/bamiyanapp/karuta/issues/1641)) ([bdb6b28](https://github.com/bamiyanapp/karuta/commit/bdb6b28f73f186fad3e0066e3be4818b7eb7b645))
+
 ## [1.109.1](https://github.com/bamiyanapp/karuta/compare/v1.109.0...v1.109.1) (2026-10-15)
 
 
