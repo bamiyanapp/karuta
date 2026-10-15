@@ -6,7 +6,7 @@ run-name: Canary Status (${{ github.event_name == 'schedule' && 'scheduled' || g
 # CloudFormationスタックの情報をAWS CLIで見るしかなく、PR・CIのログからは
 # 掴めなかった。スマートフォンのGitHub Actions画面から手動実行するだけで
 # 現在の状態をJob Summaryへ出力する、デプロイを一切行わない状態確認専用の
-# workflow。昇格猶予期間（GRACE_PERIOD_DAYS）はpromote-canary.ymlと同じ値を使う
+# workflow。昇格猶予期間（GRACE_PERIOD_HOURS）はpromote-canary.ymlと同じ値を使う
 #
 # issue #1472: Job Summaryは実行ごとに使い捨てで、Gitからは可視化できな
 # かった。scheduleで自動実行し、取得結果をdocs/generated/
@@ -84,7 +84,10 @@ jobs:
         id: status
         run: |
           set -eu
-          GRACE_PERIOD_DAYS=1 # promote-canary.ymlと同じ値（issue #1442）
+          # issue #1652: promote-canary.ymlは時間単位（grace_period_hours: 20、
+          # issue #1610）を使っているため、表示計算もそれに揃える。日単位から
+          # 変わる際は読み替え忘れを避けるため時間単位の変数名にした
+          GRACE_PERIOD_HOURS=20 # promote-canary.ymlのgrace_period_hoursと同じ値（issue #1610）
           KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
 
           # issue #1481: URLだけでは判別できないため、タイトル付きのMarkdownリンクとして
@@ -118,7 +121,7 @@ jobs:
           LAST_UPDATED_EPOCH=$(date -d "$LAST_UPDATED" +%s)
           echo "canary_last_updated=$(TZ=Asia/Tokyo date -d "@${LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
 
-          ELIGIBLE_EPOCH=$(( LAST_UPDATED_EPOCH + GRACE_PERIOD_DAYS * 86400 ))
+          ELIGIBLE_EPOCH=$(( LAST_UPDATED_EPOCH + GRACE_PERIOD_HOURS * 3600 ))
           ELIGIBLE_AT=$(TZ=Asia/Tokyo date -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
           echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
 
