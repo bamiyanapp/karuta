@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.113.3",
+    "version": "1.113.4",
     "date": "2026/10/16",
+    "body": "### Bug Fixes\n\n* **ci:** promote-canary.ymlの参照タグをv2.82.3へ更新する ([#1684](https://github.com/bamiyanapp/karuta/issues/1684)) ([ee6ce77](https://github.com/bamiyanapp/karuta/commit/ee6ce7732d489467740d800b2f64cc19d5f76864)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)"
+  },
+  {
+    "version": "1.113.3",
+    "date": "2026/10/16 22:58",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsをv2.82.3へ更新し壊れたcanaryスタック自動削除を取り込む ([#1681](https://github.com/bamiyanapp/karuta/issues/1681)) ([4901fa2](https://github.com/bamiyanapp/karuta/commit/4901fa227d1e88da39e14566d396f7d72f6425ff)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)"
   },
   {

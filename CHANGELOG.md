@@ -1,3 +1,10 @@
+## [1.113.4](https://github.com/bamiyanapp/karuta/compare/v1.113.3...v1.113.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* **ci:** promote-canary.ymlの参照タグをv2.82.3へ更新する ([#1684](https://github.com/bamiyanapp/karuta/issues/1684)) ([ee6ce77](https://github.com/bamiyanapp/karuta/commit/ee6ce7732d489467740d800b2f64cc19d5f76864)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)
+
 ## [1.113.3](https://github.com/bamiyanapp/karuta/compare/v1.113.2...v1.113.3) (2026-10-16)
 
 
