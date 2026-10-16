@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.113.1",
+    "date": "2026/10/16",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standardsをv2.82.1へ更新しstaleness誤検知を修正する ([#1672](https://github.com/bamiyanapp/karuta/issues/1672)) ([0f7f1df](https://github.com/bamiyanapp/karuta/commit/0f7f1dfcda89945de23b0720418ebaf7b89c9975)), closes [#1666](https://github.com/bamiyanapp/karuta/issues/1666)"
+  },
+  {
     "version": "1.113.0",
-    "date": "2026/10/15",
+    "date": "2026/10/15 23:37",
     "body": "### Features\n\n* **ci:** force_stableの戻し忘れをcanary-status.ymlで検知する ([#1669](https://github.com/bamiyanapp/karuta/issues/1669)) ([fba95d2](https://github.com/bamiyanapp/karuta/commit/fba95d2011457fc3109498b88e15b4a4f1daa082)), closes [#1666](https://github.com/bamiyanapp/karuta/issues/1666)"
   },
   {

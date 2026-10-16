@@ -1,3 +1,10 @@
+## [1.113.1](https://github.com/bamiyanapp/karuta/compare/v1.113.0...v1.113.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsをv2.82.1へ更新しstaleness誤検知を修正する ([#1672](https://github.com/bamiyanapp/karuta/issues/1672)) ([0f7f1df](https://github.com/bamiyanapp/karuta/commit/0f7f1dfcda89945de23b0720418ebaf7b89c9975)), closes [#1666](https://github.com/bamiyanapp/karuta/issues/1666)
+
 # [1.113.0](https://github.com/bamiyanapp/karuta/compare/v1.112.0...v1.113.0) (2026-10-15)
 
 
