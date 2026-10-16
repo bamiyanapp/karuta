@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-17 08:03:38 JST。
+最終更新日時: 2026-10-17 08:18:50 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -16,7 +16,7 @@
 | canaryの配信中バージョン | ⚠️ 不一致（backend: （取得できなかった） / frontend: 1.111.3） |
 | 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | 2026-10-17 23:48:12 JST以降 |
 | 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | 2026-10-18 00:00:00 JST |
-| 直近のpromote-canary.yml実行 | [run 38978745603](https://github.com/bamiyanapp/karuta/actions/runs/38978745603)（2026-10-17 07:57:20 JST、結果: success） |
+| 直近のpromote-canary.yml実行 | [run 38980237679](https://github.com/bamiyanapp/karuta/actions/runs/38980237679)（2026-10-17 08:13:15 JST、結果: success） |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
@@ -28,5 +28,6 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1684 fix(ci): promote-canary.ymlの参照タグをv2.82.3へ更新する](https://github.com/bamiyanapp/karuta/pull/1684)
 - [#1681 fix(ci): dev-standardsをv2.82.3へ更新し壊れたcanaryスタック自動削除を取り込む](https://github.com/bamiyanapp/karuta/pull/1681)
 - [#1678 fix(ci): dev-standardsをv2.82.2へ更新しIAMロール伝播待ちリトライを取り込む](https://github.com/bamiyanapp/karuta/pull/1678)
