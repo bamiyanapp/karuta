@@ -1,3 +1,10 @@
+## [1.113.2](https://github.com/bamiyanapp/karuta/compare/v1.113.1...v1.113.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsをv2.82.2へ更新しIAMロール伝播待ちリトライを取り込む ([#1678](https://github.com/bamiyanapp/karuta/issues/1678)) ([1d96d54](https://github.com/bamiyanapp/karuta/commit/1d96d54bf013444a2a73b2f22bdc1107a56d006c)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)
+
 ## [1.113.1](https://github.com/bamiyanapp/karuta/compare/v1.113.0...v1.113.1) (2026-10-16)
 
 

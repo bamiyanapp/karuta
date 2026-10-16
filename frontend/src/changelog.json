@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.113.1",
+    "version": "1.113.2",
     "date": "2026/10/16",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standardsをv2.82.2へ更新しIAMロール伝播待ちリトライを取り込む ([#1678](https://github.com/bamiyanapp/karuta/issues/1678)) ([1d96d54](https://github.com/bamiyanapp/karuta/commit/1d96d54bf013444a2a73b2f22bdc1107a56d006c)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)"
+  },
+  {
+    "version": "1.113.1",
+    "date": "2026/10/16 00:49",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsをv2.82.1へ更新しstaleness誤検知を修正する ([#1672](https://github.com/bamiyanapp/karuta/issues/1672)) ([0f7f1df](https://github.com/bamiyanapp/karuta/commit/0f7f1dfcda89945de23b0720418ebaf7b89c9975)), closes [#1666](https://github.com/bamiyanapp/karuta/issues/1666)"
   },
   {
