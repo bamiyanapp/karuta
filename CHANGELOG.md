@@ -1,3 +1,10 @@
+## [1.113.3](https://github.com/bamiyanapp/karuta/compare/v1.113.2...v1.113.3) (2026-10-16)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsをv2.82.3へ更新し壊れたcanaryスタック自動削除を取り込む ([#1681](https://github.com/bamiyanapp/karuta/issues/1681)) ([4901fa2](https://github.com/bamiyanapp/karuta/commit/4901fa227d1e88da39e14566d396f7d72f6425ff)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)
+
 ## [1.113.2](https://github.com/bamiyanapp/karuta/compare/v1.113.1...v1.113.2) (2026-10-16)
 
 
