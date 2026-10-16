@@ -86,6 +86,13 @@ jobs:
           FRONTEND_DOMAIN=$(echo "$INFO" | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
           echo "frontend_domain=${FRONTEND_DOMAIN}" >> "$GITHUB_OUTPUT"
 
+      - name: TMPデバッグ_canaryスタック詳細
+        run: |
+          set -eu
+          aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].{Status:StackStatus,LastUpdated:LastUpdatedTime,StatusReason:StackStatusReason}" --output json || echo "describe-stacks failed"
+        env:
+          AWS_DEFAULT_REGION: ap-northeast-1
+
       - name: 現在の運用状態を取得する
         id: status
         run: |
