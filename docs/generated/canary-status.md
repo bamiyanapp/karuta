@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-16 08:37:39 JST。
+最終更新日時: 2026-10-16 09:51:12 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -36,7 +36,6 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1672 fix(ci): dev-standardsをv2.82.1へ更新しstaleness誤検知を修正する](https://github.com/bamiyanapp/karuta/pull/1672)
 - [#1669 feat(ci): force_stableの戻し忘れをcanary-status.ymlで検知する](https://github.com/bamiyanapp/karuta/pull/1669)
 - [#1664 feat(ci): force_stableをfalseへ戻す専用workflowを追加する](https://github.com/bamiyanapp/karuta/pull/1664)
-
-⚠️ force_stableが2026-10-04T04:35:26Zからtrueのまま24時間超放置されている。戻し忘れの可能性がないか確認すること（issue #1666）。
