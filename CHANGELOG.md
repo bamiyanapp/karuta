@@ -1,3 +1,10 @@
+## [1.114.2](https://github.com/bamiyanapp/karuta/compare/v1.114.1...v1.114.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **ci:** reusable-ci.ymlの参照をv2.87.0→v2.97.0へ更新する ([#1708](https://github.com/bamiyanapp/karuta/issues/1708)) ([22d636f](https://github.com/bamiyanapp/karuta/commit/22d636f798a0024ca79e40110b194f571906d5a5))
+
 ## [1.114.1](https://github.com/bamiyanapp/karuta/compare/v1.114.0...v1.114.1) (2026-10-17)
 
 

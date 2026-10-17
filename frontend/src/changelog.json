@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.114.1",
+    "version": "1.114.2",
     "date": "2026/10/17",
+    "body": "### Bug Fixes\n\n* **ci:** reusable-ci.ymlの参照をv2.87.0→v2.97.0へ更新する ([#1708](https://github.com/bamiyanapp/karuta/issues/1708)) ([22d636f](https://github.com/bamiyanapp/karuta/commit/22d636f798a0024ca79e40110b194f571906d5a5))"
+  },
+  {
+    "version": "1.114.1",
+    "date": "2026/10/17 03:59",
     "body": "### Bug Fixes\n\n* **ci:** 依存deprecated定期スキャンの不具合を修正する ([#1698](https://github.com/bamiyanapp/karuta/issues/1698)) ([7a6aadc](https://github.com/bamiyanapp/karuta/commit/7a6aadc820d70135319d43237480d4944bf03383))"
   },
   {
