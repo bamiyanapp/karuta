@@ -1,3 +1,10 @@
+## [1.115.2](https://github.com/bamiyanapp/karuta/compare/v1.115.1...v1.115.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **ci:** startServerReadyPatternをANSIエスケープで分断されない形に修正する ([#1724](https://github.com/bamiyanapp/karuta/issues/1724)) ([927938e](https://github.com/bamiyanapp/karuta/commit/927938e5b7ae6f2fc911b927ce62e6f51a3b79a5)), closes [#1723](https://github.com/bamiyanapp/karuta/issues/1723)
+
 ## [1.115.1](https://github.com/bamiyanapp/karuta/compare/v1.115.0...v1.115.1) (2026-10-17)
 
 
