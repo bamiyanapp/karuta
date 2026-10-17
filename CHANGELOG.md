@@ -1,3 +1,10 @@
+## [1.114.1](https://github.com/bamiyanapp/karuta/compare/v1.114.0...v1.114.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **ci:** 依存deprecated定期スキャンの不具合を修正する ([#1698](https://github.com/bamiyanapp/karuta/issues/1698)) ([7a6aadc](https://github.com/bamiyanapp/karuta/commit/7a6aadc820d70135319d43237480d4944bf03383))
+
 # [1.114.0](https://github.com/bamiyanapp/karuta/compare/v1.113.5...v1.114.0) (2026-10-17)
 
 

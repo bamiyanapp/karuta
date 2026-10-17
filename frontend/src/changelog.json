@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.114.0",
+    "version": "1.114.1",
     "date": "2026/10/17",
+    "body": "### Bug Fixes\n\n* **ci:** 依存deprecated定期スキャンの不具合を修正する ([#1698](https://github.com/bamiyanapp/karuta/issues/1698)) ([7a6aadc](https://github.com/bamiyanapp/karuta/commit/7a6aadc820d70135319d43237480d4944bf03383))"
+  },
+  {
+    "version": "1.114.0",
+    "date": "2026/10/17 03:34",
     "body": "### Features\n\n* **ci:** 依存パッケージのdeprecated定期スキャンを導入する ([#1696](https://github.com/bamiyanapp/karuta/issues/1696)) ([e1214fd](https://github.com/bamiyanapp/karuta/commit/e1214fd4a0e5669e3b24f6e3b50e03ad2b1e042d))"
   },
   {
