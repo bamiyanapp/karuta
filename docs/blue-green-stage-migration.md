@@ -16,7 +16,7 @@
 
 ## コミットのライフサイクル（dev→canary→stable）
 
-mainへのマージから本番反映までの処理フロー・判定マトリクスは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「自動昇格ワークフローの処理フロー」「自動昇格ワークフローの判定マトリクス」を参照する。
+mainへのマージから本番反映までの処理フロー・判定マトリクスは[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「自動昇格ワークフローの処理フロー」「自動昇格ワークフローの判定マトリクス」を参照する。
 
 karuta固有の設定値: 昇格までの猶予期間（共通ドキュメントの「タイマー2」）は、当初1週間だったが issue #1442 で1日へ短縮した。
 
@@ -65,13 +65,13 @@ karuta固有の設定値: 昇格までの猶予期間（共通ドキュメント
 
 ### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止
 
-仕組みは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「緊急デプロイ後の退行防止と自動最新化」を参照する。
+仕組みは[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「緊急デプロイ後の退行防止と自動最新化」を参照する。
 
 karutaでの経緯: 本番障害等でstableへ緊急手動デプロイした内容が、canaryの古いコードによる自動昇格で退行する事故が実際に発生した（issue #1407）。当初（issue #1411）はスキップしてJob Summaryへ警告を出すだけの対応だったため、昇格が永続的にスキップされ続ける詰まりが起き、karuta#1429のUI改善が本番に反映されない事態につながった。issue #1448で、canaryを強制的に最新化する現在の仕組みへ変更した。
 
 ### 補足: カナリアへのデプロイの日次バッチ化
 
-仕組みは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「canaryデプロイの日次バッチ化」を参照する。
+仕組みは[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「canaryデプロイの日次バッチ化」を参照する。
 
 karutaでの経緯: 当初（issue #1326）はmainマージ毎に即座にcanaryへデプロイする方式だったが、issue #1449で日次バッチ方式へ変更した。
 

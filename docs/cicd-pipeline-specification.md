@@ -1,6 +1,6 @@
 # CI/CD Pipeline Specification（karuta固有）
 
-本プロジェクトの CI/CD は [dev-standards の共通パイプライン仕様](../dev-standards/docs/cicd-pipeline-specification.md)（`reusable-ci.yml` / `reusable-cd.yml`）をベースに構築されている。
+本プロジェクトの CI/CD は [dev-standards の共通パイプライン仕様](https://github.com/bamiyanapp/dev-standards/blob/main/docs/cicd-pipeline-specification.md)（`reusable-ci.yml` / `reusable-cd.yml`）をベースに構築されている。
 
 ワークフローの共通ジョブ構成およびリリース運用については上記ドキュメントを参照すること。本ドキュメントには karuta 固有の内容のみを記載する。
 
@@ -10,7 +10,7 @@
 
 semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）で行われる。以前はPRの作業ブランチ上でマージ前に実行する方式だったが、GitHub Actionsの`pull_request`イベントで自動設定される`GITHUB_REF`（ワークフローYAMLの`env:`では上書き不可）により常にリリースが発行されない不具合があった。そのため、`main`への実pushイベント上で実行する方式に修正した（[dev-standards#43](https://github.com/bamiyanapp/dev-standards/pull/43)）。
 
-karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)）。その後、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)で行われている。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](../dev-standards/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
+karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)）。その後、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)で行われている。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](https://github.com/bamiyanapp/dev-standards/blob/main/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
 
 `render-mermaid-diagrams`ジョブのキャッシュバスティング用コミット（[dev-standards#723](https://github.com/bamiyanapp/dev-standards/issues/723)）にも同じGH013制約があった。こちらはPR経由のフォールバックを持たず`continue-on-error: true`で握り消される。そのため、push拒否されてもCIの見た目だけでは失敗に気づけなかった。
 
@@ -73,7 +73,7 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 ## 環境変数（karuta固有）
 
-共通の `GITHUB_TOKEN` / `BOT_TOKEN`（[dev-standards参照](../dev-standards/docs/cicd-pipeline-specification.md#共通の環境変数)）に加え、以下を使用する。
+共通の `GITHUB_TOKEN` / `BOT_TOKEN`（[dev-standards参照](https://github.com/bamiyanapp/dev-standards/blob/main/docs/cicd-pipeline-specification.md#共通の環境変数)）に加え、以下を使用する。
 
 | 変数名 | 説明 | 例 |
 |---|---|---|
