@@ -3,6 +3,7 @@
     "collect": {
       "startServerCommand": "npm run build && npm run preview",
       "startServerReadyPattern": "Local:",
+      "startServerReadyTimeout": 60000,
       "url": ["http://localhost:4173/"],
       "numberOfRuns": 1,
       "settings": {
