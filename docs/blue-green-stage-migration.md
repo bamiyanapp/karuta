@@ -1,6 +1,6 @@
 # 単一ステージ運用からstable/canaryへの移行記録（karuta固有）
 
-ブルーグリーンデプロイ導入（issue #1319）の一環として、単一ステージ運用（`dev`固定）から`stable`/`canary`構成への移行を行った。移行作業自体はTask 1〜13（下記「移行手順」）で完了済み。
+ブルーグリーンデプロイ導入（issue #1319）の一環として、単一ステージ運用（`dev`固定）から`stable`/`canary`構成へ移行した。移行作業自体はTask 1〜13（下記「移行手順」）で完了済み。
 
 本ドキュメントは、その移行手順および実装判断の記録である。ブルーグリーンデプロイパターン自体の一般的な仕組み・導入手順は[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照すること。本ドキュメントにはkaruta固有の経緯・実装箇所のみを記載する。
 
@@ -8,7 +8,7 @@
 
 移行前は明示的な`--stage`指定無しで`osls deploy`を実行し、Serverless Frameworkの既定値であるstage `dev`として稼働していた（スタック名`karuta-app-dev`）。移行後は`stable`・`canary`という名前のstageで、それぞれ独立したCloudFormationスタック（`karuta-app-stable`・`karuta-app-canary`）を持つ。
 
-コード変更が不要だった理由（テーブル名・バケット名を固定文字列にしstage名を含めない設計）は、dev-standardsの一般化されたパターン共通の理屈であり、[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「backendの並行stageデプロイ」を参照する。karuta固有の事実としては、両スタックが共有するDynamoDBテーブル等のステートフルリソースはissue #1320で`serverless-data.yml`へ分離済みであることのみ補足する。
+コード変更が不要だった理由（テーブル名・バケット名を固定文字列にしstage名を含めない設計）は、dev-standardsの一般化されたパターン共通の理屈である。[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「backendの並行stageデプロイ」を参照する。karuta固有の事実としては、両スタックが共有するDynamoDBテーブル等のステートフルリソースはissue #1320で`serverless-data.yml`へ分離済みであることのみ補足する。
 
 ## コミットのライフサイクル（dev→canary→stable）
 
@@ -84,7 +84,7 @@ karutaでの経緯: 当初（issue #1326）はmainマージ毎に即座にcanary
 
 issue記載の「`canary` Cookieを削除してから再読み込みする」方式は採用しなかった。当該Cookieが`HttpOnly`属性付き（`infra/serverless.yml`の`ViewerResponseFunction`）であることが実装時に判明したためである。クライアント側JavaScriptからは直接削除・書き換えができない。
 
-採用した方式（`shared/ui/ErrorBoundary.jsx`の`fallbackUrl` prop、`ViewerRequestFunction`側のstable固定ロジック）は一般化済みのパターンのため、[dev-standards/docs/shared-ui-components.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/shared-ui-components.md)（ErrorBoundary節）および[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照する。karuta側では`frontend/src/main.jsx`で`fallbackUrl="/stable${検索クエリ}"`を指定している。
+採用した方式（`shared/ui/ErrorBoundary.jsx`の`fallbackUrl` prop、`ViewerRequestFunction`側のstable固定ロジック）は一般化済みのパターンである。[dev-standards/docs/shared-ui-components.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/shared-ui-components.md)（ErrorBoundary節）および[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照する。karuta側では`frontend/src/main.jsx`で`fallbackUrl="/stable${検索クエリ}"`を指定している。
 
 `.github/workflows/verify-stable-fallback.yml`（`workflow_dispatch`）で、実デプロイ済みのCloudFront URLを対象に自動検証する。検証内容は「`/stable/`への明示アクセスが常にstableの内容を返すこと」と「`/stable/`アクセス後、以後のCookie無し通常アクセスもstableへ固定されること」の2点である。ErrorBoundary自体の自動遷移ロジック（JS側の挙動）はブラウザでのみ確認可能なため対象外とし、単体テストで検証した。
 
