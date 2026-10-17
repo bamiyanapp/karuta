@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.115.2",
+    "version": "1.115.3",
     "date": "2026/10/17",
+    "body": "### Bug Fixes\n\n* **docs:** dev-standards submoduleへの相対リンクを絶対URLへ修正する ([#1728](https://github.com/bamiyanapp/karuta/issues/1728)) ([17ce37b](https://github.com/bamiyanapp/karuta/commit/17ce37bae0a8c933d685613f55070c01da771ebe)), closes [#1727](https://github.com/bamiyanapp/karuta/issues/1727)"
+  },
+  {
+    "version": "1.115.2",
+    "date": "2026/10/17 11:26",
     "body": "### Bug Fixes\n\n* **ci:** startServerReadyPatternをANSIエスケープで分断されない形に修正する ([#1724](https://github.com/bamiyanapp/karuta/issues/1724)) ([927938e](https://github.com/bamiyanapp/karuta/commit/927938e5b7ae6f2fc911b927ce62e6f51a3b79a5)), closes [#1723](https://github.com/bamiyanapp/karuta/issues/1723)"
   },
   {

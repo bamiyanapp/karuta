@@ -1,3 +1,10 @@
+## [1.115.3](https://github.com/bamiyanapp/karuta/compare/v1.115.2...v1.115.3) (2026-10-17)
+
+
+### Bug Fixes
+
+* **docs:** dev-standards submoduleへの相対リンクを絶対URLへ修正する ([#1728](https://github.com/bamiyanapp/karuta/issues/1728)) ([17ce37b](https://github.com/bamiyanapp/karuta/commit/17ce37bae0a8c933d685613f55070c01da771ebe)), closes [#1727](https://github.com/bamiyanapp/karuta/issues/1727)
+
 ## [1.115.2](https://github.com/bamiyanapp/karuta/compare/v1.115.1...v1.115.2) (2026-10-17)
 
 
