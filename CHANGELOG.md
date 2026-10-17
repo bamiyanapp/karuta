@@ -1,3 +1,10 @@
+# [1.115.0](https://github.com/bamiyanapp/karuta/compare/v1.114.2...v1.115.0) (2026-10-17)
+
+
+### Features
+
+* **ci:** karuta自身のworkflowのジョブ名・ステップ名を日本語化する ([#1718](https://github.com/bamiyanapp/karuta/issues/1718)) ([548ba33](https://github.com/bamiyanapp/karuta/commit/548ba3356e6514fef3cc91f7e2a9bf4845f05b96)), closes [#1717](https://github.com/bamiyanapp/karuta/issues/1717)
+
 ## [1.114.2](https://github.com/bamiyanapp/karuta/compare/v1.114.1...v1.114.2) (2026-10-17)
 
 

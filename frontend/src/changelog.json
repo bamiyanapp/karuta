@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.114.2",
+    "version": "1.115.0",
     "date": "2026/10/17",
+    "body": "### Features\n\n* **ci:** karuta自身のworkflowのジョブ名・ステップ名を日本語化する ([#1718](https://github.com/bamiyanapp/karuta/issues/1718)) ([548ba33](https://github.com/bamiyanapp/karuta/commit/548ba3356e6514fef3cc91f7e2a9bf4845f05b96)), closes [#1717](https://github.com/bamiyanapp/karuta/issues/1717)"
+  },
+  {
+    "version": "1.114.2",
+    "date": "2026/10/17 07:13",
     "body": "### Bug Fixes\n\n* **ci:** reusable-ci.ymlの参照をv2.87.0→v2.97.0へ更新する ([#1708](https://github.com/bamiyanapp/karuta/issues/1708)) ([22d636f](https://github.com/bamiyanapp/karuta/commit/22d636f798a0024ca79e40110b194f571906d5a5))"
   },
   {
