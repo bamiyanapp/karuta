@@ -6,6 +6,9 @@
 
 管理者・参加者2者とWebSocketによるリアルタイム同期の流れを示す（issue #1183）。
 
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
+
 ```mermaid
 sequenceDiagram
     participant Admin as 管理者
@@ -32,6 +35,8 @@ sequenceDiagram
 
 上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
 
+</details>
+
 ![正常系: 基本的な利用の流れ (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-1.png?4ca804946a9d32130def4dc2d0875bb7674c99e3)
 
 ## 異常系・既知の制約
@@ -39,6 +44,9 @@ sequenceDiagram
 ### 管理者のセッション断（ページのリロード・タブのクラッシュ・PWAの再起動等）
 
 管理者のリロード直後は参加者と同じ画面に戻るが、保存済みの管理者トークンから同じルームへ管理者として復帰できる（issue #697）。参加者側には復帰可否にかかわらず何も通知されず画面が変化しない点は非対称なまま残る（issue #1184）。
+
+<details>
+<summary>ソースを表示（mermaid記法）</summary>
 
 ```mermaid
 sequenceDiagram
@@ -63,6 +71,8 @@ sequenceDiagram
 ```
 
 上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
+
+</details>
 
 ![管理者のセッション断からの復帰 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-2.png?4ca804946a9d32130def4dc2d0875bb7674c99e3)
 
