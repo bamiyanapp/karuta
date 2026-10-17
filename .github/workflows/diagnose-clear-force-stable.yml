@@ -62,7 +62,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Check canary/stable Cookie routing (status code + body head)
+      - name: Check canary/stable Cookie routing (status code + full-body marker search)
         run: |
           set -eu
           DOMAIN="${{ steps.resolve.outputs.domain }}"
@@ -70,10 +70,13 @@ jobs:
           check() {
             COOKIE_VALUE="$1"
             STATUS=$(curl -sS -o /tmp/body.html -w "%{http_code}" "https://${DOMAIN}/" --max-time 15 -b "canary=${COOKIE_VALUE}")
+            VARIANT=$(grep -o "CANARY\|STABLE" /tmp/body.html | head -1 || true)
             echo "--- cookie=canary=${COOKIE_VALUE} ---"
             echo "HTTP status: ${STATUS}"
-            echo "body (head -c 300):"
-            head -c 300 /tmp/body.html
+            echo "body length (bytes): $(wc -c < /tmp/body.html)"
+            echo "CANARY/STABLE marker in full body: ${VARIANT:-(見つからない)}"
+            echo "body (head -c 500):"
+            head -c 500 /tmp/body.html
             echo ""
             echo ""
           }
