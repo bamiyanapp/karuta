@@ -36,7 +36,7 @@ flowchart TD
 
 上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
 
-![コミットのライフサイクル（dev→canary→stable） (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/blue-green-stage-migration.png)
+![コミットのライフサイクル（dev→canary→stable） (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/blue-green-stage-migration.png?0637a51ad091d5f0e3beda7acd3f5100fd443da2)
 
 - **タイマー1（反映頻度、issue #1449）**: mainマージ毎ではなく、`promote-canary.yml`の日次実行時にまとめてcanaryへ反映する。1日に複数回マージされても、canaryへの反映は1日1回にまとまる
 - **タイマー2（昇格までの猶予期間、issue #1442）**: canaryへの最新反映（上記）から1日経過し、かつ管理者ロールバック（`force_stable`）が行われていなければstableへ自動昇格する。1週間だった猶予期間を1日へ短縮した
