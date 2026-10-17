@@ -1,3 +1,10 @@
+# [1.114.0](https://github.com/bamiyanapp/karuta/compare/v1.113.5...v1.114.0) (2026-10-17)
+
+
+### Features
+
+* **ci:** 依存パッケージのdeprecated定期スキャンを導入する ([#1696](https://github.com/bamiyanapp/karuta/issues/1696)) ([e1214fd](https://github.com/bamiyanapp/karuta/commit/e1214fd4a0e5669e3b24f6e3b50e03ad2b1e042d))
+
 ## [1.113.5](https://github.com/bamiyanapp/karuta/compare/v1.113.4...v1.113.5) (2026-10-16)
 
 
