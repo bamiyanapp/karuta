@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.115.0",
+    "version": "1.115.1",
     "date": "2026/10/17",
+    "body": "### Bug Fixes\n\n* **ci:** cd.ymlのdev-standards参照をv2.78.1→v2.97.0へ更新する ([#1720](https://github.com/bamiyanapp/karuta/issues/1720)) ([3a2cd3c](https://github.com/bamiyanapp/karuta/commit/3a2cd3c38c62d93ed612a475dee8fff72b7a1e03))"
+  },
+  {
+    "version": "1.115.0",
+    "date": "2026/10/17 10:45",
     "body": "### Features\n\n* **ci:** karuta自身のworkflowのジョブ名・ステップ名を日本語化する ([#1718](https://github.com/bamiyanapp/karuta/issues/1718)) ([548ba33](https://github.com/bamiyanapp/karuta/commit/548ba3356e6514fef3cc91f7e2a9bf4845f05b96)), closes [#1717](https://github.com/bamiyanapp/karuta/issues/1717)"
   },
   {

@@ -1,3 +1,10 @@
+## [1.115.1](https://github.com/bamiyanapp/karuta/compare/v1.115.0...v1.115.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **ci:** cd.ymlのdev-standards参照をv2.78.1→v2.97.0へ更新する ([#1720](https://github.com/bamiyanapp/karuta/issues/1720)) ([3a2cd3c](https://github.com/bamiyanapp/karuta/commit/3a2cd3c38c62d93ed612a475dee8fff72b7a1e03))
+
 # [1.115.0](https://github.com/bamiyanapp/karuta/compare/v1.114.2...v1.115.0) (2026-10-17)
 
 
