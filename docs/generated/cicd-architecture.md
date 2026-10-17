@@ -43,7 +43,7 @@ graph TD
 
 </details>
 
-![CIワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-1.png?33008e5cf9d07b8c6362a96d14c80bda47180414)
+![CIワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-1.png?f87df916dd3ec48c914ae4ba7066901cdc74d686)
 
 ## CDワークフロー（karuta cd.yml）
 
@@ -64,4 +64,4 @@ graph TD
 
 </details>
 
-![CDワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-2.png?33008e5cf9d07b8c6362a96d14c80bda47180414)
+![CDワークフロー構成図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/cicd-architecture-2.png?f87df916dd3ec48c914ae4ba7066901cdc74d686)
