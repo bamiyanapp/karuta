@@ -14,33 +14,11 @@
 
 `backend/serverless.yml`のテーブル名・バケット名（`custom.tableName`等）は固定文字列で、stage名を含まない。IAMポリシー・Lambda関数の環境変数もこれらの固定文字列を直接参照している。そのため、どのstageにデプロイしても同じDynamoDBテーブル・S3バケットを参照する。Lambda関数名・API Gateway自体はServerless Frameworkの既定命名規則（`${service}-${stage}-...`）でstageごとに自動的に分離されるため、`stable`と`canary`は互いに影響しない。
 
-## コミットのライフサイクル（dev→canary→stable、issue #1448・#1449）
+## コミットのライフサイクル（dev→canary→stable）
 
-mainへのマージから本番反映までの流れと、2つの独立したタイマーの関係を示す。
+mainへのマージから本番反映までの処理フロー・判定マトリクスは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「自動昇格ワークフローの処理フロー」「自動昇格ワークフローの判定マトリクス」を参照する。
 
-```mermaid
-flowchart TD
-    A["mainへマージ"] --> B["dev/GitHub Pagesへ即時デプロイ<br/>（旧経路、本番影響無し）"]
-    A --> C["cd.ymlのqueue-canary-update<br/>canary_queue_pending=trueにする<br/>（デプロイ自体は行わない）"]
-    C --> D{"promote-canary.ymlの<br/>日次実行（タイマー1）"}
-    D -->|"canaryが空いている<br/>＋キュー待ちがある"| E["最新main HEADをcanaryへデプロイ<br/>（複数回マージが1回にまとまる）"]
-    D -->|"canaryが使用中"| D
-    E --> F{"canaryデプロイから<br/>1日経過？（タイマー2）"}
-    F -->|"未経過"| F
-    F -->|"経過＋force_stableでない"| G{"stableがcanaryより<br/>新しい？"}
-    G -->|"いいえ"| H["stableへ昇格・canary削除<br/>・KVSを既定値へリセット"]
-    G -->|"はい（緊急デプロイ等）"| I["昇格せず、canaryを<br/>最新main HEADで強制的に最新化"]
-    I --> F
-    H --> D
-```
-
-上記の```mermaid```ブロックはPR差分ビュー・API経由でのファイル取得等ではテキストのまま表示され図として確認できない（[#824](https://github.com/bamiyanapp/karuta/issues/824)）。ソースはこのまま維持しつつ、下記は`enable_mermaid_render` job（[docs/cicd-pipeline-specification.md](cicd-pipeline-specification.md)参照）が`main`へのマージのたびに再レンダリングし、`docs-diagrams`ブランチの`latest/`へ上書き公開している画像（常に最新版）。
-
-![コミットのライフサイクル（dev→canary→stable） (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/blue-green-stage-migration.png?0637a51ad091d5f0e3beda7acd3f5100fd443da2)
-
-- **タイマー1（反映頻度、issue #1449）**: mainマージ毎ではなく、`promote-canary.yml`の日次実行時にまとめてcanaryへ反映する。1日に複数回マージされても、canaryへの反映は1日1回にまとまる
-- **タイマー2（昇格までの猶予期間、issue #1442）**: canaryへの最新反映（上記）から1日経過し、かつ管理者ロールバック（`force_stable`）が行われていなければstableへ自動昇格する。1週間だった猶予期間を1日へ短縮した
-- **詰まりの自動解消（issue #1448）**: 緊急手動デプロイ等でstableがcanaryより新しくなった場合、昇格はスキップされるが、canary自体は強制的に最新化される。これによりタイマー1・2がリセットされ、次のサイクルで正常に進行する
+karuta固有の設定値: 昇格までの猶予期間（共通ドキュメントの「タイマー2」）は、当初1週間だったが issue #1442 で1日へ短縮した。
 
 ## 移行手順
 
@@ -85,23 +63,17 @@ flowchart TD
 
 既知の制約として、昇格時点で既に`canary` Cookieを持つユーザーは、canaryバックエンドスタック削除後もそのエンドポイントへアクセスし続けてしまう可能性がある（最大1週間）。issue #1331の受け入れ基準の対象外のため既知の限界として残す。
 
-### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止（issue #1411・#1448）
+### 補足: 緊急時のstable直接デプロイと自動昇格の退行防止
 
-本番障害等で`deploy-backend-stage.yml`（`stage: stable`）を緊急手動実行してstableへ直接デプロイした場合、その内容はcanaryを経由していない。この状態で`promote-canary.yml`の自動昇格が発火すると、canaryの古いコード（緊急修正前の内容）でstableが上書きされ、緊急対応した内容が退行してしまう（issue #1407の緊急対応時に実際に発覚した）。
+仕組みは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「緊急デプロイ後の退行防止と自動最新化」を参照する。
 
-これを防ぐため、昇格可否の判定に「stableの最終更新時刻がcanaryより新しいか」のチェックを追加した。stableがcanaryを追い越している場合、自動昇格は安全側にスキップされる。
+karutaでの経緯: 本番障害等でstableへ緊急手動デプロイした内容が、canaryの古いコードによる自動昇格で退行する事故が実際に発生した（issue #1407）。当初（issue #1411）はスキップしてJob Summaryへ警告を出すだけの対応だったため、昇格が永続的にスキップされ続ける詰まりが起き、karuta#1429のUI改善が本番に反映されない事態につながった。issue #1448で、canaryを強制的に最新化する現在の仕組みへ変更した。
 
-当初（issue #1411）はスキップしてJob Summaryへ警告を出すだけだった。この状態を解消する手段が無いため、一度発生すると昇格が永続的にスキップされ続け、キュー待ちの更新も処理されない詰まりが起きた（karuta#1429のUI改善が実際にこの詰まりで本番に反映されない事態が発生した）。issue #1448で、スキップするだけでなく**canaryを最新のmain HEADで強制的に最新化する**よう変更し、詰まりが自動的に解消されるようにした。
+### 補足: カナリアへのデプロイの日次バッチ化
 
-### 補足: カナリアへのデプロイの日次バッチ化（issue #1449、#1326を置き換え）
+仕組みは[dev-standards/docs/blue-green-stage-pattern.md](../dev-standards/docs/blue-green-stage-pattern.md)「canaryデプロイの日次バッチ化」を参照する。
 
-当初（issue #1326）はmainマージ毎に即座にcanaryへデプロイし、既に進行中のカナリアがあればキュー待ちにする方式だった。issue #1449で、canaryへのデプロイをmainマージ毎から日次バッチへ変更した。
-
-- `cd.yml`の`queue-canary-update`ジョブは、mainへのマージ時にKVSの`canary_queue_pending`を`true`にするだけで、canaryへの実デプロイは行わない
-- `promote-canary.yml`（毎日定時実行）が、実行ごとに「canaryが空いたか（スタックが存在しない、または`force_stable=true`でロールバック済み）」と「キュー待ちの更新が無いか」を確認する。両方が真であれば最新のmain HEADを新しいcanaryとしてデプロイし、`canary_queue_pending`を`false`へ戻す
-- 上記の「stableがcanaryを追い越している」場合（issue #1448）も、この最新化ロジックに統合されており、キュー待ちの有無に関わらず強制的に最新化される
-
-これにより、1日の間に複数回マージされても、canaryへの反映は1日1回にまとまる。
+karutaでの経緯: 当初（issue #1326）はmainマージ毎に即座にcanaryへデプロイする方式だったが、issue #1449で日次バッチ方式へ変更した。
 
 ### 補足: sticky Cookie動作のフロントエンド側確認（Task 8）
 
