@@ -45,23 +45,24 @@ env:
 
 jobs:
   import:
+    name: "データリソースをインポートする"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: Install backend dependencies
+      - name: backend依存パッケージをインストールする
         working-directory: backend
         run: npm ci
 
-      - name: Verify live resource configuration matches serverless-data.yml (preview only)
+      - name: 実リソース構成がserverless-data.ymlと一致するか確認する（previewのみ）
         # 読み取り専用API（DescribeTable等）のみを使い、実際のAWSリソースの現在の構成が
         # serverless-data.ymlの定義と一致するかを事前確認する。不一致があればここで
         # 止まり、change set作成（実際のIMPORT操作）には進まない
@@ -77,7 +78,7 @@ jobs:
             cat verify-result.md
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Generate CloudFormation template (preview only)
+      - name: CloudFormationテンプレートを生成する（previewのみ）
         if: inputs.action == 'preview'
         working-directory: backend
         run: |
@@ -101,7 +102,7 @@ jobs:
             console.log('Resources in template:', Object.keys(template.Resources));
           "
 
-      - name: Build resources-to-import mapping (preview only)
+      - name: インポート対象リソースのマッピングを作成する（previewのみ）
         if: inputs.action == 'preview'
         working-directory: backend
         run: |
@@ -118,7 +119,7 @@ jobs:
           ]
           EOF
 
-      - name: Create change set (preview only)
+      - name: change setを作成する（previewのみ）
         if: inputs.action == 'preview'
         working-directory: backend
         run: |
@@ -135,7 +136,7 @@ jobs:
             --stack-name "$STACK_NAME" \
             --change-set-name "$CHANGE_SET_NAME" || true
 
-      - name: Describe change set (preview only)
+      - name: change setの内容を表示する（previewのみ）
         if: inputs.action == 'preview'
         working-directory: backend
         run: |
@@ -186,7 +187,7 @@ jobs:
             exit 1
           fi
 
-      - name: Execute change set (execute only)
+      - name: change setを実行する（executeのみ）
         if: inputs.action == 'execute'
         working-directory: backend
         run: |

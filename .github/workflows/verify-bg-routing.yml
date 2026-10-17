@@ -22,23 +22,24 @@ permissions:
 
 jobs:
   verify:
+    name: "重み付けルーティングを検証する"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: Install infra dependencies
+      - name: infra依存パッケージをインストールする
         working-directory: infra
         run: npm ci
 
-      - name: Resolve CloudFront domain and KVS ARN
+      - name: CloudFrontドメインとKVS ARNを解決する
         id: resolve
         working-directory: infra
         run: |
@@ -163,7 +164,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Write summary
+      - name: 概要を出力する
         if: always()
         run: |
           set -eu

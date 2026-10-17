@@ -20,23 +20,24 @@ permissions:
 
 jobs:
   verify:
+    name: "stableへのフォールバックを検証する"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: Install infra dependencies
+      - name: infra依存パッケージをインストールする
         working-directory: infra
         run: npm ci
 
-      - name: Resolve CloudFront domain
+      - name: CloudFrontドメインを解決する
         id: resolve
         working-directory: infra
         run: |
@@ -94,7 +95,7 @@ jobs:
           echo "non_stable_count=${NON_STABLE_COUNT}" >> "$GITHUB_OUTPUT"
           echo "固定後の通常アクセス${N}回中stable以外になった回数: ${NON_STABLE_COUNT}（0が正常）"
 
-      - name: Write summary
+      - name: 概要を出力する
         if: always()
         run: |
           set -eu
