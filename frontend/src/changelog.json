@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.114.0",
+    "date": "2026/10/17",
+    "body": "### Features\n\n* **ci:** 依存パッケージのdeprecated定期スキャンを導入する ([#1696](https://github.com/bamiyanapp/karuta/issues/1696)) ([e1214fd](https://github.com/bamiyanapp/karuta/commit/e1214fd4a0e5669e3b24f6e3b50e03ad2b1e042d))"
+  },
+  {
     "version": "1.113.5",
-    "date": "2026/10/16",
+    "date": "2026/10/16 23:43",
     "body": "### Bug Fixes\n\n* **ci:** promote-canary.ymlの参照タグをv2.82.4へ更新する ([#1690](https://github.com/bamiyanapp/karuta/issues/1690)) ([a56dabf](https://github.com/bamiyanapp/karuta/commit/a56dabfeaad5436d249a524dac1ba2e98b5586fc)), closes [#1676](https://github.com/bamiyanapp/karuta/issues/1676)"
   },
   {
