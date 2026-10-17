@@ -108,7 +108,7 @@ graph TD
 
 詳細な CI/CD パイプラインの仕様については、[CI/CD Pipeline Specification](docs/cicd-pipeline-specification.md) を参照してください。
 
-本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴い、単一ステージ運用からstable/canary構成への移行が必要になった。移行手順は[単一ステージ運用からstable/canaryへの移行手順](docs/blue-green-stage-migration.md) を参照してください。
+本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴い、単一ステージ運用からstable/canary構成へ移行した（完了済み）。移行記録・karuta固有の実装詳細は[単一ステージ運用からstable/canaryへの移行記録](docs/blue-green-stage-migration.md) を、パターン自体の一般的な仕組みは[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照してください。
 
 `stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
 
