@@ -1,18 +1,14 @@
-# 単一ステージ運用からstable/canaryへの移行手順
+# 単一ステージ運用からstable/canaryへの移行記録（karuta固有）
 
-ブルーグリーンデプロイ導入（issue #1319）のTask 4（#1323）として、`backend/serverless.yml`を`stable`/`canary`それぞれ独立したCloudFormationスタックとして並行デプロイできるようにした。本ドキュメントは、現行の単一ステージ運用から新しい構成へ移行する手順を記す。
+ブルーグリーンデプロイ導入（issue #1319）の一環として、単一ステージ運用（`dev`固定）から`stable`/`canary`構成への移行を行った。移行作業自体はTask 1〜13（下記「移行手順」）で完了済み。
 
-## 現状
+本ドキュメントは、その移行手順および実装判断の記録である。ブルーグリーンデプロイパターン自体の一般的な仕組み・導入手順は[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照すること。本ドキュメントにはkaruta固有の経緯・実装箇所のみを記載する。
 
-明示的な`--stage`指定無しで`osls deploy`を実行しているため、Serverless Frameworkの既定値であるstage `dev`として稼働している。スタック名は`karuta-app-dev`であり、フロントエンド（`frontend/src/config.js`の`API_BASE_URL`/`WS_BASE_URL`）はこの`dev`ステージのAPI Gateway/WebSocket APIのURLを指している。
+## 現状・移行後の構成
 
-## 移行後の構成
+移行前は明示的な`--stage`指定無しで`osls deploy`を実行し、Serverless Frameworkの既定値であるstage `dev`として稼働していた（スタック名`karuta-app-dev`）。移行後は`stable`・`canary`という名前のstageで、それぞれ独立したCloudFormationスタック（`karuta-app-stable`・`karuta-app-canary`）を持つ。
 
-`stable`・`canary`という名前のstageで、それぞれ独立したCloudFormationスタック（`karuta-app-stable`・`karuta-app-canary`）を持つ。両スタックとも、DynamoDBテーブル等のステートフルリソース（issue #1320で`serverless-data.yml`へ分離済み）は共有する。`backend/serverless.yml`自体にはコード変更が不要で、`--stage`の値を変えるだけで独立したデプロイ単位になる。
-
-## なぜコード変更が不要か
-
-`backend/serverless.yml`のテーブル名・バケット名（`custom.tableName`等）は固定文字列で、stage名を含まない。IAMポリシー・Lambda関数の環境変数もこれらの固定文字列を直接参照している。そのため、どのstageにデプロイしても同じDynamoDBテーブル・S3バケットを参照する。Lambda関数名・API Gateway自体はServerless Frameworkの既定命名規則（`${service}-${stage}-...`）でstageごとに自動的に分離されるため、`stable`と`canary`は互いに影響しない。
+コード変更が不要だった理由（テーブル名・バケット名を固定文字列にしstage名を含めない設計）は、dev-standardsの一般化されたパターン共通の理屈であり、[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「backendの並行stageデプロイ」を参照する。karuta固有の事実としては、両スタックが共有するDynamoDBテーブル等のステートフルリソースはissue #1320で`serverless-data.yml`へ分離済みであることのみ補足する。
 
 ## コミットのライフサイクル（dev→canary→stable）
 
@@ -86,22 +82,19 @@ karutaでの経緯: 当初（issue #1326）はmainマージ毎に即座にcanary
 
 ### 補足: ErrorBoundary連動の自動フォールバック（Task 9）
 
-issue記載の「`canary` Cookieを削除してから再読み込みする」方式は採用しなかった。当該Cookieが`HttpOnly`属性付き（`infra/serverless.yml`の`ViewerResponseFunction`）であることが実装時に判明したためである。クライアント側JavaScriptからは直接削除・書き換えができない。そのため以下の方式で代替した。
+issue記載の「`canary` Cookieを削除してから再読み込みする」方式は採用しなかった。当該Cookieが`HttpOnly`属性付き（`infra/serverless.yml`の`ViewerResponseFunction`）であることが実装時に判明したためである。クライアント側JavaScriptからは直接削除・書き換えができない。
 
-- `shared/ui/ErrorBoundary.jsx`（dev-standards）に汎用的な`fallbackUrl` propを追加し、`componentDidCatch`発生時に自動的に`window.location.href = fallbackUrl`へ遷移するようにした（ボタン操作不要）。karuta側は`frontend/src/main.jsx`で`fallbackUrl="/stable${検索クエリ}"`を指定する
-- `ViewerRequestFunction`（CloudFront Functions）を変更し、`/stable/`への明示アクセス時に`NEW_ASSIGNMENT_HEADER`を`stable`固定で設定するようにした。既存の`ViewerResponseFunction`がこれを受けて`canary=stable`のCookieを発行するため、単なる再抽選ではなく確実にstableへ固定される
+採用した方式（`shared/ui/ErrorBoundary.jsx`の`fallbackUrl` prop、`ViewerRequestFunction`側のstable固定ロジック）は一般化済みのパターンのため、[dev-standards/docs/shared-ui-components.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/shared-ui-components.md)（ErrorBoundary節）および[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照する。karuta側では`frontend/src/main.jsx`で`fallbackUrl="/stable${検索クエリ}"`を指定している。
 
 `.github/workflows/verify-stable-fallback.yml`（`workflow_dispatch`）で、実デプロイ済みのCloudFront URLを対象に自動検証する。検証内容は「`/stable/`への明示アクセスが常にstableの内容を返すこと」と「`/stable/`アクセス後、以後のCookie無し通常アクセスもstableへ固定されること」の2点である。ErrorBoundary自体の自動遷移ロジック（JS側の挙動）はブラウザでのみ確認可能なため対象外とし、単体テストで検証した。
 
 ### 補足: canaryスタックが存在しない状態での/canary/明示アクセス対策（issue #1489）
 
-上記のErrorBoundaryによる自動フォールバックは、canaryアプリ自体が起動した後にエラーが起きた場合にのみ機能する。canaryスタック自体が存在しない状態（昇格直後でまだ新規canaryが作られていない等）で`/canary/`へ明示アクセスすると、S3に対応するオブジェクトが無く`index.html`自体を取得できないため、ErrorBoundaryが発火する前に白画面になってしまう。
-
-この対策として、KVSに`canary_exists`キーを新設した。`promote-canary.yml`がcanaryのデプロイ・削除に合わせて更新する（デプロイ成功時に`true`、削除時に`false`）。`ViewerRequestFunction`は`/canary/`への明示アクセス時にこのキーを確認し、`true`でなければ`/stable/`への明示アクセスと同様に扱う（stableへ読み替え、以後の通常アクセスも`stable` Cookieで固定する）。
+一般化済みのパターンのため、[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)「CloudFront Functionsによる重み付けルーティング」（`canary_exists`キー）を参照する。karuta側では`promote-canary.yml`がcanaryのデプロイ・削除に合わせてこのキーを更新している。
 
 ### 補足: 手動切り替えリンク（Task 10）
 
-ErrorBoundaryが検知できない軽微な不具合（クラッシュに至らない表示崩れ等）向けに、`frontend/src/components/StableSwitchLink.jsx`をフッターへ追加した。`import.meta.env.MODE`が`canary`のビルドでのみ表示し、クリックすると`/stable${検索クエリ}`へ遷移する。Task 9で追加した`ViewerRequestFunction`側のstable固定ロジックをそのまま再利用するため、CloudFront Functions側の追加変更は不要だった。
+一般化済みのパターン（手動切り替えリンクパターン）のため、[dev-standards/docs/shared-ui-components.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/shared-ui-components.md)を参照する。karuta側は`frontend/src/components/StableSwitchLink.jsx`として実装し、フッターへ追加した。
 
 ### 補足: stableへの初回切り替え（手順6、新インフラ側のみ実施）
 
