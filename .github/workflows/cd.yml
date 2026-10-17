@@ -32,6 +32,7 @@ jobs:
   # 配信する。本番アプリ自体は新インフラ（CloudFront、docs/
   # blue-green-stage-migration.md手順6で最新化済み）が引き継ぐ
   build-and-deploy-frontend:
+    name: "フロントエンドをGitHub Pagesへビルド・デプロイする"
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
@@ -43,7 +44,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
@@ -52,13 +53,13 @@ jobs:
           # すると常に「1つ前のリリース」の状態をデプロイしてしまう（issue #1274）
           ref: ${{ needs.release.outputs.release_commit_sha }}
           fetch-depth: 0
-      - name: Resolve CloudFront domain
+      - name: CloudFrontドメインを解決する
         id: resolve
         run: |
           set -eu
           DOMAIN=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionDomainName'].OutputValue" --output text)
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
-      - name: 🚀 Deploy to GitHub Pages
+      - name: 🚀 GitHub Pagesへデプロイする
         id: deploy
         uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.78.1
         with:
@@ -67,11 +68,12 @@ jobs:
           artifact-path: github-pages-migration
           node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
-      - name: Show GitHub Pages URL
+      - name: GitHub Pages URLを表示する
         run: |
           echo "Pages URL: ${{ steps.deploy.outputs.page-url }}"
 
   deploy-backend:
+    name: "backendをデプロイする"
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
@@ -84,7 +86,7 @@ jobs:
       OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN }}
       OPS_ALERT_LINE_USER_ID: ${{ secrets.OPS_ALERT_LINE_USER_ID }}
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           # github.sha（CDをトリガーしたコミット）ではなくrelease_commit_shaを使う。
@@ -92,7 +94,7 @@ jobs:
           ref: ${{ needs.release.outputs.release_commit_sha }}
           fetch-depth: 0
           submodules: true # backend配下のdev-standards symlink（clientErrorReporting.js等）解決に必要
-      - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
+      - name: 🚀 backendをデプロイする（osls、Serverless Framework v3のOSSフォーク）
         # npm workspaces移行（issue #608）で`install-strategy=nested`にした結果、
         # 各Lambda関数のzip作成（package.individually: true、11関数）が同一の
         # node_modules配下を関数ごとに繰り返し走査するようになり、GitHub Actions
@@ -109,7 +111,7 @@ jobs:
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: 🌱 Seed Database
+      - name: 🌱 データベースへ初期データを投入する
         working-directory: backend
         run: node seed.js
         env:
@@ -123,6 +125,7 @@ jobs:
   # canaryへの反映は1日1回にまとまり、昇格の検証対象となるリリース単位が
   # 整理される
   queue-canary-update:
+    name: "canary反映キューへ登録する"
     needs: release
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
@@ -131,15 +134,15 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Install infra dependencies
+      - name: infra依存パッケージをインストールする
         working-directory: infra
         run: npm ci
       - name: canary_queue_pendingをtrueにする

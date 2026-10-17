@@ -21,9 +21,10 @@ permissions:
 
 jobs:
   deploy:
+    name: "共有インフラをデプロイする"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
@@ -38,7 +39,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Show CloudFront domain name
+      - name: CloudFrontドメイン名を表示する
         id: domain
         working-directory: infra
         run: |
@@ -50,7 +51,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Seed KVS initial values (issue #1322)
+      - name: KVS初期値を投入する（issue #1322）
         # canary_weight（既定10）・force_stable（既定false）が未設定の場合のみ初期値を
         # 設定する。既に値がある場合は上書きしない。Task 11（#1330、管理者ロールバック
         # force_stable）実装後、運用者がforce_stableを手動でtrueにしている状態で
@@ -93,7 +94,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Seed verification placeholder assets (issue #1321/#1322)
+      - name: 動作確認用プレースホルダーアセットを配置する（issue #1321/#1322）
         if: inputs.seed_verification_assets
         working-directory: infra
         run: |
@@ -127,7 +128,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Write deployment summary
+      - name: デプロイ結果の概要を出力する
         run: |
           set -eu
           DOMAIN="${{ steps.domain.outputs.domain }}"

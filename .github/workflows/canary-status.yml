@@ -44,19 +44,20 @@ permissions:
 
 jobs:
   status:
+    name: "運用状態を可視化する"
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0 # issue #1475: canary最終更新以降のコミット履歴からPRリンクを抽出するために全履歴が必要
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -70,7 +71,7 @@ jobs:
       # dev-standardsの共通action（deploy-serverless）の`workspaces: true`
       # オプションと同じ理由で、依存インストールはリポジトリルートで
       # 1回にまとめる
-      - name: Install dependencies
+      - name: 依存パッケージをインストールする
         run: npm ci
 
       - name: KVS ARN・フロントエンド配信ドメインを解決する
@@ -345,7 +346,7 @@ jobs:
           echo "run_result=${RUN_RESULT:-（取得できなかった）}" >> "$GITHUB_OUTPUT"
           echo "run_created_at=${RUN_CREATED_AT_JST}" >> "$GITHUB_OUTPUT"
 
-      - name: Write summary
+      - name: 概要を出力する
         if: always()
         run: |
           set -eu

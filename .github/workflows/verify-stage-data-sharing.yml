@@ -24,23 +24,24 @@ env:
 
 jobs:
   verify:
+    name: "ステージ間のデータ共有を検証する"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: Install backend dependencies
+      - name: backend依存パッケージをインストールする
         working-directory: backend
         run: npm ci
 
-      - name: Resolve stable/canary endpoints
+      - name: stable/canaryエンドポイントを解決する
         id: resolve
         working-directory: backend
         run: |
@@ -104,7 +105,7 @@ jobs:
             })();
           "
 
-      - name: Write summary
+      - name: 概要を出力する
         if: always()
         run: |
           set -eu

@@ -27,23 +27,24 @@ env:
 
 jobs:
   verify:
+    name: "GitHub Pages移行を検証する"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: チェックアウトする
         uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Setup Node.js
+      - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - name: Install infra dependencies
+      - name: infra依存パッケージをインストールする
         working-directory: infra
         run: npm ci
 
-      - name: Resolve CloudFront domain
+      - name: CloudFrontドメインを解決する
         id: resolve
         working-directory: infra
         run: |
@@ -81,7 +82,7 @@ jobs:
             echo "sw.jsの内容がkill switchの実装と一致しない" >&2
           fi
 
-      - name: Write summary
+      - name: 概要を出力する
         if: always()
         run: |
           set -eu
