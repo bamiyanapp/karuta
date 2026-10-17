@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.115.3",
+    "version": "1.115.4",
     "date": "2026/10/17",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.97.0からv2.97.2へ更新する ([#1739](https://github.com/bamiyanapp/karuta/issues/1739)) ([de26df1](https://github.com/bamiyanapp/karuta/commit/de26df128df8b43d6bf8edc5da633c8fb48b8245)), closes [#1738](https://github.com/bamiyanapp/karuta/issues/1738)"
+  },
+  {
+    "version": "1.115.3",
+    "date": "2026/10/17 12:07",
     "body": "### Bug Fixes\n\n* **docs:** dev-standards submoduleへの相対リンクを絶対URLへ修正する ([#1728](https://github.com/bamiyanapp/karuta/issues/1728)) ([17ce37b](https://github.com/bamiyanapp/karuta/commit/17ce37bae0a8c933d685613f55070c01da771ebe)), closes [#1727](https://github.com/bamiyanapp/karuta/issues/1727)"
   },
   {
