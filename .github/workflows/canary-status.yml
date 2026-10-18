@@ -1,5 +1,5 @@
 name: Canary Status
-run-name: Canary Status (${{ github.event_name == 'workflow_run' && 'after promote-canary.yml' || 'manual' }})
+run-name: Canary Status (${{ github.event_name == 'workflow_run' && format('after {0}', github.event.workflow_run.name) || 'manual' }})
 
 # issue #1462: canaryの運用状態（現在の重み・ロールバック状態・キュー待ち・
 # canaryスタックの最終更新時刻・昇格予定日時）は、CloudFront KVSと
@@ -33,8 +33,12 @@ run-name: Canary Status (${{ github.event_name == 'workflow_run' && 'after promo
 # 2トリガーに絞る
 on:
   workflow_dispatch: {}
+  # issue #1785: CD（mainへのマージ毎、canary反映キューへの登録のみ）完了時にも
+  # 再生成する。実際のcanaryデプロイ自体はpromote-canary.ymlの1日1回のバッチに
+  # 委ねたまま（issue #1449）だが、「キューイング中の変更」一覧（mainへのマージ
+  # 履歴から算出）は、promote-canary.ymlの実行を待たず最新化できるようにする
   workflow_run:
-    workflows: ["Promote Canary to Stable"]
+    workflows: ["Promote Canary to Stable", "CD"]
     types: [completed]
 
 permissions:
