@@ -6,7 +6,18 @@ import AppVersionInfo from "./AppVersionInfo";
 export function HeroHeader() {
   return (
     <header className="text-center mb-5">
-      <img src="favicon.png" alt="かるたのアイコン" className="mb-4" style={{ width: "120px", height: "auto" }} />
+      <picture>
+        <source srcSet="app-icon.webp" type="image/webp" />
+        <img
+          src="favicon.png"
+          alt="かるたのアイコン"
+          className="mb-4"
+          style={{ width: "120px", height: "auto" }}
+          width="120"
+          height="120"
+          fetchPriority="high"
+        />
+      </picture>
       <h1 className="display-4 fw-bold">かるた読み上げ</h1>
     </header>
   );

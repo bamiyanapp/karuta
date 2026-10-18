@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- LCP要素（TopViewChromeのヘッダーアイコン）をJSレンダリング前に取得開始させる
+         （Lighthouse prioritize-lcp-image監査対応、karuta#1766） -->
+    <link rel="preload" href="/app-icon.webp" as="image" type="image/webp" />
     <!-- viewport-fit=cover: PWAのstandaloneモード（vite.config.jsのdisplay: 'standalone'）
          では、iOSはこの指定がないとenv(safe-area-inset-*)を常に0として扱い、
          ノッチ・ステータスバー領域を考慮したレイアウト調整ができない（issue #840） -->
