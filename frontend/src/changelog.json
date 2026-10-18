@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.3",
+    "version": "1.116.4",
     "date": "2026/10/18",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlをCD完了時にも再生成するようにする ([#1786](https://github.com/bamiyanapp/karuta/issues/1786)) ([558a184](https://github.com/bamiyanapp/karuta/commit/558a184179b38e11d2648dbebbe534c3757702c5))"
+  },
+  {
+    "version": "1.116.3",
+    "date": "2026/10/18 05:00",
     "body": "### Bug Fixes\n\n* **ci:** Lighthouse CIの閾値を70点から65点へ引き下げる ([#1770](https://github.com/bamiyanapp/karuta/issues/1770)) ([66df7f6](https://github.com/bamiyanapp/karuta/commit/66df7f6f426214db279764015a31eddf8caa4a82))"
   },
   {

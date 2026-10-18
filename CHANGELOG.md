@@ -1,3 +1,10 @@
+## [1.116.4](https://github.com/bamiyanapp/karuta/compare/v1.116.3...v1.116.4) (2026-10-18)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlをCD完了時にも再生成するようにする ([#1786](https://github.com/bamiyanapp/karuta/issues/1786)) ([558a184](https://github.com/bamiyanapp/karuta/commit/558a184179b38e11d2648dbebbe534c3757702c5))
+
 ## [1.116.3](https://github.com/bamiyanapp/karuta/compare/v1.116.2...v1.116.3) (2026-10-18)
 
 
