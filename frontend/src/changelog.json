@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.1",
+    "version": "1.116.2",
     "date": "2026/10/18",
+    "body": "### Performance Improvements\n\n* **frontend:** ヘッダーアイコン画像をWebP化・preload追加でLCPを改善する ([#1767](https://github.com/bamiyanapp/karuta/issues/1767)) ([cdf4859](https://github.com/bamiyanapp/karuta/commit/cdf4859931251c2856267453554c2dc2242a8d12))"
+  },
+  {
+    "version": "1.116.1",
+    "date": "2026/10/18 01:31",
     "body": "### Performance Improvements\n\n* **frontend:** Bootstrap・Google Fontsを外部CDNからnpmバンドルへ切り替える ([#1762](https://github.com/bamiyanapp/karuta/issues/1762)) ([b0a5082](https://github.com/bamiyanapp/karuta/commit/b0a50829e916aeeb2de157160cab476fc0eac979))"
   },
   {

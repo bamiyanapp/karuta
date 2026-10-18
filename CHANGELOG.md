@@ -1,3 +1,10 @@
+## [1.116.2](https://github.com/bamiyanapp/karuta/compare/v1.116.1...v1.116.2) (2026-10-18)
+
+
+### Performance Improvements
+
+* **frontend:** ヘッダーアイコン画像をWebP化・preload追加でLCPを改善する ([#1767](https://github.com/bamiyanapp/karuta/issues/1767)) ([cdf4859](https://github.com/bamiyanapp/karuta/commit/cdf4859931251c2856267453554c2dc2242a8d12))
+
 ## [1.116.1](https://github.com/bamiyanapp/karuta/compare/v1.116.0...v1.116.1) (2026-10-18)
 
 
