@@ -1,3 +1,10 @@
+## [1.116.1](https://github.com/bamiyanapp/karuta/compare/v1.116.0...v1.116.1) (2026-10-18)
+
+
+### Performance Improvements
+
+* **frontend:** Bootstrap・Google Fontsを外部CDNからnpmバンドルへ切り替える ([#1762](https://github.com/bamiyanapp/karuta/issues/1762)) ([b0a5082](https://github.com/bamiyanapp/karuta/commit/b0a50829e916aeeb2de157160cab476fc0eac979))
+
 # [1.116.0](https://github.com/bamiyanapp/karuta/compare/v1.115.6...v1.116.0) (2026-10-18)
 
 
