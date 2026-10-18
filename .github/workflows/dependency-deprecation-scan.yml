@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   scan:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.100.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.101.0
     with:
       lockfile_path: package-lock.json
       direct_only: true
