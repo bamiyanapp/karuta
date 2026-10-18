@@ -1,3 +1,10 @@
+# [1.116.0](https://github.com/bamiyanapp/karuta/compare/v1.115.6...v1.116.0) (2026-10-18)
+
+
+### Features
+
+* **ci:** Lighthouse CIでPWAカテゴリも計測対象にする ([#1759](https://github.com/bamiyanapp/karuta/issues/1759)) ([fe88155](https://github.com/bamiyanapp/karuta/commit/fe8815512b496300b2139e58d93a3f7702b4202d))
+
 ## [1.115.6](https://github.com/bamiyanapp/karuta/compare/v1.115.5...v1.115.6) (2026-10-17)
 
 

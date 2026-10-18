@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.116.0",
+    "date": "2026/10/18",
+    "body": "### Features\n\n* **ci:** Lighthouse CIでPWAカテゴリも計測対象にする ([#1759](https://github.com/bamiyanapp/karuta/issues/1759)) ([fe88155](https://github.com/bamiyanapp/karuta/commit/fe8815512b496300b2139e58d93a3f7702b4202d))"
+  },
+  {
     "version": "1.115.6",
-    "date": "2026/10/17",
+    "date": "2026/10/17 20:08",
     "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.97.3からv2.97.4へ更新する ([#1748](https://github.com/bamiyanapp/karuta/issues/1748)) ([33008e5](https://github.com/bamiyanapp/karuta/commit/33008e5cf9d07b8c6362a96d14c80bda47180414)), closes [#1747](https://github.com/bamiyanapp/karuta/issues/1747) [dev-standards#1033](https://github.com/dev-standards/issues/1033)"
   },
   {
