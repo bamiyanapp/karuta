@@ -1,3 +1,10 @@
+## [1.116.3](https://github.com/bamiyanapp/karuta/compare/v1.116.2...v1.116.3) (2026-10-18)
+
+
+### Bug Fixes
+
+* **ci:** Lighthouse CIの閾値を70点から65点へ引き下げる ([#1770](https://github.com/bamiyanapp/karuta/issues/1770)) ([66df7f6](https://github.com/bamiyanapp/karuta/commit/66df7f6f426214db279764015a31eddf8caa4a82))
+
 ## [1.116.2](https://github.com/bamiyanapp/karuta/compare/v1.116.1...v1.116.2) (2026-10-18)
 
 

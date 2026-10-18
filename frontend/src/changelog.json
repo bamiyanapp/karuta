@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.2",
+    "version": "1.116.3",
     "date": "2026/10/18",
+    "body": "### Bug Fixes\n\n* **ci:** Lighthouse CIの閾値を70点から65点へ引き下げる ([#1770](https://github.com/bamiyanapp/karuta/issues/1770)) ([66df7f6](https://github.com/bamiyanapp/karuta/commit/66df7f6f426214db279764015a31eddf8caa4a82))"
+  },
+  {
+    "version": "1.116.2",
+    "date": "2026/10/18 04:00",
     "body": "### Performance Improvements\n\n* **frontend:** ヘッダーアイコン画像をWebP化・preload追加でLCPを改善する ([#1767](https://github.com/bamiyanapp/karuta/issues/1767)) ([cdf4859](https://github.com/bamiyanapp/karuta/commit/cdf4859931251c2856267453554c2dc2242a8d12))"
   },
   {
