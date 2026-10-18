@@ -161,9 +161,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           # issue #1478: 「canaryには反映済みだがstableへはまだ昇格していない」PRを
-          # 区別して示す。stableスタックのLastUpdatedTime（promote-canary.ymlの
-          # stable_ahead_of_canary判定と同じ取得方法）からcanaryの最終更新時刻までの
-          # 間にmainへマージされたPRが対象
+          # 区別して示す。実際のPR一覧の算出（git logのrange）はバージョン情報が
+          # 必要なため、後続の「反映済み・キューイング中の変更をバージョンタグから
+          # 算出する」stepへ委ねる（issue #1791）。ここではstable_last_updated
+          # （表示用の時刻のみ）を取得する
           if aws cloudformation describe-stacks --stack-name karuta-app-stable >/dev/null 2>&1; then
             STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].LastUpdatedTime" --output text)
             if [ "$STABLE_LAST_UPDATED" = "None" ]; then
@@ -171,31 +172,9 @@ jobs:
             fi
             STABLE_LAST_UPDATED_EPOCH=$(date -d "$STABLE_LAST_UPDATED" +%s)
             echo "stable_last_updated=$(TZ=Asia/Tokyo date -d "@${STABLE_LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
-
-            if [ "$STABLE_LAST_UPDATED_EPOCH" -gt "$LAST_UPDATED_EPOCH" ]; then
-              # promote-canary.ymlのstable_ahead_of_canaryと同じ状態（緊急デプロイ等で
-              # stableがcanaryを追い越している）。この場合「反映済み・昇格待ち」の
-              # 区間自体が存在しないため対象外とする
-              IN_CANARY_PR_SUBJECTS=""
-            else
-              # issue #1622: 同様にリリース対象タイプのみへ絞り込む
-              IN_CANARY_PR_SUBJECTS=$(git log --since="$STABLE_LAST_UPDATED" --until="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
-            fi
           else
             echo "stable_last_updated=" >> "$GITHUB_OUTPUT"
-            IN_CANARY_PR_SUBJECTS=""
           fi
-          {
-            echo "in_canary_pr_links<<IN_CANARY_LINKS_EOF"
-            if [ -n "$IN_CANARY_PR_SUBJECTS" ]; then
-              while IFS= read -r subject; do
-                pr_link "$subject"
-              done <<< "$IN_CANARY_PR_SUBJECTS"
-            else
-              echo "（該当するPRが見つからなかった）"
-            fi
-            echo "IN_CANARY_LINKS_EOF"
-          } >> "$GITHUB_OUTPUT"
 
       # issue #1523: canaryが古いバージョンを配信し続けていた不具合（issue #1511）の
       # 調査時、実際にどのバージョンが配信されているかをドキュメントから確認できず、
@@ -284,6 +263,67 @@ jobs:
           }
           echo "canary_version=$(combine_version "$CANARY_BACKEND_VERSION" "$CANARY_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
           echo "stable_version=$(combine_version "$STABLE_BACKEND_VERSION" "$STABLE_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
+
+      # issue #1791: 「canaryに反映済み・stable昇格待ちの変更」一覧を、CloudFormation
+      # スタックのLastUpdatedTime（デプロイ完了時刻）同士のウォールクロック区間で
+      # git log --since/--untilしていたため、promote-canary.ymlが1回の実行内で
+      # 「stable昇格」と「新canaryデプロイ」を連続して行った場合、2つの
+      # LastUpdatedTimeが数分しか離れず、実際には複数バージョン分のPRが反映されて
+      # いても一覧が常に空になっていた。デプロイ完了時刻ではなく、実際にデプロイ
+      # されているバージョン（canary/stableの配信中バージョンを取得するstepで
+      # 取得済みのgitタグ、vX.Y.Z形式）同士のgit log rangeで算出する。バージョンが
+      # 取得できなかった・不一致警告等でタグが解決できない場合は、従来のタイムスタンプ
+      # 区間方式へフォールバックする
+      - name: 反映済み・キューイング中の変更をバージョンタグから算出する
+        id: changes
+        run: |
+          set -eu
+          pr_link() {
+            local subject="$1"
+            local num title
+            num=$(echo "$subject" | grep -oE '#[0-9]+\)$' | tr -d '#)')
+            title=$(echo "$subject" | sed -E 's/ *\(#[0-9]+\)$//')
+            echo "- [#${num} ${title}](https://github.com/bamiyanapp/karuta/pull/${num})"
+          }
+          RELEASE_TYPE_REGEX='^(feat|fix|refactor|feat/fix|fix/tech)(\(|!|:)'
+          render_links() {
+            local subjects="$1"
+            if [ -n "$subjects" ]; then
+              while IFS= read -r subject; do
+                pr_link "$subject"
+              done <<< "$subjects"
+            else
+              echo "（該当するPRが見つからなかった）"
+            fi
+          }
+
+          CANARY_VERSION="${{ steps.version.outputs.canary_version }}"
+          STABLE_VERSION="${{ steps.version.outputs.stable_version }}"
+          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+          CANARY_TAG="v${CANARY_VERSION}"
+          STABLE_TAG="v${STABLE_VERSION}"
+
+          IN_CANARY_PR_SUBJECTS=""
+          if [[ "$CANARY_VERSION" =~ $SEMVER_REGEX ]] && [[ "$STABLE_VERSION" =~ $SEMVER_REGEX ]] \
+            && git rev-parse -q --verify "refs/tags/${CANARY_TAG}" >/dev/null \
+            && git rev-parse -q --verify "refs/tags/${STABLE_TAG}" >/dev/null; then
+            if [ "$STABLE_VERSION" != "$CANARY_VERSION" ]; then
+              IN_CANARY_PR_SUBJECTS=$(git log "${STABLE_TAG}..${CANARY_TAG}" --pretty=format:'%s' | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
+            fi
+          elif [ -n "${{ steps.status.outputs.stable_last_updated }}" ] && [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            # フォールバック（issue #1478時点の従来方式）。バージョンタグが
+            # 解決できない場合のみ使う
+            STABLE_LAST_UPDATED_EPOCH=$(date -d "${{ steps.status.outputs.stable_last_updated }}" +%s)
+            CANARY_LAST_UPDATED_EPOCH=$(date -d "${{ steps.status.outputs.canary_last_updated }}" +%s)
+            if [ "$STABLE_LAST_UPDATED_EPOCH" -le "$CANARY_LAST_UPDATED_EPOCH" ]; then
+              IN_CANARY_PR_SUBJECTS=$(git log --since="${{ steps.status.outputs.stable_last_updated }}" --until="${{ steps.status.outputs.canary_last_updated }}" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
+            fi
+          fi
+          {
+            echo "in_canary_pr_links<<IN_CANARY_LINKS_EOF"
+            render_links "$IN_CANARY_PR_SUBJECTS"
+            echo "IN_CANARY_LINKS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
       # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
@@ -376,7 +416,7 @@ jobs:
               echo ""
               echo "### canaryに反映済み・stable昇格待ちの変更"
               echo ""
-              echo "${{ steps.status.outputs.in_canary_pr_links }}"
+              echo "${{ steps.changes.outputs.in_canary_pr_links }}"
               echo ""
               echo "### キューイング中の変更（canaryにも未反映・canary最終更新以降にmainへマージされたPR）"
               echo ""
@@ -431,7 +471,7 @@ jobs:
               echo ""
               echo "stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。"
               echo ""
-              echo "${{ steps.status.outputs.in_canary_pr_links }}"
+              echo "${{ steps.changes.outputs.in_canary_pr_links }}"
               echo ""
               echo "## キューイング中の変更"
               echo ""
