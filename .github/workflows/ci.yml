@@ -104,11 +104,13 @@ jobs:
       # アクセシビリティ・SEOスコアの継続監視を有効化する。計測対象URL・
       # 退行検知の閾値はfrontend/lighthouserc.jsonに委ねる
       enable_lighthouse_ci: true
-      # karuta#1762: lighthouserc.jsonのassertionsを"error"レベル・minScore 0.6に
-      # 設定した上で、閾値を下回った場合にmergeをブロックする
-      # （dev-standards#1063/#1064）。CI実行環境でのPerformanceスコア実測値が
-      # 0.59前後だったため、既存PRを即座に全てブロックしないよう60点から開始し、
-      # 以降の改善に応じて段階的に引き上げる方針とした
+      # karuta#1762: lighthouserc.jsonのassertionsを"error"レベルに設定した上で、
+      # 閾値を下回った場合にmergeをブロックする（dev-standards#1063/#1064）。
+      # CI実行環境でのPerformanceスコア実測値が0.59前後だったため、既存PRを
+      # 即座に全てブロックしないよう60点から開始した。karuta#1766（ヘッダー
+      # アイコンのWebP化・preload追加）でPerformanceスコアが0.71→0.75へ改善
+      # したことを確認し、70点へ引き上げた。以降も改善に応じて段階的に
+      # 引き上げる方針とする
       enable_lighthouse_ci_gating: true
       enable_mermaid_render: true
       mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md\ndocs/generated/websocket-api.md\ndocs/generated/dynamodb-tables.md\ndocs/generated/serverless-architecture.md\ndocs/generated/cicd-architecture.md\ndocs/quiz-room-operations.md"
