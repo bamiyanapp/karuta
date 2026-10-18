@@ -37,7 +37,7 @@ sequenceDiagram
 
 </details>
 
-![正常系: 基本的な利用の流れ (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-1.png?66df7f6f426214db279764015a31eddf8caa4a82)
+![正常系: 基本的な利用の流れ (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-1.png?bcc32d946df1be1c0b46033c7443c99f17f9a790)
 
 ## 異常系・既知の制約
 
@@ -74,7 +74,7 @@ sequenceDiagram
 
 </details>
 
-![管理者のセッション断からの復帰 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-2.png?66df7f6f426214db279764015a31eddf8caa4a82)
+![管理者のセッション断からの復帰 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/quiz-room-operations-2.png?bcc32d946df1be1c0b46033c7443c99f17f9a790)
 
 - **運営者が取るべき代替手順（トークン失効・不一致時のみ）**: 新しいルームを作り直し、参加者へQRコード/URL/ルームコードを改めて手動で共有する。新ルームは開設中ルーム一覧の先頭（作成日時降順）に表示されるため、参加者は一覧から選び直すこともできるが、失効前の旧ルームも一覧に残り続け見分けが付かないため、どのルームが新しいかを口頭等で明示的に案内するのが安全
 - 回帰テスト: `frontend/e2e/quiz-room.spec.js`（issue #640で追加、issue #697で管理者セッション復帰のケースを追加）
