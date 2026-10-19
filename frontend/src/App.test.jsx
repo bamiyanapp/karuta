@@ -67,7 +67,7 @@ describe('App', () => {
     expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
   });
 
-  it('retries once before showing a get-categories-specific error message when fetching categories keeps failing (issue #758)', async () => {
+  it('retries up to 3 times before showing a get-categories-specific error message when fetching categories keeps failing (issue #758, #1798)', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) throw new Error('network error');
@@ -78,15 +78,16 @@ describe('App', () => {
       render(<App />);
     });
 
-    // 1回目の失敗直後はまだアラートを出さず、1秒後の自動リトライを待つ
+    // 1回目の失敗直後はまだアラートを出さず、自動リトライを待つ
     expect(window.alert).not.toHaveBeenCalled();
 
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
-    }, { timeout: 5000 });
+    }, { timeout: 10000 });
 
+    // 初回 + リトライ3回 = 合計4回
     const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
-    expect(categoriesCalls).toHaveLength(2);
+    expect(categoriesCalls).toHaveLength(4);
 
     consoleErrorSpy.mockRestore();
   });
@@ -112,6 +113,34 @@ describe('App', () => {
 
     expect(window.alert).not.toHaveBeenCalled();
     expect(categoriesCallCount).toBe(2);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('retries a non-ok (e.g. transient 5xx with non-JSON body) get-categories response instead of treating it as a one-shot silent failure (issue #1798)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let categoriesCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        categoriesCallCount += 1;
+        if (categoriesCallCount <= 2) {
+          // コールドスタート等での一過性の5xx（JSON以外のエラーボディ）を想定
+          return { ok: false, status: 502, json: async () => { throw new SyntaxError('invalid json'); } };
+        }
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    await screen.findByRole('button', { name: /Cat1/ });
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(categoriesCallCount).toBe(3);
 
     consoleErrorSpy.mockRestore();
   });
