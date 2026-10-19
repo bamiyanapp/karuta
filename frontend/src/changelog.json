@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.5",
+    "version": "1.116.6",
     "date": "2026/10/19",
+    "body": "### Bug Fixes\n\n* **frontend:** カテゴリ取得の一過性失敗によるfalse positiveエラーを解消 ([#1799](https://github.com/bamiyanapp/karuta/issues/1799)) ([4e8c1c7](https://github.com/bamiyanapp/karuta/commit/4e8c1c769cddcf837a7079a28f8d963fe0c315fc)), closes [#758](https://github.com/bamiyanapp/karuta/issues/758) [#1798](https://github.com/bamiyanapp/karuta/issues/1798)"
+  },
+  {
+    "version": "1.116.5",
+    "date": "2026/10/19 02:28",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.mdの反映済みPR一覧をバージョンタグベースで算出する ([#1794](https://github.com/bamiyanapp/karuta/issues/1794)) ([45d2072](https://github.com/bamiyanapp/karuta/commit/45d207244b6781d60a8c9599744c445d444dacb0))"
   },
   {

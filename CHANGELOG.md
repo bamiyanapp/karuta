@@ -1,3 +1,10 @@
+## [1.116.6](https://github.com/bamiyanapp/karuta/compare/v1.116.5...v1.116.6) (2026-10-19)
+
+
+### Bug Fixes
+
+* **frontend:** カテゴリ取得の一過性失敗によるfalse positiveエラーを解消 ([#1799](https://github.com/bamiyanapp/karuta/issues/1799)) ([4e8c1c7](https://github.com/bamiyanapp/karuta/commit/4e8c1c769cddcf837a7079a28f8d963fe0c315fc)), closes [#758](https://github.com/bamiyanapp/karuta/issues/758) [#1798](https://github.com/bamiyanapp/karuta/issues/1798)
+
 ## [1.116.5](https://github.com/bamiyanapp/karuta/compare/v1.116.4...v1.116.5) (2026-10-19)
 
 
