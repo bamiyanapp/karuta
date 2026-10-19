@@ -1,3 +1,10 @@
+## [1.116.5](https://github.com/bamiyanapp/karuta/compare/v1.116.4...v1.116.5) (2026-10-19)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.mdの反映済みPR一覧をバージョンタグベースで算出する ([#1794](https://github.com/bamiyanapp/karuta/issues/1794)) ([45d2072](https://github.com/bamiyanapp/karuta/commit/45d207244b6781d60a8c9599744c445d444dacb0))
+
 ## [1.116.4](https://github.com/bamiyanapp/karuta/compare/v1.116.3...v1.116.4) (2026-10-18)
 
 

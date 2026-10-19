@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.116.5",
+    "date": "2026/10/19",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.mdの反映済みPR一覧をバージョンタグベースで算出する ([#1794](https://github.com/bamiyanapp/karuta/issues/1794)) ([45d2072](https://github.com/bamiyanapp/karuta/commit/45d207244b6781d60a8c9599744c445d444dacb0))"
+  },
+  {
     "version": "1.116.4",
-    "date": "2026/10/18",
+    "date": "2026/10/18 22:59",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlをCD完了時にも再生成するようにする ([#1786](https://github.com/bamiyanapp/karuta/issues/1786)) ([558a184](https://github.com/bamiyanapp/karuta/commit/558a184179b38e11d2648dbebbe534c3757702c5))"
   },
   {
