@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-19 11:37:27 JST。
+最終更新日時: 2026-10-19 13:38:35 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -40,5 +40,6 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1799 fix(frontend): カテゴリ取得の一過性失敗によるfalse positiveエラーを解消](https://github.com/bamiyanapp/karuta/pull/1799)
 - [#1794 fix(ci): canary-status.mdの反映済みPR一覧をバージョンタグベースで算出する](https://github.com/bamiyanapp/karuta/pull/1794)
 - [#1786 fix(ci): canary-status.ymlをCD完了時にも再生成するようにする](https://github.com/bamiyanapp/karuta/pull/1786)
