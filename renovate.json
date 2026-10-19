@@ -3,7 +3,11 @@
   "extends": ["config:recommended"],
   "rebaseWhen": "behind-base-branch",
   "minimumReleaseAge": "3 days",
-  "description": "minimumReleaseAge: 公開直後のバージョンはコミュニティ検証が済んでいないため、リリースから3日間はPRを作成させず異常発覚の猶予期間を作る（dev-standards issue #647 Phase 2 8-3）",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["every weekend"]
+  },
+  "description": "minimumReleaseAge: 公開直後のバージョンはコミュニティ検証が済んでいないため、リリースから3日間はPRを作成させず異常発覚の猶予期間を作る（dev-standards issue #647 Phase 2 8-3）。lockFileMaintenance: 間接依存は親パッケージのバージョン範囲内で解決されるため、親の更新PRが来ない限りRenovateは通常関知しない。range内で解決可能な新しいバージョンへ週次でlockfile全体を再生成し、放置を防ぐ（dev-standards issue #1094）。詳細はdev-standards/docs/dependency-risk-judgment.md「Renovateの提案に依存しない推移的依存のセーフティネット」を参照",
   "git-submodules": {
     "enabled": true
   },
