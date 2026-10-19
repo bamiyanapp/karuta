@@ -364,33 +364,40 @@ function App() {
 
   // カテゴリ一覧を取得。PWA更新直後（Service Workerがclients.claim()で制御を握った
   // 直後のページリロード等）はfetch自体が一過性で失敗しやすいため（issue #758）、
-  // 例外発生時は即座にアラートを出さず、1秒後に1回だけ自動で再試行する
+  // 例外発生時は即座にアラートを出さず、一定回数まで自動で再試行する。
+  // バックエンド（getCategories）はDynamoDBの全件Scanを行うため、Lambdaの
+  // コールドスタートと重なると1〜2回目の呼び出しが連続して一過性に失敗しうる
+  // （issue #1798）。レスポンスがJSON以外のエラーボディを返す場合に備え、
+  // response.okがfalseのケースも例外と同様にリトライ対象として扱う
   useEffect(() => {
     let cancelled = false;
-    const fetchCategories = async (isRetry = false) => {
+    const CATEGORIES_FETCH_MAX_RETRY_COUNT = 3;
+    const CATEGORIES_FETCH_RETRY_DELAY_MS = 1000;
+    const fetchCategories = async (retryCount = 0) => {
       try {
         const response = await fetch(`${API_BASE_URL}/get-categories`);
-        const data = await response.json();
-        if (response.ok) {
-          const availableCategories = data.categories || [];
-          setCategories(availableCategories);
-
-          if (availableCategories.length > 0 && viewRef.current === "game") {
-            const availableNames = availableCategories.map(cat => cat.name);
-            setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
-          }
+        if (!response.ok) {
+          throw new Error(`get-categories failed with status ${response.status}`);
         }
-    } catch (error) {
-      if (cancelled) return;
-      if (!isRetry) {
-        console.error("Error fetching categories, retrying once:", error);
-        setTimeout(() => {
-          if (!cancelled) fetchCategories(true);
-        }, 1000);
-        return;
+        const data = await response.json();
+        const availableCategories = data.categories || [];
+        setCategories(availableCategories);
+
+        if (availableCategories.length > 0 && viewRef.current === "game") {
+          const availableNames = availableCategories.map(cat => cat.name);
+          setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
+        }
+      } catch (error) {
+        if (cancelled) return;
+        if (retryCount < CATEGORIES_FETCH_MAX_RETRY_COUNT) {
+          console.error(`Error fetching categories, retrying (${retryCount + 1}/${CATEGORIES_FETCH_MAX_RETRY_COUNT}):`, error);
+          setTimeout(() => {
+            if (!cancelled) fetchCategories(retryCount + 1);
+          }, CATEGORIES_FETCH_RETRY_DELAY_MS);
+          return;
+        }
+        alert("カテゴリの取得に失敗しました。");
       }
-      alert("カテゴリの取得に失敗しました。");
-    }
     };
     fetchCategories();
     return () => {
