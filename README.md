@@ -112,7 +112,7 @@ graph TD
 
 `stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
 
-現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は、`canary-status.yml`が1日1回自動更新する[canary運用状態](docs/generated/canary-status.md)を参照してください。
+現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は、`promote-canary.yml`の`status` jobが1日1回自動更新する[canary運用状態](docs/generated/canary-status.md)を参照してください（CD完了時は`canary-status.yml`が即時反映する、issue #1809）。
 
 ## 運用
 
