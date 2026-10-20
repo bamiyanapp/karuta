@@ -43,6 +43,12 @@ permissions:
   # 検証したコミットを記録するgitタグ）をpushするために、呼び出し元である
   # 本workflowもcontents: writeが必要
   contents: write
+  # 以下2つはstatus job（canary-status.ymlから統合、issue #1809）が必要とする。
+  # pull-requests: write はcommit-via-pr経由のPR作成・squash merge用、
+  # actions: read は直近の本workflow実行をgh run listで取得するために必要
+  # （issue #1609）
+  pull-requests: write
+  actions: read
 
 jobs:
   resolve:
@@ -133,6 +139,478 @@ jobs:
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  status:
+    name: "運用状態を可視化する"
+    needs: promote
+    if: always()
+    # issue #1809: 元canary-status.yml（workflow_run: Promote Canary to Stable
+    # 完了トリガー）の内容をそのまま本job化したもの。「promote完了後に状態を
+    # 可視化する」という実行タイミング・依存関係は変わらないが、別workflowを
+    # workflow_run経由で呼ぶ構成から、同一workflow内のjob依存（needs）へ
+    # 変更した。Actions実行一覧がworkflow単位のため、関連jobを1つの実行に
+    # まとめることで一覧の見やすさを改善する
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: 0 # issue #1475: canary最終更新以降のコミット履歴からPRリンクを抽出するために全履歴が必要
+
+      - name: Node.jsをセットアップする
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # issue #1601: npm workspaces構成（issue #608）ではルートに単一の
+      # package-lock.jsonしかなく、サブディレクトリ内で個別にnpm ciを
+      # 2回（infra・backend）実行すると、2回目の実行が1回目でリンクされた
+      # 別ワークスペースのnode_modules/.bin（osls等）を消してしまい、
+      # 後続のosls呼び出しがcommand not found（exit 127）で失敗する
+      # 回帰を引き起こした（PR #1596で追加した2回目のnpm ciが原因）。
+      # dev-standardsの共通action（deploy-serverless）の`workspaces: true`
+      # オプションと同じ理由で、依存インストールはリポジトリルートで
+      # 1回にまとめる
+      - name: 依存パッケージをインストールする
+        run: npm ci
+
+      - name: KVS ARN・フロントエンド配信ドメインを解決する
+        id: kvs
+        working-directory: infra
+        run: |
+          set -eu
+          INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
+          KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
+          echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
+          # issue #1565: フロントエンドの実際のデプロイ済みバージョンを
+          # version.json経由で取得するために配信ドメインを解決する
+          FRONTEND_DOMAIN=$(echo "$INFO" | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
+          echo "frontend_domain=${FRONTEND_DOMAIN}" >> "$GITHUB_OUTPUT"
+
+      - name: 現在の運用状態を取得する
+        id: status
+        run: |
+          set -eu
+          # issue #1652: promote-canary.ymlは時間単位（grace_period_hours: 20、
+          # issue #1610）を使っているため、表示計算もそれに揃える。日単位から
+          # 変わる際は読み替え忘れを避けるため時間単位の変数名にした
+          GRACE_PERIOD_HOURS=20 # promote-canary.ymlのgrace_period_hoursと同じ値（issue #1610）
+          KVS_ARN="${{ steps.kvs.outputs.kvs_arn }}"
+
+          # issue #1481: URLだけでは判別できないため、タイトル付きのMarkdownリンクとして
+          # 表示する。squash mergeのコミット件名は末尾の"(#1234)"を除けばPRタイトル
+          # そのものなので、GitHub APIを呼ばずに件名から直接組み立てる
+          pr_link() {
+            local subject="$1"
+            local num title
+            num=$(echo "$subject" | grep -oE '#[0-9]+\)$' | tr -d '#)')
+            title=$(echo "$subject" | sed -E 's/ *\(#[0-9]+\)$//')
+            echo "- [#${num} ${title}](https://github.com/bamiyanapp/karuta/pull/${num})"
+          }
+
+          CANARY_WEIGHT=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_weight" --query Value --output text 2>/dev/null || echo "（未設定）")
+          FORCE_STABLE=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "force_stable" --query Value --output text 2>/dev/null || echo "false")
+          PENDING=$(aws cloudfront-keyvaluestore get-key --region us-east-1 --kvs-arn "$KVS_ARN" --key "canary_queue_pending" --query Value --output text 2>/dev/null || echo "false")
+          echo "canary_weight=${CANARY_WEIGHT}" >> "$GITHUB_OUTPUT"
+          echo "force_stable=${FORCE_STABLE}" >> "$GITHUB_OUTPUT"
+          echo "canary_queue_pending=${PENDING}" >> "$GITHUB_OUTPUT"
+
+          if ! aws cloudformation describe-stacks --stack-name karuta-app-canary >/dev/null 2>&1; then
+            echo "canary_exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "canary_exists=true" >> "$GITHUB_OUTPUT"
+
+          LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].LastUpdatedTime" --output text)
+          if [ "$LAST_UPDATED" = "None" ]; then
+            LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-canary --query "Stacks[0].CreationTime" --output text)
+          fi
+          LAST_UPDATED_EPOCH=$(date -d "$LAST_UPDATED" +%s)
+          echo "canary_last_updated=$(TZ=Asia/Tokyo date -d "@${LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
+
+          ELIGIBLE_EPOCH=$(( LAST_UPDATED_EPOCH + GRACE_PERIOD_HOURS * 3600 ))
+          ELIGIBLE_AT=$(TZ=Asia/Tokyo date -d "@${ELIGIBLE_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
+          echo "promotion_eligible_at=${ELIGIBLE_AT}" >> "$GITHUB_OUTPUT"
+
+          # issue #1475: canaryの最終更新以降にmainへマージされたPRをリンクで示す。
+          # squash mergeのコミットメッセージ末尾に付くGitHub標準の"(#1234)"形式を
+          # 持つ件名のみを対象とする（重複は保持順でuniqする）
+          #
+          # issue #1622: 上記だけでは、semantic-releaseが新バージョンを発行しない
+          # 種類のコミット（chore・docs等）も表示されてしまい、実際にはcanaryへ
+          # 反映される実体を持たないPRが「キューイング中の変更」に混在していた。
+          # .releaserc.cjs（dev-standards/release-config.cjs）のreleaseRulesで
+          # リリース対象となるconventional commitsタイプ（feat/fix/refactor、
+          # および過去のコミット履歴対応のFeat/fix・Fix/tech）のみに絞り込む
+          RELEASE_TYPE_REGEX='^(feat|fix|refactor|feat/fix|fix/tech)(\(|!|:)'
+          PR_SUBJECTS=$(git log --since="$LAST_UPDATED" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
+          {
+            echo "queued_pr_links<<PR_LINKS_EOF"
+            if [ -n "$PR_SUBJECTS" ]; then
+              while IFS= read -r subject; do
+                pr_link "$subject"
+              done <<< "$PR_SUBJECTS"
+            else
+              echo "（該当するPRが見つからなかった）"
+            fi
+            echo "PR_LINKS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          # issue #1478: 「canaryには反映済みだがstableへはまだ昇格していない」PRを
+          # 区別して示す。実際のPR一覧の算出（git logのrange）はバージョン情報が
+          # 必要なため、後続の「反映済み・キューイング中の変更をバージョンタグから
+          # 算出する」stepへ委ねる（issue #1791）。ここではstable_last_updated
+          # （表示用の時刻のみ）を取得する
+          if aws cloudformation describe-stacks --stack-name karuta-app-stable >/dev/null 2>&1; then
+            STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].LastUpdatedTime" --output text)
+            if [ "$STABLE_LAST_UPDATED" = "None" ]; then
+              STABLE_LAST_UPDATED=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query "Stacks[0].CreationTime" --output text)
+            fi
+            STABLE_LAST_UPDATED_EPOCH=$(date -d "$STABLE_LAST_UPDATED" +%s)
+            echo "stable_last_updated=$(TZ=Asia/Tokyo date -d "@${STABLE_LAST_UPDATED_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")" >> "$GITHUB_OUTPUT"
+          else
+            echo "stable_last_updated=" >> "$GITHUB_OUTPUT"
+          fi
+
+      # issue #1523: canaryが古いバージョンを配信し続けていた不具合（issue #1511）の
+      # 調査時、実際にどのバージョンが配信されているかをドキュメントから確認できず、
+      # 実機のブラウザ確認に頼る必要があった。各stageの/get-versionエンドポイント
+      # （backend/handler.js、issue #1462で追加済み）を叩き、配信中のバージョンを
+      # 取得する。疎通不可の場合も他の取得処理と同様にエラーにせず「取得できなかった」
+      # 旨を表示する。
+      # issue #1565: 上記はバックエンドの自己申告バージョンのみであり、フロントエンド
+      # の実際のデプロイ済みバージョンは別途取得していなかった。frontend/vite.config.js
+      # がビルド時に書き出すversion.json（issue #1565）を各stageの配信ドメイン
+      # （FrontendDistributionDomainName）から取得し、バックエンドと分けて表示する
+      - name: canary/stableの配信中バージョンを取得する
+        id: version
+        run: |
+          set -eu
+          fetch_backend_version() {
+            local url="$1"
+            local body
+            if ! body=$(curl -fsS --max-time 10 "${url}/get-version" 2>/dev/null); then
+              echo "（取得できなかった）"
+              return
+            fi
+            local version
+            version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
+            echo "$version"
+          }
+          # issue #1576: 常に「（取得できなかった）」になる原因を特定するため、
+          # 失敗時はHTTPステータスコード・curlのエラー内容をジョブログ（標準エラー）
+          # へ出力する。標準出力は呼び出し元が$()で捕捉するため、診断ログは
+          # 必ず標準エラーへ出す
+          fetch_frontend_version() {
+            local url="$1"
+            local body http_code curl_exit
+            body=$(curl -sS --max-time 10 -w '\n%{http_code}' "${url}" 2>/tmp/curl_stderr)
+            curl_exit=$?
+            http_code=$(echo "$body" | tail -1)
+            body=$(echo "$body" | sed '$d')
+            if [ "$curl_exit" -ne 0 ] || [ "$http_code" != "200" ]; then
+              echo "診断: ${url} の取得に失敗（curl exit=${curl_exit}, HTTP=${http_code}）" >&2
+              if [ -s /tmp/curl_stderr ]; then
+                echo "診断: curlエラー出力: $(cat /tmp/curl_stderr)" >&2
+              fi
+              echo "（取得できなかった）"
+              return
+            fi
+            local version
+            version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
+            echo "$version"
+          }
+          # issue #1591: frontend/.env.<stage>は静的ファイルで、canaryスタックが
+          # 削除・再作成されるたびに実際のAPIエンドポイントと食い違う（過去に
+          # #1558の誤検出の原因にもなった）。osls infoから現在のエンドポイントを
+          # 都度解決する
+          resolve_backend_url() {
+            local stage="$1"
+            local info
+            info=$(cd backend && npx osls info --stage "${stage}" --verbose 2>/dev/null)
+            echo "$info" | grep -oE "https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${stage}" | head -1
+          }
+          CANARY_URL=$(resolve_backend_url canary)
+          STABLE_URL=$(resolve_backend_url stable)
+          CANARY_BACKEND_VERSION=$(fetch_backend_version "$CANARY_URL")
+          STABLE_BACKEND_VERSION=$(fetch_backend_version "$STABLE_URL")
+          echo "canary_backend_version=${CANARY_BACKEND_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "stable_backend_version=${STABLE_BACKEND_VERSION}" >> "$GITHUB_OUTPUT"
+
+          FRONTEND_DOMAIN="${{ steps.kvs.outputs.frontend_domain }}"
+          CANARY_FRONTEND_VERSION=$(fetch_frontend_version "https://${FRONTEND_DOMAIN}/canary/version.json")
+          STABLE_FRONTEND_VERSION=$(fetch_frontend_version "https://${FRONTEND_DOMAIN}/stable/version.json")
+          echo "canary_frontend_version=${CANARY_FRONTEND_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "stable_frontend_version=${STABLE_FRONTEND_VERSION}" >> "$GITHUB_OUTPUT"
+
+          # issue #1623: backend・frontendは単一のmonorepoバージョンから
+          # ビルドされ、通常は常に同じ値になる（issue #1565で分離したのは
+          # デプロイの部分失敗を検知するための診断用途）。一致時は1行に
+          # まとめ、不一致時（デプロイの部分失敗を示す異常值）のみ両方を
+          # 明示して警告表示する
+          combine_version() {
+            local backend="$1"
+            local frontend="$2"
+            if [ "$backend" = "$frontend" ]; then
+              echo "$backend"
+            else
+              echo "⚠️ 不一致（backend: ${backend} / frontend: ${frontend}）"
+            fi
+          }
+          echo "canary_version=$(combine_version "$CANARY_BACKEND_VERSION" "$CANARY_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
+          echo "stable_version=$(combine_version "$STABLE_BACKEND_VERSION" "$STABLE_FRONTEND_VERSION")" >> "$GITHUB_OUTPUT"
+
+      # issue #1791: 「canaryに反映済み・stable昇格待ちの変更」一覧を、CloudFormation
+      # スタックのLastUpdatedTime（デプロイ完了時刻）同士のウォールクロック区間で
+      # git log --since/--untilしていたため、promote-canary.ymlが1回の実行内で
+      # 「stable昇格」と「新canaryデプロイ」を連続して行った場合、2つの
+      # LastUpdatedTimeが数分しか離れず、実際には複数バージョン分のPRが反映されて
+      # いても一覧が常に空になっていた。デプロイ完了時刻ではなく、実際にデプロイ
+      # されているバージョン（canary/stableの配信中バージョンを取得するstepで
+      # 取得済みのgitタグ、vX.Y.Z形式）同士のgit log rangeで算出する。バージョンが
+      # 取得できなかった・不一致警告等でタグが解決できない場合は、従来のタイムスタンプ
+      # 区間方式へフォールバックする
+      - name: 反映済み・キューイング中の変更をバージョンタグから算出する
+        id: changes
+        run: |
+          set -eu
+          pr_link() {
+            local subject="$1"
+            local num title
+            num=$(echo "$subject" | grep -oE '#[0-9]+\)$' | tr -d '#)')
+            title=$(echo "$subject" | sed -E 's/ *\(#[0-9]+\)$//')
+            echo "- [#${num} ${title}](https://github.com/bamiyanapp/karuta/pull/${num})"
+          }
+          RELEASE_TYPE_REGEX='^(feat|fix|refactor|feat/fix|fix/tech)(\(|!|:)'
+          render_links() {
+            local subjects="$1"
+            if [ -n "$subjects" ]; then
+              while IFS= read -r subject; do
+                pr_link "$subject"
+              done <<< "$subjects"
+            else
+              echo "（該当するPRが見つからなかった）"
+            fi
+          }
+
+          CANARY_VERSION="${{ steps.version.outputs.canary_version }}"
+          STABLE_VERSION="${{ steps.version.outputs.stable_version }}"
+          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+          CANARY_TAG="v${CANARY_VERSION}"
+          STABLE_TAG="v${STABLE_VERSION}"
+
+          IN_CANARY_PR_SUBJECTS=""
+          if [[ "$CANARY_VERSION" =~ $SEMVER_REGEX ]] && [[ "$STABLE_VERSION" =~ $SEMVER_REGEX ]] \
+            && git rev-parse -q --verify "refs/tags/${CANARY_TAG}" >/dev/null \
+            && git rev-parse -q --verify "refs/tags/${STABLE_TAG}" >/dev/null; then
+            if [ "$STABLE_VERSION" != "$CANARY_VERSION" ]; then
+              IN_CANARY_PR_SUBJECTS=$(git log "${STABLE_TAG}..${CANARY_TAG}" --pretty=format:'%s' | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
+            fi
+          elif [ -n "${{ steps.status.outputs.stable_last_updated }}" ] && [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            # フォールバック（issue #1478時点の従来方式）。バージョンタグが
+            # 解決できない場合のみ使う
+            STABLE_LAST_UPDATED_EPOCH=$(date -d "${{ steps.status.outputs.stable_last_updated }}" +%s)
+            CANARY_LAST_UPDATED_EPOCH=$(date -d "${{ steps.status.outputs.canary_last_updated }}" +%s)
+            if [ "$STABLE_LAST_UPDATED_EPOCH" -le "$CANARY_LAST_UPDATED_EPOCH" ]; then
+              IN_CANARY_PR_SUBJECTS=$(git log --since="${{ steps.status.outputs.stable_last_updated }}" --until="${{ steps.status.outputs.canary_last_updated }}" --pretty=format:'%s' origin/main | grep -E '\(#[0-9]+\)$' | grep -iE "$RELEASE_TYPE_REGEX" | awk '!seen[$0]++')
+            fi
+          fi
+          {
+            echo "in_canary_pr_links<<IN_CANARY_LINKS_EOF"
+            render_links "$IN_CANARY_PR_SUBJECTS"
+            echo "IN_CANARY_LINKS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # issue #1472: 「現在の状態」だけでなく「いつ次の判定が走るか」（適用スケジュール
+      # 観点）も合わせて示す。promote-canary.ymlのcronスケジュール自体は固定（毎日
+      # UTC 15:00）なので、今から見た直近の次回実行時刻を計算する
+      #
+      # issue #1609: この時刻はcronの発火時刻に過ぎず、発火しても猶予期間
+      # （grace_period_hours等）未経過ならeligible=falseで何も反映されずに
+      # 終了する。「この時刻にcanaryが更新される」という誤解を避けるため、
+      # 表示上も「cron発火予定」であることを明示し、実際に昇格・反映が行われる
+      # 条件（本番昇格の条件を満たす日時）とは別の行として示す
+      - name: 次回promote-canary.yml cron発火予定を計算する
+        id: schedule
+        run: |
+          set -eu
+          NOW_EPOCH=$(date -u +%s)
+          TODAY_RUN_EPOCH=$(date -u -d "today 15:00" +%s)
+          if [ "$NOW_EPOCH" -lt "$TODAY_RUN_EPOCH" ]; then
+            NEXT_RUN_EPOCH=$TODAY_RUN_EPOCH
+          else
+            NEXT_RUN_EPOCH=$(date -u -d "tomorrow 15:00" +%s)
+          fi
+          NEXT_RUN_AT=$(TZ=Asia/Tokyo date -d "@${NEXT_RUN_EPOCH}" +"%Y-%m-%d %H:%M:%S JST")
+          echo "next_promote_run_at=${NEXT_RUN_AT}" >> "$GITHUB_OUTPUT"
+
+      # issue #1609: チャット上の会話等で「run 11」のようにpromote-canary.ymlの
+      # 実行を指す場合、どの実行を指しているかがドキュメント単独から追跡できな
+      # かった。直近の実行（run番号・実行ログへのリンク・開始時刻・結果）を
+      # gh run listで取得し、ドキュメントに載せる
+      # issue #1666・dev-standards#950: force_stable（kill switch）がtrueの
+      # まま長時間放置されていないかを検知する。rollback-to-stable.yml（true
+      # 設定）とclear-force-stable.yml（false設定）それぞれの直近の成功実行
+      # 履歴を比較する共通composite action（dev-standards#951）を使う
+      - name: force_stableの戻し忘れを検知する
+        id: staleness
+        uses: ./dev-standards/.github/actions/check-rollback-staleness
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          set-true-workflow: rollback-to-stable.yml
+          set-false-workflow: clear-force-stable.yml
+          max-age-hours: "24"
+
+      - name: 直近のpromote-canary.yml実行を取得する
+        id: last_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          RUN_JSON=$(gh run list --workflow=promote-canary.yml --limit 1 --json databaseId,conclusion,status,createdAt,url --jq '.[0] // {}')
+          RUN_ID=$(echo "$RUN_JSON" | jq -r '.databaseId // ""')
+          RUN_URL=$(echo "$RUN_JSON" | jq -r '.url // ""')
+          RUN_RESULT=$(echo "$RUN_JSON" | jq -r '(.conclusion // .status) // ""')
+          RUN_CREATED_AT=$(echo "$RUN_JSON" | jq -r '.createdAt // ""')
+          if [ -n "$RUN_CREATED_AT" ]; then
+            RUN_CREATED_AT_JST=$(TZ=Asia/Tokyo date -d "$RUN_CREATED_AT" +"%Y-%m-%d %H:%M:%S JST")
+          else
+            RUN_CREATED_AT_JST="（取得できなかった）"
+          fi
+          if [ -n "$RUN_ID" ] && [ -n "$RUN_URL" ]; then
+            RUN_LINK="[run ${RUN_ID}](${RUN_URL})"
+          else
+            RUN_LINK="（取得できなかった）"
+          fi
+          echo "run_link=${RUN_LINK}" >> "$GITHUB_OUTPUT"
+          echo "run_result=${RUN_RESULT:-（取得できなかった）}" >> "$GITHUB_OUTPUT"
+          echo "run_created_at=${RUN_CREATED_AT_JST}" >> "$GITHUB_OUTPUT"
+
+      - name: 概要を出力する
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "## canary運用状態（issue #1462）"
+            echo ""
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| canary_weight（canaryへ振り分ける割合） | ${{ steps.status.outputs.canary_weight }}% |"
+            echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
+            echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
+            echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
+              echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
+              echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
+              echo ""
+              echo "### canaryに反映済み・stable昇格待ちの変更"
+              echo ""
+              echo "${{ steps.changes.outputs.in_canary_pr_links }}"
+              echo ""
+              echo "### キューイング中の変更（canaryにも未反映・canary最終更新以降にmainへマージされたPR）"
+              echo ""
+              echo "${{ steps.status.outputs.queued_pr_links }}"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "| 次回のpromote-canary.yml cron発火予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
+              echo ""
+              echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.staleness.outputs.stale }}" = "true" ]; then
+            {
+              echo ""
+              echo "⚠️ force_stableが${{ steps.staleness.outputs.since }}からtrueのまま24時間超放置されている。戻し忘れの可能性がないか確認すること（issue #1666）。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # issue #1472: Gitから可視化できるよう、Job Summaryと同じ内容を
+      # リポジトリ内のファイルへも書き出す
+      - name: docs/generated/canary-status.mdを生成する
+        if: always()
+        run: |
+          set -eu
+          {
+            echo "# canary運用状態"
+            echo ""
+            echo "このファイルは\`promote-canary.yml\`のstatus job（1日1回のスケジュール実行、issue #1809）が自動更新する。手動で編集しないこと。"
+            echo ""
+            echo "最終更新日時: $(TZ=Asia/Tokyo date +"%Y-%m-%d %H:%M:%S JST")。"
+            echo ""
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| canary_weight（canaryへ振り分ける割合） | ${{ steps.status.outputs.canary_weight }}% |"
+            echo "| force_stable（管理者ロールバック中か） | ${{ steps.status.outputs.force_stable }} |"
+            echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
+            echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
+          } > docs/generated/canary-status.md
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
+              echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
+              echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
+              echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
+              echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
+              echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
+              echo "| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
+              echo ""
+              echo "## canaryに反映済み・stable昇格待ちの変更"
+              echo ""
+              echo "stableの最終更新からcanaryの最終更新までの間にmainへマージされたPRの一覧。これらはすでにcanary（canary_weightの割合）には反映済みだが、まだstable（残りの割合）には昇格していない。"
+              echo ""
+              echo "${{ steps.changes.outputs.in_canary_pr_links }}"
+              echo ""
+              echo "## キューイング中の変更"
+              echo ""
+              echo "canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。"
+              echo ""
+              echo "${{ steps.status.outputs.queued_pr_links }}"
+            } >> docs/generated/canary-status.md
+          else
+            {
+              echo "| 次回のpromote-canary.yml cron発火予定 | ${{ steps.schedule.outputs.next_promote_run_at }} |"
+              echo "| 直近のpromote-canary.yml実行 | ${{ steps.last_run.outputs.run_link }}（${{ steps.last_run.outputs.run_created_at }}、結果: ${{ steps.last_run.outputs.run_result }}） |"
+              echo ""
+              echo "canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。"
+            } >> docs/generated/canary-status.md
+          fi
+          if [ "${{ steps.staleness.outputs.stale }}" = "true" ]; then
+            {
+              echo ""
+              echo "⚠️ force_stableが${{ steps.staleness.outputs.since }}からtrueのまま24時間超放置されている。戻し忘れの可能性がないか確認すること（issue #1666）。"
+            } >> docs/generated/canary-status.md
+          fi
+
+      # issue #1507: mainブランチはリポジトリルール（Rulesets）で「変更は必ずPR経由」
+      # となっており、mainへの直接push（git push origin HEAD:main）はGH013エラーで
+      # 常に拒否される。「新ブランチへpush→PR作成→API経由でsquash merge」方式を使う。
+      # PRのマージはAPI経由の操作であり「変更は必ずPR経由」のルール自体を満たす。
+      # このロジック自体はdev-standards#830で共通composite action
+      # （`.github/actions/commit-via-pr`）へ切り出されたため、独自複製をやめて
+      # それを使う（karuta#1547）。本ジョブは最初からmainへの直接pushを試みない
+      # 運用だったため、`push-token`は指定せず常にPRフォールバックへ進む
+      - name: 変更をcommit-via-pr経由でコミットする
+        uses: ./dev-standards/.github/actions/commit-via-pr
+        with:
+          paths: docs/generated/canary-status.md
+          commit-subject: "chore(canary): canary運用状態を更新する [skip ci]"
+          commit-body: "promote-canary.ymlのstatus jobによる自動コミットです（issue #1507、#1809）。"
+          branch-prefix: "chore/canary-status"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   summary:
     name: "概要を出力する"

@@ -1,22 +1,42 @@
 name: CI
 run-name: >-
-  CI (${{ github.event_name == 'pull_request' && 'PR' || 'push-to-main' }})
-  ${{ github.event.head_commit.message || github.event.pull_request.title }}
+  CI (${{ github.event_name == 'pull_request' && 'PR' || github.event_name == 'push' && 'push-to-main' || github.event_name == 'schedule' && 'scheduled' || 'manual' }})
+  ${{ github.event.head_commit.message || github.event.pull_request.title || '' }}
+
+# issue #1809: 似た目的・近い実行タイミングの薄いワークフローファイルが
+# 増えすぎてActionsタブの実行一覧が見にくくなっていたため、1ファイルへ統合した
+# （元: codeql.yml・dependency-deprecation-scan.yml・dependency-full-scan.yml）。
+# 各jobは起動イベント・schedule種別に応じてif:条件で選択的に実行する
 
 on:
   push:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: "0 3 * * 1" # CodeQL: コード変更が無い期間もクエリセット自体の更新を検知する
+    - cron: "0 15 * * 1" # 依存deprecatedスキャン: 毎週月曜0:00 JST（UTC 15:00、日曜）
+    - cron: "30 15 * * 1" # 依存フル脆弱性スキャン: 上記と同時刻にならないよう30分ずらす
+  workflow_dispatch: {} # CodeQL・依存スキャン系jobの手動実行用（ciジョブは対象外）
 
 permissions:
   contents: write
   issues: write
   pull-requests: write
+  # SARIFをGitHub Securityタブへアップロードするためにreusable-codeql.yml側が要求する権限。
+  # 呼び出し元（このワークフロー）で明示しない場合、リポジトリ既定のGITHUB_TOKEN権限
+  # （securityevents:writeを含まない）が上限になりアップロードが失敗するため必須
+  security-events: write
+  actions: read
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.104.1
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # v2.104.1→v2.105.1: dev-standards issue #1111（PR #1112）でOSV API
+    # querybatchの1リクエストあたり件数上限（400 Bad Request）に対応する
+    # チャンク分割が入った。dependency-full-scan jobの修正を取り込むために
+    # 本workflowの全job参照を合わせて更新する
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.1
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -169,3 +189,35 @@ jobs:
       enable_dependency_risk_auto_close: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+  codeql:
+    name: CodeQL
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'schedule' && github.event.schedule == '0 3 * * 1') || github.event_name == 'workflow_dispatch'
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.1
+
+  dependency-deprecation-scan:
+    name: 依存deprecatedスキャン
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 15 * * 1')
+    permissions:
+      contents: read
+      issues: write
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.1
+    with:
+      lockfile_path: package-lock.json
+      direct_only: true
+
+  dependency-full-scan:
+    name: 依存フル脆弱性スキャン
+    # issue発覚の直接の契機: OSV API querybatchの件数上限（400 Bad Request、
+    # dev-standards issue #1111）で本jobが失敗していた。v2.105.1で修正済み
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * 1')
+    permissions:
+      contents: read
+      issues: write
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.1
+    with:
+      lockfile_path: package-lock.json

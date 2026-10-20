@@ -28,9 +28,14 @@ run-name: Canary Status (${{ github.event_name == 'workflow_run' && format('afte
 # 結果を反映するものであり、canary更新を伴わない独自scheduleでの定期実行は
 # 意味を持たない。一方でJob Summaryでの単独の状態確認（workflow_dispatch）には
 # 今も使うため、本workflow自体は残したまま、独自scheduleのみを削除する。
-# promote-canary.yml側から呼ばれる形はworkflow_run（上記issue #1633）で
-# 既に実現できているため、常時はworkflow_run・手動実行時のみworkflow_dispatchの
-# 2トリガーに絞る
+#
+# issue #1809: promote-canary.yml完了トリガー（workflow_run: "Promote Canary
+# to Stable"）は廃止した。同内容のjob（status）をpromote-canary.yml自身へ
+# 移植し、needs: promoteによる同一workflow内のjob依存へ置き換えたため、本
+# workflowを別途workflow_run経由で起動する必要が無くなった（Actions実行一覧が
+# workflow単位のため、1実行にまとめることで見やすくする狙い）。CD完了時の
+# 即時反映（issue #1785）は、promote-canary.ymlの日次実行を待てないタイミング
+# なので引き続き本workflow側で担う
 on:
   workflow_dispatch: {}
   # issue #1785: CD（mainへのマージ毎、canary反映キューへの登録のみ）完了時にも
@@ -38,13 +43,13 @@ on:
   # 委ねたまま（issue #1449）だが、「キューイング中の変更」一覧（mainへのマージ
   # 履歴から算出）は、promote-canary.ymlの実行を待たず最新化できるようにする
   workflow_run:
-    workflows: ["Promote Canary to Stable", "CD"]
+    workflows: ["CD"]
     types: [completed]
 
 permissions:
   contents: write
   pull-requests: write
-  actions: read # issue #1609: 直近のpromote-canary.yml実行をgh run listで取得するために必要
+  actions: read # issue #1609: 直近のpromote-canary.yml実行をgh run list（本workflow単独実行時）で取得するために必要
 
 jobs:
   status:
