@@ -36,7 +36,7 @@ jobs:
     # querybatchの1リクエストあたり件数上限（400 Bad Request）に対応する
     # チャンク分割が入った。dependency-full-scan jobの修正を取り込むために
     # 本workflowの全job参照を合わせて更新する
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.4
     with:
       frontend_dir: frontend
       backend_dir: backend
@@ -197,7 +197,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.4
 
   dependency-deprecation-scan:
     name: 依存deprecatedスキャン
@@ -205,7 +205,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.4
     with:
       lockfile_path: package-lock.json
       direct_only: true
@@ -218,6 +218,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.4
     with:
       lockfile_path: package-lock.json
