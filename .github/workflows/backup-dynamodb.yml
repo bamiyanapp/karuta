@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   backup:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-backup-dynamodb.yml@v2.104.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-backup-dynamodb.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
     with:
       # テーブル名はbackend/serverless.ymlのcustom.*TableNameと一致させる。
       # テーブル追加・リネーム時はこの配列も更新すること

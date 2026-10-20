@@ -60,7 +60,7 @@ jobs:
 
   clear:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-rollback-to-stable.yml@v2.104.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-rollback-to-stable.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
     with:
       kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
       kvs_key: force_stable
