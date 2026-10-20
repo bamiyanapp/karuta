@@ -57,12 +57,14 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 **プロジェクト固有のignoreルールはルートの`.gitignore`に追加せず、`frontend/.gitignore`・`backend/.gitignore`等、対象ディレクトリのgitignoreに追加すること**。gitのネストされた`.gitignore`は親ディレクトリのルールより優先されるため、`!`による打ち消しも問題なく機能する。ルートに直接追記すると`standards-check`が内容乾離として検知し、CIが失敗する（issue #461で実際に`!.env.example`がルートに直接追記されており、これが原因でCIが失敗する状態になっていたため、`frontend/.gitignore`側へ移設した）。
 
-## CodeQLワークフロー（`codeql.yml`固有、issue #808）
+## CodeQL・依存スキャンジョブ（`ci.yml` 内、issue #808・#1809）
 
-`.github/workflows/codeql.yml`（karuta固有、`reusable-ci.yml`/`reusable-cd.yml`とは別のトップレベルワークフローファイル）から dev-standards の `reusable-codeql.yml` を呼び出す。frontend/backend（いずれもJavaScript）を対象にCodeQLで静的解析する。結果はGitHub Securityタブへ表示され、スマートフォンのブラウザからも閲覧できる（「開発環境の制約（スマホオンリー）」参照）。
+`ci.yml`の`codeql`・`dependency-deprecation-scan`・`dependency-full-scan`の3jobから、dev-standards の `reusable-codeql.yml`・`reusable-dependency-deprecation-scan.yml`・`reusable-dependency-full-scan.yml`をそれぞれ呼び出す。元は`codeql.yml`・`dependency-deprecation-scan.yml`・`dependency-full-scan.yml`という個別のトップレベルワークフローファイルだったが、Actionsタブの実行一覧が薄いファイルの増加で見にくくなっていたため、`ci.yml`へ統合した（issue #1809）。各jobは`github.event_name`・`github.event.schedule`に応じて`if:`条件で選択的に実行される。
 
-- **トリガー**: `push`（`main`）・`pull_request`・`schedule`（毎週月曜日 03:00 UTC）。`schedule`はコード変更が無い期間もCodeQLのクエリセット更新を検知するために設定している
-- **`reusable-ci.yml`との関係**: 独立したワークフローであり、`merge` jobのマージ可否ゲートには関与しない。必須チェックにするかどうかはリポジトリのブランチ保護設定側で判断する（本ドキュメント作成時点では未設定）
+- **`codeql`**: frontend/backend（いずれもJavaScript）を対象にCodeQLで静的解析する。結果はGitHub Securityタブへ表示され、スマートフォンのブラウザからも閲覧できる（「開発環境の制約（スマホオンリー）」参照）。トリガー: `push`（`main`）・`pull_request`・`schedule`（毎週月曜日 03:00 UTC）・`workflow_dispatch`。`schedule`はコード変更が無い期間もCodeQLのクエリセット更新を検知するために設定している
+- **`dependency-deprecation-scan`**: `package-lock.json`全体を対象に、deprecated化された依存パッケージを検知する。トリガー: `schedule`（毎週月曜日 15:00 UTC）・`workflow_dispatch`
+- **`dependency-full-scan`**: `package-lock.json`全体を対象に、OSV.devへの脆弱性照会を行う（issue #1095）。トリガー: `schedule`（毎週月曜日 15:30 UTC、`dependency-deprecation-scan`と同時刻にならないよう30分ずらす）・`workflow_dispatch`
+- **`ci` jobとの関係**: いずれも独立したjobであり、`merge` jobのマージ可否ゲートには関与しない。必須チェックにするかどうかはリポジトリのブランチ保護設定側で判断する（本ドキュメント作成時点では未設定）
 
 ## デプロイジョブ（`cd.yml` 固有）
 
