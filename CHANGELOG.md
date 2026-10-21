@@ -1,3 +1,10 @@
+## [1.116.8](https://github.com/bamiyanapp/karuta/compare/v1.116.7...v1.116.8) (2026-10-21)
+
+
+### Bug Fixes
+
+* **ci:** dev-standards参照をv2.105.5へ更新し、self_ref入力を追加する ([#1828](https://github.com/bamiyanapp/karuta/issues/1828)) ([e7d5790](https://github.com/bamiyanapp/karuta/commit/e7d5790ca98088b91f925ab89d4069c08eb2a5e4))
+
 ## [1.116.7](https://github.com/bamiyanapp/karuta/compare/v1.116.6...v1.116.7) (2026-10-21)
 
 

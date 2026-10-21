@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.7",
+    "version": "1.116.8",
     "date": "2026/10/21",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.105.5へ更新し、self_ref入力を追加する ([#1828](https://github.com/bamiyanapp/karuta/issues/1828)) ([e7d5790](https://github.com/bamiyanapp/karuta/commit/e7d5790ca98088b91f925ab89d4069c08eb2a5e4))"
+  },
+  {
+    "version": "1.116.7",
+    "date": "2026/10/21 01:05",
     "body": "### Bug Fixes\n\n* **ci:** issue [#1668](https://github.com/bamiyanapp/karuta/issues/1668) verifyステップのCANARY/STABLEマーカー判定をversion.json比較方式へ修正する ([#1824](https://github.com/bamiyanapp/karuta/issues/1824)) ([419ecd7](https://github.com/bamiyanapp/karuta/commit/419ecd7b45547136fb3001e7b0dcc1fddb5c518f))"
   },
   {
