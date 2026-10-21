@@ -6,35 +6,35 @@
 
 ## Architecture
 
-`reusable-ci.yml`/`cd.yml`のjob構成・依存関係は、実際のワークフロー定義から自動生成されるCI/CD構成図（issue #919）を参照: [docs/generated/cicd-architecture.md](generated/cicd-architecture.md)
+`reusable-ci.yml`/`cd.yml`のjob構成・依存関係は、実際のワークフロー定義から自動生成されるCI/CD構成図を参照（issue #919）。参照先は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)。
 
-semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）で行われる。以前はPRの作業ブランチ上でマージ前に実行する方式だったが、GitHub Actionsの`pull_request`イベントで自動設定される`GITHUB_REF`（ワークフローYAMLの`env:`では上書き不可）により常にリリースが発行されない不具合があった。そのため、`main`への実pushイベント上で実行する方式に修正した（[dev-standards#43](https://github.com/bamiyanapp/dev-standards/pull/43)）。
+semantic-releaseの実行は`main`へのpush後（CD側の`release`ジョブ）で行われる。以前はPRの作業ブランチ上でマージ前に実行する方式だった。しかし、GitHub Actionsの`pull_request`イベントでは`GITHUB_REF`が自動設定される（ワークフローYAMLの`env:`では上書き不可）。これにより、常にリリースが発行されない不具合があった。そのため、`main`への実pushイベント上で実行する方式に修正した（[dev-standards#43](https://github.com/bamiyanapp/dev-standards/pull/43)）。
 
-karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合はローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeするフォールバックが追加されている（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)）。その後、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)で行われている。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](https://github.com/bamiyanapp/dev-standards/blob/main/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
+karutaの`main`は「変更は必ずPR経由」のリポジトリルールで保護されているため、`release`ジョブによる`main`への直接pushはそのままではGH013エラーで拒否される。この問題に対応するため、直接pushが失敗した場合のフォールバックが追加されている。ローカルに作成済みのリリースコミットを新しいブランチへpushし、`main`へのPRを作成してAPI経由でsquash mergeする（[dev-standards#44](https://github.com/bamiyanapp/dev-standards/pull/44)）。その後、タグ名の導出方法の修正が[dev-standards#45](https://github.com/bamiyanapp/dev-standards/pull/45)、GitHub Release作成の冪等化が[dev-standards#46](https://github.com/bamiyanapp/dev-standards/pull/46)で行われている。karuta運用者が意識する必要がある手順の違いはなく、`release`ジョブの結果として`new_release_published`が正しく出力されればデプロイジョブは通常どおり実行される。詳細は[dev-standards側ドキュメント](https://github.com/bamiyanapp/dev-standards/blob/main/docs/cicd-pipeline-specification.md#4-リリース運用)を参照。
 
 `render-mermaid-diagrams`ジョブのキャッシュバスティング用コミット（[dev-standards#723](https://github.com/bamiyanapp/dev-standards/issues/723)）にも同じGH013制約があった。こちらはPR経由のフォールバックを持たず`continue-on-error: true`で握り消される。そのため、push拒否されてもCIの見た目だけでは失敗に気づけなかった。
 
 対応として、`main`のruleset（Repository Settings → Rules → Rulesets）のBypass listへRepository adminを追加した。しかしこれだけでは解消しなかった（同じGH013エラーが再現した）。`BOT_TOKEN`がfine-grained PATだったため、トークン自体にAdministration（Read and write）権限も追加したが、それでも解消しなかった。
 
-`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替えたが、一度目はkaruta側のSecretのみ更新し、dev-standards側のSecretが新しいトークン値に更新されていなかったため、同じGH013エラーが再現した。karuta・dev-standards双方のSecretをclassic PATの値へ更新し直したが、それでも同じGH013エラーが再現した。
+`BOT_TOKEN`をclassic PAT（`repo`スコープ）へ切り替えた。しかし一度目はkaruta側のSecretのみ更新し、dev-standards側のSecretが新しいトークン値に更新されていなかったため、同じGH013エラーが再現した。karuta・dev-standards双方のSecretをclassic PATの値へ更新し直したが、それでも同じGH013エラーが再現した。
 
 切り分けのため、`bamiyanapp`アカウントでログインしたままGitHub Web UIから`main`へ直接コミットを試したところ成功した。これにより、ruleset側のBypass設定自体は機能していることを確認できた。問題は`BOT_TOKEN`（GitHub Actions経由のpush）側に残っている。`bamiyanapp`アカウントで全スコープ・無期限のclassic PATを再生成し、karuta・dev-standards双方のSecretを更新し直した。
 
 ## E2Eテスト（`ci.yml` 固有）
 
-`frontend-e2e-test`ジョブ（共通、dev-standardsの`reusable-ci.yml`）は`enable_e2e_test: true`で有効化している（Playwright、`frontend/e2e/`配下）。
+`frontend-e2e-test`ジョブ（共通、dev-standardsの`reusable-ci.yml`）は`enable_e2e_test: true`で有効化している。テストはPlaywrightで実装し、`frontend/e2e/`配下に置く。
 
-このリポジトリにはE2E専用のモックバックエンドが存在しない。そのため、**E2Eテストは実際にデプロイ済みの本番相当AWS環境（`frontend/src/config.js`のAPI_BASE_URL/WS_BASE_URLが指すAPI Gateway・DynamoDB・WebSocket API）に対して実行する**。CI実行のたびに実際のクイズ大会モードのルームが作成されるが、ルームはDynamoDBのTTLにより24時間で自動失効するため、テスト実行のたびに残骸が蓄積し続けることはない。
+このリポジトリにはE2E専用のモックバックエンドが存在しない。そのため、**E2Eテストは実際にデプロイ済みの本番相当AWS環境に対して実行する**。対象は`frontend/src/config.js`のAPI_BASE_URL/WS_BASE_URLが指すAPI Gateway・DynamoDB・WebSocket APIである。CI実行のたびに実際のクイズ大会モードのルームが作成されるが、ルームはDynamoDBのTTLにより24時間で自動失効する。そのため、テスト実行のたびに残骸が蓄積し続けることはない。
 
 ### JSカバレッジのログ出力（issue #541）
 
-E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド成果物のみ、Chromiumの`page.coverage`APIで計測）のカバレッジを`monocart-reporter`で収集する。`monocart-reporter`は`frontend/playwright.config.js`のreporter設定であり、`frontend/e2e/coverage.js`のヘルパー経由で各テストが呼び出す。収集したカバレッジは`frontend/coverage/coverage-summary.json`へ`frontend-test`ジョブのユニットテストカバレッジと同じ形式で出力する。`frontend-e2e-test`ジョブ側で`check-coverage-threshold`複合アクション（dev-standards）をthreshold未指定（表示のみ）で再利用し、Job Summary・ログへ表示する。閾値によるゲートは現時点では行っていない（要否は別途検討）。カバレッジ算出には`vite.config.js`の`build.sourcemap: true`が必要（ビルド成果物を元のソースファイル単位へマッピングするため）。
+E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド成果物のみ）のカバレッジを`monocart-reporter`で収集する。計測にはChromiumの`page.coverage`APIを使う。`monocart-reporter`は`frontend/playwright.config.js`のreporter設定である。実際の呼び出しは`frontend/e2e/coverage.js`のヘルパー経由で各テストが行う。収集したカバレッジは`frontend/coverage/coverage-summary.json`へ`frontend-test`ジョブのユニットテストカバレッジと同じ形式で出力する。`frontend-e2e-test`ジョブ側で`check-coverage-threshold`複合アクション（dev-standards）を再利用する。thresholdは未指定（表示のみ）とし、Job Summary・ログへ表示する。閾値によるゲートは現時点では行っていない（要否は別途検討）。カバレッジ算出には`vite.config.js`の`build.sourcemap: true`が必要（ビルド成果物を元のソースファイル単位へマッピングするため）。
 
 ### スクリーンショットの公開（issue #568）
 
-`frontend/e2e/screenshot.js`の`captureScreenshot()`が、`testInfo.attach()`によるPlaywright HTMLレポートへの添付に加えて、`frontend/e2e-screenshots/`へPNGファイルとしても書き出す。GitHub Actionsのアーティファクト（zip）はダウンロード・展開が必要で特にスマホ版GitHubアプリからは閲覧が難しい。そのため、`frontend-e2e-test`ジョブ側（dev-standardsの`reusable-ci.yml`）で以下を行い、画像を直接埋め込んだ形で確認できるようにしている。
+`frontend/e2e/screenshot.js`の`captureScreenshot()`は、`testInfo.attach()`によりPlaywright HTMLレポートへ添付する。それに加えて、`frontend/e2e-screenshots/`へPNGファイルとしても書き出す。GitHub Actionsのアーティファクト（zip）はダウンロード・展開が必要で特にスマホ版GitHubアプリからは閲覧が難しい。そのため、`frontend-e2e-test`ジョブ側（dev-standardsの`reusable-ci.yml`）で以下を行い、画像を直接埋め込んだ形で確認できるようにしている。
 
-1. `peaceiris/actions-gh-pages`で`frontend/e2e-screenshots/`配下のPNGを専用ブランチ`e2e-screenshots`（`runs/<run_id>/`配下、過去の実行分は`keep_files: true`で保持）へ公開する
+1. `peaceiris/actions-gh-pages`で`frontend/e2e-screenshots/`配下のPNGを専用ブランチ`e2e-screenshots`へ公開する。公開先は`runs/<run_id>/`配下で、過去の実行分は`keep_files: true`で保持する
 2. `raw.githubusercontent.com`のURLとして、Job Summaryへ画像を埋め込む
 3. `pull_request`イベントの場合は、同じ内容をPRコメントとしても投稿する（GitHubのモバイルアプリでもネイティブに画像が表示される）
 
@@ -55,11 +55,11 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 ルートの`.gitignore`は`standards-check`の`copies`対象（dev-standards側と内容が完全一致している必要がある）。GitHubの制約上symlinkにできないため、dev-standards側の`.gitignore`が更新された場合はこのファイルを手動で同期する必要がある。
 
-**プロジェクト固有のignoreルールはルートの`.gitignore`に追加せず、`frontend/.gitignore`・`backend/.gitignore`等、対象ディレクトリのgitignoreに追加すること**。gitのネストされた`.gitignore`は親ディレクトリのルールより優先されるため、`!`による打ち消しも問題なく機能する。ルートに直接追記すると`standards-check`が内容乾離として検知し、CIが失敗する（issue #461で実際に`!.env.example`がルートに直接追記されており、これが原因でCIが失敗する状態になっていたため、`frontend/.gitignore`側へ移設した）。
+**プロジェクト固有のignoreルールはルートの`.gitignore`に追加しないこと**。**`frontend/.gitignore`・`backend/.gitignore`等、対象ディレクトリのgitignoreに追加すること**。gitのネストされた`.gitignore`は親ディレクトリのルールより優先されるため、`!`による打ち消しも問題なく機能する。ルートに直接追記すると`standards-check`が内容乾離として検知し、CIが失敗する。実際にissue #461では`!.env.example`がルートに直接追記されており、これが原因でCIが失敗する状態になっていた。そのため、`frontend/.gitignore`側へ移設した。
 
 ## CodeQL・依存スキャンジョブ（`ci.yml` 内、issue #808・#1809）
 
-`ci.yml`の`codeql`・`dependency-deprecation-scan`・`dependency-full-scan`の3jobは、dev-standardsの各reusable workflowをそれぞれ呼び出す。元は個別のトップレベルワークフローファイルだった。Actionsタブの実行一覧が薄いファイルの増加で見にくくなっていたため、`ci.yml`へ統合した（issue #1809）。各jobは`github.event_name`・`github.event.schedule`に応じて`if:`条件で選択的に実行される。
+`ci.yml`の`codeql`・`dependency-deprecation-scan`・`dependency-full-scan`の3jobがある。それぞれdev-standardsのreusable workflowを呼び出す。元は個別のトップレベルワークフローファイルだった。Actionsタブの実行一覧が薄いファイルの増加で見にくくなっていたため、`ci.yml`へ統合した（issue #1809）。各jobは`github.event_name`・`github.event.schedule`に応じて`if:`条件で選択的に実行される。
 
 | job | 元ファイル・呼び出し先 | 内容 | トリガー |
 |---|---|---|---|
@@ -71,10 +71,10 @@ E2Eテスト実行中に読み込まれたJS（フロントエンドのビルド
 
 ## デプロイジョブ（`cd.yml` 固有）
 
-`release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後、`needs.release.outputs.new_release_published == 'true'` の場合のみ以下を実行する。ジョブ構成・依存関係は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)の「CDワークフロー」を参照。
+`release` ジョブ（共通、dev-standards の `reusable-cd.yml`）の成功後に以下を実行する。実行条件は`needs.release.outputs.new_release_published == 'true'`の場合のみである。ジョブ構成・依存関係は[docs/generated/cicd-architecture.md](generated/cicd-architecture.md)の「CDワークフロー」を参照。
 
-- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイ（dev-standardsの`deploy-github-pages`複合actionを利用）
-- `deploy-backend`: backend を Serverless Framework（CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)、issue #611）を使用して AWS Lambda へデプロイし、`seed.js` でシードする。デプロイ本体（EMFILE対策のファイルディスクリプタ上限引き上げを含む）はdev-standardsの`deploy-serverless`複合action（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）に共通化されている
+- `build-and-deploy-frontend`: frontend をビルドし、GitHub Pages へデプロイする。dev-standardsの`deploy-github-pages`複合actionを利用する
+- `deploy-backend`: backend を Serverless Framework へデプロイし、`seed.js` でシードする。CLIはSaaSサインイン不要なOSSフォーク[osls](https://github.com/oss-serverless/serverless)を使用する（issue #611）。デプロイ本体はdev-standardsの`deploy-serverless`複合actionに共通化されている（[bamiyanapp/dev-standards#147](https://github.com/bamiyanapp/dev-standards/issues/147)）。EMFILE対策のファイルディスクリプタ上限引き上げもこの複合actionに含まれる
 
 ## 環境変数（karuta固有）
 
