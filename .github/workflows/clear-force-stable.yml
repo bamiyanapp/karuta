@@ -74,28 +74,47 @@ jobs:
     needs: [resolve, clear]
     runs-on: ubuntu-latest
     steps:
+      # issue #1668: 以前はレスポンス本文の"CANARY"/"STABLE"（大文字）マーカー
+      # 文字列の有無で判定していたが、アプリ側にそのような出力は存在しない
+      # （常に「見つからなかった」扱いになり判定が機能していなかった）。
+      # infra/serverless.ymlのViewerRequestFunctionは、明示的な/stable/・
+      # /canary/prefix付きアクセスを重み付け抽選のバイパスとして扱う。これを
+      # 利用し、prefixなしの/version.jsonへCookie付きでアクセスした結果を、
+      # 明示prefix付きで直接取得した2つのversion.jsonと比較することで、
+      # 実際にどちらのバケット由来の内容が返っているかを判定する
       - name: 反映を確認する（KVS伝播待ち、canary Cookie保持者のルーティング確認）
         id: verify
         run: |
           set -eu
           DOMAIN="${{ needs.resolve.outputs.domain }}"
+
+          CANARY_VERSION=$(curl -sS "https://${DOMAIN}/canary/version.json" --max-time 15 || echo "")
+          STABLE_VERSION=$(curl -sS "https://${DOMAIN}/stable/version.json" --max-time 15 || echo "")
+          echo "canary/version.json: ${CANARY_VERSION}"
+          echo "stable/version.json: ${STABLE_VERSION}"
+
+          if [ "$CANARY_VERSION" = "$STABLE_VERSION" ]; then
+            echo "canary/stableが同一ビルド内容のため、version.jsonの内容比較では判定できない（誤判定防止のためスキップする）"
+            echo "propagated=2" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # KVS更新のCloudFrontエッジ拠点への伝播は非同期（issue #1322の実機
           # 検証で最大30秒程度かかることを確認済み）。伝播を確認できるまで
           # 一定間隔でリトライする（最大120秒）。
-          # canary Cookieを付けてアクセスし、CANARYへ戻ることを確認する
-          # （force_stable=trueの間は全アクセスがSTABLEに固定されていたため）
+          # canary Cookieを付けてアクセスし、canary側のversion.jsonと一致する
+          # ことを確認する（force_stable=trueの間は常にstable側が返っていたため）
           MAX_WAIT_ATTEMPTS=12
           WAIT_SECONDS=10
           PROPAGATED=0
           for attempt in $(seq 1 "$MAX_WAIT_ATTEMPTS"); do
-            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
-            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
-            if [ "$VARIANT" = "CANARY" ]; then
+            CURRENT_VERSION=$(curl -sS "https://${DOMAIN}/version.json" --max-time 15 -b "canary=canary" || echo "")
+            if [ "$CURRENT_VERSION" = "$CANARY_VERSION" ]; then
               PROPAGATED=1
               echo "反映を確認した（${attempt}回目、待機合計約$(( (attempt - 1) * WAIT_SECONDS ))秒）"
               break
             fi
-            echo "${attempt}回目: まだ反映されていない（${VARIANT}）。${WAIT_SECONDS}秒待機して再試行する"
+            echo "${attempt}回目: まだ反映されていない（現在値: ${CURRENT_VERSION}）。${WAIT_SECONDS}秒待機して再試行する"
             sleep "$WAIT_SECONDS"
           done
           echo "propagated=${PROPAGATED}" >> "$GITHUB_OUTPUT"
@@ -108,9 +127,15 @@ jobs:
         if: always()
         run: |
           set -eu
+          RESULT="確認できなかった（要調査）"
+          if [ "${{ steps.verify.outputs.propagated }}" = "1" ]; then
+            RESULT="canary Cookie保持者がcanaryへルーティングされることを確認した（通常運用へ復帰）"
+          elif [ "${{ steps.verify.outputs.propagated }}" = "2" ]; then
+            RESULT="canary/stableが同一ビルド内容のため、version.json比較では判定不能だった（スキップ）"
+          fi
           {
             echo "## issue #1662 force_stable解除実行結果"
             echo ""
             echo "force_stable: false に設定した"
-            echo "反映確認: ${{ steps.verify.outputs.propagated == '1' && 'canary Cookie保持者がcanaryへルーティングされることを確認した（通常運用へ復帰）' || '確認できなかった（要調査）' }}"
+            echo "反映確認: ${RESULT}"
           } >> "$GITHUB_STEP_SUMMARY"

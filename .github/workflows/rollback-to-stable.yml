@@ -76,11 +76,28 @@ jobs:
     needs: [resolve, rollback]
     runs-on: ubuntu-latest
     steps:
+      # issue #1668: clear-force-stable.ymlと同根の問題。以前は"CANARY"/
+      # "STABLE"（大文字）マーカー文字列の有無で判定していたが、アプリ側に
+      # そのような出力は存在しない。明示prefix付き/canary/・/stable/
+      # version.jsonと、prefixなし/version.json（Cookie経由で重み付け
+      # ルーティングされる）を比較して判定する
       - name: 反映を確認する（KVS伝播待ち、既存canary Cookie保持者も含む）
         id: verify
         run: |
           set -eu
           DOMAIN="${{ needs.resolve.outputs.domain }}"
+
+          CANARY_VERSION=$(curl -sS "https://${DOMAIN}/canary/version.json" --max-time 15 || echo "")
+          STABLE_VERSION=$(curl -sS "https://${DOMAIN}/stable/version.json" --max-time 15 || echo "")
+          echo "canary/version.json: ${CANARY_VERSION}"
+          echo "stable/version.json: ${STABLE_VERSION}"
+
+          if [ "$CANARY_VERSION" = "$STABLE_VERSION" ]; then
+            echo "canary/stableが同一ビルド内容のため、version.jsonの内容比較では判定できない（誤判定防止のためスキップする）"
+            echo "propagated=2" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # KVS更新のCloudFrontエッジ拠点への伝播は非同期（issue #1322の実機
           # 検証で最大30秒程度かかることを確認済み）。伝播を確認できるまで
           # 一定間隔でリトライする（最大120秒）
@@ -88,14 +105,13 @@ jobs:
           WAIT_SECONDS=10
           PROPAGATED=0
           for attempt in $(seq 1 "$MAX_WAIT_ATTEMPTS"); do
-            BODY=$(curl -sS "https://${DOMAIN}/" --max-time 15 -b "canary=canary")
-            VARIANT=$(echo "$BODY" | grep -o "CANARY\|STABLE" | head -1)
-            if [ "$VARIANT" = "STABLE" ]; then
+            CURRENT_VERSION=$(curl -sS "https://${DOMAIN}/version.json" --max-time 15 -b "canary=canary" || echo "")
+            if [ "$CURRENT_VERSION" = "$STABLE_VERSION" ]; then
               PROPAGATED=1
               echo "反映を確認した（${attempt}回目、待機合計約$(( (attempt - 1) * WAIT_SECONDS ))秒）"
               break
             fi
-            echo "${attempt}回目: まだ反映されていない（${VARIANT}）。${WAIT_SECONDS}秒待機して再試行する"
+            echo "${attempt}回目: まだ反映されていない（現在値: ${CURRENT_VERSION}）。${WAIT_SECONDS}秒待機して再試行する"
             sleep "$WAIT_SECONDS"
           done
           echo "propagated=${PROPAGATED}" >> "$GITHUB_OUTPUT"
@@ -108,11 +124,17 @@ jobs:
         if: always()
         run: |
           set -eu
+          RESULT="確認できなかった（要調査）"
+          if [ "${{ steps.verify.outputs.propagated }}" = "1" ]; then
+            RESULT="全アクセスがstableになることを確認した"
+          elif [ "${{ steps.verify.outputs.propagated }}" = "2" ]; then
+            RESULT="canary/stableが同一ビルド内容のため、version.json比較では判定不能だった（スキップ）"
+          fi
           {
             echo "## issue #1330 管理者ロールバック実行結果"
             echo ""
             echo "force_stable: true に設定した"
-            echo "反映確認: ${{ steps.verify.outputs.propagated == '1' && '全アクセスがstableになることを確認した' || '確認できなかった（要調査）' }}"
+            echo "反映確認: ${RESULT}"
             echo ""
             echo "通常運用への復帰（force_stableをfalseへ戻す）は、本workflowでは行わない。Task 12（自動昇格）経由、または別途手動対応が必要。"
           } >> "$GITHUB_STEP_SUMMARY"
