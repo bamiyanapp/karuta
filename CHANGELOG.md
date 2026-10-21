@@ -1,3 +1,10 @@
+## [1.116.7](https://github.com/bamiyanapp/karuta/compare/v1.116.6...v1.116.7) (2026-10-21)
+
+
+### Bug Fixes
+
+* **ci:** issue [#1668](https://github.com/bamiyanapp/karuta/issues/1668) verifyステップのCANARY/STABLEマーカー判定をversion.json比較方式へ修正する ([#1824](https://github.com/bamiyanapp/karuta/issues/1824)) ([419ecd7](https://github.com/bamiyanapp/karuta/commit/419ecd7b45547136fb3001e7b0dcc1fddb5c518f))
+
 ## [1.116.6](https://github.com/bamiyanapp/karuta/compare/v1.116.5...v1.116.6) (2026-10-19)
 
 

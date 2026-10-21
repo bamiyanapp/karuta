@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.116.7",
+    "date": "2026/10/21",
+    "body": "### Bug Fixes\n\n* **ci:** issue [#1668](https://github.com/bamiyanapp/karuta/issues/1668) verifyステップのCANARY/STABLEマーカー判定をversion.json比較方式へ修正する ([#1824](https://github.com/bamiyanapp/karuta/issues/1824)) ([419ecd7](https://github.com/bamiyanapp/karuta/commit/419ecd7b45547136fb3001e7b0dcc1fddb5c518f))"
+  },
+  {
     "version": "1.116.6",
-    "date": "2026/10/19",
+    "date": "2026/10/19 04:29",
     "body": "### Bug Fixes\n\n* **frontend:** カテゴリ取得の一過性失敗によるfalse positiveエラーを解消 ([#1799](https://github.com/bamiyanapp/karuta/issues/1799)) ([4e8c1c7](https://github.com/bamiyanapp/karuta/commit/4e8c1c769cddcf837a7079a28f8d963fe0c315fc)), closes [#758](https://github.com/bamiyanapp/karuta/issues/758) [#1798](https://github.com/bamiyanapp/karuta/issues/1798)"
   },
   {
