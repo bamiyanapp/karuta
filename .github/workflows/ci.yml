@@ -36,11 +36,13 @@ jobs:
     # querybatchの1リクエストあたり件数上限（400 Bad Request）に対応する
     # チャンク分割が入った。dependency-full-scan jobの修正を取り込むために
     # 本workflowの全job参照を合わせて更新する
-    # 暫定: dev-standards issue #1071のrevert（PR #1123）はsemantic-releaseの
-    # releaseRulesに"revert"が含まれないため新タグが切られなかった。次の
-    # タグが出たら通常のバージョンタグ参照へ戻すこと
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+    # v2.105.4→v2.105.5: dev-standards issue #1071の修正（PR #1124）で、
+    # reusable-ci.ymlの自己参照チェックアウトが新規必須入力self_ref経由の
+    # 値を使う方式に変わった。呼び出し元（本workflow）が、下記uses:行の
+    # refと同じ値をself_refとして渡す必要がある
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.5
     with:
+      self_ref: v2.105.5
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -200,7 +202,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.5
 
   dependency-deprecation-scan:
     name: 依存deprecatedスキャン
@@ -208,7 +210,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.5
     with:
       lockfile_path: package-lock.json
       direct_only: true
@@ -221,6 +223,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.5
     with:
       lockfile_path: package-lock.json

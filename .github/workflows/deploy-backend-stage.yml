@@ -79,7 +79,7 @@ jobs:
           exit 1
 
       - name: 🚀 Deploy Backend (osls, Serverless Framework v3 OSS fork)
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.105.5
         with:
           working-directory: backend
           node-version: 22
