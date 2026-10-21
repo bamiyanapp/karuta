@@ -1,6 +1,6 @@
 # stable/canary共存中のDynamoDBスキーマ互換性ガイドライン
 
-ブルーグリーンデプロイ導入（issue #1319）により、`stable`・`canary`の2つのバックエンドコードが、最長1週間（Task 12の自動昇格サイクル）同一のDynamoDBテーブル（`backend/serverless-data.yml`で定義、issue #1320参照）を共有する。この間、新旧コードが同時に同じテーブルを読み書きしても壊れないよう、スキーマ変更には以下の開発規律（expand/contract方式）を適用する。
+ブルーグリーンデプロイ導入（issue #1319）により、`stable`・`canary`の2つのバックエンドコードが同時に存在する期間が生まれる。この期間は最長1週間（Task 12の自動昇格サイクル）である。その間は同一のDynamoDBテーブル（`backend/serverless-data.yml`で定義、issue #1320参照）を共有する。この間、新旧コードが同時に同じテーブルを読み書きしても壊れないよう、スキーマ変更には以下の開発規律（expand/contract方式）を適用する。
 
 ## チェックリスト
 
@@ -20,7 +20,7 @@ PRでDynamoDBテーブルのスキーマ（属性・GSI）を変更する場合�
 `backend/serverless-data.yml`で定義されているテーブルを例に、各パターンへの当てはめ方を示す。
 
 - `karuta-phrases`（パーティションキー`category`、ソートキー`id`）へ新しい表示用属性を追加する場合: 属性追加（安全）に該当する
-- `karuta-quiz-room-connections`のGSI（`roomId`）を別のキーへ差し替える場合: GSIの削除＋追加に該当するため、新GSIを先に追加し、旧GSIへの参照が無くなったことを確認してから旧GSIを削除する2サイクル構成にする
+- `karuta-quiz-room-connections`のGSI（`roomId`）を別のキーへ差し替える場合: GSIの削除＋追加に該当する。新GSIを先に追加し、旧GSIへの参照が無くなったことを確認してから旧GSIを削除する2サイクル構成にする
 
 ## スコープ外とする変更（既知の限界）
 

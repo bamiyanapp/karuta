@@ -1,14 +1,19 @@
 # DynamoDBオンデマンドバックアップ・復旧手順
 
-常時有効なPITR（README.md「バックアップと復旧」参照、過去35日間の任意の時点に復旧可能）に加えて、本ドキュメントでは「特定のタイミングの状態を明示的に残す」ための手動バックアップと、その復旧手順を扱う。主な用途は、ブルーグリーンデプロイ導入（issue #1319、子issue #1320）のようなデータ層の構成変更作業の直前に、安全網として明示的なバックアップを取得することである。
+常時有効なPITR（README.md「バックアップと復旧」参照、過去35日間の任意の時点に復旧可能）がある。本ドキュメントでは、これに加えて「特定のタイミングの状態を明示的に残す」ための手動バックアップと、その復旧手順を扱う。主な用途は、データ層の構成変更作業の直前に安全網として明示的なバックアップを取得することである。ブルーグリーンデプロイ導入（issue #1319、子issue #1320）はその代表例である。
 
 ## バックアップの取得
 
 `.github/workflows/backup-dynamodb.yml`（`workflow_dispatch`）をGitHubのActionsタブから手動実行する。スマートフォンのGitHub Web/モバイルアプリから実行可能（開発環境の制約「スマホオンリー」参照）。
 
-- 対象は5つのDynamoDBテーブル（`karuta-phrases`, `karuta-comments`, `karuta-polly-cache`, `karuta-quiz-rooms`, `karuta-quiz-room-connections`）
-- 結果（各テーブルの成功/失敗・Backup ARN）はJob Summaryにテーブル形式で表示される
-- 一部のテーブルで失敗した場合もJobはそれを明示して異常終了するが、成功したテーブルのバックアップはそのまま残る
+- 対象は以下の5つのDynamoDBテーブルである。
+  - `karuta-phrases`
+  - `karuta-comments`
+  - `karuta-polly-cache`
+  - `karuta-quiz-rooms`
+  - `karuta-quiz-room-connections`
+- 結果（各テーブルの成功/失敗・Backup ARN）はJob Summaryにテーブル形式で表示される。
+- 一部のテーブルで失敗した場合もJobはそれを明示して異常終了する。ただし、成功したテーブルのバックアップはそのまま残る。
 
 ## オンデマンドバックアップの保管・削除
 
@@ -34,7 +39,9 @@ aws dynamodb delete-backup --backup-arn <Job Summaryに表示されたARN>
 
 3. 本番テーブルへの切り替え方法は、状況（データ破損の範囲、`backend/serverless.yml`のCloudFormation管理との整合）に応じて以下のいずれかを選ぶ。いずれの方法も本番トラフィックに影響するため、実行前に必ず状況をユーザーへ報告し、承認を得る。
    - 影響範囲が限定的な場合: 破損したレコードのみを新テーブルから本番テーブルへ個別に書き戻す
-   - 全面的な復旧が必要な場合: `backend/serverless.yml`のテーブル名を一時的に差し替えてデプロイするか、CloudFormationのリソースインポート手順（issue #1320のデータ層移管で使う仕組みと同様）でテーブルを入れ替える
+   - 全面的な復旧が必要な場合: 次のいずれかの方法でテーブルを入れ替える
+     - `backend/serverless.yml`のテーブル名を一時的に差し替えてデプロイする方法
+     - CloudFormationのリソースインポート手順（issue #1320のデータ層移管で使う仕組みと同様）を使う方法
 
 ## 関連issue
 
