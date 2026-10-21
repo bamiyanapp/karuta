@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.8",
+    "version": "1.116.9",
     "date": "2026/10/21",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.105.6へ更新する ([#1832](https://github.com/bamiyanapp/karuta/issues/1832)) ([9bba8d2](https://github.com/bamiyanapp/karuta/commit/9bba8d2029c902d0aab70f16aa8e3117da4e6d8d))"
+  },
+  {
+    "version": "1.116.8",
+    "date": "2026/10/21 02:45",
     "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.105.5へ更新し、self_ref入力を追加する ([#1828](https://github.com/bamiyanapp/karuta/issues/1828)) ([e7d5790](https://github.com/bamiyanapp/karuta/commit/e7d5790ca98088b91f925ab89d4069c08eb2a5e4))"
   },
   {
