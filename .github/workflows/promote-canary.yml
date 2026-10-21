@@ -85,7 +85,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@6863f3f3467a4a9cd869c26b15720172ffe64d0a
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.105.5
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
