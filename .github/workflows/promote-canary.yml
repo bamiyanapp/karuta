@@ -36,6 +36,11 @@ on:
     # GitHub Actionsのscheduleトリガーは発火時刻が数時間ずれることがあるため
     # （issue #1610参照）、遅延を加味して0時ちょうどに設定する
     - cron: "0 15 * * *" # 毎日 00:00 JST（UTC 15:00）に判定する
+    # 依存フル脆弱性スキャン: issue #1842・#1843。元ci.yml側の薄いjobとして
+    # 動いていたため存在を忘れがちだった。日次で必ず目に入るpromote-canary.yml
+    # へ統合することで認知されやすくする。上記canary判定と同時刻にならないよう
+    # 30分ずらす
+    - cron: "30 15 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -43,6 +48,9 @@ permissions:
   # 検証したコミットを記録するgitタグ）をpushするために、呼び出し元である
   # 本workflowもcontents: writeが必要
   contents: write
+  # dependency-full-scan job（issue #1842・#1843）がissue作成・更新・自動
+  # クローズを行うために必要
+  issues: write
   # 以下2つはstatus job（canary-status.ymlから統合、issue #1809）が必要とする。
   # pull-requests: write はcommit-via-pr経由のPR作成・squash merge用、
   # actions: read は直近の本workflow実行をgh run listで取得するために必要
@@ -53,6 +61,10 @@ permissions:
 jobs:
   resolve:
     name: "KVS ARNを解決する"
+    # issue #1842・#1843: 1つのscheduleに複数cronを持つため、起動理由が
+    # どちらのcronかをif:で区別する。canary判定系job群は"0 15 * * *"
+    # （またはworkflow_dispatch）でのみ動く
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 15 * * *')
     runs-on: ubuntu-latest
     outputs:
       kvs_arn: ${{ steps.kvs.outputs.kvs_arn }}
@@ -143,7 +155,10 @@ jobs:
   status:
     name: "運用状態を可視化する"
     needs: promote
-    if: always()
+    # issue #1842・#1843: promoteがcronの種類違いでスキップされた場合、
+    # 本jobも連動してスキップする（always()のみだとneeds.promoteが空のまま
+    # 実行されてしまう）
+    if: always() && needs.promote.result != 'skipped'
     # issue #1809: 元canary-status.yml（workflow_run: Promote Canary to Stable
     # 完了トリガー）の内容をそのまま本job化したもの。「promote完了後に状態を
     # 可視化する」という実行タイミング・依存関係は変わらないが、別workflowを
@@ -615,7 +630,8 @@ jobs:
   summary:
     name: "概要を出力する"
     needs: promote
-    if: always()
+    # issue #1842・#1843: status jobと同様、promoteスキップ時は連動してスキップする
+    if: always() && needs.promote.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - name: 概要を出力する
@@ -636,3 +652,17 @@ jobs:
           {
             echo "canaryの最新化（issue #1449、日次バッチ）: ${{ needs.promote.outputs.queue_processed == 'true' && 'はい（最新main HEADでcanaryを更新した）' || 'いいえ' }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  dependency-full-scan:
+    name: 依存フル脆弱性スキャン
+    # issue #1842: 元ci.yml側の薄いjobとして動いていたため存在を忘れがち
+    # だった。issue #1843: 日次で必ず目に入るpromote-canary.ymlへ統合する
+    # ことで認知されやすくする（canary判定系job群とは別cronで動くため
+    # if:で区別する）
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * *')
+    permissions:
+      contents: read
+      issues: write
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.6
+    with:
+      lockfile_path: package-lock.json
