@@ -30,4 +30,4 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
-（該当するPRが見つからなかった）
+- [#1849 fix(ci): Lighthouse CIのPerformanceしきい値を65から60へ引き下げる](https://github.com/bamiyanapp/karuta/pull/1849)
