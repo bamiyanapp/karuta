@@ -1,3 +1,10 @@
+## [1.116.11](https://github.com/bamiyanapp/karuta/compare/v1.116.10...v1.116.11) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** npm updateで解消可能な既知脆弱性を更新する ([42a34b9](https://github.com/bamiyanapp/karuta/commit/42a34b942e12d4a2fad006fbc5ba13c4dd014d34)), closes [#1855](https://github.com/bamiyanapp/karuta/issues/1855)
+
 ## [1.116.10](https://github.com/bamiyanapp/karuta/compare/v1.116.9...v1.116.10) (2026-10-22)
 
 

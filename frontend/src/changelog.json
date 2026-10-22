@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.10",
+    "version": "1.116.11",
     "date": "2026/10/22",
+    "body": "### Bug Fixes\n\n* **deps:** npm updateで解消可能な既知脆弱性を更新する ([42a34b9](https://github.com/bamiyanapp/karuta/commit/42a34b942e12d4a2fad006fbc5ba13c4dd014d34)), closes [#1855](https://github.com/bamiyanapp/karuta/issues/1855)"
+  },
+  {
+    "version": "1.116.10",
+    "date": "2026/10/22 01:24",
     "body": "### Bug Fixes\n\n* **ci:** dev-standardsをv2.105.7へ更新しself_refを追加する ([#1854](https://github.com/bamiyanapp/karuta/issues/1854)) ([e2b13d3](https://github.com/bamiyanapp/karuta/commit/e2b13d3cd49591c628d585f9e1539decdf93b954))\n* **ci:** Lighthouse CIのPerformanceしきい値を65から60へ引き下げる ([#1849](https://github.com/bamiyanapp/karuta/issues/1849)) ([4d12540](https://github.com/bamiyanapp/karuta/commit/4d12540e0506e28c66105225e4609363a71478f0)), closes [#1848](https://github.com/bamiyanapp/karuta/issues/1848)"
   },
   {
