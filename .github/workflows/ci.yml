@@ -136,8 +136,10 @@ jobs:
       # したことを確認し70点へ引き上げたが、同一コード・連続実行でも
       # Performanceスコアが0.68〜0.75の範囲でブレることが判明し（境界線上で
       # フレーキーに失敗）、70点はまだ早かった。ブレを吸収できる安全マージンを
-      # 残すため65点へ引き下げた。以降も実測値の安定度を見ながら段階的に
-      # 引き上げる方針とする
+      # 残すため65点へ引き下げた。issue #1848: さらに0.63（既知のブレ範囲
+      # 0.68〜0.75よりも低い）での失敗が実際に発生し、workflow定義ファイルのみの
+      # 無関係な変更のPR（#1845）をブロックした。頻発する失敗を抑えるため60点へ
+      # 再度引き下げた。以降も実測値の安定度を見ながら段階的に引き上げる方針とする
       enable_lighthouse_ci_gating: true
       enable_mermaid_render: true
       mermaid_doc_paths: "docs/cicd-pipeline-specification.md\nREADME.md\ndocs/generated/websocket-api.md\ndocs/generated/dynamodb-tables.md\ndocs/generated/serverless-architecture.md\ndocs/generated/cicd-architecture.md\ndocs/quiz-room-operations.md"
