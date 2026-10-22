@@ -97,7 +97,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.105.12
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.106.0
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
@@ -663,7 +663,69 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.12
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.106.0
     with:
       lockfile_path: package-lock.json
-      self_ref: v2.105.12
+      self_ref: v2.106.0
+
+  resolve-runtime-endpoints:
+    name: "ランタイムスキャン対象エンドポイントを解決する"
+    # issue #1883: CVE-2026-111497（Node.js組み込みBrotliデコーダの範囲外書き込み）の
+    # 調査で、本番Lambdaランタイムが実際にどのNode.jsパッチバージョンで稼働している
+    # かを確認する手段が無かった。dependency-full-scanと同じcronへ統合する
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * *')
+    runs-on: ubuntu-latest
+    outputs:
+      endpoints: ${{ steps.resolve.outputs.endpoints }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+
+      - name: Node.jsをセットアップする
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: 依存パッケージをインストールする
+        run: npm ci
+
+      # canary-status.ymlのresolve_backend_urlと同じロジック（issue #1591:
+      # frontend/.env.<stage>は静的ファイルで、canaryスタックが削除・再作成される
+      # たびに実際のAPIエンドポイントと食い違うため、osls infoから都度解決する）
+      - name: canary/stableの/get-version URLを解決する
+        id: resolve
+        run: |
+          set -eu
+          resolve_backend_url() {
+            local stage="$1"
+            local info
+            info=$(cd backend && npx osls info --stage "${stage}" --verbose 2>/dev/null)
+            echo "$info" | grep -oE "https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${stage}" | head -1
+          }
+          CANARY_URL=$(resolve_backend_url canary)
+          STABLE_URL=$(resolve_backend_url stable)
+          ENDPOINTS=$(node -e "
+            const endpoints = [];
+            if (process.argv[1]) endpoints.push({ name: 'canary', url: process.argv[1] + '/get-version' });
+            if (process.argv[2]) endpoints.push({ name: 'stable', url: process.argv[2] + '/get-version' });
+            console.log(JSON.stringify(endpoints));
+          " "$CANARY_URL" "$STABLE_URL")
+          echo "endpoints=${ENDPOINTS}" >> "$GITHUB_OUTPUT"
+
+  runtime-version-scan:
+    name: ランタイムNode.jsバージョン遅延スキャン
+    needs: resolve-runtime-endpoints
+    # needs先がスキップされた場合（上記と同じcron条件に該当しない場合）は連動して
+    # スキップする。空配列（canary/stableどちらも未デプロイ）の場合もスキップする
+    if: needs.resolve-runtime-endpoints.result == 'success' && needs.resolve-runtime-endpoints.outputs.endpoints != '[]'
+    permissions:
+      contents: read
+      issues: write
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.106.0
+    with:
+      endpoints: ${{ needs.resolve-runtime-endpoints.outputs.endpoints }}
+      self_ref: v2.106.0
