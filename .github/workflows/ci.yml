@@ -16,9 +16,6 @@ on:
   schedule:
     - cron: "0 3 * * 1" # CodeQL: コード変更が無い期間もクエリセット自体の更新を検知する
     - cron: "0 15 * * 1" # 依存deprecatedスキャン: 毎週月曜0:00 JST（UTC 15:00、日曜）
-    # 依存フル脆弱性スキャン: issue #1842、検知ラグ短縮のため週次から日次へ変更した。
-    # 上記2つの週次スキャンと同時刻にならないよう30分ずらす
-    - cron: "30 15 * * *"
   workflow_dispatch: {} # CodeQL・依存スキャン系jobの手動実行用（ciジョブは対象外）
 
 permissions:
@@ -216,15 +213,3 @@ jobs:
     with:
       lockfile_path: package-lock.json
       direct_only: true
-
-  dependency-full-scan:
-    name: 依存フル脆弱性スキャン
-    # issue発覚の直接の契機: OSV API querybatchの件数上限（400 Bad Request、
-    # dev-standards issue #1111）で本jobが失敗していた。v2.105.1で修正済み
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * *')
-    permissions:
-      contents: read
-      issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.6
-    with:
-      lockfile_path: package-lock.json
