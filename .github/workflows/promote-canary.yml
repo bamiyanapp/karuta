@@ -97,7 +97,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.105.11
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.105.12
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
@@ -663,7 +663,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.11
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.105.12
     with:
       lockfile_path: package-lock.json
-      self_ref: v2.105.11
+      self_ref: v2.105.12
