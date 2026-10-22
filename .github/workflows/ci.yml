@@ -39,9 +39,9 @@ jobs:
     # reusable-ci.ymlの自己参照チェックアウトが新規必須入力self_ref経由の
     # 値を使う方式に変わった。呼び出し元（本workflow）が、下記uses:行の
     # refと同じ値をself_refとして渡す必要がある
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.6
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.105.7
     with:
-      self_ref: v2.105.6
+      self_ref: v2.105.7
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -203,7 +203,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.6
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.105.7
 
   dependency-deprecation-scan:
     name: 依存deprecatedスキャン
@@ -211,7 +211,8 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.6
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.105.7
     with:
       lockfile_path: package-lock.json
       direct_only: true
+      self_ref: v2.105.7
