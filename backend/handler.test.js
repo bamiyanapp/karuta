@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
-import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, reportClientError, resolveAllowedOrigin } from './handler';
+import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, reportClientError, resolveAllowedOrigin, getVersion } from './handler';
 import { Readable } from 'stream';
 import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
@@ -33,6 +33,16 @@ describe('resolveAllowedOrigin', () => {
 
   it('reflects the GitHub Pages migration page origin (kill switch, issue #1332)', () => {
     expect(resolveAllowedOrigin({ headers: { origin: 'https://bamiyanapp.github.io' } })).toBe('https://bamiyanapp.github.io');
+  });
+});
+
+describe('getVersion', () => {
+  // issue #1880: Node.js本体のCVE対応時に、本番Lambdaが実際に使っている
+  // Node.jsのパッチバージョンを確認できるようにする
+  it('includes the running Node.js patch version alongside app version/stage', async () => {
+    const result = await getVersion({ headers: {} });
+    const body = JSON.parse(result.body);
+    expect(body.nodeVersion).toBe(process.version);
   });
 });
 
