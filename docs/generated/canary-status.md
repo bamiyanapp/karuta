@@ -2,7 +2,7 @@
 
 このファイルは`canary-status.yml`（1日1回のスケジュール実行、issue #1597）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-23 07:57:13 JST。
+最終更新日時: 2026-10-23 08:14:18 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -29,4 +29,5 @@ stableの最終更新からcanaryの最終更新までの間にmainへマージ�
 
 canary最終更新以降にmainへマージされたPRの一覧。canaryにもまだ反映されていない。これらは次回canary更新時にまとめて反映される。
 
+- [#1884 feat(ci): canary/stableのNode.jsランタイム遅延を定期検知する](https://github.com/bamiyanapp/karuta/pull/1884)
 - [#1881 feat(backend): /get-versionでNode.jsの実行パッチバージョンを返す](https://github.com/bamiyanapp/karuta/pull/1881)
