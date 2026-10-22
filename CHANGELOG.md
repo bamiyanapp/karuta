@@ -1,3 +1,11 @@
+## [1.116.10](https://github.com/bamiyanapp/karuta/compare/v1.116.9...v1.116.10) (2026-10-22)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsをv2.105.7へ更新しself_refを追加する ([#1854](https://github.com/bamiyanapp/karuta/issues/1854)) ([e2b13d3](https://github.com/bamiyanapp/karuta/commit/e2b13d3cd49591c628d585f9e1539decdf93b954))
+* **ci:** Lighthouse CIのPerformanceしきい値を65から60へ引き下げる ([#1849](https://github.com/bamiyanapp/karuta/issues/1849)) ([4d12540](https://github.com/bamiyanapp/karuta/commit/4d12540e0506e28c66105225e4609363a71478f0)), closes [#1848](https://github.com/bamiyanapp/karuta/issues/1848)
+
 ## [1.116.9](https://github.com/bamiyanapp/karuta/compare/v1.116.8...v1.116.9) (2026-10-21)
 
 
