@@ -505,11 +505,17 @@ exports.getPhrasesList = async (event) => {
 // デプロイ内容が一致しているかをユーザー自身が確認できるようにするための軽量な
 // バージョン応答。APP_VERSION・APP_STAGEはserverless.ymlでデプロイ時のルート
 // package.json・stage名からそのまま注入される（CD側の追加対応は不要）
+//
+// issue #1880: nodeVersionはLambdaランタイム（nodejs22.x等）が実際に使っている
+// Node.jsのパッチバージョンを示す。AWS管理のランタイム更新はリポジトリ側から
+// 反映タイミングを確認する手段がないため、Node.js本体のCVE対応時にこの値を
+// 見て実際のパッチ適用状況を確認できるようにする
 exports.getVersion = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   return jsonResponse(allowedOrigin, 200, {
     version: process.env.APP_VERSION || null,
     stage: process.env.APP_STAGE || null,
+    nodeVersion: process.version,
   });
 };
 
