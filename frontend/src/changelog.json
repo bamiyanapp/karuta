@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.116.11",
+    "version": "1.117.0",
     "date": "2026/10/22",
+    "body": "### Features\n\n* **backend:** /get-versionでNode.jsの実行パッチバージョンを返す ([#1881](https://github.com/bamiyanapp/karuta/issues/1881)) ([b19e3a1](https://github.com/bamiyanapp/karuta/commit/b19e3a194ab508991e0330f81cf7a4a778648a8b)), closes [#1880](https://github.com/bamiyanapp/karuta/issues/1880)"
+  },
+  {
+    "version": "1.116.11",
+    "date": "2026/10/22 03:53",
     "body": "### Bug Fixes\n\n* **deps:** npm updateで解消可能な既知脆弱性を更新する ([42a34b9](https://github.com/bamiyanapp/karuta/commit/42a34b942e12d4a2fad006fbc5ba13c4dd014d34)), closes [#1855](https://github.com/bamiyanapp/karuta/issues/1855)"
   },
   {
