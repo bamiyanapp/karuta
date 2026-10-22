@@ -1,3 +1,10 @@
+# [1.118.0](https://github.com/bamiyanapp/karuta/compare/v1.117.0...v1.118.0) (2026-10-22)
+
+
+### Features
+
+* **ci:** canary/stableのNode.jsランタイム遅延を定期検知する ([#1884](https://github.com/bamiyanapp/karuta/issues/1884)) ([2baf596](https://github.com/bamiyanapp/karuta/commit/2baf596663326fc1af5f2002dc70314683fd3268)), closes [#1883](https://github.com/bamiyanapp/karuta/issues/1883)
+
 # [1.117.0](https://github.com/bamiyanapp/karuta/compare/v1.116.11...v1.117.0) (2026-10-22)
 
 
