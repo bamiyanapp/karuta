@@ -1,3 +1,10 @@
+# [1.117.0](https://github.com/bamiyanapp/karuta/compare/v1.116.11...v1.117.0) (2026-10-22)
+
+
+### Features
+
+* **backend:** /get-versionでNode.jsの実行パッチバージョンを返す ([#1881](https://github.com/bamiyanapp/karuta/issues/1881)) ([b19e3a1](https://github.com/bamiyanapp/karuta/commit/b19e3a194ab508991e0330f81cf7a4a778648a8b)), closes [#1880](https://github.com/bamiyanapp/karuta/issues/1880)
+
 ## [1.116.11](https://github.com/bamiyanapp/karuta/compare/v1.116.10...v1.116.11) (2026-10-22)
 
 
