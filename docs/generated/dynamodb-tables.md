@@ -63,6 +63,6 @@ erDiagram
 
 </details>
 
-![DynamoDBテーブル ER図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/dynamodb-tables.png?bd2c4ee4f5f5b2410609f696028f76b841dd2f2c)
+![DynamoDBテーブル ER図 (rendered)](https://raw.githubusercontent.com/bamiyanapp/karuta/docs-diagrams/latest/dynamodb-tables.png?10b9b75bbe2063cab3a26db20afa2bdff35a962f)
 
 テーブル間に外部キー制約は無いが、アプリケーションコード上は`roomId`が`karuta-quiz-rooms`と`karuta-quiz-room-connections`（GSI `roomId-index`）をまたいで使われており、緩やかな関連を持つ（図には正式なリレーションとして描画しない）。
