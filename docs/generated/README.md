@@ -20,5 +20,6 @@ npm run docs:generate
 | [env-vars.md](./env-vars.md) | `backend/serverless.yml`の`environment:`・`frontend/src/config.js` | [#908](https://github.com/bamiyanapp/karuta/issues/908) |
 | [api-usage.md](./api-usage.md) | `frontend/src`配下のAPI呼び出し箇所 | [#909](https://github.com/bamiyanapp/karuta/issues/909) |
 | [canary-status.md](./canary-status.md) | `.github/workflows/canary-status.yml`が1時間おきに取得するcanary運用状態（AWS CloudFront KVS・CloudFormationの実際の状態）。他の行と異なり`npm run docs:generate`では再生成されない | [#1472](https://github.com/bamiyanapp/karuta/issues/1472) |
+| [README.md](../../README.md)「開発共通設定（dev-standards）のバージョン」節 | `.github/workflows/*.yml`の`bamiyanapp/dev-standards/...@vX.Y.Z`参照。他の行と異なり出力先は本ディレクトリではなくリポジトリルートの`README.md` | [#1898](https://github.com/bamiyanapp/karuta/issues/1898) |
 
 生成タイミングのCI組み込み（PRごとの自動再生成・ドリフト検知等）は未対応。方針は[issue #900](https://github.com/bamiyanapp/karuta/issues/900)の検討事項を参照し、別途フォローアップで対応する。
