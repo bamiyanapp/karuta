@@ -1,5 +1,5 @@
 name: Canary Status
-run-name: Canary Status (${{ github.event_name == 'workflow_run' && format('after {0}', github.event.workflow_run.name) || 'manual' }})
+run-name: Canary Status (manual)
 
 # issue #1462: canaryの運用状態（現在の重み・ロールバック状態・キュー待ち・
 # canaryスタックの最終更新時刻・昇格予定日時）は、CloudFront KVSと
@@ -33,18 +33,20 @@ run-name: Canary Status (${{ github.event_name == 'workflow_run' && format('afte
 # to Stable"）は廃止した。同内容のjob（status）をpromote-canary.yml自身へ
 # 移植し、needs: promoteによる同一workflow内のjob依存へ置き換えたため、本
 # workflowを別途workflow_run経由で起動する必要が無くなった（Actions実行一覧が
-# workflow単位のため、1実行にまとめることで見やすくする狙い）。CD完了時の
-# 即時反映（issue #1785）は、promote-canary.ymlの日次実行を待てないタイミング
-# なので引き続き本workflow側で担う
+# workflow単位のため、1実行にまとめることで見やすくする狙い）。
+#
+# issue #1902: issue #1785で追加した「CD（mainへのマージ毎）完了時にも
+# 再生成する」トリガーは、実際には「キューイング中の変更」一覧を即時反映する
+# という当初の目的を超えて、canaryの状態に一切関係しないマージ（dev-standards
+# バージョン更新・依存更新・mermaidキャッシュバスティング等）でも毎回AWS CLIへの
+# 問い合わせとcommit-via-pr経由の追従コミットを発生させていた（直近数日で
+# 約80回）。canary実際の更新時の運用状態反映は、上記issue #1809の経緯により
+# promote-canary.yml側のstatus jobで既に満たされているため、workflow_runトリガー
+# は削除し、workflow_dispatchのみ（スマートフォンからの手動実行専用）に戻した。
+# 「キューイング中の変更」一覧は、次回のpromote-canary.yml実行（1日1回）または
+# 手動実行まで更新が遅れるが、運用状態確認という性質上許容範囲と判断する
 on:
   workflow_dispatch: {}
-  # issue #1785: CD（mainへのマージ毎、canary反映キューへの登録のみ）完了時にも
-  # 再生成する。実際のcanaryデプロイ自体はpromote-canary.ymlの1日1回のバッチに
-  # 委ねたまま（issue #1449）だが、「キューイング中の変更」一覧（mainへのマージ
-  # 履歴から算出）は、promote-canary.ymlの実行を待たず最新化できるようにする
-  workflow_run:
-    workflows: ["CD"]
-    types: [completed]
 
 permissions:
   contents: write
