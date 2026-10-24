@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.118.1",
+    "version": "1.118.2",
     "date": "2026/10/24",
+    "body": "### Bug Fixes\n\n* **ci:** README.mdのdev-standardsバージョン表示を自動追従させる ([#1915](https://github.com/bamiyanapp/karuta/issues/1915)) ([84525d9](https://github.com/bamiyanapp/karuta/commit/84525d908b97a466a42ffe4e266c61c47d6b0797)), closes [#1914](https://github.com/bamiyanapp/karuta/issues/1914)"
+  },
+  {
+    "version": "1.118.1",
+    "date": "2026/10/24 11:51",
     "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのCD完了トリガーを削除する ([#1903](https://github.com/bamiyanapp/karuta/issues/1903)) ([ccb83fc](https://github.com/bamiyanapp/karuta/commit/ccb83fcf9b43a49b20560d199bf872f993c9c5c4)), closes [#1902](https://github.com/bamiyanapp/karuta/issues/1902)"
   },
   {
