@@ -27,6 +27,14 @@
 
 使用技術の一覧は[Tech Stack](docs/tech-stack.md)を参照してください。
 
+### 開発共通設定（dev-standards）のバージョン
+
+<!-- dev-standards-version:start -->
+現在採用しているdev-standardsのバージョンは**v2.107.0**です。
+<!-- dev-standards-version:end -->
+
+このセクションは自動生成される（手動で編集しないこと）。再生成するには`node scripts/docs/generate-dev-standards-version.js`を実行する（issue #1898）。
+
 ## Architecture
 
 自動生成ドキュメントの一覧は[docs/generated/README.md](docs/generated/README.md)を参照してください。以下はその一部を個別に示したもの。
