@@ -41,7 +41,7 @@ jobs:
     # refと同じ値をself_refとして渡す必要がある
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.109.2
     with:
-      self_ref: v2.107.0
+      self_ref: v2.109.2
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -215,4 +215,44 @@ jobs:
     with:
       lockfile_path: package-lock.json
       direct_only: true
-      self_ref: v2.107.0
+      self_ref: v2.109.2
+
+  # issue #1914。README.mdのdev-standardsバージョン表示（issue #1898/#1899）は
+  # npm run docs:generate経由の手動実行専用で、CIからは一切呼ばれていなかった。
+  # Renovateの自動マージPR（minimumReleaseAgeを0日にしたissue #1906の効果で
+  # 即日マージされる）は当然docs:generateを実行しないため、.github/workflows/*.yml
+  # のuses:参照バージョンが更新されても表示が古いまま残り続けていた
+  # （実機確認: PR #1909でv2.109.2へ更新されたが、README.mdはv2.107.0のまま）。
+  # mainへのpushごとに再生成し、変更があればcommit-via-pr経由で自動コミットする
+  # （canary-status.yml・render-mermaid-diagramsジョブと同じパターン）。
+  # スクリプト自体は.github/workflows/*.ymlの内容のみを見るため、無関係な変更
+  # では再生成結果が変わらずcommit-via-prが自動的に無変更スキップする
+  sync-dev-standards-version-doc:
+    name: "dev-standardsバージョン表示を最新化する"
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Node.jsをセットアップする
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: README.mdのdev-standardsバージョン表示を再生成する
+        run: node scripts/docs/generate-dev-standards-version.js
+
+      - name: 変更をcommit-via-pr経由でコミットする
+        uses: ./dev-standards/.github/actions/commit-via-pr
+        with:
+          paths: README.md
+          commit-subject: "chore(docs): README.mdのdev-standardsバージョン表示を最新化する [skip ci]"
+          commit-body: "ci.ymlのsync-dev-standards-version-docジョブによる自動コミットです（issue #1914）。"
+          branch-prefix: "chore/dev-standards-version-doc"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
