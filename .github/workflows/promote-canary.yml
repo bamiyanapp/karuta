@@ -97,7 +97,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.107.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.109.2
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
@@ -306,14 +306,14 @@ jobs:
       # canary-status.ymlと重複していたため、共通actionへ切り出した
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
         with:
           stage: stable
           working-directory: backend
@@ -669,7 +669,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.107.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.109.2
     with:
       lockfile_path: package-lock.json
       self_ref: v2.107.0
@@ -703,14 +703,14 @@ jobs:
       # canary-status.ymlと重複していたため、共通actionへ切り出した
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
         with:
           stage: stable
           working-directory: backend
@@ -738,7 +738,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.107.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.109.2
     with:
       endpoints: ${{ needs.resolve-runtime-endpoints.outputs.endpoints }}
       self_ref: v2.107.0
