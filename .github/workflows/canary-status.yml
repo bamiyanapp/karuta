@@ -197,14 +197,14 @@ jobs:
       # promote-canary.ymlと重複していたため、共通actionへ切り出した
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.111.0
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.109.2
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.111.0
         with:
           stage: stable
           working-directory: backend
