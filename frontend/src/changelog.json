@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.118.1",
+    "date": "2026/10/24",
+    "body": "### Bug Fixes\n\n* **ci:** canary-status.ymlのCD完了トリガーを削除する ([#1903](https://github.com/bamiyanapp/karuta/issues/1903)) ([ccb83fc](https://github.com/bamiyanapp/karuta/commit/ccb83fcf9b43a49b20560d199bf872f993c9c5c4)), closes [#1902](https://github.com/bamiyanapp/karuta/issues/1902)"
+  },
+  {
     "version": "1.118.0",
-    "date": "2026/10/22",
+    "date": "2026/10/22 23:05",
     "body": "### Features\n\n* **ci:** canary/stableのNode.jsランタイム遅延を定期検知する ([#1884](https://github.com/bamiyanapp/karuta/issues/1884)) ([2baf596](https://github.com/bamiyanapp/karuta/commit/2baf596663326fc1af5f2002dc70314683fd3268)), closes [#1883](https://github.com/bamiyanapp/karuta/issues/1883)"
   },
   {
