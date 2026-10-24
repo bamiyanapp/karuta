@@ -1,3 +1,10 @@
+## [1.118.1](https://github.com/bamiyanapp/karuta/compare/v1.118.0...v1.118.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **ci:** canary-status.ymlのCD完了トリガーを削除する ([#1903](https://github.com/bamiyanapp/karuta/issues/1903)) ([ccb83fc](https://github.com/bamiyanapp/karuta/commit/ccb83fcf9b43a49b20560d199bf872f993c9c5c4)), closes [#1902](https://github.com/bamiyanapp/karuta/issues/1902)
+
 # [1.118.0](https://github.com/bamiyanapp/karuta/compare/v1.117.0...v1.118.0) (2026-10-22)
 
 
