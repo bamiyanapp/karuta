@@ -191,6 +191,22 @@ jobs:
       # の実際のデプロイ済みバージョンは別途取得していなかった。frontend/vite.config.js
       # がビルド時に書き出すversion.json（issue #1565）を各stageの配信ドメイン
       # （FrontendDistributionDomainName）から取得し、バックエンドと分けて表示する
+      # issue #1894（dev-standards#1173）。osls info経由のbackend URL解決ロジックは
+      # promote-canary.ymlと重複していたため、共通actionへ切り出した
+      - name: canaryのbackend URLを解決する
+        id: canary_url
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        with:
+          stage: canary
+          working-directory: backend
+
+      - name: stableのbackend URLを解決する
+        id: stable_url
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.107.0
+        with:
+          stage: stable
+          working-directory: backend
+
       - name: canary/stableの配信中バージョンを取得する
         id: version
         run: |
@@ -229,18 +245,8 @@ jobs:
             version=$(echo "$body" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).version||'（取得できなかった）')}catch{console.log('（取得できなかった）')}})")
             echo "$version"
           }
-          # issue #1591: frontend/.env.<stage>は静的ファイルで、canaryスタックが
-          # 削除・再作成されるたびに実際のAPIエンドポイントと食い違う（過去に
-          # #1558の誤検出の原因にもなった）。osls infoから現在のエンドポイントを
-          # 都度解決する
-          resolve_backend_url() {
-            local stage="$1"
-            local info
-            info=$(cd backend && npx osls info --stage "${stage}" --verbose 2>/dev/null)
-            echo "$info" | grep -oE "https://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/${stage}" | head -1
-          }
-          CANARY_URL=$(resolve_backend_url canary)
-          STABLE_URL=$(resolve_backend_url stable)
+          CANARY_URL="${{ steps.canary_url.outputs.backend-url }}"
+          STABLE_URL="${{ steps.stable_url.outputs.backend-url }}"
           CANARY_BACKEND_VERSION=$(fetch_backend_version "$CANARY_URL")
           STABLE_BACKEND_VERSION=$(fetch_backend_version "$STABLE_URL")
           echo "canary_backend_version=${CANARY_BACKEND_VERSION}" >> "$GITHUB_OUTPUT"
