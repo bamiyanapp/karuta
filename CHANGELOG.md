@@ -1,3 +1,10 @@
+## [1.118.2](https://github.com/bamiyanapp/karuta/compare/v1.118.1...v1.118.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **ci:** README.mdのdev-standardsバージョン表示を自動追従させる ([#1915](https://github.com/bamiyanapp/karuta/issues/1915)) ([84525d9](https://github.com/bamiyanapp/karuta/commit/84525d908b97a466a42ffe4e266c61c47d6b0797)), closes [#1914](https://github.com/bamiyanapp/karuta/issues/1914)
+
 ## [1.118.1](https://github.com/bamiyanapp/karuta/compare/v1.118.0...v1.118.1) (2026-10-24)
 
 
