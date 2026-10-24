@@ -30,7 +30,7 @@
 ### 開発共通設定（dev-standards）のバージョン
 
 <!-- dev-standards-version:start -->
-現在採用しているdev-standardsのバージョンは**v2.107.0**です。
+現在採用しているdev-standardsのバージョンは**v2.109.2**です。
 <!-- dev-standards-version:end -->
 
 このセクションは自動生成される（手動で編集しないこと）。再生成するには`node scripts/docs/generate-dev-standards-version.js`を実行する（issue #1898）。
