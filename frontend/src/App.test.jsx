@@ -67,7 +67,7 @@ describe('App', () => {
     expect(screen.getByText('エンジニア向け')).toBeInTheDocument();
   });
 
-  it('retries up to 3 times before showing a get-categories-specific error message when fetching categories keeps failing (issue #758, #1798)', async () => {
+  it('retries up to 4 times with exponential backoff before showing a get-categories-specific error message when fetching categories keeps failing (issue #758, #1798, #1933)', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) throw new Error('network error');
@@ -81,16 +81,45 @@ describe('App', () => {
     // 1回目の失敗直後はまだアラートを出さず、自動リトライを待つ
     expect(window.alert).not.toHaveBeenCalled();
 
+    // 指数バックオフ（1秒・2秒・4秒・8秒、最大8秒）で合計約15秒かかるため、
+    // デフォルトタイムアウトを延長する
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
-    }, { timeout: 10000 });
+    }, { timeout: 20000 });
 
-    // 初回 + リトライ3回 = 合計4回
+    // 初回 + リトライ4回 = 合計5回
     const categoriesCalls = fetch.mock.calls.filter(([url]) => url.includes('get-categories'));
-    expect(categoriesCalls).toHaveLength(4);
+    expect(categoriesCalls).toHaveLength(5);
 
     consoleErrorSpy.mockRestore();
-  });
+  }, 25000);
+
+  it('recovers from a longer chain of consecutive failures than the previous fixed-interval retry budget allowed, as seen on the low-traffic canary stage (issue #1933)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let categoriesCallCount = 0;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) {
+        categoriesCallCount += 1;
+        // canaryはcanary_weight分のトラフィックしか受けずLambdaが頻繁にコールドスタート
+        // するため、旧実装（固定1秒間隔・最大3回）の予算を超える3回連続の失敗を想定する
+        if (categoriesCallCount <= 3) throw new Error('network error');
+        return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };
+      }
+      return { ok: false };
+    });
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(await screen.findByText('こども向け'));
+    await screen.findByRole('button', { name: /Cat1/ }, { timeout: 20000 });
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(categoriesCallCount).toBe(4);
+
+    consoleErrorSpy.mockRestore();
+  }, 25000);
 
   it('does not show an error when the automatic get-categories retry succeeds (issue #758)', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
