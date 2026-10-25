@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.119.0",
+    "version": "1.119.1",
     "date": "2026/10/25",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.114.1へ更新する ([#1927](https://github.com/bamiyanapp/karuta/issues/1927)) ([d09374b](https://github.com/bamiyanapp/karuta/commit/d09374bccdbe2ac3709c75c1ce17be5b4cab1730))"
+  },
+  {
+    "version": "1.119.0",
+    "date": "2026/10/25 01:41",
     "body": "### Features\n\n* **ci:** canary-status.ymlをreusable-canary-status.yml呼び出しへ移行する ([#1924](https://github.com/bamiyanapp/karuta/issues/1924)) ([09dfd7c](https://github.com/bamiyanapp/karuta/commit/09dfd7c777771ad141dde62882e574aa784cc546)), closes [dev-standards#1196](https://github.com/dev-standards/issues/1196)"
   },
   {
