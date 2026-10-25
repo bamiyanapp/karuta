@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.119.1",
+    "version": "1.119.2",
     "date": "2026/10/25",
+    "body": "### Bug Fixes\n\n* **frontend:** カテゴリ取得リトライを指数バックオフ化し、canaryのコールドスタートに耐えるようにする ([#1934](https://github.com/bamiyanapp/karuta/issues/1934)) ([2f50d06](https://github.com/bamiyanapp/karuta/commit/2f50d06c7c0fda8d48923230b6da09c6f0f1bb6d))"
+  },
+  {
+    "version": "1.119.1",
+    "date": "2026/10/25 02:10",
     "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.114.1へ更新する ([#1927](https://github.com/bamiyanapp/karuta/issues/1927)) ([d09374b](https://github.com/bamiyanapp/karuta/commit/d09374bccdbe2ac3709c75c1ce17be5b4cab1730))"
   },
   {
