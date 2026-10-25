@@ -41,7 +41,7 @@ jobs:
     # refと同じ値をself_refとして渡す必要がある
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.114.0
     with:
-      self_ref: v2.109.2
+      self_ref: v2.114.0
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -215,7 +215,7 @@ jobs:
     with:
       lockfile_path: package-lock.json
       direct_only: true
-      self_ref: v2.109.2
+      self_ref: v2.114.0
 
   # issue #1914。README.mdのdev-standardsバージョン表示（issue #1898/#1899）は
   # npm run docs:generate経由の手動実行専用で、CIからは一切呼ばれていなかった。
