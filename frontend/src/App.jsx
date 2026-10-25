@@ -369,10 +369,17 @@ function App() {
   // コールドスタートと重なると1〜2回目の呼び出しが連続して一過性に失敗しうる
   // （issue #1798）。レスポンスがJSON以外のエラーボディを返す場合に備え、
   // response.okがfalseのケースも例外と同様にリトライ対象として扱う
+  //
+  // issue #1933: canaryは`canary_weight`分のトラフィックしか受けないためLambdaが
+  // コールドスタートする頻度がstableより高く、固定1秒間隔・最大3回（合計約3秒）の
+  // リトライ予算では連続失敗を使い切ってしまい、アラートが表示される事例が
+  // canaryでのみ発生していた。間隔を指数バックオフ（1秒・2秒・4秒・8秒、最大8秒で
+  // 打ち止め）にし、より長いコールドスタートの連鎖にも耐えられるようにする
   useEffect(() => {
     let cancelled = false;
-    const CATEGORIES_FETCH_MAX_RETRY_COUNT = 3;
-    const CATEGORIES_FETCH_RETRY_DELAY_MS = 1000;
+    const CATEGORIES_FETCH_MAX_RETRY_COUNT = 4;
+    const CATEGORIES_FETCH_BASE_RETRY_DELAY_MS = 1000;
+    const CATEGORIES_FETCH_MAX_RETRY_DELAY_MS = 8000;
     const fetchCategories = async (retryCount = 0) => {
       try {
         const response = await fetch(`${API_BASE_URL}/get-categories`);
@@ -390,10 +397,14 @@ function App() {
       } catch (error) {
         if (cancelled) return;
         if (retryCount < CATEGORIES_FETCH_MAX_RETRY_COUNT) {
+          const delayMs = Math.min(
+            CATEGORIES_FETCH_BASE_RETRY_DELAY_MS * (2 ** retryCount),
+            CATEGORIES_FETCH_MAX_RETRY_DELAY_MS
+          );
           console.error(`Error fetching categories, retrying (${retryCount + 1}/${CATEGORIES_FETCH_MAX_RETRY_COUNT}):`, error);
           setTimeout(() => {
             if (!cancelled) fetchCategories(retryCount + 1);
-          }, CATEGORIES_FETCH_RETRY_DELAY_MS);
+          }, delayMs);
           return;
         }
         alert("カテゴリの取得に失敗しました。");
