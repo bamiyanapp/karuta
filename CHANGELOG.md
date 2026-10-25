@@ -1,3 +1,10 @@
+# [1.119.0](https://github.com/bamiyanapp/karuta/compare/v1.118.2...v1.119.0) (2026-10-25)
+
+
+### Features
+
+* **ci:** canary-status.ymlをreusable-canary-status.yml呼び出しへ移行する ([#1924](https://github.com/bamiyanapp/karuta/issues/1924)) ([09dfd7c](https://github.com/bamiyanapp/karuta/commit/09dfd7c777771ad141dde62882e574aa784cc546)), closes [dev-standards#1196](https://github.com/dev-standards/issues/1196)
+
 ## [1.118.2](https://github.com/bamiyanapp/karuta/compare/v1.118.1...v1.118.2) (2026-10-24)
 
 
