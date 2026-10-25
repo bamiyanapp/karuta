@@ -1,3 +1,10 @@
+## [1.119.1](https://github.com/bamiyanapp/karuta/compare/v1.119.0...v1.119.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **ci:** dev-standards参照をv2.114.1へ更新する ([#1927](https://github.com/bamiyanapp/karuta/issues/1927)) ([d09374b](https://github.com/bamiyanapp/karuta/commit/d09374bccdbe2ac3709c75c1ce17be5b4cab1730))
+
 # [1.119.0](https://github.com/bamiyanapp/karuta/compare/v1.118.2...v1.119.0) (2026-10-25)
 
 
