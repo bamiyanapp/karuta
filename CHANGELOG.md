@@ -1,3 +1,10 @@
+## [1.119.2](https://github.com/bamiyanapp/karuta/compare/v1.119.1...v1.119.2) (2026-10-25)
+
+
+### Bug Fixes
+
+* **frontend:** カテゴリ取得リトライを指数バックオフ化し、canaryのコールドスタートに耐えるようにする ([#1934](https://github.com/bamiyanapp/karuta/issues/1934)) ([2f50d06](https://github.com/bamiyanapp/karuta/commit/2f50d06c7c0fda8d48923230b6da09c6f0f1bb6d))
+
 ## [1.119.1](https://github.com/bamiyanapp/karuta/compare/v1.119.0...v1.119.1) (2026-10-25)
 
 
