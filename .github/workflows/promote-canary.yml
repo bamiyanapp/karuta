@@ -672,7 +672,7 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.114.0
     with:
       lockfile_path: package-lock.json
-      self_ref: v2.109.2
+      self_ref: v2.114.0
 
   resolve-runtime-endpoints:
     name: "ランタイムスキャン対象エンドポイントを解決する"
@@ -741,4 +741,4 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.114.0
     with:
       endpoints: ${{ needs.resolve-runtime-endpoints.outputs.endpoints }}
-      self_ref: v2.109.2
+      self_ref: v2.114.0
