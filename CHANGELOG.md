@@ -1,3 +1,10 @@
+## [1.119.3](https://github.com/bamiyanapp/karuta/compare/v1.119.2...v1.119.3) (2026-10-27)
+
+
+### Bug Fixes
+
+* **ci:** promote-canary.ymlのdependency-full-scanジョブにpull-requests: readを追加する ([#1945](https://github.com/bamiyanapp/karuta/issues/1945)) ([3d36592](https://github.com/bamiyanapp/karuta/commit/3d36592b59a6a7b2f091c652bf7ac58189423dc6))
+
 ## [1.119.2](https://github.com/bamiyanapp/karuta/compare/v1.119.1...v1.119.2) (2026-10-25)
 
 
