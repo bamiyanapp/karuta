@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.119.3",
+    "date": "2026/10/27",
+    "body": "### Bug Fixes\n\n* **ci:** promote-canary.ymlのdependency-full-scanジョブにpull-requests: readを追加する ([#1945](https://github.com/bamiyanapp/karuta/issues/1945)) ([3d36592](https://github.com/bamiyanapp/karuta/commit/3d36592b59a6a7b2f091c652bf7ac58189423dc6))"
+  },
+  {
     "version": "1.119.2",
-    "date": "2026/10/25",
+    "date": "2026/10/25 03:35",
     "body": "### Bug Fixes\n\n* **frontend:** カテゴリ取得リトライを指数バックオフ化し、canaryのコールドスタートに耐えるようにする ([#1934](https://github.com/bamiyanapp/karuta/issues/1934)) ([2f50d06](https://github.com/bamiyanapp/karuta/commit/2f50d06c7c0fda8d48923230b6da09c6f0f1bb6d))"
   },
   {
