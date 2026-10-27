@@ -2,7 +2,7 @@
 
 このファイルは`promote-canary.yml`のstatus job（1日1回のスケジュール実行、issue #1809）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-10-27 12:05:04 JST。
+最終更新日時: 2026-10-28 05:00:40 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -15,8 +15,8 @@
 | canaryの最終更新 | 2026-10-27 12:00:47 JST |
 | canaryの配信中バージョン | 1.119.2 |
 | 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | 2026-10-28 08:00:47 JST以降 |
-| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | 2026-10-28 00:00:00 JST |
-| 直近のpromote-canary.yml実行 | [run 40440923419](https://github.com/bamiyanapp/karuta/actions/runs/40440923419)（2026-10-27 11:52:14 JST、結果: （取得できなかった）） |
+| 次回のpromote-canary.yml cron発火予定（発火しても上記条件未達なら何もしない） | 2026-10-29 00:00:00 JST |
+| 直近のpromote-canary.yml実行 | [run 40573403901](https://github.com/bamiyanapp/karuta/actions/runs/40573403901)（2026-10-28 04:55:14 JST、結果: （取得できなかった）） |
 
 ## canaryに反映済み・stable昇格待ちの変更
 
