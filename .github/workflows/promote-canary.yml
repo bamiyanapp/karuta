@@ -666,9 +666,16 @@ jobs:
     # ことで認知されやすくする（canary判定系job群とは別cronで動くため
     # if:で区別する）
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * *')
+    # issue #1944: dev-standards#1185でreusable-dependency-full-scan.yml内部の
+    # scanジョブがpull-requests: readを新たに要求するようになった。ジョブレベルの
+    # permissions:は呼び出し元workflow全体のpermissionsを継承せず排他的に扱われる
+    # ため、ここに無いスコープは「none」扱いとなり、呼び出し先の要求を上回れず
+    # workflow全体がstartup_failureで起動しなくなっていた（2日分のcanary更新判定が
+    # 動かなかった）
     permissions:
       contents: read
       issues: write
+      pull-requests: read
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.114.1
     with:
       lockfile_path: package-lock.json
