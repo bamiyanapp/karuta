@@ -1,10 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
-const docClient = DynamoDBDocumentClient.from(client);
-
-const TABLE_NAME = "karuta-phrases";
+const { UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { docClient, PHRASES_TABLE_NAME } = require("./dynamoClient");
 
 // 放置等で読み上げ統計（readCount/averageTime/averageDifficulty）に異常値が
 // 混入してしまったフレーズを、手動でリセットするための保守スクリプト。
@@ -19,7 +14,7 @@ async function resetStats(category, id) {
   console.log(`Resetting stats for category="${category}" id="${id}"...`);
   try {
     await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAME,
+      TableName: PHRASES_TABLE_NAME,
       Key: { category, id },
       // カテゴリ/IDの入力ミスで存在しない項目を新規作成してしまわないようにする
       ConditionExpression: "attribute_exists(category)",

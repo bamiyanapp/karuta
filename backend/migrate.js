@@ -1,11 +1,7 @@
 const fs = require("fs");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
+const { PutCommand } = require("@aws-sdk/lib-dynamodb");
+const { docClient, PHRASES_TABLE_NAME } = require("./dynamoClient");
 
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
-const docClient = DynamoDBDocumentClient.from(client);
-
-const NEW_TABLE_NAME = "karuta-phrases"; // 新しいテーブル名
 const BACKUP_FILE_PATH = "backend/karuta-phrases-backup.json";
 
 async function restore() {
@@ -18,7 +14,7 @@ async function restore() {
     for (const item of items) {
       console.log(`Restoring item: ${item.id} (${item.category})`);
       await docClient.send(new PutCommand({
-        TableName: NEW_TABLE_NAME,
+        TableName: PHRASES_TABLE_NAME,
         Item: item
       }));
     }
