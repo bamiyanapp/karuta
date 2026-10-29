@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.119.4",
+    "date": "2026/10/29",
+    "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.114.2へ更新する ([#1954](https://github.com/bamiyanapp/karuta/issues/1954)) ([a963dcb](https://github.com/bamiyanapp/karuta/commit/a963dcbc6f7a687bd18eb1dbce72f849206474ac))"
+  },
+  {
     "version": "1.119.3",
-    "date": "2026/10/27",
+    "date": "2026/10/27 02:53",
     "body": "### Bug Fixes\n\n* **ci:** promote-canary.ymlのdependency-full-scanジョブにpull-requests: readを追加する ([#1945](https://github.com/bamiyanapp/karuta/issues/1945)) ([3d36592](https://github.com/bamiyanapp/karuta/commit/3d36592b59a6a7b2f091c652bf7ac58189423dc6))"
   },
   {
