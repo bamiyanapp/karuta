@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { createBooleanStore } from "./booleanStore";
 
 // PwaUpdatePrompt（main.jsxでAppの兄弟としてグローバルにマウントされておりpropsで
 // 直接つなげない）に、「絵札PDF印刷画面を開いている間かどうか」を伝えるための
@@ -10,20 +10,6 @@ import { useSyncExternalStore } from "react";
 // 抑制できず、実際には解消していなかった（issue #473の再オープン）。
 // この画面を開いている間ずっと抑制する方が、実際に再現するタイミングをより広く
 // カバーできる
-let isPrintScreenActive = false;
-const listeners = new Set();
+const { setValue: setPrintScreenActive, useValue: useIsPrintScreenActive } = createBooleanStore(false);
 
-export function setPrintScreenActive(value) {
-  isPrintScreenActive = value;
-  listeners.forEach((listener) => listener());
-}
-
-export function useIsPrintScreenActive() {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => isPrintScreenActive
-  );
-}
+export { setPrintScreenActive, useIsPrintScreenActive };

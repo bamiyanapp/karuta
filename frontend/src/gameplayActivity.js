@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { createBooleanStore } from "./booleanStore";
 
 // PwaUpdatePrompt（main.jsxでAppの兄弟としてグローバルにマウントされておりpropsで
 // 直接つなげない）に、「かるたを遊んでいる最中かどうか」を伝えるための最小限のstore
@@ -7,20 +7,6 @@ import { useSyncExternalStore } from "react";
 // 進行状態（audioQueue・isReading等、sessionStorageに永続化されないもの）が失われ、
 // ゲームが中断されてしまっていた。プレイ中は「更新する」ボタン自体を出さず、
 // プレイを終えて安全なタイミングになってから更新できるようにする
-let isGameplayActive = false;
-const listeners = new Set();
+const { setValue: setGameplayActive, useValue: useGameplayActive } = createBooleanStore(false);
 
-export function setGameplayActive(value) {
-  isGameplayActive = value;
-  listeners.forEach((listener) => listener());
-}
-
-export function useGameplayActive() {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => isGameplayActive
-  );
-}
+export { setGameplayActive, useGameplayActive };
