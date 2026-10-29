@@ -77,14 +77,14 @@ jobs:
 
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.114.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.114.5
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.114.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.114.5
         with:
           stage: stable
           working-directory: backend
@@ -92,7 +92,7 @@ jobs:
   status:
     name: "運用状態を可視化する"
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-canary-status.yml@v2.114.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-canary-status.yml@v2.114.5
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
