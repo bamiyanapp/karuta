@@ -1,14 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 const { parse } = require("csv-parse/sync");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
-
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
-const docClient = DynamoDBDocumentClient.from(client);
+const { PutCommand, ScanCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { docClient, PHRASES_TABLE_NAME } = require("./dynamoClient");
 
 const CSV_FILE_PATH = path.join(__dirname, "phrases.csv");
-const TABLE_NAME = "karuta-phrases";
 
 // カテゴリ名を変更した際、readCount等の統計をリセットさせず引き継ぐためのリネームマップ。
 // key: 変更後（CSV上の現在の）カテゴリ名, value: 過去に使っていたカテゴリ名の配列
@@ -95,7 +91,7 @@ async function deleteObsoleteItems(existingItemsMap, newItemsMap) {
   for (const existingItem of existingItemsMap.values()) {
     if (!newItemsMap.has(`${existingItem.category}-${existingItem.id}`)) {
       await docClient.send(new DeleteCommand({
-        TableName: TABLE_NAME,
+        TableName: PHRASES_TABLE_NAME,
         Key: { category: existingItem.category, id: existingItem.id },
       }));
       deleteCount++;
@@ -109,7 +105,7 @@ async function upsertItems(newItemsMap) {
   let upsertCount = 0;
   for (const item of newItemsMap.values()) {
     await docClient.send(new PutCommand({
-      TableName: TABLE_NAME,
+      TableName: PHRASES_TABLE_NAME,
       Item: item,
     }));
     upsertCount++;
@@ -129,7 +125,7 @@ async function seed() {
 
     // 既存の全アイテムを一度取得 (readCountとaverageTimeを保持するため)
     console.log("Fetching existing data from DynamoDB...");
-    const existingItemsScan = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
+    const existingItemsScan = await docClient.send(new ScanCommand({ TableName: PHRASES_TABLE_NAME }));
     const existingItemsMap = new Map(); // key: `${category}-${id}`
     (existingItemsScan.Items || []).forEach(item => {
         existingItemsMap.set(`${item.category}-${item.id}`, item);

@@ -1,10 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
-const docClient = DynamoDBDocumentClient.from(client);
-
-const TABLE_NAME = "karuta-phrases";
+const { pagedScanBackfill } = require("./pagedScanBackfill");
+const { PHRASES_TABLE_NAME } = require("./dynamoClient");
 
 // recordTimeを非アトミックな平均計算からDynamoDBのADDによる合計値（totalTime/totalDifficulty）
 // 加算方式に変更したことに伴い、既存アイテムのaverageTime/averageDifficulty（平均値）から
@@ -18,51 +13,25 @@ const TABLE_NAME = "karuta-phrases";
 // そのアイテムの移行前の履歴はtotalTimeに反映されないまま残る）。
 // 使い方: node backfill-total-stats.js
 async function backfillTotalStats() {
-  let updatedCount = 0;
-  let skippedCount = 0;
-  let exclusiveStartKey;
-
-  do {
-    const scanResult = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAME,
-      ExclusiveStartKey: exclusiveStartKey,
-    }));
-    const items = scanResult.Items || [];
-
-    for (const item of items) {
-      if (typeof item.totalTime === "number" && typeof item.totalDifficulty === "number") {
-        continue;
-      }
-
+  return pagedScanBackfill({
+    tableName: PHRASES_TABLE_NAME,
+    shouldSkip: (item) => typeof item.totalTime === "number" && typeof item.totalDifficulty === "number",
+    buildUpdate: (item) => {
       const readCount = item.readCount || 0;
       const totalTime = (item.averageTime || 0) * readCount;
       const totalDifficulty = (item.averageDifficulty || 0) * readCount;
-
-      try {
-        await docClient.send(new UpdateCommand({
-          TableName: TABLE_NAME,
-          Key: { category: item.category, id: item.id },
-          // Scan時点から実際の更新までの間にrecordTimeのADDが先に走っていた場合、
-          // このUpdateで上書きしてライブトラフィックの記録を消してしまわないようにする
-          ConditionExpression: "attribute_not_exists(totalTime)",
-          UpdateExpression: "set totalTime = :tt, totalDifficulty = :td",
-          ExpressionAttributeValues: { ":tt": totalTime, ":td": totalDifficulty },
-        }));
-        updatedCount++;
-      } catch (error) {
-        if (error.name === "ConditionalCheckFailedException") {
-          skippedCount++;
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    exclusiveStartKey = scanResult.LastEvaluatedKey;
-  } while (exclusiveStartKey);
-
-  console.log(`Backfilled totalTime/totalDifficulty for ${updatedCount} item(s), skipped ${skippedCount} item(s) already updated by live traffic.`);
-  return updatedCount;
+      return {
+        TableName: PHRASES_TABLE_NAME,
+        Key: { category: item.category, id: item.id },
+        // Scan時点から実際の更新までの間にrecordTimeのADDが先に走っていた場合、
+        // このUpdateで上書きしてライブトラフィックの記録を消してしまわないようにする
+        ConditionExpression: "attribute_not_exists(totalTime)",
+        UpdateExpression: "set totalTime = :tt, totalDifficulty = :td",
+        ExpressionAttributeValues: { ":tt": totalTime, ":td": totalDifficulty },
+      };
+    },
+    logLabel: "Backfilled totalTime/totalDifficulty",
+  });
 }
 
 module.exports = { backfillTotalStats };
