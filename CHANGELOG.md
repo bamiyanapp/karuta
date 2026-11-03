@@ -1,3 +1,10 @@
+## [1.119.6](https://github.com/bamiyanapp/karuta/compare/v1.119.5...v1.119.6) (2026-11-03)
+
+
+### Bug Fixes
+
+* **canary:** canaryスタック未存在時もstableの配信中バージョンを表示する ([#2010](https://github.com/bamiyanapp/karuta/issues/2010)) ([2b2f09d](https://github.com/bamiyanapp/karuta/commit/2b2f09dc680d1f1961bcc031cdbeebd9d558ffb0))
+
 ## [1.119.5](https://github.com/bamiyanapp/karuta/compare/v1.119.4...v1.119.5) (2026-11-03)
 
 
