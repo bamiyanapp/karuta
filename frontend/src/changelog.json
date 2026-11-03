@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.119.5",
+    "date": "2026/11/03",
+    "body": "### Bug Fixes\n\n* self_refの取り残しを解消しdev-standards参照をv2.115.6へ統一する ([#2002](https://github.com/bamiyanapp/karuta/issues/2002)) ([0555e7b](https://github.com/bamiyanapp/karuta/commit/0555e7b4899d1c057b792cb628c44f97e24b9d6d))"
+  },
+  {
     "version": "1.119.4",
-    "date": "2026/10/29",
+    "date": "2026/10/29 06:55",
     "body": "### Bug Fixes\n\n* **ci:** dev-standards参照をv2.114.2へ更新する ([#1954](https://github.com/bamiyanapp/karuta/issues/1954)) ([a963dcb](https://github.com/bamiyanapp/karuta/commit/a963dcbc6f7a687bd18eb1dbce72f849206474ac))"
   },
   {

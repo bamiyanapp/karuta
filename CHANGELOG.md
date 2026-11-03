@@ -1,3 +1,10 @@
+## [1.119.5](https://github.com/bamiyanapp/karuta/compare/v1.119.4...v1.119.5) (2026-11-03)
+
+
+### Bug Fixes
+
+* self_refの取り残しを解消しdev-standards参照をv2.115.6へ統一する ([#2002](https://github.com/bamiyanapp/karuta/issues/2002)) ([0555e7b](https://github.com/bamiyanapp/karuta/commit/0555e7b4899d1c057b792cb628c44f97e24b9d6d))
+
 ## [1.119.4](https://github.com/bamiyanapp/karuta/compare/v1.119.3...v1.119.4) (2026-10-29)
 
 
