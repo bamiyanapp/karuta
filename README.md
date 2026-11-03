@@ -35,6 +35,10 @@
 
 このセクションは自動生成される（手動で編集しないこと）。再生成するには`node scripts/docs/generate-dev-standards-version.js`を実行する（issue #1898）。
 
+### 現在のcanary運用状態
+
+現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は[canary運用状態](docs/generated/canary-status.md)を参照してください。これは`promote-canary.yml`の`status` jobが1日1回自動更新します（CD完了時は`canary-status.yml`が即時反映する、issue #1809）。
+
 ## Architecture
 
 自動生成ドキュメントの一覧は[docs/generated/README.md](docs/generated/README.md)を参照してください。以下はその一部を個別に示したもの。
@@ -119,8 +123,6 @@ graph TD
 本番デプロイへのブルーグリーン（カナリア）方式導入（issue #1319）に伴い、単一ステージ運用からstable/canary構成へ移行した（完了済み）。移行記録・karuta固有の実装詳細は[単一ステージ運用からstable/canaryへの移行記録](docs/blue-green-stage-migration.md) を参照してください。パターン自体の一般的な仕組みは[dev-standards/docs/blue-green-stage-pattern.md](https://github.com/bamiyanapp/dev-standards/blob/main/docs/blue-green-stage-pattern.md)を参照してください。
 
 `stable`・`canary`は共存期間中、同一DynamoDBテーブルを共有する。このためのスキーマ変更の開発規律については、[stable/canary共存中のDynamoDBスキーマ互換性ガイドライン](docs/dynamodb-schema-compatibility-canary.md) を参照してください。
-
-現在のcanary運用状態（重み・ロールバック状態・反映待ちPR一覧等）は[canary運用状態](docs/generated/canary-status.md)を参照してください。これは`promote-canary.yml`の`status` jobが1日1回自動更新します（CD完了時は`canary-status.yml`が即時反映する、issue #1809）。
 
 ## 運用
 
