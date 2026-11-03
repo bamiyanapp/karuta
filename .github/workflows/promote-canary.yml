@@ -526,10 +526,14 @@ jobs:
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+          if [ -n "${{ steps.version.outputs.stable_version }}" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
               echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
@@ -579,10 +583,14 @@ jobs:
             echo "| canary_queue_pending（反映待ちのマージがあるか） | ${{ steps.status.outputs.canary_queue_pending }} |"
             echo "| canaryスタックが存在するか | ${{ steps.status.outputs.canary_exists }} |"
           } > docs/generated/canary-status.md
-          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+          if [ -n "${{ steps.version.outputs.stable_version }}" ]; then
             {
               echo "| stableの最終更新 | ${{ steps.status.outputs.stable_last_updated || '（stableスタックが存在しない）' }} |"
               echo "| stableの配信中バージョン | ${{ steps.version.outputs.stable_version }} |"
+            } >> docs/generated/canary-status.md
+          fi
+          if [ "${{ steps.status.outputs.canary_exists }}" = "true" ]; then
+            {
               echo "| canaryの最終更新 | ${{ steps.status.outputs.canary_last_updated }} |"
               echo "| canaryの配信中バージョン | ${{ steps.version.outputs.canary_version }} |"
               echo "| 本番昇格の条件を満たす日時（この日時を過ぎたcron発火で初めて昇格する） | ${{ steps.status.outputs.promotion_eligible_at }}以降 |"
