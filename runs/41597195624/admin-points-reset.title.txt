@@ -1,0 +1,1 @@
+admin resets participant points (issue #615)
