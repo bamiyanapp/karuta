@@ -39,16 +39,28 @@
       "description": "CI（ci.yml）・CD（cd.yml）・backend Lambdaランタイム（nodejs22.x、issue #609）でNode.jsのメジャーバージョンを統一している（issue #610）。自動更新を許すとRenovateが検知できる参照（.nvmrc・cd.ymlのsetup-node等）だけが更新され、検知できない参照（ci.ymlのnode_version input等）が取り残されて3者が再びずれるため、メジャー更新は手動で全参照を揃えてから行う（実際にissue #610の修正がPR #673により部分的に巻き戻された）"
     },
     {
-      "matchManagers": ["github-actions"],
+      "matchManagers": ["github-actions", "custom.regex"],
       "matchPackageNames": ["bamiyanapp/dev-standards"],
       "minimumReleaseAge": "0 days",
-      "description": "dev-standardsは同一組織内（身内）のプロジェクトであり、不特定多数が公開する外部パッケージとは異なりコミュニティ検証待ちの必要性が薄い。トップレベルのminimumReleaseAge（3日）の例外として、workflow参照（uses:）は即時にPR作成させる"
+      "groupName": "dev-standards workflow version",
+      "description": "dev-standardsは同一組織内（身内）のプロジェクトであり、不特定多数が公開する外部パッケージとは異なりコミュニティ検証待ちの必要性が薄い。トップレベルのminimumReleaseAge（3日）の例外として、workflow参照（uses:）・self_ref（下記customManagers）は即時にPR作成させる。groupNameで束ねることで、uses:行とself_ref行が必ず同じPRで一緒に更新され、ズレが発生しない（issue #2040・dev-standards#1316）"
     },
     {
       "matchManagers": ["git-submodules"],
       "matchDepNames": ["dev-standards"],
       "minimumReleaseAge": "0 days",
       "description": "上記と同じ理由。git submoduleとしての参照（dev-standardsディレクトリ）にも適用する"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "self_refはuses:行と同じdev-standardsバージョンを指すべきだが、Renovateのgithub-actionsマネージャーはプレーンな文字列入力であるself_ref:を検知しない。正規表現で明示的に検知対象へ加える（issue #2040・dev-standards#1316）",
+      "managerFilePatterns": ["^\\.github/workflows/.*\\.yml$"],
+      "matchStrings": ["self_ref: v(?<currentValue>[\\d.]+)"],
+      "depNameTemplate": "bamiyanapp/dev-standards",
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ]
 }
