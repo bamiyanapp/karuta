@@ -1,3 +1,10 @@
+## [1.120.1](https://github.com/bamiyanapp/karuta/compare/v1.120.0...v1.120.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **renovate:** self_refをRenovateの更新対象へ加える ([#2043](https://github.com/bamiyanapp/karuta/issues/2043)) ([caf8d6f](https://github.com/bamiyanapp/karuta/commit/caf8d6f5e6330fdf0f938c0c2564811a97105bdb))
+
 # [1.120.0](https://github.com/bamiyanapp/karuta/compare/v1.119.7...v1.120.0) (2026-11-07)
 
 

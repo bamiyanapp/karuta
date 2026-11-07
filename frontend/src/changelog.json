@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.120.0",
+    "version": "1.120.1",
     "date": "2026/11/07",
+    "body": "### Bug Fixes\n\n* **renovate:** self_refをRenovateの更新対象へ加える ([#2043](https://github.com/bamiyanapp/karuta/issues/2043)) ([caf8d6f](https://github.com/bamiyanapp/karuta/commit/caf8d6f5e6330fdf0f938c0c2564811a97105bdb))"
+  },
+  {
+    "version": "1.120.0",
+    "date": "2026/11/07 13:38",
     "body": "### Features\n\n* **ci/cd:** SBOM添付・secret scan機能を有効化し、self_refのズレを修正する ([#2041](https://github.com/bamiyanapp/karuta/issues/2041)) ([f81f7ab](https://github.com/bamiyanapp/karuta/commit/f81f7abef42c27009a5ebc8b9c809a9c9b70b287))"
   },
   {
