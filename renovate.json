@@ -18,6 +18,11 @@
       "separateMajorMinor": false
     },
     {
+      "groupName": "stylelint",
+      "matchPackageNames": ["stylelint", "stylelint-config-standard"],
+      "separateMajorMinor": false
+    },
+    {
       "groupName": "eslint",
       "matchPackageNames": [
         "eslint",
