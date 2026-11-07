@@ -41,7 +41,7 @@ jobs:
     # refと同じ値をself_refとして渡す必要がある
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.119.0
     with:
-      self_ref: v2.115.6
+      self_ref: v2.119.0
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -154,6 +154,11 @@ jobs:
       # （絶対URL化、PR #883）のため、.claude/skills/配下も対象に含める
       enable_dead_link_check: true
       dead_link_check_paths: "docs/*.md\nREADME.md\nCLAUDE.md\n.claude/skills/**/*.md"
+      # issue #2040: PR差分へ誤ってコミットされた認証情報を検知する
+      # （dev-standards issue #892・#1268）。CodeQL（SAST）はコードの脆弱性
+      # パターンを検知するものであり、誤ってコミットされた具体的な秘密情報
+      # （APIキー・トークン等）の検出とは別物のため個別に有効化する
+      enable_secret_scan: true
       # Markdownドキュメント間の丸ごとコピペ重複を検知する
       # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
       # 導入直後のためレポート表示のみとする
@@ -215,7 +220,7 @@ jobs:
     with:
       lockfile_path: package-lock.json
       direct_only: true
-      self_ref: v2.115.6
+      self_ref: v2.119.0
 
   # issue #1914。README.mdのdev-standardsバージョン表示（issue #1898/#1899）は
   # npm run docs:generate経由の手動実行専用で、CIからは一切呼ばれていなかった。

@@ -105,7 +105,7 @@ jobs:
       # issue #1622相当。過去のコミット履歴対応分（Feat/fix・Fix/tech）も含めた
       # karuta独自のconventional commitsタイプ判定。既定値より広い
       release_type_regex: '^(feat|fix|refactor|feat/fix|fix/tech)(\(|!|:)'
-      self_ref: v2.115.6
+      self_ref: v2.119.0
       docs_output_path: docs/generated/canary-status.md
       rollback_set_true_workflow: rollback-to-stable.yml
       rollback_set_false_workflow: clear-force-stable.yml

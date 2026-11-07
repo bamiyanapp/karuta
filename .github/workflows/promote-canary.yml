@@ -687,7 +687,21 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.119.0
     with:
       lockfile_path: package-lock.json
-      self_ref: v2.115.6
+      self_ref: v2.119.0
+
+  secret-full-scan:
+    name: シークレット遡及スキャン
+    # issue #2040: PR差分のsecret-scan（ci.yml）は既存履歴に残る過去の誤検知を
+    # 避けるため差分のみを対象にする設計のため、既にmainへマージ済みの
+    # シークレットは一度も検知対象に入らない。dependency-full-scanと同じ
+    # cronへ統合し、日次で必ず目に入るようにする（dev-standards issue #1307）
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 15 * * *')
+    permissions:
+      contents: read
+      issues: write
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-secret-full-scan.yml@v2.119.0
+    with:
+      self_ref: v2.119.0
 
   resolve-runtime-endpoints:
     name: "ランタイムスキャン対象エンドポイントを解決する"
@@ -756,4 +770,4 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.119.0
     with:
       endpoints: ${{ needs.resolve-runtime-endpoints.outputs.endpoints }}
-      self_ref: v2.115.6
+      self_ref: v2.119.0
