@@ -24,6 +24,10 @@ jobs:
       enable_changelog_json: true
       changelog_json_output_path: frontend/src/changelog.json
       enable_shared_release_config: true
+      # issue #2040: リリース成立時にCycloneDX形式のSBOMをGitHub Releaseへ
+      # 添付する（dev-standards issue #1306）。PRごとのSBOM生成（reusable-ci.yml）
+      # とは別に、リリース済みバージョンのSBOMを恒久的に残す
+      enable_release_sbom: true
     secrets:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
