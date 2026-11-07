@@ -1,3 +1,10 @@
+# [1.120.0](https://github.com/bamiyanapp/karuta/compare/v1.119.7...v1.120.0) (2026-11-07)
+
+
+### Features
+
+* **ci/cd:** SBOM添付・secret scan機能を有効化し、self_refのズレを修正する ([#2041](https://github.com/bamiyanapp/karuta/issues/2041)) ([f81f7ab](https://github.com/bamiyanapp/karuta/commit/f81f7abef42c27009a5ebc8b9c809a9c9b70b287))
+
 ## [1.119.7](https://github.com/bamiyanapp/karuta/compare/v1.119.6...v1.119.7) (2026-11-07)
 
 

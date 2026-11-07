@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.119.7",
+    "version": "1.120.0",
     "date": "2026/11/07",
+    "body": "### Features\n\n* **ci/cd:** SBOM添付・secret scan機能を有効化し、self_refのズレを修正する ([#2041](https://github.com/bamiyanapp/karuta/issues/2041)) ([f81f7ab](https://github.com/bamiyanapp/karuta/commit/f81f7abef42c27009a5ebc8b9c809a9c9b70b287))"
+  },
+  {
+    "version": "1.119.7",
+    "date": "2026/11/07 11:07",
     "body": "### Bug Fixes\n\n* **renovate:** stylelintとstylelint-config-standardをグループ化する ([#2033](https://github.com/bamiyanapp/karuta/issues/2033)) ([bf81824](https://github.com/bamiyanapp/karuta/commit/bf81824c04b3ceaff3d1b092a3ed672e6f15dc34))"
   },
   {
