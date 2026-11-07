@@ -1,3 +1,10 @@
+## [1.119.7](https://github.com/bamiyanapp/karuta/compare/v1.119.6...v1.119.7) (2026-11-07)
+
+
+### Bug Fixes
+
+* **renovate:** stylelintとstylelint-config-standardをグループ化する ([#2033](https://github.com/bamiyanapp/karuta/issues/2033)) ([bf81824](https://github.com/bamiyanapp/karuta/commit/bf81824c04b3ceaff3d1b092a3ed672e6f15dc34))
+
 ## [1.119.6](https://github.com/bamiyanapp/karuta/compare/v1.119.5...v1.119.6) (2026-11-03)
 
 
