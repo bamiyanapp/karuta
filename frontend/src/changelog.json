@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.119.7",
+    "date": "2026/11/07",
+    "body": "### Bug Fixes\n\n* **renovate:** stylelintとstylelint-config-standardをグループ化する ([#2033](https://github.com/bamiyanapp/karuta/issues/2033)) ([bf81824](https://github.com/bamiyanapp/karuta/commit/bf81824c04b3ceaff3d1b092a3ed672e6f15dc34))"
+  },
+  {
     "version": "1.119.6",
-    "date": "2026/11/03",
+    "date": "2026/11/03 07:40",
     "body": "### Bug Fixes\n\n* **canary:** canaryスタック未存在時もstableの配信中バージョンを表示する ([#2010](https://github.com/bamiyanapp/karuta/issues/2010)) ([2b2f09d](https://github.com/bamiyanapp/karuta/commit/2b2f09dc680d1f1961bcc031cdbeebd9d558ffb0))"
   },
   {
