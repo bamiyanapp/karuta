@@ -1,3 +1,10 @@
+# [1.122.0](https://github.com/bamiyanapp/karuta/compare/v1.121.0...v1.122.0) (2026-11-08)
+
+
+### Features
+
+* **ci:** PRで署名なしiOSビルドを検証するjobを追加する ([#2066](https://github.com/bamiyanapp/karuta/issues/2066)) ([29390d8](https://github.com/bamiyanapp/karuta/commit/29390d86ae8b2232bd4335605b3d115f93d0c9c4)), closes [#2065](https://github.com/bamiyanapp/karuta/issues/2065)
+
 # [1.121.0](https://github.com/bamiyanapp/karuta/compare/v1.120.1...v1.121.0) (2026-11-08)
 
 

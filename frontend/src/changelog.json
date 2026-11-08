@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.121.0",
+    "version": "1.122.0",
     "date": "2026/11/08",
+    "body": "### Features\n\n* **ci:** PRで署名なしiOSビルドを検証するjobを追加する ([#2066](https://github.com/bamiyanapp/karuta/issues/2066)) ([29390d8](https://github.com/bamiyanapp/karuta/commit/29390d86ae8b2232bd4335605b3d115f93d0c9c4)), closes [#2065](https://github.com/bamiyanapp/karuta/issues/2065)"
+  },
+  {
+    "version": "1.121.0",
+    "date": "2026/11/08 05:48",
     "body": "### Features\n\n* **frontend:** CapacitorでiOSネイティブプロジェクトを追加する ([#2061](https://github.com/bamiyanapp/karuta/issues/2061)) ([75a18ab](https://github.com/bamiyanapp/karuta/commit/75a18ab56f8956abe283f4b9d7c913a1c9c4cf77))"
   },
   {
