@@ -8,7 +8,10 @@ import importX, { createNodeResolver } from 'eslint-plugin-import-x'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/changelog.json', 'coverage']),
+  // ios: issue #2060でCapacitorが生成したネイティブプロジェクト。
+  // ios/App/App/publicはdistのコピー、cordova.js等はCapacitor/Cordova本体の
+  // 配布物であり、いずれも自分で書いたコードではないため対象外とする
+  globalIgnores(['dist', 'src/changelog.json', 'coverage', 'ios']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
