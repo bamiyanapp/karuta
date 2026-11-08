@@ -31,3 +31,12 @@ Thumbs.db
 # commit skill が下書きに使う一時ファイル
 commit_msg*.txt
 # --- dev-standards managed: end ---
+
+# Capacitor（issue #2060）: ios/App/App/publicはnpx cap copy/syncで
+# distから再生成される。Xcodeのユーザー固有状態・ビルド中間物も対象外とする
+frontend/ios/App/App/public/
+frontend/ios/**/*.xcuserstate
+frontend/ios/**/xcuserdata/
+frontend/ios/DerivedData/
+frontend/ios/App/Pods/
+frontend/ios/App/Podfile.lock

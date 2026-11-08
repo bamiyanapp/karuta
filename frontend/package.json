@@ -14,9 +14,13 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "predeploy": "npm run build",
-    "deploy": "npx gh-pages -d dist"
+    "deploy": "npx gh-pages -d dist",
+    "cap:sync": "npm run build && npx cap sync ios",
+    "cap:open:ios": "npm run cap:sync && npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "@fontsource/m-plus-rounded-1c": "^5.3.0",
     "bootstrap": "^5.3.0",
     "qrcode": "^1.5.4",
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@capacitor/cli": "^8.6.0",
     "@eslint/js": "^10.0.0",
     "@lhci/cli": "^0.16.0",
     "@playwright/test": "^1.61.1",
