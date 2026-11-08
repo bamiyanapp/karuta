@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.122.0",
+    "version": "1.123.0",
     "date": "2026/11/08",
+    "body": "### Features\n\n* **ci:** iOSシミュレータ用ビルドをCIアーティファクトとして保存する ([#2079](https://github.com/bamiyanapp/karuta/issues/2079)) ([95ddb19](https://github.com/bamiyanapp/karuta/commit/95ddb195e5dd8e490cd8a888176e6bcb9be46a4b))"
+  },
+  {
+    "version": "1.122.0",
+    "date": "2026/11/08 08:27",
     "body": "### Features\n\n* **ci:** PRで署名なしiOSビルドを検証するjobを追加する ([#2066](https://github.com/bamiyanapp/karuta/issues/2066)) ([29390d8](https://github.com/bamiyanapp/karuta/commit/29390d86ae8b2232bd4335605b3d115f93d0c9c4)), closes [#2065](https://github.com/bamiyanapp/karuta/issues/2065)"
   },
   {

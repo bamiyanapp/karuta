@@ -1,3 +1,10 @@
+# [1.123.0](https://github.com/bamiyanapp/karuta/compare/v1.122.0...v1.123.0) (2026-11-08)
+
+
+### Features
+
+* **ci:** iOSシミュレータ用ビルドをCIアーティファクトとして保存する ([#2079](https://github.com/bamiyanapp/karuta/issues/2079)) ([95ddb19](https://github.com/bamiyanapp/karuta/commit/95ddb195e5dd8e490cd8a888176e6bcb9be46a4b))
+
 # [1.122.0](https://github.com/bamiyanapp/karuta/compare/v1.121.0...v1.122.0) (2026-11-08)
 
 
