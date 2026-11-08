@@ -1,3 +1,10 @@
+# [1.121.0](https://github.com/bamiyanapp/karuta/compare/v1.120.1...v1.121.0) (2026-11-08)
+
+
+### Features
+
+* **frontend:** CapacitorでiOSネイティブプロジェクトを追加する ([#2061](https://github.com/bamiyanapp/karuta/issues/2061)) ([75a18ab](https://github.com/bamiyanapp/karuta/commit/75a18ab56f8956abe283f4b9d7c913a1c9c4cf77))
+
 ## [1.120.1](https://github.com/bamiyanapp/karuta/compare/v1.120.0...v1.120.1) (2026-11-07)
 
 

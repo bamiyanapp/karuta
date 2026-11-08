@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.121.0",
+    "date": "2026/11/08",
+    "body": "### Features\n\n* **frontend:** CapacitorでiOSネイティブプロジェクトを追加する ([#2061](https://github.com/bamiyanapp/karuta/issues/2061)) ([75a18ab](https://github.com/bamiyanapp/karuta/commit/75a18ab56f8956abe283f4b9d7c913a1c9c4cf77))"
+  },
+  {
     "version": "1.120.1",
-    "date": "2026/11/07",
+    "date": "2026/11/07 14:19",
     "body": "### Bug Fixes\n\n* **renovate:** self_refをRenovateの更新対象へ加える ([#2043](https://github.com/bamiyanapp/karuta/issues/2043)) ([caf8d6f](https://github.com/bamiyanapp/karuta/commit/caf8d6f5e6330fdf0f938c0c2564811a97105bdb))"
   },
   {
