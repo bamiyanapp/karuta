@@ -336,7 +336,7 @@ jobs:
       # Mac側の作業が必要なため、デバッグ・保全目的であり実機動作確認には使えない
       - name: iOSシミュレータ用ビルドをアーティファクトとして保存する
         if: steps.filter.outputs.frontend == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-simulator-app
           path: frontend/ios/App/build/App.app
