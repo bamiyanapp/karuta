@@ -48,7 +48,7 @@
     "eslint-plugin-react-refresh": "^0.5.0",
     "eslint-plugin-sonarjs": "^4.2.2",
     "globals": "^17.0.0",
-    "jsdom": "^30.0.0",
+    "jsdom": "^31.0.0",
     "monocart-reporter": "^2.12.2",
     "stylelint": "^17.15.0",
     "stylelint-config-standard": "^40.0.0",
