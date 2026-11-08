@@ -316,6 +316,8 @@ jobs:
       # （Package.swift）がビルド時にパッケージプラグインの実行確認を要求し
       # 失敗することがあるため、公式ドキュメントが推奨するworkaroundを付与する
       # （署名無し検証のため、CODE_SIGNING_ALLOWED=NOでコード署名自体を無効化する）
+      # CONFIGURATION_BUILD_DIRで出力先を固定し、後続のartifactアップロード
+      # ステップから既知のパスとして参照できるようにする（issue #2077）
       - name: Xcodeでビルドする（署名なし）
         if: steps.filter.outputs.frontend == 'true'
         working-directory: frontend/ios/App
@@ -326,4 +328,16 @@ jobs:
             -destination "generic/platform=iOS Simulator" \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO \
+            CONFIGURATION_BUILD_DIR="$PWD/build" \
             build
+
+      # issue #2077。シミュレータ専用（実機非対応、署名なし）のビルド成果物を
+      # 保全目的でアーティファクトとして保存する。Xcode Simulatorで開くには
+      # Mac側の作業が必要なため、デバッグ・保全目的であり実機動作確認には使えない
+      - name: iOSシミュレータ用ビルドをアーティファクトとして保存する
+        if: steps.filter.outputs.frontend == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: frontend/ios/App/build/App.app
+          retention-days: 14
