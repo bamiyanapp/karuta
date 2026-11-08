@@ -261,3 +261,69 @@ jobs:
           commit-body: "ci.ymlのsync-dev-standards-version-docジョブによる自動コミットです（issue #1914）。"
           branch-prefix: "chore/dev-standards-version-doc"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # issue #2065 Phase 2。Capacitor（issue #2060/#2061）導入後、iOSビルドが
+  # 壊れていないことをPR時に確認する最初の段階。署名は行わず、Xcodeビルドが
+  # 成功することのみを検証する（TestFlight配布等の署名が必要な工程は後続
+  # フェーズで別workflowに切り出す）。
+  #
+  # macOSランナーはLinuxの10倍のAction分を消費するため（GitHub公式billing
+  # 文書で確認済み）、frontend/配下の変更が無いPR・pushでは実行しない
+  # （dorny/paths-filter、reusable-ci.yml本体と同じaction・バージョンに揃える）
+  ios-build:
+    name: "iOSビルド（署名なし）"
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # macos-latestは2026年6月以降macos-26を指す（GitHub公式runner-images、
+    # issue #2065 Phase 1調査）。具体的なラベルをハードコードせず、GitHubの
+    # 既定更新に追従させる
+    runs-on: macos-latest
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+
+      - name: frontend配下の変更有無を判定する
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+
+      - name: Node.jsをセットアップする
+        if: steps.filter.outputs.frontend == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: 依存パッケージをインストールする
+        if: steps.filter.outputs.frontend == 'true'
+        working-directory: frontend
+        run: npm ci
+
+      - name: Webアセットをビルドする
+        if: steps.filter.outputs.frontend == 'true'
+        working-directory: frontend
+        run: npm run build
+
+      # cap syncはビルド済みdist/をios/App/App/publicへ反映し、Capacitor
+      # pluginのSPM定義（Package.swift）も必要に応じて更新する
+      - name: Capacitorでネイティブプロジェクトへ同期する
+        if: steps.filter.outputs.frontend == 'true'
+        working-directory: frontend
+        run: npx cap sync ios
+
+      # -skipPackagePluginValidationはCapacitorプラグインのSPM構成
+      # （Package.swift）がビルド時にパッケージプラグインの実行確認を要求し
+      # 失敗することがあるため、公式ドキュメントが推奨するworkaroundを付与する
+      # （署名無し検証のため、CODE_SIGNING_ALLOWED=NOでコード署名自体を無効化する）
+      - name: Xcodeでビルドする（署名なし）
+        if: steps.filter.outputs.frontend == 'true'
+        working-directory: frontend/ios/App
+        run: |
+          set -eu
+          xcodebuild -scheme App -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            build
