@@ -1,3 +1,8 @@
+# 【アーカイブ済み】issue #2070: 対応issueがクローズ済みのため.github/workflows/から
+# .github/workflows-archive/へ退避した。GitHub ActionsはこのパスをActions画面の
+# ワークフロー一覧に表示・実行対象として認識しないため、同じ検証が必要な場合は
+# 本ファイルを参考に.github/workflows/配下へ復元してから使う
+#
 name: Verify Blue-Green Routing (issue #1322)
 run-name: Verify Blue-Green Routing (manual)
 
