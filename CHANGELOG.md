@@ -1,3 +1,10 @@
+## [1.123.1](https://github.com/bamiyanapp/karuta/compare/v1.123.0...v1.123.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* useQuizRoomAdminのハンドシェイク中表示アサーションをwaitForに変更する ([#2140](https://github.com/bamiyanapp/karuta/issues/2140)) ([7289137](https://github.com/bamiyanapp/karuta/commit/7289137f33842358adea8323cd34e7e341089b47)), closes [#2139](https://github.com/bamiyanapp/karuta/issues/2139)
+
 # [1.123.0](https://github.com/bamiyanapp/karuta/compare/v1.122.0...v1.123.0) (2026-11-08)
 
 
