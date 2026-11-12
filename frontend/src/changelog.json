@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.123.1",
+    "version": "1.123.2",
     "date": "2026/11/12",
+    "body": "### Bug Fixes\n\n* iOSビルドjobでdev-standards submoduleを取得する ([#2142](https://github.com/bamiyanapp/karuta/issues/2142)) ([5ab97f6](https://github.com/bamiyanapp/karuta/commit/5ab97f68cca02d95c325c8d30df68ab11bd8b70e)), closes [#2141](https://github.com/bamiyanapp/karuta/issues/2141)"
+  },
+  {
+    "version": "1.123.1",
+    "date": "2026/11/12 21:10",
     "body": "### Bug Fixes\n\n* useQuizRoomAdminのハンドシェイク中表示アサーションをwaitForに変更する ([#2140](https://github.com/bamiyanapp/karuta/issues/2140)) ([7289137](https://github.com/bamiyanapp/karuta/commit/7289137f33842358adea8323cd34e7e341089b47)), closes [#2139](https://github.com/bamiyanapp/karuta/issues/2139)"
   },
   {
