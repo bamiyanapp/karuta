@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.123.2",
+    "version": "1.123.3",
     "date": "2026/11/12",
+    "body": "### Bug Fixes\n\n* frontendにtypescriptを追加しcapacitor.config.tsの読み込みを修復する ([#2155](https://github.com/bamiyanapp/karuta/issues/2155)) ([4df480e](https://github.com/bamiyanapp/karuta/commit/4df480e50e17212d8e30c294d6425086bc61de8f)), closes [#2154](https://github.com/bamiyanapp/karuta/issues/2154)"
+  },
+  {
+    "version": "1.123.2",
+    "date": "2026/11/12 21:19",
     "body": "### Bug Fixes\n\n* iOSビルドjobでdev-standards submoduleを取得する ([#2142](https://github.com/bamiyanapp/karuta/issues/2142)) ([5ab97f6](https://github.com/bamiyanapp/karuta/commit/5ab97f68cca02d95c325c8d30df68ab11bd8b70e)), closes [#2141](https://github.com/bamiyanapp/karuta/issues/2141)"
   },
   {
