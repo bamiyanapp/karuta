@@ -1,3 +1,10 @@
+## [1.123.2](https://github.com/bamiyanapp/karuta/compare/v1.123.1...v1.123.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* iOSビルドjobでdev-standards submoduleを取得する ([#2142](https://github.com/bamiyanapp/karuta/issues/2142)) ([5ab97f6](https://github.com/bamiyanapp/karuta/commit/5ab97f68cca02d95c325c8d30df68ab11bd8b70e)), closes [#2141](https://github.com/bamiyanapp/karuta/issues/2141)
+
 ## [1.123.1](https://github.com/bamiyanapp/karuta/compare/v1.123.0...v1.123.1) (2026-11-12)
 
 
