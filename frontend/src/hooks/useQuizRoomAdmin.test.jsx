@@ -295,7 +295,15 @@ describe('useQuizRoomAdmin (via App)', () => {
     // ハンドシェイク中（まだonopenが呼ばれていない）は「接続中...」の警告が
     // 出るが、再接続ボタンはまだ出さない（一時的な状態であり、ユーザー操作を
     // 促す必要が無いため）
-    expect(screen.getByText(/クイズ大会の接続状態: 接続中/)).toBeInTheDocument();
+    //
+    // issue #2139: roomId確定直後の1レンダリングは、connect()を呼ぶuseEffectが
+    // まだ走っておらずinternalStatusが初期値"idle"（未接続）のままになる
+    // （useQuizRoomSync.js）。そのレンダリングと、effect実行後に"connecting"へ
+    // 変わるレンダリングのどちらを拾うかは環境のスケジューリング次第でぶれるため、
+    // 同期的なgetByTextではflakyになる。waitForで"接続中"への遷移を待つ
+    await waitFor(() => {
+      expect(screen.getByText(/クイズ大会の接続状態: 接続中/)).toBeInTheDocument();
+    });
     expect(screen.queryByText('再接続')).not.toBeInTheDocument();
 
     // 再接続の待ち時間（3秒間隔）を手動で進めるため、ここでフェイクタイマーへ
