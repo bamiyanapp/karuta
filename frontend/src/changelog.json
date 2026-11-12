@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.123.1",
+    "date": "2026/11/12",
+    "body": "### Bug Fixes\n\n* useQuizRoomAdminのハンドシェイク中表示アサーションをwaitForに変更する ([#2140](https://github.com/bamiyanapp/karuta/issues/2140)) ([7289137](https://github.com/bamiyanapp/karuta/commit/7289137f33842358adea8323cd34e7e341089b47)), closes [#2139](https://github.com/bamiyanapp/karuta/issues/2139)"
+  },
+  {
     "version": "1.123.0",
-    "date": "2026/11/08",
+    "date": "2026/11/08 20:58",
     "body": "### Features\n\n* **ci:** iOSシミュレータ用ビルドをCIアーティファクトとして保存する ([#2079](https://github.com/bamiyanapp/karuta/issues/2079)) ([95ddb19](https://github.com/bamiyanapp/karuta/commit/95ddb195e5dd8e490cd8a888176e6bcb9be46a4b))"
   },
   {
