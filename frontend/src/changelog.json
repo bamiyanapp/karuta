@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.123.3",
+    "version": "1.123.4",
     "date": "2026/11/12",
+    "body": "### Bug Fixes\n\n* マージ時にeslint-plugin-import-xが4.17.1へ巻き戻っていたのを修正する ([5b11304](https://github.com/bamiyanapp/karuta/commit/5b11304467393244d5ff33580c6a69fc98641e21))"
+  },
+  {
+    "version": "1.123.3",
+    "date": "2026/11/12 22:55",
     "body": "### Bug Fixes\n\n* frontendにtypescriptを追加しcapacitor.config.tsの読み込みを修復する ([#2155](https://github.com/bamiyanapp/karuta/issues/2155)) ([4df480e](https://github.com/bamiyanapp/karuta/commit/4df480e50e17212d8e30c294d6425086bc61de8f)), closes [#2154](https://github.com/bamiyanapp/karuta/issues/2154)"
   },
   {

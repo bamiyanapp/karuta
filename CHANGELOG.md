@@ -1,3 +1,10 @@
+## [1.123.4](https://github.com/bamiyanapp/karuta/compare/v1.123.3...v1.123.4) (2026-11-12)
+
+
+### Bug Fixes
+
+* マージ時にeslint-plugin-import-xが4.17.1へ巻き戻っていたのを修正する ([5b11304](https://github.com/bamiyanapp/karuta/commit/5b11304467393244d5ff33580c6a69fc98641e21))
+
 ## [1.123.3](https://github.com/bamiyanapp/karuta/compare/v1.123.2...v1.123.3) (2026-11-12)
 
 
