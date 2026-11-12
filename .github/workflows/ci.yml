@@ -278,8 +278,14 @@ jobs:
     # 既定更新に追従させる
     runs-on: macos-latest
     steps:
+      # issue #2141: submodules未指定だとdev-standards submoduleが取得されず、
+      # frontend/getAppVersionDefine.js・frontend/createVersionJsonPlugin.js
+      # （dev-standards/shared/ui/配下へのsymlink）の解決に失敗してビルドが
+      # 落ちる（frontend配下に変更があるPR・push全てで再現する既存バグだった）
       - name: チェックアウトする
         uses: actions/checkout@v7
+        with:
+          submodules: true
 
       - name: frontend配下の変更有無を判定する
         id: filter
