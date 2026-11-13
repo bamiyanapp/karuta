@@ -5,7 +5,7 @@
       "startServerReadyPattern": "Local",
       "startServerReadyTimeout": 20000,
       "url": ["http://localhost:4173/"],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": {
         "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
       }
