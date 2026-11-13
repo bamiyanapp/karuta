@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.123.5",
+    "date": "2026/11/13",
+    "body": "### Bug Fixes\n\n* Lighthouse CIのnumberOfRunsを1から3へ増やす ([#2163](https://github.com/bamiyanapp/karuta/issues/2163)) ([0013e24](https://github.com/bamiyanapp/karuta/commit/0013e24446270b0c518627bc0f6a840177dbe27e))"
+  },
+  {
     "version": "1.123.4",
-    "date": "2026/11/12",
+    "date": "2026/11/12 23:22",
     "body": "### Bug Fixes\n\n* マージ時にeslint-plugin-import-xが4.17.1へ巻き戻っていたのを修正する ([5b11304](https://github.com/bamiyanapp/karuta/commit/5b11304467393244d5ff33580c6a69fc98641e21))"
   },
   {
