@@ -1,3 +1,10 @@
+## [1.123.5](https://github.com/bamiyanapp/karuta/compare/v1.123.4...v1.123.5) (2026-11-13)
+
+
+### Bug Fixes
+
+* Lighthouse CIのnumberOfRunsを1から3へ増やす ([#2163](https://github.com/bamiyanapp/karuta/issues/2163)) ([0013e24](https://github.com/bamiyanapp/karuta/commit/0013e24446270b0c518627bc0f6a840177dbe27e))
+
 ## [1.123.4](https://github.com/bamiyanapp/karuta/compare/v1.123.3...v1.123.4) (2026-11-12)
 
 
