@@ -1,3 +1,10 @@
+## [1.123.6](https://github.com/bamiyanapp/karuta/compare/v1.123.5...v1.123.6) (2026-11-17)
+
+
+### Bug Fixes
+
+* get-phraseのrepeatCount・speechRate・langを許可リストで正規化する ([#2224](https://github.com/bamiyanapp/karuta/issues/2224)) ([12049fb](https://github.com/bamiyanapp/karuta/commit/12049fb3a0abd2c0102c2f0d5bbae062bda7c0d8))
+
 ## [1.123.5](https://github.com/bamiyanapp/karuta/compare/v1.123.4...v1.123.5) (2026-11-13)
 
 
