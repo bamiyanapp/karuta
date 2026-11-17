@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
+import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
 import { getCategories, getPhrasesList, getComments, postComment, getPhrase, getCongratulationAudio, recordTime, reportClientError, resolveAllowedOrigin, getVersion } from './handler';
@@ -8,6 +9,7 @@ import { UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const rateLimitDdbMock = mockClient(DynamoDBClient); // レート制限カウンタ（issue #2188）はlib-dynamodbではなく低レベルクライアントを使う
 const pollyMock = mockClient(PollyClient);
 
 vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid');
@@ -1427,6 +1429,93 @@ describe('reportClientError', () => {
         const event = { body: '{invalid json' };
         const response = await reportClientError(event);
         expect(response.statusCode).toBe(500);
+    });
+
+    // issue #2188: 認証なしの公開APIを、送信元IP単位・1日あたりの回数で制限する。
+    // 回数のカウント（dailyRateLimit.js）自体はdev-standards側のテストで検証済みのため、
+    // ここではhandler.jsの結線（超過時に429・LINE通知の総量上限・障害時のfail-open）を確認する
+    describe('レート制限（issue #2188）', () => {
+        const event = {
+            requestContext: { identity: { sourceIp: '203.0.113.7' } },
+            body: JSON.stringify({ message: 'テスト用の例外', url: 'https://bamiyanapp.github.io/karuta/' }),
+        };
+        const conditionalFailure = () => Object.assign(new Error('limit'), { name: 'ConditionalCheckFailedException' });
+
+        beforeEach(() => {
+            process.env.RATE_LIMIT_TABLE_NAME = 'rate-limit-table';
+            rateLimitDdbMock.reset();
+        });
+
+        afterEach(() => {
+            delete process.env.RATE_LIMIT_TABLE_NAME;
+            delete process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN;
+            delete process.env.OPS_ALERT_LINE_USER_ID;
+            vi.unstubAllGlobals();
+        });
+
+        it('counts per endpoint and source IP, and passes the request while within the limit', async () => {
+            rateLimitDdbMock.on(UpdateItemCommand).resolves({});
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+            const input = rateLimitDdbMock.commandCalls(UpdateItemCommand)[0].args[0].input;
+            expect(input.TableName).toBe('rate-limit-table');
+            expect(input.Key.limitKey.S).toMatch(/^report-client-error#203\.0\.113\.7#\d{4}-\d{2}-\d{2}$/);
+            expect(input.ExpressionAttributeValues[':limit'].N).toBe('20');
+        });
+
+        it('returns 429 and does not log or notify when the per-IP limit is exceeded', async () => {
+            process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN = 'test-token';
+            process.env.OPS_ALERT_LINE_USER_ID = 'test-user-id';
+            const fetchSpy = vi.fn();
+            vi.stubGlobal('fetch', fetchSpy);
+            rateLimitDdbMock.on(UpdateItemCommand).rejects(conditionalFailure());
+            const consoleErrorSpy = vi.spyOn(console, 'error');
+            consoleErrorSpy.mockClear();
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(429);
+            expect(fetchSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalledWith('[ClientError]', expect.anything());
+        });
+
+        it('keeps logging but skips the LINE notification when the overall daily cap (30) is exceeded', async () => {
+            process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN = 'test-token';
+            process.env.OPS_ALERT_LINE_USER_ID = 'test-user-id';
+            const fetchSpy = vi.fn().mockResolvedValue({ ok: true });
+            vi.stubGlobal('fetch', fetchSpy);
+            // 1回目（IP単位）は通し、2回目（LINE通知の全体上限）は超過させる
+            rateLimitDdbMock.on(UpdateItemCommand).resolvesOnce({}).rejectsOnce(conditionalFailure());
+            const consoleErrorSpy = vi.spyOn(console, 'error');
+            consoleErrorSpy.mockClear();
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+            expect(fetchSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('[ClientError]', expect.objectContaining({ message: 'テスト用の例外' }));
+            const keys = rateLimitDdbMock.commandCalls(UpdateItemCommand).map((c) => c.args[0].input.Key.limitKey.S);
+            expect(keys[1]).toMatch(/^ops-alert-line#all#/);
+        });
+
+        it('fails open (passes the request) when the counter table itself cannot be accessed', async () => {
+            rateLimitDdbMock.on(UpdateItemCommand).rejects(new Error('ResourceNotFoundException'));
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+        });
+
+        it('does not limit when RATE_LIMIT_TABLE_NAME is not set (e.g. local development)', async () => {
+            delete process.env.RATE_LIMIT_TABLE_NAME;
+
+            const response = await reportClientError(event);
+
+            expect(response.statusCode).toBe(200);
+            expect(rateLimitDdbMock.commandCalls(UpdateItemCommand)).toHaveLength(0);
+        });
     });
 
     // issue #1144: 運用監視専用LINE Bot（dev-standards issue #387）への通知。

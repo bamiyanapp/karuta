@@ -30,6 +30,7 @@ provider:
     TABLE_NAME: ${self:custom.tableName}
     COMMENTS_TABLE_NAME: ${self:custom.commentsTableName}
     POLLY_CACHE_TABLE_NAME: ${self:custom.pollyCacheTableName} # 追加
+    RATE_LIMIT_TABLE_NAME: ${self:custom.rateLimitTableName} # 追加（issue #2188）
     EFUDA_PDF_BUCKET_NAME: ${self:custom.efudaPdfBucketName}-${aws:accountId} # 追加（絵札PDFのサーバーサイド生成）
     QUIZ_ROOMS_TABLE_NAME: ${self:custom.quizRoomsTableName} # 追加（クイズ大会モード）
     QUIZ_ROOM_CONNECTIONS_TABLE_NAME: ${self:custom.quizRoomConnectionsTableName} # 追加（クイズ大会モード）
@@ -51,6 +52,7 @@ provider:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.commentsTableName}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.pollyCacheTableName} # 追加
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.rateLimitTableName} # 追加（issue #2188）
         - Effect: Allow
           Action:
             - polly:SynthesizeSpeech
@@ -110,6 +112,7 @@ custom:
   tableName: karuta-phrases
   commentsTableName: karuta-comments
   pollyCacheTableName: karuta-polly-cache # 追加
+  rateLimitTableName: karuta-rate-limit-${sls:stage} # 追加（issue #2188）。公開APIの送信元IP単位の回数上限カウンタ。1日で失効する一時データのため、stable/canaryでテーブルを分けてよい
   efudaPdfBucketName: karuta-efuda-pdf # 追加（絵札PDFのサーバーサイド生成）。バケット名はグローバルに一意である必要があるためアカウントIDを付与する
   quizRoomsTableName: karuta-quiz-rooms # 追加（クイズ大会モード）
   quizRoomConnectionsTableName: karuta-quiz-room-connections # 追加（クイズ大会モード）
@@ -310,6 +313,27 @@ resources:
     # スタックに切り離す必要があった。移管はCloudFormationのリソースインポート機能で
     # 行い、データの削除は発生していない（手順はserverless-data.ymlのコメント参照）。
     # これらのリソースのARNは、IAM権限（provider.iam.role.statements）で直接組み立てる
+    # issue #2188: 認証なしの公開APIを送信元IP単位で制限するカウンタ。dev-standardsの
+    # shared/lambda/dailyRateLimit.jsが使う（パーティションキー1つ＋TTL属性expiresAt固定）。
+    # カウンタは1日で失効する一時データで、失われても制限が1日分リセットされるだけのため、
+    # バックアップ・削除保護は付けない。テーブルへアクセスできない間も、コードはfail-openで
+    # リクエストを通すため、テーブルの作成前にコードをデプロイしても本来の機能は止まらない
+    RateLimitTable:
+      Type: AWS::DynamoDB::Table
+      Metadata:
+        DevStandardsProtectionExempt: 1日で失効する回数カウンタ（TTL）。失われても制限が1日分リセットされるだけで、保全すべきデータを持たない
+      Properties:
+        TableName: ${self:custom.rateLimitTableName}
+        AttributeDefinitions:
+          - AttributeName: limitKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: limitKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
     RenderEfudaPdfWorkerRole: # 追加（絵札PDFのサーバーサイド生成）。renderEfudaPdfWorker関数専用のロール
       # （provider.iam.roleの共有ロールを使うと、共有ロールのポリシーがこの関数自身のArnを
       # 参照する形になり循環依存でデプロイが失敗するため、専用ロールに分離している）

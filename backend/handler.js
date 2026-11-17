@@ -1,7 +1,8 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
-const { jsonResponse, badRequest, notFound, serverError } = require("./httpResponse");
+const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
+const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit } = require("./rateLimit"); // issue #2188
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
 const { sendOpsAlert } = require("./opsAlertNotifier.js"); // symlink先（issue #1144）
 
@@ -182,6 +183,12 @@ exports.recordTime = async (event) => {
 exports.reportClientError = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    // 認証なしの公開APIのため、送信元IP単位で1日あたりの回数を制限する（issue #2188）。
+    // 1リクエストごとに運用監視用LINE Botへ通知が飛び得るため、通知が埋もれるのを防ぐ
+    if (!(await isWithinIpLimit(event, RATE_LIMITS.reportClientError))) {
+      return tooManyRequests(allowedOrigin, "Too many requests");
+    }
+
     const body = JSON.parse(event.body);
     const payload = buildClientErrorLogPayload(body);
 
@@ -198,6 +205,12 @@ exports.reportClientError = async (event) => {
     // 送信失敗はCloudWatch Logsへの記録・クライアントへのレスポンスを妨げない
     if (process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN && process.env.OPS_ALERT_LINE_USER_ID) {
       try {
+        // IPを変えながら送られても、LINEの送信数の上限を使い切らないよう、全体の総量にも上限を設ける
+        // （issue #2188）。上限を超えた場合も、上のCloudWatch Logsへの記録は済んでおり、LINE通知だけを止める
+        if (!(await isWithinGlobalLimit(RATE_LIMITS.opsAlertLine))) {
+          console.error("[ClientError] LINE通知の1日あたりの総量の上限に達したため、通知を送信しません");
+          return jsonResponse(allowedOrigin, 200, { message: "Error reported successfully" });
+        }
         await sendOpsAlert({
           message: buildClientErrorAlertMessage({ appName: "karuta", message: payload.message, url: payload.url }),
           channelAccessToken: process.env.OPS_ALERT_LINE_CHANNEL_ACCESS_TOKEN,
