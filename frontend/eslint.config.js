@@ -11,12 +11,7 @@ export default defineConfig([
   // ios: issue #2060でCapacitorが生成したネイティブプロジェクト。
   // ios/App/App/publicはdistのコピー、cordova.js等はCapacitor/Cordova本体の
   // 配布物であり、いずれも自分で書いたコードではないため対象外とする
-  globalIgnores([
-    'dist', 'src/changelog.json', 'coverage', 'ios',
-    // dev-standardsの共有ロジック（symlink）。sonarjsの規則に違反しているため、修正
-    // （dev-standards#1470）が取り込まれるまでlintの対象外にする。修正後はこの行を削除する
-    'src/api/apiClient.js',
-  ]),
+  globalIgnores(['dist', 'src/changelog.json', 'coverage', 'ios']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
