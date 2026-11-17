@@ -1,7 +1,17 @@
 [
   {
-    "version": "1.124.0",
+    "version": "1.126.0",
     "date": "2026/11/17",
+    "body": "### Features\n\n* get-congratulation-audioの音声をPollyキャッシュの対象にする ([#2230](https://github.com/bamiyanapp/karuta/issues/2230)) ([1539a84](https://github.com/bamiyanapp/karuta/commit/1539a843092f15de7f0d5e667937726109096e50))"
+  },
+  {
+    "version": "1.125.0",
+    "date": "2026/11/17 22:48",
+    "body": "### Features\n\n* 残りの公開APIにも送信元IP単位のレート制限を入れる ([#2229](https://github.com/bamiyanapp/karuta/issues/2229)) ([523c3e7](https://github.com/bamiyanapp/karuta/commit/523c3e7e3cee4dbc47fa56548b8e371b214b2c83))"
+  },
+  {
+    "version": "1.124.0",
+    "date": "2026/11/17 22:28",
     "body": "### Features\n\n* report-client-errorを送信元IP単位でレート制限し、LINE通知に総量上限を設ける ([#2227](https://github.com/bamiyanapp/karuta/issues/2227)) ([4da61b0](https://github.com/bamiyanapp/karuta/commit/4da61b005b3ffe0289cd9adabb313c5e4c18acda))"
   },
   {
