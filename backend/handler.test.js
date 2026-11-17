@@ -535,6 +535,76 @@ describe('getCongratulationAudio', () => {
         expect(pollyParams.Text).toContain('<prosody rate="90%">');
     });
 
+    describe('Pollyキャッシュ（issue #2188）', () => {
+        beforeEach(() => {
+            process.env.POLLY_CACHE_TABLE_NAME = 'polly-cache';
+            // 呼び出し履歴が他のテストから持ち越されないようにする
+            ddbMock.reset();
+            pollyMock.reset();
+        });
+        afterEach(() => {
+            delete process.env.POLLY_CACHE_TABLE_NAME;
+        });
+
+        const readableAudio = () => {
+            const audioStream = new Readable();
+            audioStream.push('audio data');
+            audioStream.push(null);
+            return audioStream;
+        };
+
+        it('キャッシュヒット時は、Pollyを呼ばずキャッシュの音声を返す', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: { id: 'cache', audioData: 'data:audio/mp3;base64,CACHED' } });
+
+            const response = await getCongratulationAudio({ queryStringParameters: { lang: 'ja', speechRate: '80%' } });
+
+            expect(response.statusCode).toBe(200);
+            expect(JSON.parse(response.body).audioData).toBe('data:audio/mp3;base64,CACHED');
+            expect(pollyMock.commandCalls(SynthesizeSpeechCommand)).toHaveLength(0);
+        });
+
+        it('キャッシュミス時は、Pollyで合成して保存し、2回目以降は同じキーで引ける', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).resolves({});
+            pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: readableAudio() });
+
+            const response = await getCongratulationAudio({ queryStringParameters: { lang: 'ja', speechRate: '80%' } });
+
+            expect(response.statusCode).toBe(200);
+            expect(pollyMock.commandCalls(SynthesizeSpeechCommand)).toHaveLength(1);
+            const putItem = ddbMock.commandCalls(PutCommand)[0].args[0].input.Item;
+            const getKey = ddbMock.commandCalls(GetCommand)[0].args[0].input.Key.id;
+            expect(putItem.id).toBe(getKey);
+            expect(putItem.ttl).toBeGreaterThan(Math.floor(Date.now() / 1000));
+        });
+
+        it('許可外のspeechRate・langは既定値へ正規化され、同じキャッシュキーになる（キャッシュ迂回の防止）', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).resolves({});
+            pollyMock.on(SynthesizeSpeechCommand).callsFake(async () => ({ AudioStream: readableAudio() }));
+
+            await getCongratulationAudio({ queryStringParameters: {} });
+            await getCongratulationAudio({ queryStringParameters: { speechRate: '81%', lang: 'zz' } });
+
+            const keys = ddbMock.commandCalls(GetCommand).map((c) => c.args[0].input.Key.id);
+            expect(keys).toHaveLength(2);
+            expect(keys[1]).toBe(keys[0]);
+        });
+
+        it('言語・速度が違えば別のキャッシュキーになる', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).resolves({});
+            pollyMock.on(SynthesizeSpeechCommand).callsFake(async () => ({ AudioStream: readableAudio() }));
+
+            await getCongratulationAudio({ queryStringParameters: { lang: 'ja', speechRate: '80%' } });
+            await getCongratulationAudio({ queryStringParameters: { lang: 'en', speechRate: '80%' } });
+            await getCongratulationAudio({ queryStringParameters: { lang: 'ja', speechRate: '100%' } });
+
+            const keys = new Set(ddbMock.commandCalls(GetCommand).map((c) => c.args[0].input.Key.id));
+            expect(keys.size).toBe(3);
+        });
+    });
+
     it('should use the requested Japanese voiceId when it is on the allowlist (issue #217)', async () => {
         const audioStream = new Readable();
         audioStream.push('audio data');
