@@ -22,3 +22,22 @@ export const getPhrase = (
 export const getComments = (options) => api.get("get-comments", options);
 
 export const postComment = (body, options) => api.post("post-comment", { ...options, body });
+
+export const getVersion = (options) => api.get("get-version", options);
+
+export const getCongratulationAudio = ({ speechRate, lang, voiceId }, options) =>
+  api.get("get-congratulation-audio", { ...options, params: { speechRate, lang, voiceId } });
+
+// 所要時間・難易度の記録。更新系のためリトライしない
+export const recordTime = (body, options) => api.post("record-time", { ...options, body });
+
+// クイズ大会モード
+export const getQuizRooms = (options) => api.get("quiz-rooms", options);
+export const getQuizRoom = (roomId, options) => api.get("quiz-room", { ...options, params: { roomId } });
+// ルームの作成。更新系のためリトライしない（二重にルームが作られるのを避ける）
+export const createQuizRoom = (body, options) => api.post("quiz-room", { ...options, body });
+
+// 絵札PDFの生成（開始とステータス確認）。開始は更新系のためリトライしない
+export const generateEfudaPdf = (body, options) => api.post("generate-efuda-pdf", { ...options, body });
+export const getEfudaPdfStatus = ({ jobId, categoryLabel, side }, options) =>
+  api.get("generate-efuda-pdf-status", { ...options, params: { jobId, categoryLabel, side } });
