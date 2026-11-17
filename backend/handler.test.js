@@ -489,19 +489,19 @@ describe('getCongratulationAudio', () => {
         expect(response.statusCode).toBe(500);
     });
 
-    it('should handle speechRate with %', async () => {
+    it('should accept a speechRate that is on the UI allowlist', async () => {
         const audioStream = new Readable();
         audioStream.push('audio data');
         audioStream.push(null);
         pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
 
-        const event = { queryStringParameters: { lang: 'ja', speechRate: '120%' } };
+        const event = { queryStringParameters: { lang: 'ja', speechRate: '100%' } };
         await getCongratulationAudio(event);
         
         const pollyCalls = pollyMock.calls();
         expect(pollyCalls).toHaveLength(1);
         const pollyParams = pollyCalls[0].args[0].input;
-        expect(pollyParams.Text).toContain('<prosody rate="120%">');
+        expect(pollyParams.Text).toContain('<prosody rate="100%">');
     });
 
     it('should fall back to the default speechRate when given a value not on the allowlist (SSML injection attempt)', async () => {
@@ -510,8 +510,7 @@ describe('getCongratulationAudio', () => {
         audioStream.push(null);
         pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
 
-        // 数字始まりでない文字列を使い、キーワード許可リストのフォールバック分岐を確実に通す
-        const event = {
+                const event = {
             queryStringParameters: { lang: 'ja', speechRate: 'x-slow"/></prosody><speak>injected' },
         };
         await getCongratulationAudio(event);
@@ -521,7 +520,7 @@ describe('getCongratulationAudio', () => {
         expect(pollyParams.Text).not.toContain('injected');
     });
 
-    it('should allow a known SSML rate keyword through unchanged', async () => {
+    it('should fall back to the default speechRate for SSML keywords that the UI never sends (issue #2178)', async () => {
         const audioStream = new Readable();
         audioStream.push('audio data');
         audioStream.push(null);
@@ -531,7 +530,7 @@ describe('getCongratulationAudio', () => {
         await getCongratulationAudio(event);
 
         const pollyParams = pollyMock.calls()[0].args[0].input;
-        expect(pollyParams.Text).toContain('<prosody rate="slow">');
+        expect(pollyParams.Text).toContain('<prosody rate="90%">');
     });
 
     it('should use the requested Japanese voiceId when it is on the allowlist (issue #217)', async () => {
@@ -927,7 +926,7 @@ describe('getPhrase', () => {
         expect(body.answer).toBe('回答A');
     });
 
-    it('should handle speechRate with %', async () => {
+    it('should accept a speechRate that is on the UI allowlist', async () => {
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
         });
@@ -939,13 +938,13 @@ describe('getPhrase', () => {
         audioStream.push(null);
         pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
 
-        const event = { queryStringParameters: { id: 'p1', speechRate: '110%' } };
+        const event = { queryStringParameters: { id: 'p1', speechRate: '100%' } };
         await getPhrase(event);
 
         const pollyCalls = pollyMock.calls();
         expect(pollyCalls).toHaveLength(1);
         const pollyParams = pollyCalls[0].args[0].input;
-        expect(pollyParams.Text).toContain('<prosody rate="110%">');
+        expect(pollyParams.Text).toContain('<prosody rate="100%">');
     });
 
     it('should escape SSML special characters in the phrase text', async () => {
@@ -999,8 +998,7 @@ describe('getPhrase', () => {
         audioStream.push(null);
         pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
 
-        // 数字始まりでない文字列を使い、キーワード許可リストのフォールバック分岐を確実に通す
-        const event = {
+                const event = {
             queryStringParameters: { id: 'p1', speechRate: 'x-slow"/></prosody><speak>injected' },
         };
         await getPhrase(event);
@@ -1010,7 +1008,7 @@ describe('getPhrase', () => {
         expect(pollyParams.Text).not.toContain('injected');
     });
 
-    it('should allow a known SSML rate keyword through unchanged', async () => {
+    it('should fall back to the default speechRate for SSML keywords that the UI never sends (issue #2178)', async () => {
         ddbMock.on(ScanCommand).resolves({
             Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-' }],
         });
@@ -1026,7 +1024,68 @@ describe('getPhrase', () => {
         await getPhrase(event);
 
         const pollyParams = pollyMock.calls()[0].args[0].input;
-        expect(pollyParams.Text).toContain('<prosody rate="slow">');
+        expect(pollyParams.Text).toContain('<prosody rate="90%">');
+    });
+
+    describe('parameter normalization (issue #2178)', () => {
+        async function callGetPhrase(query) {
+            ddbMock.on(ScanCommand).resolves({
+                Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '-' }],
+            });
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).resolves({});
+            const audioStream = new Readable();
+            audioStream.push('audio data');
+            audioStream.push(null);
+            pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: audioStream });
+            await getPhrase({ queryStringParameters: { id: 'p1', ...query } });
+            return ddbMock.commandCalls(GetCommand)[0].args[0].input.Key.id;
+        }
+
+        it('should produce the same cacheId for every out-of-allowlist value as for the default', async () => {
+            const defaultKey = await callGetPhrase({});
+            ddbMock.reset();
+            pollyMock.reset();
+            const variants = [
+                { repeatCount: '3' },
+                { repeatCount: '999' },
+                { repeatCount: 'abc' },
+                { speechRate: '81%' },
+                { speechRate: '99999%' },
+                { lang: 'a' },
+                { lang: 'zz' },
+            ];
+            for (const query of variants) {
+                const key = await callGetPhrase(query);
+                expect(key).toBe(defaultKey);
+                ddbMock.reset();
+                pollyMock.reset();
+            }
+        });
+
+        it('should keep different cacheIds for allowlisted values that change the audio', async () => {
+            const base = await callGetPhrase({ repeatCount: '1' });
+            ddbMock.reset();
+            pollyMock.reset();
+            const other = await callGetPhrase({ repeatCount: '2' });
+            expect(other).not.toBe(base);
+        });
+
+        it('should read the legacy speechRate 70% as 75%', async () => {
+            const legacyKey = await callGetPhrase({ speechRate: '70%' });
+            ddbMock.reset();
+            pollyMock.reset();
+            const currentKey = await callGetPhrase({ speechRate: '75%' });
+            expect(legacyKey).toBe(currentKey);
+            expect(pollyMock.calls()[0].args[0].input.Text).toContain('<prosody rate="75%">');
+        });
+
+        it('should treat any lang other than "en" as Japanese', async () => {
+            await callGetPhrase({ lang: 'fr' });
+            const text = pollyMock.calls()[0].args[0].input.Text;
+            expect(text).toContain('phrase 1');
+            expect(text).not.toContain('lang=');
+        });
     });
 
     it('should append the category once at the end when announceCategory is true', async () => {

@@ -59,25 +59,38 @@ function computePhraseStats(item) {
   return { ...rest, averageTime, averageDifficulty };
 }
 
-// SSMLのprosody rate属性としてPollyが受け付けるキーワード
-const ALLOWED_SPEECH_RATE_KEYWORDS = ["x-slow", "slow", "medium", "fast", "x-fast"];
+// 読み上げ速度・回数・言語は、フロントエンドのUIが実際に送る値のみを許可リストで受け付ける
+// （issue #2178）。任意の値をそのままPollyキャッシュのキーへ含めると、値を変えるだけで
+// キャッシュミスを起こせ、Polly合成（従量課金）を認証なしで際限なく発生させられるため。
+// 許可外の値は400で拒否せず、既定値へフォールバックする（古いクライアントや手入力URLでも
+// 読み上げ自体は成立させるため）。
+// 許可リストはフロントエンドの`frontend/src/components/SettingsFooter.jsx`
+// （SPEECH_RATE_OPTIONS・REPEAT_COUNT_OPTIONS）と二重管理になる。値を追加するときは両方を更新すること
+const ALLOWED_SPEECH_RATES = ["75%", "80%", "100%"];
 const DEFAULT_SPEECH_RATE = "90%";
+// issue #1001で「ゆっくり」を70%から75%へ変更した。古いクライアントが送る旧値を読み替える
+const LEGACY_SPEECH_RATES = { "70%": "75%" };
+const ALLOWED_REPEAT_COUNTS = [1, 2];
+const DEFAULT_REPEAT_COUNT = 2;
+const ALLOWED_LANGS = ["ja", "en"];
+const DEFAULT_LANG = "ja";
 
 function normalizeSpeechRate(rate) {
   if (!rate) return DEFAULT_SPEECH_RATE;
   const rateStr = String(rate);
-  if (/^\d/.test(rateStr)) {
-    const num = parseInt(rateStr, 10);
-    if (!isNaN(num)) {
-      return `${num}%`;
-    }
-  }
-  if (ALLOWED_SPEECH_RATE_KEYWORDS.includes(rateStr)) {
-    return rateStr;
-  }
-  // 未知の値をそのままSSML属性に埋め込むとインジェクションの余地があるため、
+  const mapped = LEGACY_SPEECH_RATES[rateStr] || rateStr;
+  // 未知の値をそのままSSML属性に埋め込むとインジェクションの余地もあるため、
   // 許可されていない値は既定値にフォールバックする
-  return DEFAULT_SPEECH_RATE;
+  return ALLOWED_SPEECH_RATES.includes(mapped) ? mapped : DEFAULT_SPEECH_RATE;
+}
+
+function normalizeRepeatCount(count) {
+  const num = Number(count);
+  return ALLOWED_REPEAT_COUNTS.includes(num) ? num : DEFAULT_REPEAT_COUNT;
+}
+
+function normalizeLang(lang) {
+  return ALLOWED_LANGS.includes(lang) ? lang : DEFAULT_LANG;
 }
 
 // 日本語で選択可能な声の許可リスト（キー: PollyのVoiceId、値: 対応するEngine）。
@@ -260,9 +273,8 @@ exports.getCongratulationAudio = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const params = event.queryStringParameters || {};
-    const rawSpeechRate = params.speechRate || "90%";
-    const speechRate = normalizeSpeechRate(rawSpeechRate);
-    const lang = params.lang || "ja";
+    const speechRate = normalizeSpeechRate(params.speechRate);
+    const lang = normalizeLang(params.lang);
 
     const speechText = lang === "en"
       ? "Congratulations! You have finished all the cards."
@@ -402,10 +414,9 @@ exports.getPhrase = async (event) => {
   try {
     const params = event.queryStringParameters || {};
     const category = params.category || null;
-    const repeatCount = parseInt(params.repeatCount || "2", 10);
-    const rawSpeechRate = params.speechRate || "90%";
-    const speechRate = normalizeSpeechRate(rawSpeechRate);
-    const lang = params.lang || "ja";
+    const repeatCount = normalizeRepeatCount(params.repeatCount);
+    const speechRate = normalizeSpeechRate(params.speechRate);
+    const lang = normalizeLang(params.lang);
     const announceCategory = params.announceCategory === "true";
     let targetId = params.id || null;
     const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME;
