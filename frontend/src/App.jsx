@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
-import { API_BASE_URL, WS_BASE_URL } from "./config";
+import { WS_BASE_URL } from "./config";
+import { getCategories, getPhrasesList, getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
@@ -382,11 +383,7 @@ function App() {
     const CATEGORIES_FETCH_MAX_RETRY_DELAY_MS = 8000;
     const fetchCategories = async (retryCount = 0) => {
       try {
-        const response = await fetch(`${API_BASE_URL}/get-categories`);
-        if (!response.ok) {
-          throw new Error(`get-categories failed with status ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getCategories();
         const availableCategories = data.categories || [];
         setCategories(availableCategories);
 
@@ -434,11 +431,7 @@ function App() {
       }
       const settled = await Promise.allSettled(
         selectedCategories.map(async (cat) => {
-          const response = await fetch(`${API_BASE_URL}/get-phrases-list?category=${encodeURIComponent(cat)}`);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch phrases for category: ${cat}`);
-          }
-          const data = await response.json();
+          const data = await getPhrasesList(cat);
           return data.phrases || [];
         })
       );
@@ -469,12 +462,16 @@ function App() {
         return;
       }
       try {
-        const categoryParam = detailPhraseCategory ? `&category=${encodeURIComponent(detailPhraseCategory)}` : "";
-        const response = await fetch(`${API_BASE_URL}/get-phrase?id=${detailPhraseId}${categoryParam}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${isMultiCategorySelection}`);
-        const data = await response.json();
-        if (response.ok) {
-          setDetailPhrase(data);
-        }
+        const data = await getPhrase({
+          id: detailPhraseId,
+          category: detailPhraseCategory || undefined,
+          repeatCount,
+          speechRate,
+          lang,
+          voiceId,
+          announceCategory: isMultiCategorySelection,
+        });
+        setDetailPhrase(data);
       } catch (error) {
         console.error("Error fetching phrase detail:", error);
       }
@@ -487,11 +484,8 @@ function App() {
     const fetchComments = async () => {
       if (view === "comments" || detailPhraseId) {
         try {
-          const response = await fetch(`${API_BASE_URL}/get-comments`);
-          const data = await response.json();
-          if (response.ok) {
-            setAllComments(data.comments || []);
-          }
+          const data = await getComments();
+          setAllComments(data.comments || []);
         } catch (error) {
           console.error("Error fetching comments:", error);
         }
@@ -510,11 +504,8 @@ function App() {
     if (view === "all-phrases") {
       const fetchAllPhrases = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/get-phrases-list`);
-          const data = await response.json();
-          if (response.ok) {
-            setAllPhrases(data.phrases || []);
-          }
+          const data = await getPhrasesList();
+          setAllPhrases(data.phrases || []);
         } catch (error) {
           console.error("Error fetching all phrases:", error);
         }
@@ -539,23 +530,14 @@ function App() {
 
     setPostingComment(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/post-comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phraseId: detailPhrase.id,
-          category: detailPhrase.category,
-          phrase: detailPhrase.phrase,
-          comment: commentText,
-        }),
+      await postCommentApi({
+        phraseId: detailPhrase.id,
+        category: detailPhrase.category,
+        phrase: detailPhrase.phrase,
+        comment: commentText,
       });
-
-      if (response.ok) {
-        alert("指摘内容を送信しました。ありがとうございます。");
-        setCommentText("");
-      } else {
-        throw new Error("Failed to post comment");
-      }
+      alert("指摘内容を送信しました。ありがとうございます。");
+      setCommentText("");
     } catch {
       alert("送信に失敗しました。");
     } finally {
