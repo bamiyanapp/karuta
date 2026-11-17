@@ -40,6 +40,9 @@ const SORT_ORDER_OPTIONS = [
   { value: "easy", label: "簡単" },
   { value: "hard", label: "難しい" },
 ];
+// この選択肢はバックエンドの許可リスト（backend/handler.jsのALLOWED_SPEECH_RATES・
+// ALLOWED_REPEAT_COUNTS）と二重管理になっている（issue #2178）。値を追加・変更するときは
+// 両方を更新すること。許可リストに無い値は、バックエンドで既定値へ読み替えられる
 const SPEECH_RATE_OPTIONS = [
   // issue #1001: 「ゆっくり」が遅すぎるとの声を受け、「ふつう」（80%）との
   // 中間の速度（75%）へ引き上げた
