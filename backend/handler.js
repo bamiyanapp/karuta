@@ -300,26 +300,25 @@ exports.getCongratulationAudio = async (event) => {
       : "おめでとう、全て読み終わりました";
     const { voiceId, engine } = resolveVoice(lang, params.voiceId);
 
-    const pollyParams = {
-      Text: `<speak><prosody rate="${speechRate}">${speechText}</prosody></speak>`,
-      TextType: "ssml",
-      OutputFormat: "mp3",
-      VoiceId: voiceId,
-      Engine: engine
-    };
+    // 読了時の固定の文言のため、組み合わせ（速度・言語・声）は数十通りしか無い。キャッシュすれば、
+    // 合成（従量課金）はほぼ発生しなくなる（issue #2188）。getPhraseと同じキャッシュテーブルを使う
+    const pollyCacheTableName = process.env.POLLY_CACHE_TABLE_NAME;
+    const cacheId = crypto.createHash("sha256").update(
+      `congratulation-${speechRate}-${lang}-${voiceId}-${speechText}`
+    ).digest("hex");
 
-    const command = new SynthesizeSpeechCommand(pollyParams);
-    const pollyResponse = await pollyClient.send(command);
+    let audioData = await getCachedPhraseAudio(pollyCacheTableName, cacheId, "congratulation");
+    if (!audioData) {
+      audioData = await synthesizePhraseAudio({
+        ssmlText: `<speak><prosody rate="${speechRate}">${speechText}</prosody></speak>`,
+        voiceId,
+        engine,
+        pollyCacheTableName,
+        cacheId,
+      });
+    }
 
-    const audioBuffer = await streamToBuffer(pollyResponse.AudioStream);
-    const base64Audio = audioBuffer.toString("base64");
-
-    return jsonResponse(
-      allowedOrigin,
-      200,
-      { audioData: `data:audio/mp3;base64,${base64Audio}` },
-      { credentials: true }
-    );
+    return jsonResponse(allowedOrigin, 200, { audioData }, { credentials: true });
   } catch (error) {
     return serverError(allowedOrigin, error, { includeMessage: true });
   }
