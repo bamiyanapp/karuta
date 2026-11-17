@@ -5,6 +5,7 @@ const { S3Client, PutObjectCommand, HeadObjectCommand, GetObjectCommand } = requ
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { docClient, resolveAllowedOrigin, streamToBuffer } = require("./handler");
 const { jsonResponse, badRequest, serverError } = require("./httpResponse");
+const { RATE_LIMITS, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 // @sparticuz/chromium・puppeteer-coreはESM専用パッケージ（"type": "module"）のため、
 // このファイル（CommonJS）からはrequire()できず、使用箇所（renderEfudaPdfWorker内）で
 // 動的import()する
@@ -47,6 +48,10 @@ async function countPhrasesInCategory(category) {
 exports.generateEfudaPdf = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    // ヘッドレスChromiumのLambdaを起動する高コストの処理のため、送信元IP単位で回数を制限する（issue #2188）
+    const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.generateEfudaPdf);
+    if (limited) return limited;
+
     const body = JSON.parse(event.body || "{}");
     const { categoryParam, side } = body;
     const categories = parseCategoryParam(categoryParam);

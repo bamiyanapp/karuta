@@ -2,7 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
-const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit } = require("./rateLimit"); // issue #2188
+const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
 const { sendOpsAlert } = require("./opsAlertNotifier.js"); // symlink先（issue #1144）
 
@@ -233,6 +233,9 @@ const MAX_COMMENT_LENGTH = 1000;
 exports.postComment = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.postComment);
+    if (limited) return limited;
+
     const body = JSON.parse(event.body);
     const { phraseId, category, phrase, comment } = body;
 
@@ -285,6 +288,9 @@ exports.getComments = async (event) => {
 exports.getCongratulationAudio = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.getCongratulationAudio);
+    if (limited) return limited;
+
     const params = event.queryStringParameters || {};
     const speechRate = normalizeSpeechRate(params.speechRate);
     const lang = normalizeLang(params.lang);
@@ -453,6 +459,11 @@ exports.getPhrase = async (event) => {
 
     let audioData = await getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId);
     if (!audioData) {
+      // キャッシュミス（Polly合成を行う場合）のみ、回数を数える（issue #2188）。
+      // キャッシュヒットは課金が発生しないため数えない
+      const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.getPhraseSynthesis);
+      if (limited) return limited;
+
       const ssmlText = buildPhraseSsml({
         lang,
         level,

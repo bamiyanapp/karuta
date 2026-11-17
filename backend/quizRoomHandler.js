@@ -3,6 +3,7 @@ const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } = re
 const { DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { docClient, resolveAllowedOrigin } = require("./handler");
 const { jsonResponse, badRequest, serverError } = require("./httpResponse");
+const { RATE_LIMITS, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const {
   getConnection,
   queryRoomConnections,
@@ -64,6 +65,11 @@ function sanitizeRoomCategories(body) {
 exports.createQuizRoom = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    // ルームを際限なく作成されないよう、送信元IP単位で回数を制限する（issue #2188）。
+    // 参加者側の操作（WebSocket経由の早押し等）は、同じIPを多数の端末が共有し得るため対象にしない
+    const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.createQuizRoom);
+    if (limited) return limited;
+
     let body = {};
     try {
       body = JSON.parse(event.body || "{}");
