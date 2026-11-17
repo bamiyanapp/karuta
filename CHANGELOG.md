@@ -1,3 +1,10 @@
+# [1.124.0](https://github.com/bamiyanapp/karuta/compare/v1.123.6...v1.124.0) (2026-11-17)
+
+
+### Features
+
+* report-client-errorを送信元IP単位でレート制限し、LINE通知に総量上限を設ける ([#2227](https://github.com/bamiyanapp/karuta/issues/2227)) ([4da61b0](https://github.com/bamiyanapp/karuta/commit/4da61b005b3ffe0289cd9adabb313c5e4c18acda))
+
 ## [1.123.6](https://github.com/bamiyanapp/karuta/compare/v1.123.5...v1.123.6) (2026-11-17)
 
 
