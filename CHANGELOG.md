@@ -1,3 +1,10 @@
+# [1.125.0](https://github.com/bamiyanapp/karuta/compare/v1.124.0...v1.125.0) (2026-11-17)
+
+
+### Features
+
+* 残りの公開APIにも送信元IP単位のレート制限を入れる ([#2229](https://github.com/bamiyanapp/karuta/issues/2229)) ([523c3e7](https://github.com/bamiyanapp/karuta/commit/523c3e7e3cee4dbc47fa56548b8e371b214b2c83))
+
 # [1.124.0](https://github.com/bamiyanapp/karuta/compare/v1.123.6...v1.124.0) (2026-11-17)
 
 
