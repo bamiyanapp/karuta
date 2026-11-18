@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "../config";
+import { generateEfudaPdf, getEfudaPdfStatus } from "../api/endpoints";
+import { ApiError } from "../api/client";
 import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
 import { setPrintScreenActive } from "../pdfExportStatus";
 import ViewHeader from "../components/ViewHeader";
@@ -107,26 +108,22 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
     setIsGeneratingPdf(true);
     try {
       const categoryParam = serializeCategoriesParam(selectedCategories);
-      const startResponse = await fetch(`${API_BASE_URL}/generate-efuda-pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoryParam, side: printSide }),
-      });
-      if (!startResponse.ok) {
-        const errorBody = await startResponse.json().catch(() => null);
-        throw new Error(errorBody?.message || "PDF生成の開始に失敗しました。");
-      }
-      const { jobId } = await startResponse.json();
+      const { jobId } = await generateEfudaPdf({ categoryParam, side: printSide });
 
       let downloadUrl = null;
       for (let attempt = 0; attempt < MAX_PDF_POLL_ATTEMPTS; attempt++) {
         await new Promise((resolve) => setTimeout(resolve, PDF_POLL_INTERVAL_MS));
 
-        const statusResponse = await fetch(
-          `${API_BASE_URL}/generate-efuda-pdf-status?jobId=${encodeURIComponent(jobId)}` +
-          `&categoryLabel=${encodeURIComponent(categoryLabel || "karuta")}&side=${printSide}`
-        );
-        const statusBody = await statusResponse.json();
+        // サーバーが応答したエラー（HTTPエラー）は、従来どおりstatusの無い応答として扱い、
+        // ポーリングを継続する（通信失敗・応答の解釈失敗は、そのまま例外にして中断する）
+        const statusBody = await getEfudaPdfStatus({
+          jobId,
+          categoryLabel: categoryLabel || "karuta",
+          side: printSide,
+        }).catch((error) => {
+          if (error instanceof ApiError && error.kind === "http") return {};
+          throw error;
+        });
 
         if (statusBody.status === "DONE") {
           downloadUrl = statusBody.url;

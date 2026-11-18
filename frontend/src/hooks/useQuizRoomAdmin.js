@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL, WS_BASE_URL } from "../config";
+import { WS_BASE_URL } from "../config";
+import { getQuizRooms, getQuizRoom, createQuizRoom as createQuizRoomApi } from "../api/endpoints";
+import { ApiError } from "../api/client";
 import { useQuizRoomSync } from "./useQuizRoomSync";
 import { useValueChange } from "./useValueChange";
 import { unlockAudioPlayback, playQuizSfx, playJudgmentSfx } from "../utils/audioUnlock";
@@ -110,13 +112,11 @@ export function useQuizRoomAdmin({
     }
     const fetchOpenQuizRooms = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/quiz-rooms`);
-        if (!response.ok) {
-          return;
-        }
-        const data = await response.json();
+        const data = await getQuizRooms();
         setOpenQuizRooms(data.rooms || []);
       } catch (error) {
+        // サーバーが応答したエラー（HTTPエラー）は、定期ポーリングのたびにログが溢れるため記録しない
+        if (error instanceof ApiError && error.kind === "http") return;
         console.error("Failed to fetch open quiz rooms:", error);
       }
     };
@@ -304,17 +304,9 @@ export function useQuizRoomAdmin({
     setCreatingQuizRoom(true);
     setQuizRoomCreateError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/quiz-room`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // issue #1256: ルーム一覧でどのかるたで開設されたかを表示できるよう、
-        // 開設時点の選択カテゴリをルームレコードへ永続化する
-        body: JSON.stringify({ categories: selectedCategories }),
-      });
-      if (!response.ok) {
-        throw new Error("ルームの作成に失敗しました");
-      }
-      const data = await response.json();
+      // issue #1256: ルーム一覧でどのかるたで開設されたかを表示できるよう、
+      // 開設時点の選択カテゴリをルームレコードへ永続化する
+      const data = await createQuizRoomApi({ categories: selectedCategories });
       setQuizRoom({ roomId: data.roomId, adminToken: data.adminToken });
       // 管理者セッション復帰（issue #697）: ブラウザ/タブを閉じても管理者として
       // 復帰できるよう、トークンをlocalStorageへ保存する
@@ -361,9 +353,7 @@ export function useQuizRoomAdmin({
   // 挙動が状況によって変わって分かりにくいという指摘を受け、専用ボタンへ分離した（issue #1267）
   const restoreSelectedCategoriesFromRoom = async (roomId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/quiz-room?roomId=${encodeURIComponent(roomId)}`);
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await getQuizRoom(roomId);
       const validNames = (data.categories || []).filter((name) => categories.some((cat) => cat.name === name));
       if (validNames.length === 0) return;
       const division = categories.find((cat) => cat.name === validNames[0])?.group;

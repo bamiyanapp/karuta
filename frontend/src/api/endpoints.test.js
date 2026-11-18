@@ -1,6 +1,10 @@
 // issue #2187: エンドポイントごとの関数が、従来のURL・メソッド・ボディと同じ形で呼ぶことを確認する
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { getCategories, getPhrasesList, getPhrase, getComments, postComment } from "./endpoints";
+import {
+  getCategories, getPhrasesList, getPhrase, getComments, postComment,
+  getVersion, getCongratulationAudio, recordTime, getQuizRooms, getQuizRoom, createQuizRoom,
+  generateEfudaPdf, getEfudaPdfStatus,
+} from "./endpoints";
 import { ApiError } from "./client";
 
 const okResponse = (body) => ({ ok: true, status: 200, json: async () => body });
@@ -64,5 +68,46 @@ describe("api/endpoints", () => {
     window.fetch.mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
 
     await expect(getComments()).rejects.toMatchObject({ kind: "http", status: 404 });
+  });
+
+  it("getVersion・getQuizRooms: パラメータ無しでGETする", async () => {
+    window.fetch.mockResolvedValue(okResponse({}));
+
+    await getVersion();
+    expect(calledUrl().pathname).toMatch(/\/get-version$/);
+    window.fetch.mockClear();
+    await getQuizRooms();
+    expect(calledUrl().pathname).toMatch(/\/quiz-rooms$/);
+    expect(calledUrl().search).toBe("");
+  });
+
+  it("getQuizRoom・getCongratulationAudio・getEfudaPdfStatus: クエリを従来の名前で付ける", async () => {
+    window.fetch.mockResolvedValue(okResponse({}));
+
+    await getQuizRoom("ROOM 1");
+    expect(calledUrl().searchParams.get("roomId")).toBe("ROOM 1");
+
+    window.fetch.mockClear();
+    await getCongratulationAudio({ speechRate: "80%", lang: "ja", voiceId: "Mizuki" });
+    expect([...calledUrl().searchParams.keys()]).toEqual(["speechRate", "lang", "voiceId"]);
+
+    window.fetch.mockClear();
+    await getEfudaPdfStatus({ jobId: "j1", categoryLabel: "犬棒", side: "front" });
+    expect([...calledUrl().searchParams.keys()]).toEqual(["jobId", "categoryLabel", "side"]);
+  });
+
+  it("更新系（recordTime・createQuizRoom・generateEfudaPdf）は、JSONをPOSTし、リトライしない", async () => {
+    window.fetch.mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
+
+    for (const call of [
+      () => recordTime({ id: "p1", time: 3 }),
+      () => createQuizRoom({ categories: ["c1"] }),
+      () => generateEfudaPdf({ categoryParam: "c1", side: "front" }),
+    ]) {
+      window.fetch.mockClear();
+      await expect(call()).rejects.toBeInstanceOf(ApiError);
+      expect(window.fetch).toHaveBeenCalledTimes(1);
+      expect(window.fetch.mock.calls[0][1].method).toBe("POST");
+    }
   });
 });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { API_BASE_URL } from "../config";
+import { getPhrase, getCongratulationAudio, recordTime } from "../api/endpoints";
+import { ApiError } from "../api/client";
 import { phraseKey } from "../utils/phraseKey";
 import { getMainAudio, unlockAudioPlayback } from "../utils/audioUnlock";
 
@@ -311,12 +312,17 @@ export function useKarutaReading({
     const nextTargetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
     let cancelled = false;
 
-    const apiUrl = `${API_BASE_URL}/get-phrase?id=${nextTargetPhrase.id}&category=${encodeURIComponent(nextTargetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${announceCategory}`;
-
-    fetch(apiUrl)
-      .then(response => response.json().then(data => ({ ok: response.ok, data })))
-      .then(({ ok, data }) => {
-        if (cancelled || !ok) return;
+    getPhrase({
+      id: nextTargetPhrase.id,
+      category: nextTargetPhrase.category,
+      repeatCount,
+      speechRate,
+      lang,
+      voiceId,
+      announceCategory,
+    })
+      .then(data => {
+        if (cancelled) return;
         prefetchedNextRef.current = { phrase: nextTargetPhrase, data, settingsSignature };
       })
       .catch(error => {
@@ -330,12 +336,12 @@ export function useKarutaReading({
 
   const playCongratulationAudio = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/get-congratulation-audio?speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}`);
-      const data = await response.json();
-      if (response.ok) {
-        await playAudio(data.audioData);
-      }
-    } catch {
+      const data = await getCongratulationAudio({ speechRate, lang, voiceId });
+      await playAudio(data.audioData);
+    } catch (error) {
+      // サーバーが応答したエラー（上限到達の429等）は、従来どおり何も表示しない。
+      // 読了画面は表示できており、音声が無くても支障が無いため
+      if (error instanceof ApiError && error.kind === "http") return;
       alert("送信に失敗しました。");
     }
   };
@@ -395,15 +401,11 @@ export function useKarutaReading({
       });
       setIsFadingOut(true);
 
-      fetch(`${API_BASE_URL}/record-time`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: targetPhrase.id,
-          category: targetPhrase.category,
-          time: elapsedTime,
-          difficulty: difficulty,
-        }),
+      recordTime({
+        id: targetPhrase.id,
+        category: targetPhrase.category,
+        time: elapsedTime,
+        difficulty: difficulty,
       }).catch((error) => {
         console.error("Error recording time:", error);
       });
@@ -443,13 +445,15 @@ export function useKarutaReading({
       } else {
         const targetPhrase = pickTargetPhrase(unreadPhrases, sortOrder);
 
-        const apiUrl = `${API_BASE_URL}/get-phrase?id=${targetPhrase.id}&category=${encodeURIComponent(targetPhrase.category)}&repeatCount=${repeatCount}&speechRate=${encodeURIComponent(speechRate)}&lang=${lang}&voiceId=${encodeURIComponent(voiceId)}&announceCategory=${announceCategory}`;
-        const response = await fetch(apiUrl);
-        data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Fetch failed");
-        }
+        data = await getPhrase({
+          id: targetPhrase.id,
+          category: targetPhrase.category,
+          repeatCount,
+          speechRate,
+          lang,
+          voiceId,
+          announceCategory,
+        });
       }
 
       // クイズ大会モード（issue #498）: このデータの取得に実際に使った設定を音声と一緒に

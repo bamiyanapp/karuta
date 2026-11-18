@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuizRoomSync, CONNECTION_STATUS_LABEL } from "../hooks/useQuizRoomSync";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { useValueChange } from "../hooks/useValueChange";
-import { API_BASE_URL } from "../config";
+import { getQuizRoom, getPhrase } from "../api/endpoints";
 import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playQuizSfxAndWait, playJudgmentSfx, stopSharedAudio } from "../utils/audioUnlock";
 import { phraseKey } from "../utils/phraseKey";
 import { clearRoomIdParam } from "../utils/quizRoomUrl";
@@ -202,13 +202,9 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     let cancelled = false;
     (async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/quiz-room?roomId=${encodeURIComponent(joinRoomId)}`);
-        if (cancelled || !response.ok) {
-          // 確認自体が失敗した場合は「存在しない」と断定せず、従来どおり
-          // WebSocket接続を試みさせる
-          return;
-        }
-        const data = await response.json();
+        // 確認自体が失敗した場合（ApiError）は「存在しない」と断定せず、従来どおり
+        // WebSocket接続を試みさせる
+        const data = await getQuizRoom(joinRoomId);
         if (!cancelled && data.exists === false) {
           setRoomInvalid(true);
         }
@@ -441,12 +437,15 @@ function QuizRoomView({ setView, wsBaseUrl, adminSessionRoomId, adminSessionRest
     let cancelled = false;
     (async () => {
       try {
-        const apiUrl = `${API_BASE_URL}/get-phrase?id=${id}&category=${encodeURIComponent(category)}&repeatCount=${repeatCount ?? 2}&speechRate=${encodeURIComponent(speechRate ?? "80%")}&lang=${lang ?? "ja"}&voiceId=${encodeURIComponent(voiceId ?? "Mizuki")}&announceCategory=${!!announceCategory}`;
-        const response = await fetch(apiUrl);
-        if (cancelled || !response.ok) {
-          return;
-        }
-        const data = await response.json();
+        const data = await getPhrase({
+          id,
+          category,
+          repeatCount: repeatCount ?? 2,
+          speechRate: speechRate ?? "80%",
+          lang: lang ?? "ja",
+          voiceId: voiceId ?? "Mizuki",
+          announceCategory: !!announceCategory,
+        });
         if (cancelled || !data.audioData) {
           return;
         }

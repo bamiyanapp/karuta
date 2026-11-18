@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../config";
+import { getVersion } from "../api/endpoints";
 
 // issue #1462: フロントエンドの表示バージョンと、実際に応答しているバックエンドの
 // バージョンが一致しているかをユーザー自身が確認できるようにする。canaryの
@@ -11,8 +11,7 @@ export default function useBackendVersion() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE_URL}/get-version`)
-      .then((res) => (res.ok ? res.json() : null))
+    getVersion()
       .then((data) => {
         if (!cancelled && data) {
           setBackendVersion(data);
