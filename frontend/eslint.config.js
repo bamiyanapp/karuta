@@ -81,6 +81,20 @@ export default defineConfig([
     },
   },
   {
+    // issue #2187: バックエンドAPIの呼び出しはsrc/api/の共通APIクライアント経由に
+    // 統一する（リトライ・エラー種別・タイムアウトの扱いを一箇所に集めるため）。
+    // src/api/配下とテストは対象外とする。ErrorBoundaryはdev-standardsの共有
+    // コンポーネントで、任意のreportUrlへfire-and-forget送信するため生のfetchを使う
+    files: ['src/**/*.{js,jsx}'],
+    ignores: ['src/api/**', 'src/**/*.test.{js,jsx}', 'src/components/ErrorBoundary.jsx'],
+    rules: {
+      'no-restricted-globals': ['error', {
+        name: 'fetch',
+        message: 'APIはsrc/api/endpoints.jsの関数経由で呼び出してください（issue #2187）',
+      }],
+    },
+  },
+  {
     // Playwright（設定ファイル・E2Eテスト）はNode上で実行されるため、
     // ブラウザではなくNodeのグローバル（process等）を使う
     files: ['playwright.config.js', 'e2e/**/*.js'],
