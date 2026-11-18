@@ -159,6 +159,26 @@ jobs:
       # パターンを検知するものであり、誤ってコミットされた具体的な秘密情報
       # （APIキー・トークン等）の検出とは別物のため個別に有効化する
       enable_secret_scan: true
+      # issue #2241: dev-standardsの新しい検査を、警告（warn）で有効にする。違反があっても
+      # CIは失敗にならない。違反は個別のissueで追跡し、是正後にfailへ切り替える
+      # - DynamoDB保護: KarutaTable・CommentsTableの削除保護が未設定（karuta#2264）
+      # - IAM Action: 不足なし
+      # - セキュリティヘッダー: ResponseHeadersPolicyIdが未関連付け（karuta#2189）
+      # - ESLint必須ルール: max-linesが未有効（karuta#2265）
+      # enable_email_scanは、dev-standards#1491（uses:の@v2.x.yをメールアドレスと誤検知する）の
+      # 修正リリース後に有効にする
+      enable_dynamodb_protection_check: true
+      dynamodb_protection_files: "backend/serverless.yml\nbackend/serverless-data.yml"
+      dynamodb_protection_mode: warn
+      enable_iam_actions_check: true
+      iam_actions_serverless_file: backend/serverless.yml
+      iam_actions_source_dirs: backend
+      iam_actions_mode: warn
+      enable_security_headers_check: true
+      security_headers_files: infra/serverless.yml
+      security_headers_mode: warn
+      enable_eslint_rules_check: true
+      eslint_rules_check_mode: warn
       # Markdownドキュメント間の丸ごとコピペ重複を検知する
       # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
       # 導入直後のためレポート表示のみとする
