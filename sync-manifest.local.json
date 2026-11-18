@@ -1,6 +1,7 @@
 {
   "symlinks": [
     { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" },
+    { "source": "shared/e2e/playwright.config.base.js", "target": "frontend/playwright.config.base.js" },
     { "source": "shared/ui/bootstrap-theme.css", "target": "frontend/src/bootstrap-theme.css" },
     { "source": "shared/ui/common-theme.css", "target": "frontend/src/common-theme.css" },
     { "source": "shared/sfx/wadodon.mp3", "target": "frontend/public/wadodon.mp3" },
@@ -18,6 +19,7 @@
     { "source": "shared/hooks/useSessionStorageState.js", "target": "frontend/src/hooks/useSessionStorageState.js" },
     { "source": "shared/hooks/useValueChange.js", "target": "frontend/src/hooks/useValueChange.js" },
     { "source": "shared/hooks/useWakeLock.js", "target": "frontend/src/hooks/useWakeLock.js" },
+    { "source": "shared/hooks/useAutoRefresh.js", "target": "frontend/src/hooks/useAutoRefresh.js" },
     { "source": "shared/api/apiClient.js", "target": "frontend/src/api/apiClient.js" }
   ]
 }

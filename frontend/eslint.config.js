@@ -113,7 +113,7 @@ export default defineConfig([
   {
     // Playwright（設定ファイル・E2Eテスト）はNode上で実行されるため、
     // ブラウザではなくNodeのグローバル（process等）を使う
-    files: ['playwright.config.js', 'e2e/**/*.js'],
+    files: ['playwright.config.js', 'playwright.config.base.js', 'e2e/**/*.js'],
     languageOptions: {
       globals: globals.node,
     },
