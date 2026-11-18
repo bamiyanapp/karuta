@@ -15,6 +15,8 @@ dist-ssr
 # Playwright E2E
 /test-results/
 /playwright-report/
+# 共有のPlaywright設定（monocart-reporter）の出力先（issue #2244）
+/monocart-report/
 /blob-report/
 /playwright/.cache/
 # ユニットテスト（vitest）・E2E（Playwright/monocart-reporter）双方のカバレッジ出力先（issue #541）
