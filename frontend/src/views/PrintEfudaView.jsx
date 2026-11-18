@@ -5,6 +5,7 @@ import { serializeCategoriesParam } from "../hooks/useUrlQuerySync";
 import { setPrintScreenActive } from "../pdfExportStatus";
 import ViewHeader from "../components/ViewHeader";
 import AppVersionInfo from "../components/AppVersionInfo";
+import { useNotify } from "../components/NotificationProvider";
 
 const getEfudaText = (p) => (p.answer && p.answer !== "-") ? p.answer : p.phrase;
 
@@ -63,6 +64,7 @@ const resolvePhraseIndex = (slotIndex, printSide) => {
 };
 
 function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesForCategory, phrasesFetchError, onRetryFetchPhrases, efudaPages, efudaPerPage }) {
+  const notify = useNotify();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // この画面を開いている間、PwaUpdatePromptの「オフラインで利用可能になりました」
@@ -142,7 +144,7 @@ function PrintEfudaView({ categoryLabel, onBack, selectedCategories, allPhrasesF
       window.location.href = downloadUrl;
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("PDFの生成に失敗しました。");
+      notify({ type: "error", message: "PDFの生成に失敗しました。" });
     } finally {
       setIsGeneratingPdf(false);
     }

@@ -58,6 +58,8 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // issue #2190: alert()はJavaScriptの実行を止める。通知はuseNotify()（共有のNotificationProvider）を使う
+      'no-alert': 'error',
       // ESLint組み込み。循環的複雑度の代替（issue #806）。sonarjsの
       // cognitive-complexityと閾値を揃え、両観点でerrorとする（issue #856。
       // lintスクリプトの`--max-warnings 0`により、warn severityにしても
@@ -99,8 +101,11 @@ export default defineConfig([
     // クリックで閉じるため<dialog>へonClickを付けている。キーボードの操作は、ネイティブの
     // <dialog>が持つEscキー（onCancel）で足りる。共有ファイルのためここでは直せず、
     // このファイル限定でa11yの2規則を外す（dev-standards側の対応はdev-standards#1490）
-    files: ['src/components/ConfirmDialog.jsx'],
+    // NotificationProviderも同様に、Providerとhook（useNotify）・定数を同じファイルでexportする
+    // ため、react-refresh/only-export-componentsも外す（dev-standards#1490で追う）
+    files: ['src/components/ConfirmDialog.jsx', 'src/components/NotificationProvider.jsx'],
     rules: {
+      'react-refresh/only-export-components': 'off',
       'jsx-a11y-x/click-events-have-key-events': 'off',
       'jsx-a11y-x/no-noninteractive-element-interactions': 'off',
     },

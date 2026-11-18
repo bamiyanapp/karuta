@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPhrase, getCongratulationAudio, recordTime } from "../api/endpoints";
 import { ApiError } from "../api/client";
+import { messageForError } from "../api/errorMessages";
+import { useNotify } from "../components/NotificationProvider";
 import { phraseKey } from "../utils/phraseKey";
 import { getMainAudio, unlockAudioPlayback } from "../utils/audioUnlock";
 
@@ -51,6 +53,7 @@ export function useKarutaReading({
   quizRoomActiveRef,
   cardRevealDelay = 3000,
 }) {
+  const notify = useNotify();
   const [currentPhrase, setCurrentPhrase] = useState(null);
   // クイズ大会モード（issue #781）: 参加者への「次の札」ブロードキャストを、管理者自身の
   // 画面演出（イントロ音声＋3秒待ち＋フェード）を待たずに行えるよう、その演出が始まる前の
@@ -342,7 +345,8 @@ export function useKarutaReading({
       // サーバーが応答したエラー（上限到達の429等）は、従来どおり何も表示しない。
       // 読了画面は表示できており、音声が無くても支障が無いため
       if (error instanceof ApiError && error.kind === "http") return;
-      alert("送信に失敗しました。");
+      // お祝い音声が無くても支障が無いため、利用者には通知しない（issue #2190）
+      console.error("Error playing congratulation audio:", error);
     }
   };
 
@@ -468,7 +472,7 @@ export function useKarutaReading({
 
     } catch (error) {
       console.error("Error fetching phrase:", error);
-      alert("通信エラーが発生しました: " + error.message);
+      notify({ type: "error", message: messageForError(error) });
     }
   };
 

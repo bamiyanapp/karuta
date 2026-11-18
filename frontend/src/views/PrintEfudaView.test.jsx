@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render as rtlRender } from "@testing-library/react";
+import { NotificationProvider } from "../components/NotificationProvider";
 import { describe, it, expect, afterEach } from "vitest";
 import PrintEfudaView from "./PrintEfudaView";
 import { useIsPrintScreenActive, setPrintScreenActive } from "../pdfExportStatus";
@@ -15,6 +16,9 @@ afterEach(() => {
   // モジュール単位で状態を共有するため、他テストへ漏れないよう戻す
   setPrintScreenActive(false);
 });
+
+// 通知（useNotify）のProviderで包んで描画する（issue #2190）
+const render = (ui) => rtlRender(ui, { wrapper: NotificationProvider });
 
 describe("PrintEfudaView", () => {
   it("marks the print screen as active while mounted, and inactive again once unmounted (issue #473)", () => {

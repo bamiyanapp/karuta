@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent, act } from '@testing-library/react';
+import { NotificationProvider } from '../components/NotificationProvider';
 import QuizRoomInfoView from './QuizRoomInfoView';
 
 vi.mock('qrcode', () => ({
@@ -8,7 +9,6 @@ vi.mock('qrcode', () => ({
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
-  vi.spyOn(window, 'alert').mockImplementation(() => {});
   Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
 });
 
@@ -16,6 +16,9 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
 });
+
+// ShareUrlCardが通知（useNotify）を使うため、通知のProviderで包んで描画する（issue #2190）
+const render = (ui) => rtlRender(ui, { wrapper: NotificationProvider });
 
 describe('QuizRoomInfoView', () => {
   it('shows the room code, invite URL, and a QR code immediately, since this is now a dedicated screen rather than a collapsible panel (issue #547)', async () => {
@@ -146,12 +149,12 @@ describe('QuizRoomInfoView', () => {
     expect(screen.getByText('コピー')).toBeInTheDocument();
   });
 
-  it('shows an alert when the clipboard write fails', async () => {
+  it('shows an error notification (not alert()) when the clipboard write fails (issue #2190)', async () => {
     navigator.clipboard.writeText.mockRejectedValue(new Error('denied'));
     render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" />);
 
     fireEvent.click(screen.getByText('コピー'));
 
-    await vi.waitFor(() => expect(window.alert).toHaveBeenCalled());
+    expect(await screen.findByRole('alert')).toHaveTextContent('URLのコピーに失敗しました');
   });
 });

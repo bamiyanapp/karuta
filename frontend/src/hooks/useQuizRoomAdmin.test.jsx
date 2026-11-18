@@ -8,7 +8,6 @@ import { resetSharedAudioForTests } from '../utils/audioUnlock';
 // 結びついているため、renderHookによる単体テストではなく、既存のApp.test.jsxと
 // 同様に<App />を実際にレンダーしてUI経由で検証する（分割前と同じテスト内容）。
 
-window.alert = vi.fn();
 
 // Mock fetch
 window.fetch = vi.fn();

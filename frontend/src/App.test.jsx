@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
 import { resetSharedAudioForTests } from './utils/audioUnlock';
 
-window.alert = vi.fn();
 
 // Mock fetch
 window.fetch = vi.fn();
@@ -79,12 +78,12 @@ describe('App', () => {
     });
 
     // 1回目の失敗直後はまだアラートを出さず、自動リトライを待つ
-    expect(window.alert).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
     // 指数バックオフ（1秒・2秒・4秒・8秒、最大8秒）で合計約15秒かかるため、
     // デフォルトタイムアウトを延長する
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('カテゴリの取得に失敗しました。');
+      expect(screen.getByRole('alert')).toHaveTextContent('カテゴリの取得に失敗しました。');
     }, { timeout: 20000 });
 
     // 初回 + リトライ4回 = 合計5回
@@ -115,7 +114,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByText('こども向け'));
     await screen.findByRole('button', { name: /Cat1/ }, { timeout: 20000 });
 
-    expect(window.alert).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(categoriesCallCount).toBe(4);
 
     consoleErrorSpy.mockRestore();
@@ -140,7 +139,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByText('こども向け'));
     await screen.findByRole('button', { name: /Cat1/ });
 
-    expect(window.alert).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(categoriesCallCount).toBe(2);
 
     consoleErrorSpy.mockRestore();
@@ -168,7 +167,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByText('こども向け'));
     await screen.findByRole('button', { name: /Cat1/ });
 
-    expect(window.alert).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(categoriesCallCount).toBe(3);
 
     consoleErrorSpy.mockRestore();
@@ -853,8 +852,8 @@ describe('App', () => {
       expect(screen.getByText('回答1')).toBeInTheDocument();
     });
 
-    // 一部失敗のみでは、完全失敗時のアラートは出さない
-    expect(window.alert).not.toHaveBeenCalledWith(expect.stringContaining('かるたデータの取得'));
+    // 一部失敗のみでは、完全失敗時の通知は出さない
+    expect(screen.queryByText('かるたデータの取得に失敗しました。もう一度お試しください。')).not.toBeInTheDocument();
     // 一部失敗を知らせる警告と再試行導線が表示される
     expect(screen.getByText(/一部のかるたデータの取得に失敗した/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '再試行する' })).toBeInTheDocument();
@@ -885,7 +884,7 @@ describe('App', () => {
       expect(screen.getByText('かるたデータの取得に失敗しました。')).toBeInTheDocument();
     });
     expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
-    expect(window.alert).toHaveBeenCalledWith('かるたデータの取得に失敗しました。もう一度お試しください。');
+    expect(screen.getByRole('alert')).toHaveTextContent('かるたデータの取得に失敗しました。もう一度お試しください。');
 
     cat1ShouldFail = false;
     fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
@@ -1203,7 +1202,7 @@ describe('App', () => {
 
     await waitFor(
       () => {
-        expect(window.alert).toHaveBeenCalledWith('PDFの生成に失敗しました。');
+        expect(screen.getByRole('alert')).toHaveTextContent('PDFの生成に失敗しました。');
       },
       { timeout: 10000 }
     );
