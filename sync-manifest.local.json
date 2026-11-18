@@ -1,6 +1,7 @@
 {
   "symlinks": [
     { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" },
+    { "source": "shared/e2e/playwright.config.base.js", "target": "frontend/playwright.config.base.js" },
     { "source": "shared/ui/bootstrap-theme.css", "target": "frontend/src/bootstrap-theme.css" },
     { "source": "shared/ui/common-theme.css", "target": "frontend/src/common-theme.css" },
     { "source": "shared/sfx/wadodon.mp3", "target": "frontend/public/wadodon.mp3" },
