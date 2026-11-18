@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { useNotify } from "./NotificationProvider";
 
 // QRコード表示＋URLコピーのカードUI。クイズ大会ルーム招待画面（QuizRoomInfoView、
 // issue #547）で先に実装されていたものをissue #1429でアプリ共有画面（ShareView）
@@ -7,6 +8,7 @@ import QRCode from "qrcode";
 // karutaでは常時表示のUXと合わないため非採用（issue #1168）としており、
 // 本コンポーネントはその方針を引き継ぎ常時表示のカードとして実装する
 function ShareUrlCard({ url, codeLabel, codeValue, qrAltText = "共有用QRコード" }) {
+  const notify = useNotify();
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -23,7 +25,7 @@ function ShareUrlCard({ url, codeLabel, codeValue, qrAltText = "共有用QRコ�
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy URL:", error);
-      alert("URLのコピーに失敗しました。お手数ですが手動でコピーしてください。");
+      notify({ type: "error", message: "URLのコピーに失敗しました。お手数ですが手動でコピーしてください。" });
     }
   };
 

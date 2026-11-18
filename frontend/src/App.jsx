@@ -28,6 +28,8 @@ import SettingsFooter from "./components/SettingsFooter";
 import AppVersionInfo from "./components/AppVersionInfo";
 import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
+import { NotificationProvider, useNotify } from "./components/NotificationProvider";
+import { messageForError } from "./api/errorMessages";
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 
@@ -113,7 +115,8 @@ function comparePhraseValues(a, b, sortConfig) {
   return 0;
 }
 
-function App() {
+function AppContent() {
+  const notify = useNotify();
   const [categories, setCategories] = useState([]);
   const [division, setDivision] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -393,12 +396,12 @@ function App() {
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error("Error fetching categories:", error);
-        alert("カテゴリの取得に失敗しました。");
+        notify({ type: "error", message: "カテゴリの取得に失敗しました。" });
       }
     };
     fetchCategories();
     return () => controller.abort();
-  }, []);
+  }, [notify]);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。
   // issue #474: 以前はPromise.allを使っており、選択中の1カテゴリでも取得に失敗すると
@@ -432,13 +435,13 @@ function App() {
       setAllPhrasesForCategory(succeeded);
       setPhrasesFetchError(failedCount > 0);
       // 選択中の全カテゴリが失敗した場合（部分的な失敗ではなく完全な失敗）のみ、
-      // 従来どおりアラートで知らせる。1カテゴリの失敗程度ではアラートを出さない
+      // 従来どおり通知で知らせる。1カテゴリの失敗程度では通知を出さない
       if (failedCount > 0 && succeeded.length === 0) {
-        alert("かるたデータの取得に失敗しました。もう一度お試しください。");
+        notify({ type: "error", message: "かるたデータの取得に失敗しました。もう一度お試しください。" });
       }
     };
     fetchPhrasesList();
-  }, [selectedCategories, phrasesFetchRetryToken]);
+  }, [selectedCategories, phrasesFetchRetryToken, notify]);
   const retryFetchPhrasesList = () => setPhrasesFetchRetryToken((token) => token + 1);
 
   // 詳細データの取得
@@ -523,10 +526,10 @@ function App() {
         phrase: detailPhrase.phrase,
         comment: commentText,
       });
-      alert("指摘内容を送信しました。ありがとうございます。");
+      notify({ type: "success", message: "指摘内容を送信しました。ありがとうございます。" });
       setCommentText("");
-    } catch {
-      alert("送信に失敗しました。");
+    } catch (error) {
+      notify({ type: "error", message: messageForError(error) });
     } finally {
       setPostingComment(false);
     }
@@ -1080,6 +1083,15 @@ function App() {
         </aside>
       </div>
     </div>
+  );
+}
+
+// 通知（トースト）のProviderで包む。Appより内側のhookが、useNotifyで通知を出す（issue #2190）
+function App() {
+  return (
+    <NotificationProvider>
+      <AppContent />
+    </NotificationProvider>
   );
 }
 
