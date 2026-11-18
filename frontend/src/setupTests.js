@@ -31,3 +31,14 @@ if (typeof globalThis.localStorage?.setItem !== 'function') {
     configurable: true,
   });
 }
+
+// jsdomは<dialog>のshowModal・closeを実装していないため、openプロパティだけを模す
+// （共有のConfirmDialogを使う画面のテスト用。issue #2242）
+if (typeof window.HTMLDialogElement !== 'undefined') {
+  window.HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true;
+  };
+  window.HTMLDialogElement.prototype.close = function close() {
+    this.open = false;
+  };
+}
