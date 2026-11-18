@@ -1,3 +1,10 @@
+# [1.127.0](https://github.com/bamiyanapp/karuta/compare/v1.126.1...v1.127.0) (2026-11-18)
+
+
+### Features
+
+* window.confirmを共有のConfirmDialogへ置き換える ([#2242](https://github.com/bamiyanapp/karuta/issues/2242)) ([#2261](https://github.com/bamiyanapp/karuta/issues/2261)) ([f77d4b4](https://github.com/bamiyanapp/karuta/commit/f77d4b48e449959b0e41a48fea19009d2363e454))
+
 ## [1.126.1](https://github.com/bamiyanapp/karuta/compare/v1.126.0...v1.126.1) (2026-11-18)
 
 
