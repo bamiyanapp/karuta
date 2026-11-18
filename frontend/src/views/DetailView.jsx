@@ -1,5 +1,6 @@
 import ViewHeader from "../components/ViewHeader";
 import AppVersionInfo from "../components/AppVersionInfo";
+import FetchErrorPanel from "../components/FetchErrorPanel";
 
 // 詳細画面本体（読み込み中はDetailView側で「読み込み中...」を出すため、
 // ここはdetailPhraseが確定してから呼ばれる前提）。DetailView本体の複雑度を
@@ -92,6 +93,15 @@ function renderDetailContent({
   );
 }
 
+// 詳細を表示できないときの内容。取得に失敗した場合は、読み込み中のままにせず、
+// 画面内にエラー表示と再試行ボタンを出す（issue #2190）
+function renderDetailPlaceholder(detailFetchError, onRetryFetchDetail) {
+  if (detailFetchError) {
+    return <FetchErrorPanel message="札の詳細の取得に失敗しました。" onRetry={onRetryFetchDetail} />;
+  }
+  return <div className="p-5 text-muted">読み込み中...</div>;
+}
+
 function DetailView({
   detailPhrase,
   detailPhraseCategory,
@@ -103,6 +113,8 @@ function DetailView({
   postComment,
   postingComment,
   detailPhraseComments,
+  detailFetchError = false,
+  onRetryFetchDetail,
 }) {
   return (
     <div className="container py-4 mx-auto">
@@ -117,7 +129,7 @@ function DetailView({
 
       <main className="text-center py-4">
         {!detailPhrase ? (
-          <div className="p-5 text-muted">読み込み中...</div>
+          renderDetailPlaceholder(detailFetchError, onRetryFetchDetail)
         ) : (
           renderDetailContent({
             detailPhrase,

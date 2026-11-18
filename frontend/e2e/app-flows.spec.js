@@ -388,3 +388,39 @@ test('print-efuda view shows an error with a retry button when the phrase list f
     await closeContext(context);
   }
 });
+
+// issue #2190: 全札一覧の取得に失敗したとき、「読み込み中...」のまま進まず、画面内にエラー表示と
+// 「再試行する」ボタンが出て、再試行で一覧が表示される。page.routeで、ブラウザ側のネットワーク層でのみ
+// 失敗を模擬する（本番バックエンドを実際に落とすわけではない）。4xxはリトライされないため、待たずに失敗の表示になる
+test('all-phrases view shows an error with a retry button when the list fails to fetch, and recovers after retrying (issue #2190)', async ({ browser }, testInfo) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await startCoverage(page);
+
+  let shouldFail = true;
+  await page.route('**/get-phrases-list*', async (route) => {
+    if (shouldFail) {
+      await route.fulfill({ status: 404, body: 'error' });
+    } else {
+      await route.continue();
+    }
+  });
+
+  try {
+    await page.goto('/');
+    await page.getByText('全札一覧を見る').click();
+
+    await expect(page.getByText('かるたの一覧の取得に失敗しました。')).toBeVisible();
+    await expect(page.getByText('読み込み中...')).not.toBeVisible();
+    await captureScreenshot(page, testInfo, 'all-phrases-fetch-error', '全札一覧画面：一覧の取得に失敗し、エラー表示と再試行ボタンが出た状態');
+
+    shouldFail = false;
+    await page.getByRole('button', { name: '再試行する' }).click();
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('かるたの一覧の取得に失敗しました。')).not.toBeVisible();
+    await captureScreenshot(page, testInfo, 'all-phrases-fetch-retry-recovered', '全札一覧画面：再試行により一覧が表示された状態');
+  } finally {
+    await stopCoverage(page, testInfo);
+    await closeContext(context);
+  }
+});

@@ -363,6 +363,90 @@ describe('App', () => {
     }, { timeout: 3000 });
   });
 
+  // issue #2190: 画面の主要な内容を取得できなかったときは、空のまま・読み込み中のままにせず、
+  // 画面内にエラー表示と「再試行する」ボタンを出し、再試行で復帰できる。
+  // 4xxはAPIクライアントがリトライしないため、テストは待たずに失敗の表示へ進む
+  describe('fetch failures show an in-screen error with a retry button (issue #2190)', () => {
+    const failed = { ok: false, status: 404, json: async () => ({}) };
+
+    it('all-phrases view: shows the error instead of "読み込み中..." and recovers after retrying', async () => {
+      let shouldFail = true;
+      fetch.mockImplementation(async (url) => {
+        if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+        if (url.includes('get-phrases-list')) {
+          return shouldFail ? failed : { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1', phrase: '読み札1', answer: 'こたえ', kana: 'あ', level: '-' }] }) };
+        }
+        return { ok: false };
+      });
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(screen.getByText(/全札一覧を見る/));
+
+      expect(await screen.findByText('かるたの一覧の取得に失敗しました。')).toBeInTheDocument();
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
+
+      shouldFail = false;
+      fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+
+      await waitFor(() => expect(screen.queryByText('かるたの一覧の取得に失敗しました。')).not.toBeInTheDocument());
+      expect(await screen.findByText('読み札1')).toBeInTheDocument();
+    });
+
+    it('comments view: shows the error instead of "まだ指摘はありません。" and recovers after retrying', async () => {
+      let shouldFail = true;
+      fetch.mockImplementation(async (url) => {
+        if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+        if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [] }) };
+        if (url.includes('get-comments')) {
+          return shouldFail ? failed : { ok: true, json: async () => ({ comments: [{ id: 1, phrase: 'TestPhrase', comment: 'Fix this', category: 'TestCat', createdAt: new Date().toISOString() }] }) };
+        }
+        return { ok: false };
+      });
+      await act(async () => {
+        render(<App />);
+      });
+
+      fireEvent.click(screen.getByText(/全札一覧を見る/));
+      fireEvent.click(await screen.findByText(/指摘された内容を確認する/i));
+
+      expect(await screen.findByText('指摘の取得に失敗しました。')).toBeInTheDocument();
+      expect(screen.queryByText('まだ指摘はありません。')).not.toBeInTheDocument();
+
+      shouldFail = false;
+      fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+
+      expect(await screen.findByText(/TestPhrase/)).toBeInTheDocument();
+      expect(screen.queryByText('指摘の取得に失敗しました。')).not.toBeInTheDocument();
+    });
+
+    it('detail view: shows the error instead of "読み込み中..." and recovers after retrying', async () => {
+      window.history.pushState({}, '', '/?id=p1');
+      let shouldFail = true;
+      fetch.mockImplementation(async (url) => {
+        if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+        if (url.includes('get-comments')) return { ok: true, json: async () => ({ comments: [] }) };
+        if (url.includes('/get-phrase?')) {
+          return shouldFail ? failed : { ok: true, json: async () => ({ id: 'p1', category: 'Cat1', kana: 'あ', phrase: '読み札1', level: '-', audioData: 'dummy1' }) };
+        }
+        return { ok: false };
+      });
+      await act(async () => {
+        render(<App />);
+      });
+
+      expect(await screen.findByText('札の詳細の取得に失敗しました。')).toBeInTheDocument();
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
+
+      shouldFail = false;
+      fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+
+      expect(await screen.findByText('読み札1')).toBeInTheDocument();
+      expect(screen.queryByText('札の詳細の取得に失敗しました。')).not.toBeInTheDocument();
+    });
+  });
+
   it('fetches get-categories only once, even after selecting a category (issue #193)', async () => {
     fetch.mockImplementation(async (url) => {
       if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [{ name: 'Cat1', group: 'kids' }] }) };

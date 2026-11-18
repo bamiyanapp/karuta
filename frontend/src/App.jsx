@@ -133,6 +133,14 @@ function AppContent() {
   });
   const [detailPhraseCategory, setDetailPhraseCategory] = useState(null);
   const [detailPhrase, setDetailPhrase] = useState(null);
+  // 取得に失敗した画面は、空のまま・読み込み中のままにせず、画面内にエラー表示と再試行ボタンを出す
+  // （issue #2190）。再試行は、tokenを増やしてuseEffectを再実行させる
+  const [detailFetchError, setDetailFetchError] = useState(false);
+  const [detailRetryToken, setDetailRetryToken] = useState(0);
+  const [commentsFetchError, setCommentsFetchError] = useState(false);
+  const [commentsRetryToken, setCommentsRetryToken] = useState(0);
+  const [allPhrasesFetchError, setAllPhrasesFetchError] = useState(false);
+  const [allPhrasesRetryToken, setAllPhrasesRetryToken] = useState(0);
 
   // 指摘一覧表示用の状態
   const [view, setView] = useState(() => {
@@ -462,12 +470,14 @@ function AppContent() {
           announceCategory: isMultiCategorySelection,
         });
         setDetailPhrase(data);
+        setDetailFetchError(false);
       } catch (error) {
         console.error("Error fetching phrase detail:", error);
+        setDetailFetchError(true);
       }
     };
     fetchDetail();
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, detailRetryToken]);
 
   // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
   useEffect(() => {
@@ -476,13 +486,15 @@ function AppContent() {
         try {
           const data = await getComments();
           setAllComments(data.comments || []);
+          setCommentsFetchError(false);
         } catch (error) {
           console.error("Error fetching comments:", error);
+          setCommentsFetchError(true);
         }
       }
     };
     fetchComments();
-  }, [view, detailPhraseId]);
+  }, [view, detailPhraseId, commentsRetryToken]);
 
   const detailPhraseComments = useMemo(() => {
     if (!detailPhrase) return [];
@@ -496,13 +508,15 @@ function AppContent() {
         try {
           const data = await getPhrasesList();
           setAllPhrases(data.phrases || []);
+          setAllPhrasesFetchError(false);
         } catch (error) {
           console.error("Error fetching all phrases:", error);
+          setAllPhrasesFetchError(true);
         }
       };
       fetchAllPhrases();
     }
-  }, [view]);
+  }, [view, allPhrasesRetryToken]);
 
   // 「もう一度」ボタン・読み札カードのクリック: 詳細画面で開いている札があれば
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
@@ -743,6 +757,8 @@ function AppContent() {
         postComment={postComment}
         postingComment={postingComment}
         detailPhraseComments={detailPhraseComments}
+        detailFetchError={detailFetchError}
+        onRetryFetchDetail={() => setDetailRetryToken((token) => token + 1)}
       />
     );
   }
@@ -781,12 +797,21 @@ function AppContent() {
         openDetail={openDetail}
         setView={setView}
         setSelectedCategories={setSelectedCategories}
+        allPhrasesFetchError={allPhrasesFetchError}
+        onRetryFetchAllPhrases={() => setAllPhrasesRetryToken((token) => token + 1)}
       />
     );
   }
 
   if (view === "comments") {
-    return <CommentsView allComments={allComments} setView={setView} />;
+    return (
+      <CommentsView
+        allComments={allComments}
+        setView={setView}
+        commentsFetchError={commentsFetchError}
+        onRetryFetchComments={() => setCommentsRetryToken((token) => token + 1)}
+      />
+    );
   }
 
   if (view === "changelog") {

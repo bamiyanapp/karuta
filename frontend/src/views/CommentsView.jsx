@@ -1,7 +1,17 @@
 import ViewHeader from "../components/ViewHeader";
 import AppVersionInfo from "../components/AppVersionInfo";
+import FetchErrorPanel from "../components/FetchErrorPanel";
 
-function CommentsView({ allComments, setView }) {
+// 指摘が0件のときの内容。取得に失敗したときに「まだ指摘はありません」と出すと、0件と
+// 区別がつかないため、エラー表示と再試行ボタンを出す（issue #2190）
+function renderEmptyComments(commentsFetchError, onRetryFetchComments) {
+  if (commentsFetchError) {
+    return <FetchErrorPanel message="指摘の取得に失敗しました。" onRetry={onRetryFetchComments} />;
+  }
+  return <p className="text-muted text-center py-5">まだ指摘はありません。</p>;
+}
+
+function CommentsView({ allComments, setView, commentsFetchError = false, onRetryFetchComments }) {
   return (
     <div className="container py-4 mx-auto">
       <ViewHeader onBack={() => setView("game")} title="指摘された内容一覧" marginBottom="mb-5" />
@@ -11,7 +21,7 @@ function CommentsView({ allComments, setView }) {
 
       <main className="mx-auto" style={{ maxWidth: "800px" }}>
         {allComments.length === 0 ? (
-          <p className="text-muted text-center py-5">まだ指摘はありません。</p>
+          renderEmptyComments(commentsFetchError, onRetryFetchComments)
         ) : (
           <div className="row g-4">
             {allComments.map(c => (

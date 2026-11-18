@@ -1,4 +1,5 @@
 import ViewHeader from "../components/ViewHeader";
+import FetchErrorPanel from "../components/FetchErrorPanel";
 import AppVersionInfo from "../components/AppVersionInfo";
 
 function AllPhrasesView({
@@ -18,6 +19,8 @@ function AllPhrasesView({
   openDetail,
   setView,
   setSelectedCategories,
+  allPhrasesFetchError = false,
+  onRetryFetchAllPhrases,
 }) {
   // uniqueCategoriesは呼び出し元（App.jsx）でfilterDivisionに応じて既に絞り込まれた
   // 一覧が渡ってくるため、種別ボタン一覧を切り替えるたびdivisionを跨いだ絞り込みが
@@ -60,7 +63,11 @@ function AllPhrasesView({
                 指摘された内容を確認する →
               </button>
             </div>
-            <p className="text-muted text-center py-5">読み込み中...</p>
+            {allPhrasesFetchError ? (
+              <FetchErrorPanel message="かるたの一覧の取得に失敗しました。" onRetry={onRetryFetchAllPhrases} />
+            ) : (
+              <p className="text-muted text-center py-5">読み込み中...</p>
+            )}
           </>
         ) : (
           <div className="all-phrases-scroll-container">
