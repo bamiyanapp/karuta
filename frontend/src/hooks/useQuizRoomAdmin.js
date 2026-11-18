@@ -3,10 +3,25 @@ import { WS_BASE_URL } from "../config";
 import { getQuizRooms, getQuizRoom, createQuizRoom as createQuizRoomApi } from "../api/endpoints";
 import { ApiError } from "../api/client";
 import { useQuizRoomSync } from "./useQuizRoomSync";
+import { useAutoRefresh } from "./useAutoRefresh";
 import { useValueChange } from "./useValueChange";
 import { unlockAudioPlayback, playQuizSfx, playJudgmentSfx } from "../utils/audioUnlock";
 import { phraseKey } from "../utils/phraseKey";
 import { setRoomIdParam } from "../utils/quizRoomUrl";
+
+// 開設中のルーム一覧を取得する。失敗時はnullを返す。サーバーが応答したエラー（HTTPエラー）は、
+// 定期ポーリングのたびにログが溢れるため記録しない（issue #2239）
+async function loadOpenQuizRooms() {
+  try {
+    const data = await getQuizRooms();
+    return data.rooms || [];
+  } catch (error) {
+    if (!(error instanceof ApiError && error.kind === "http")) {
+      console.error("Failed to fetch open quiz rooms:", error);
+    }
+    return null;
+  }
+}
 
 // クイズ大会モード（issue #470）でuseQuizRoomSyncにonStateを渡す際の既定値。
 // 管理者側は自身のゲーム状態が唯一の正であり、サーバーから送り返される状態を
@@ -103,38 +118,29 @@ export function useQuizRoomAdmin({
   // 一覧は初回マウント時だけでなく、他画面から戻る等でトップページへ再度遷移した
   // たびに再取得する（issue #531: 一度取得したきり更新されず古くなる不具合の対応）。
   // さらに、トップページに開きっぱなしのまま（isOnTopPageが変化しないまま）でも、
-  // 定期ポーリングとフォアグラウンド復帰時（visibilitychange）の即時再取得により、
-  // 他の管理者が新しく開設したルームが自動的に一覧へ反映されるようにする（issue #640）
+  // 定期ポーリングとフォアグラウンド復帰時の即時再取得により、他の管理者が新しく
+  // 開設したルームが自動的に一覧へ反映されるようにする（issue #640）。
+  // 「いつ再取得するか」は共有のuseAutoRefreshに任せる（issue #2243）
   const isOnTopPage = view === "game" && selectedCategories.length === 0;
+  const shouldFetchOpenRooms = Boolean(WS_BASE_URL) && isOnTopPage;
+  const refreshOpenQuizRooms = () => {
+    if (!shouldFetchOpenRooms) return;
+    loadOpenQuizRooms().then((rooms) => {
+      if (rooms) setOpenQuizRooms(rooms);
+    });
+  };
   useEffect(() => {
-    if (!WS_BASE_URL || !isOnTopPage) {
-      return;
-    }
-    const fetchOpenQuizRooms = async () => {
-      try {
-        const data = await getQuizRooms();
-        setOpenQuizRooms(data.rooms || []);
-      } catch (error) {
-        // サーバーが応答したエラー（HTTPエラー）は、定期ポーリングのたびにログが溢れるため記録しない
-        if (error instanceof ApiError && error.kind === "http") return;
-        console.error("Failed to fetch open quiz rooms:", error);
-      }
-    };
-    fetchOpenQuizRooms();
-
-    const pollTimer = setInterval(fetchOpenQuizRooms, OPEN_ROOMS_POLL_INTERVAL_MS);
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        fetchOpenQuizRooms();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      clearInterval(pollTimer);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isOnTopPage]);
+    // トップページへ入った（shouldFetchOpenRoomsが変わった）ときだけ、初回の取得を行う
+    if (!shouldFetchOpenRooms) return;
+    loadOpenQuizRooms().then((rooms) => {
+      if (rooms) setOpenQuizRooms(rooms);
+    });
+  }, [shouldFetchOpenRooms]);
+  // トップページを開いている間だけ、定期ポーリングを張る（復帰時の再取得は、常に張る
+  // リスナー側でshouldFetchOpenRoomsを見て、対象外の画面では何もしない）
+  useAutoRefresh(refreshOpenQuizRooms, {
+    intervalMs: shouldFetchOpenRooms ? OPEN_ROOMS_POLL_INTERVAL_MS : undefined,
+  });
 
   // クイズ大会モード: quizRoomが設定されている（管理者としてルームを開設した）間だけ接続する
   const {
