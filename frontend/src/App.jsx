@@ -376,14 +376,13 @@ function App() {
   // リトライ予算では連続失敗を使い切ってしまい、アラートが表示される事例が
   // canaryでのみ発生していた。間隔を指数バックオフ（1秒・2秒・4秒・8秒、最大8秒で
   // 打ち止め）にし、より長いコールドスタートの連鎖にも耐えられるようにする
+  // issue #2187: リトライはAPIクライアント（api/endpoints.jsのCATEGORIES_RETRY）が行う。
+  // ここでは、アンマウント時の中断と、全リトライが尽きたときのアラートだけを扱う
   useEffect(() => {
-    let cancelled = false;
-    const CATEGORIES_FETCH_MAX_RETRY_COUNT = 4;
-    const CATEGORIES_FETCH_BASE_RETRY_DELAY_MS = 1000;
-    const CATEGORIES_FETCH_MAX_RETRY_DELAY_MS = 8000;
-    const fetchCategories = async (retryCount = 0) => {
+    const controller = new AbortController();
+    const fetchCategories = async () => {
       try {
-        const data = await getCategories();
+        const data = await getCategories({ signal: controller.signal });
         const availableCategories = data.categories || [];
         setCategories(availableCategories);
 
@@ -392,25 +391,13 @@ function App() {
           setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
         }
       } catch (error) {
-        if (cancelled) return;
-        if (retryCount < CATEGORIES_FETCH_MAX_RETRY_COUNT) {
-          const delayMs = Math.min(
-            CATEGORIES_FETCH_BASE_RETRY_DELAY_MS * (2 ** retryCount),
-            CATEGORIES_FETCH_MAX_RETRY_DELAY_MS
-          );
-          console.error(`Error fetching categories, retrying (${retryCount + 1}/${CATEGORIES_FETCH_MAX_RETRY_COUNT}):`, error);
-          setTimeout(() => {
-            if (!cancelled) fetchCategories(retryCount + 1);
-          }, delayMs);
-          return;
-        }
+        if (controller.signal.aborted) return;
+        console.error("Error fetching categories:", error);
         alert("カテゴリの取得に失敗しました。");
       }
     };
     fetchCategories();
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, []);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。

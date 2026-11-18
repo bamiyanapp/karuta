@@ -1,5 +1,5 @@
 // issue #2187: エンドポイントごとの関数が、従来のURL・メソッド・ボディと同じ形で呼ぶことを確認する
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   getCategories, getPhrasesList, getPhrase, getComments, postComment,
   getVersion, getCongratulationAudio, recordTime, getQuizRooms, getQuizRoom, createQuizRoom,
@@ -109,5 +109,68 @@ describe("api/endpoints", () => {
       expect(window.fetch).toHaveBeenCalledTimes(1);
       expect(window.fetch.mock.calls[0][1].method).toBe("POST");
     }
+  });
+
+  describe("リトライの既定値（issue #2187）", () => {
+    const serverError = { ok: false, status: 503, json: async () => ({}) };
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it("GET（getComments）: 5xxは最大4回まで試し、途中で成功すれば結果を返す", async () => {
+      window.fetch
+        .mockResolvedValueOnce(serverError)
+        .mockResolvedValueOnce(serverError)
+        .mockResolvedValueOnce(okResponse({ comments: [] }));
+
+      const promise = getComments();
+      await vi.runAllTimersAsync();
+
+      await expect(promise).resolves.toEqual({ comments: [] });
+      expect(window.fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it("GET（getComments）: 失敗が続くと4回で諦める", async () => {
+      window.fetch.mockResolvedValue(serverError);
+
+      const promise = getComments();
+      const assertion = expect(promise).rejects.toBeInstanceOf(ApiError);
+      await vi.runAllTimersAsync();
+
+      await assertion;
+      expect(window.fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("getCategories: コールドスタートの連続失敗に耐えるよう、最大5回まで試す", async () => {
+      window.fetch.mockResolvedValue(serverError);
+
+      const promise = getCategories();
+      const assertion = expect(promise).rejects.toBeInstanceOf(ApiError);
+      await vi.runAllTimersAsync();
+
+      await assertion;
+      expect(window.fetch).toHaveBeenCalledTimes(5);
+    });
+
+    it("getPhrase: リトライしない", async () => {
+      window.fetch.mockResolvedValue(serverError);
+
+      await expect(getPhrase({ id: 1 })).rejects.toBeInstanceOf(ApiError);
+      expect(window.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("POST（postComment）: 二重登録を避けるためリトライしない", async () => {
+      window.fetch.mockResolvedValue(serverError);
+
+      await expect(postComment({ text: "a" })).rejects.toBeInstanceOf(ApiError);
+      expect(window.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("4xx（404）は、GETでもリトライしない", async () => {
+      window.fetch.mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+
+      await expect(getComments()).rejects.toBeInstanceOf(ApiError);
+      expect(window.fetch).toHaveBeenCalledTimes(1);
+    });
   });
 });
