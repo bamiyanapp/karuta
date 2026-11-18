@@ -39,9 +39,9 @@ jobs:
     # reusable-ci.ymlの自己参照チェックアウトが新規必須入力self_ref経由の
     # 値を使う方式に変わった。呼び出し元（本workflow）が、下記uses:行の
     # refと同じ値をself_refとして渡す必要がある
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.149.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.150.2
     with:
-      self_ref: v2.149.1
+      self_ref: v2.150.2
       frontend_dir: frontend
       backend_dir: backend
       node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
@@ -159,6 +159,26 @@ jobs:
       # パターンを検知するものであり、誤ってコミットされた具体的な秘密情報
       # （APIキー・トークン等）の検出とは別物のため個別に有効化する
       enable_secret_scan: true
+      enable_email_scan: true
+      # issue #2241: dev-standardsの新しい検査を、警告（warn）で有効にする。違反があっても
+      # CIは失敗にならない。違反は個別のissueで追跡し、是正後にfailへ切り替える
+      # - DynamoDB保護: KarutaTable・CommentsTableの削除保護が未設定（karuta#2264）
+      # - IAM Action: 不足なし
+      # - セキュリティヘッダー: ResponseHeadersPolicyIdが未関連付け（karuta#2189）
+      # - ESLint必須ルール: max-linesが未有効（karuta#2265）
+      # - メールアドレス: dev-standards#1491（uses:の@v2.x.yを誤検知する）の修正後（v2.150.1）に有効化
+      enable_dynamodb_protection_check: true
+      dynamodb_protection_files: "backend/serverless.yml\nbackend/serverless-data.yml"
+      dynamodb_protection_mode: warn
+      enable_iam_actions_check: true
+      iam_actions_serverless_file: backend/serverless.yml
+      iam_actions_source_dirs: backend
+      iam_actions_mode: warn
+      enable_security_headers_check: true
+      security_headers_files: infra/serverless.yml
+      security_headers_mode: warn
+      enable_eslint_rules_check: true
+      eslint_rules_check_mode: warn
       # Markdownドキュメント間の丸ごとコピペ重複を検知する
       # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
       # 導入直後のためレポート表示のみとする
@@ -208,7 +228,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.149.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.150.2
 
   dependency-deprecation-scan:
     name: 依存deprecatedスキャン
@@ -216,11 +236,11 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.149.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.150.2
     with:
       lockfile_path: package-lock.json
       direct_only: true
-      self_ref: v2.149.1
+      self_ref: v2.150.2
 
   # issue #1914。README.mdのdev-standardsバージョン表示（issue #1898/#1899）は
   # npm run docs:generate経由の手動実行専用で、CIからは一切呼ばれていなかった。
