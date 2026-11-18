@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.126.1",
+    "date": "2026/11/18",
+    "body": "### Bug Fixes\n\n* **renovate:** self_refをタグ全体で抽出しusesと同時に更新させる ([#2240](https://github.com/bamiyanapp/karuta/issues/2240)) ([#2256](https://github.com/bamiyanapp/karuta/issues/2256)) ([a4b0e23](https://github.com/bamiyanapp/karuta/commit/a4b0e23accfd6e41f9454f0dcf85d700366d5db9))"
+  },
+  {
     "version": "1.126.0",
-    "date": "2026/11/17",
+    "date": "2026/11/17 23:02",
     "body": "### Features\n\n* get-congratulation-audioの音声をPollyキャッシュの対象にする ([#2230](https://github.com/bamiyanapp/karuta/issues/2230)) ([1539a84](https://github.com/bamiyanapp/karuta/commit/1539a843092f15de7f0d5e667937726109096e50))"
   },
   {
