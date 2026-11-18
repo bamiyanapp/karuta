@@ -17,6 +17,7 @@
     { "source": "shared/hooks/useSessionStorageState.js", "target": "frontend/src/hooks/useSessionStorageState.js" },
     { "source": "shared/hooks/useValueChange.js", "target": "frontend/src/hooks/useValueChange.js" },
     { "source": "shared/hooks/useWakeLock.js", "target": "frontend/src/hooks/useWakeLock.js" },
+    { "source": "shared/hooks/useAutoRefresh.js", "target": "frontend/src/hooks/useAutoRefresh.js" },
     { "source": "shared/api/apiClient.js", "target": "frontend/src/api/apiClient.js" }
   ]
 }
