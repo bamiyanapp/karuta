@@ -1650,8 +1650,6 @@ describe('useQuizRoomAdmin (via App)', () => {
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       return { ok: false };
     });
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
     await act(async () => {
       render(<App />);
     });
@@ -1674,7 +1672,8 @@ describe('useQuizRoomAdmin (via App)', () => {
     fireEvent.click(screen.getByText('ルーム情報を表示（クイズ大会モード）'));
     const closeButton = await screen.findByText('ルームを閉じる');
     fireEvent.click(closeButton);
-    expect(confirmSpy).toHaveBeenCalled();
+    // 確認ダイアログ（共有のConfirmDialog、issue #2242）で実行を選ぶ
+    fireEvent.click(await screen.findByText('閉じて全員を切断する'));
 
     expect(adminConnection.sent).toContainEqual(JSON.stringify({ action: 'closeRoom' }));
 
@@ -1687,11 +1686,9 @@ describe('useQuizRoomAdmin (via App)', () => {
     await screen.findByText('クイズ大会のルームを作成する');
     expect(screen.queryByText('クイズ大会のルームを再開する')).not.toBeInTheDocument();
     expect(localStorage.getItem('quizRoomAdminSession')).toBeNull();
-
-    confirmSpy.mockRestore();
   }, 40000);
 
-  it('does not close the room when the confirmation dialog is dismissed', async () => {
+  it('does not close the room when the confirmation dialog is cancelled', async () => {
     const MockWebSocket = installMockWebSocket();
 
     fetch.mockImplementation(async (url, options) => {
@@ -1702,8 +1699,6 @@ describe('useQuizRoomAdmin (via App)', () => {
       if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'Cat1' }] }) };
       return { ok: false };
     });
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-
     await act(async () => {
       render(<App />);
     });
@@ -1719,12 +1714,11 @@ describe('useQuizRoomAdmin (via App)', () => {
 
     const closeButton = await screen.findByText('ルームを閉じる');
     fireEvent.click(closeButton);
-    expect(confirmSpy).toHaveBeenCalled();
+    // 確認ダイアログ（共有のConfirmDialog、issue #2242）でキャンセルを選ぶ
+    fireEvent.click(await screen.findByText('キャンセル'));
 
     const adminConnection = MockWebSocket.instances.find((instance) => instance.url.includes('adminToken=token-1'));
     expect(adminConnection.sent).not.toContainEqual(JSON.stringify({ action: 'closeRoom' }));
     expect(JSON.parse(localStorage.getItem('quizRoomAdminSession'))).toEqual({ roomId: 'ABC123', adminToken: 'token-1' });
-
-    confirmSpy.mockRestore();
   }, 40000);
 });

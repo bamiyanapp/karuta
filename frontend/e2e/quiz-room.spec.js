@@ -132,8 +132,8 @@ test('participant can open and close the "read-aloud history" panel after a phra
 });
 
 // QuizRoomInfoView.jsxのhandleCloseRoom/copyUrlは、これまで「確認ダイアログを承諾して
-// 実際に閉じる」経路（issue #748のテスト）しかE2Eで検証されておらず、window.confirm()が
-// falseを返す（キャンセルされる）分岐・招待URLコピー成功時の分岐は未検証だった
+// 実際に閉じる」経路（issue #748のテスト）しかE2Eで検証されておらず、確認ダイアログを
+// キャンセルする分岐・招待URLコピー成功時の分岐は未検証だった
 // （issue #576、カバレッジ向上のため追加）
 test('admin dismisses the room-close confirmation (room stays open) and can copy the invite URL (issue #576)', async ({ browser }, testInfo) => {
   // copyUrl（navigator.clipboard.writeText）の成功経路を検証するため、
@@ -157,9 +157,14 @@ test('admin dismisses the room-close confirmation (room stays open) and can copy
     const closeButton = adminPage.getByRole('button', { name: 'ルームを閉じる' });
     await expect(closeButton).toBeVisible();
 
-    // window.confirm()をキャンセルした場合、closeQuizRoom()は呼ばれずルームは開いたまま
-    adminPage.once('dialog', (dialog) => dialog.dismiss());
+    // 確認ダイアログ（共有のConfirmDialog、issue #2242）をキャンセルした場合、
+    // closeQuizRoom()は呼ばれずルームは開いたまま
     await closeButton.click();
+    const closeDialog = adminPage.getByRole('dialog');
+    await expect(closeDialog.getByText('ルームを閉じますか？')).toBeVisible();
+    await captureScreenshot(adminPage, testInfo, 'admin-close-room-confirm', '管理者：「ルームを閉じますか？」の確認ダイアログが表示された状態');
+    await closeDialog.getByRole('button', { name: 'キャンセル' }).click();
+    await expect(closeDialog).not.toBeVisible();
     await expect(closeButton).toBeVisible();
 
     const copyButton = adminPage.getByRole('button', { name: 'コピー' });
@@ -430,9 +435,9 @@ test('admin resets participant points (issue #615)', async ({ browser }, testInf
     await roomInfoLink.click();
     await expect(adminPage.getByRole('row').nth(1)).toHaveText('じろう接続中11', { timeout: 15000 });
 
-    // ポイントをリセット（確認ダイアログを承諾）
-    adminPage.once('dialog', (dialog) => dialog.accept());
+    // ポイントをリセット（確認ダイアログ（issue #2242）で「リセットする」を押す）
     await adminPage.getByRole('button', { name: 'ポイントをリセット' }).click();
+    await adminPage.getByRole('dialog').getByRole('button', { name: 'リセットする' }).click();
     // resetQuizRoomPoints（backend/quizRoomHandler.js）はpointsと同じタイミングで
     // answerCounts（回答数）もリセットするため、回答数・正答数とも0に戻る
     await expect(adminPage.getByRole('row').nth(1)).toHaveText('じろう接続中00', { timeout: 15000 });
@@ -485,9 +490,9 @@ test('admin closes the room, and the participant sees a closed-by-host message (
 
     await roomInfoLink.click();
 
-    // ルームを閉じる（確認ダイアログを承諾）
-    adminPage.once('dialog', (dialog) => dialog.accept());
+    // ルームを閉じる（確認ダイアログ（issue #2242）で「閉じて全員を切断する」を押す）
     await adminPage.getByRole('button', { name: 'ルームを閉じる' }).click();
+    await adminPage.getByRole('dialog').getByRole('button', { name: '閉じて全員を切断する' }).click();
 
     // 管理者はquizRoomがnullになり、ルーム情報画面（このボタン自体が存在する画面）から離れる
     await expect(adminPage.getByRole('button', { name: 'ルームを閉じる' })).not.toBeVisible({ timeout: 15000 });

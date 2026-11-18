@@ -95,9 +95,20 @@ export default defineConfig([
     },
   },
   {
+    // issue #2242: 共有のConfirmDialog（dev-standardsのsymlink）は、背景（::backdrop）の
+    // クリックで閉じるため<dialog>へonClickを付けている。キーボードの操作は、ネイティブの
+    // <dialog>が持つEscキー（onCancel）で足りる。共有ファイルのためここでは直せず、
+    // このファイル限定でa11yの2規則を外す（dev-standards側の対応はdev-standards#1490）
+    files: ['src/components/ConfirmDialog.jsx'],
+    rules: {
+      'jsx-a11y-x/click-events-have-key-events': 'off',
+      'jsx-a11y-x/no-noninteractive-element-interactions': 'off',
+    },
+  },
+  {
     // Playwright（設定ファイル・E2Eテスト）はNode上で実行されるため、
     // ブラウザではなくNodeのグローバル（process等）を使う
-    files: ['playwright.config.js', 'e2e/**/*.js'],
+    files: ['playwright.config.js', 'playwright.config.base.js', 'e2e/**/*.js'],
     languageOptions: {
       globals: globals.node,
     },

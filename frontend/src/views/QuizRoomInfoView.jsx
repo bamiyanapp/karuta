@@ -2,6 +2,7 @@ import { useState } from "react";
 import QuizRoomParticipantTable from "../components/QuizRoomParticipantTable";
 import AppVersionInfo from "../components/AppVersionInfo";
 import ShareUrlCard from "../components/ShareUrlCard";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 // クイズ大会モード（issue #470）の管理者向けルーム情報画面（issue #547）。
 // 以前は通常のゲーム画面にインラインで展開する折りたたみパネル
@@ -11,6 +12,9 @@ import ShareUrlCard from "../components/ShareUrlCard";
 // 遷移中も読み上げ・早押し等のクイズ大会の進行状態は維持される
 function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoomPoints = {}, quizRoomAnswerCounts = {}, resetQuizRoomPoints, closeQuizRoom, resumeReading }) {
   const [resuming, setResuming] = useState(false);
+  // 確認ダイアログの表示状態（issue #2242）。"reset"・"close"・null（非表示）のいずれか。
+  // window.confirmはJavaScriptの実行を止め、WebSocketの同期・音声再生まで止めるため使わない
+  const [confirming, setConfirming] = useState(null);
 
   const inviteUrl = `${window.location.origin}${window.location.pathname}?view=quiz-room&roomId=${roomId}`;
 
@@ -19,17 +23,15 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
   // 操作のため確認ダイアログを挟む（ゲームリセット等での自動リセットは行わない。
   // カテゴリを切り替えても通算得点で戦い続けたいユースケースを壊さないため）
   const handleResetPoints = () => {
-    if (window.confirm("参加者全員のポイントをリセットします。よろしいですか？")) {
-      resetQuizRoomPoints?.();
-    }
+    resetQuizRoomPoints?.();
+    setConfirming(null);
   };
 
   // ルームを閉じる（issue #748）: 参加者全員が切断され、以後このルームIDでは
   // 再接続できなくなる取り消せない操作のため、ポイントリセットと同様に確認ダイアログを挟む
   const handleCloseRoom = () => {
-    if (window.confirm("このルームを閉じます。参加者全員が切断され、元に戻せません。よろしいですか？")) {
-      closeQuizRoom?.();
-    }
+    closeQuizRoom?.();
+    setConfirming(null);
   };
 
   // かるたを再開する（issue #1267）: セッション復帰直後（selectedCategoriesが未選択）に
@@ -61,14 +63,14 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
           className="mt-5"
           footer={(
             <div className="text-end mt-2">
-              <button type="button" onClick={handleResetPoints} className="btn btn-sm btn-outline-danger">
+              <button type="button" onClick={() => setConfirming("reset")} className="btn btn-sm btn-outline-danger">
                 ポイントをリセット
               </button>
             </div>
           )}
         />
         <div className="mt-5">
-          <button type="button" onClick={handleCloseRoom} className="btn btn-sm btn-outline-danger rounded-pill px-3">
+          <button type="button" onClick={() => setConfirming("close")} className="btn btn-sm btn-outline-danger rounded-pill px-3">
             ルームを閉じる
           </button>
         </div>
@@ -81,6 +83,22 @@ function QuizRoomInfoView({ setView, roomId, quizRoomParticipants = [], quizRoom
           <button onClick={() => setView("game")} className="btn btn-link text-muted text-decoration-none">← 戻る</button>
         </div>
       </main>
+      <ConfirmDialog
+        open={confirming === "reset"}
+        title="ポイントをリセットしますか？"
+        message="参加者全員のポイントを0に戻します。元に戻せません。"
+        confirmLabel="リセットする"
+        onConfirm={handleResetPoints}
+        onCancel={() => setConfirming(null)}
+      />
+      <ConfirmDialog
+        open={confirming === "close"}
+        title="ルームを閉じますか？"
+        message="参加者全員が切断され、このルームには再接続できなくなります。元に戻せません。"
+        confirmLabel="閉じて全員を切断する"
+        onConfirm={handleCloseRoom}
+        onCancel={() => setConfirming(null)}
+      />
       <footer>
         <AppVersionInfo />
       </footer>

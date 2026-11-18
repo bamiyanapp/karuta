@@ -50,9 +50,9 @@ describe('QuizRoomInfoView', () => {
     expect(screen.queryByText('ポイントをリセット')).not.toBeInTheDocument();
   });
 
-  it('calls resetQuizRoomPoints only after the admin confirms the reset (issue #615)', () => {
+  // issue #2242: window.confirmではなく、共有のConfirmDialog（ネイティブの<dialog>）で確認する
+  it('calls resetQuizRoomPoints only after the admin confirms in the dialog (issue #615, #2242)', () => {
     const resetQuizRoomPoints = vi.fn();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
     render(
       <QuizRoomInfoView
         setView={vi.fn()}
@@ -64,11 +64,38 @@ describe('QuizRoomInfoView', () => {
     );
 
     fireEvent.click(screen.getByText('ポイントをリセット'));
+    expect(screen.getByText('ポイントをリセットしますか？')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('キャンセル'));
     expect(resetQuizRoomPoints).not.toHaveBeenCalled();
+    expect(screen.queryByText('ポイントをリセットしますか？')).not.toBeInTheDocument();
 
-    window.confirm.mockReturnValue(true);
     fireEvent.click(screen.getByText('ポイントをリセット'));
-    expect(resetQuizRoomPoints).toHaveBeenCalled();
+    fireEvent.click(screen.getByText('リセットする'));
+    expect(resetQuizRoomPoints).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('ポイントをリセットしますか？')).not.toBeInTheDocument();
+  });
+
+  it('calls closeQuizRoom only after the admin confirms in the dialog (issue #748, #2242)', () => {
+    const closeQuizRoom = vi.fn();
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" closeQuizRoom={closeQuizRoom} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ルームを閉じる' }));
+    expect(screen.getByText('ルームを閉じますか？')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('キャンセル'));
+    expect(closeQuizRoom).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ルームを閉じる' }));
+    fireEvent.click(screen.getByText('閉じて全員を切断する'));
+    expect(closeQuizRoom).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not use window.confirm, which would block WebSocket sync and audio playback (issue #2242)', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    render(<QuizRoomInfoView setView={vi.fn()} roomId="ABC123" closeQuizRoom={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ルームを閉じる' }));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
   });
 
   it('lets the admin go back to the normal game screen', () => {
