@@ -365,8 +365,6 @@ test('print-efuda view shows an error with a retry button when the phrase list f
       await route.continue();
     }
   });
-  // 全カテゴリ取得失敗時のアラート（App.jsx）をそのまま受け止める
-  page.on('dialog', (dialog) => dialog.accept());
 
   try {
     await page.goto('/');
@@ -375,7 +373,9 @@ test('print-efuda view shows an error with a retry button when the phrase list f
     await page.getByRole('button', { name: /おばけかるた/ }).click();
 
     await page.getByText('絵札を印刷する').click();
-    await expect(page.getByText('かるたデータの取得に失敗しました。')).toBeVisible();
+    // 画面内のエラー表示（exact）。全カテゴリ取得失敗時は、通知（トースト、issue #2190）も出る
+    await expect(page.getByText('かるたデータの取得に失敗しました。', { exact: true })).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText('かるたデータの取得に失敗しました。もう一度お試しください。');
     await expect(page.getByText('読み込み中...')).not.toBeVisible();
     await captureScreenshot(page, testInfo, 'print-efuda-fetch-error', '絵札印刷画面：かるたデータの取得に失敗しエラー表示になった状態');
 
