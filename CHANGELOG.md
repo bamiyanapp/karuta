@@ -1,3 +1,10 @@
+## [1.126.1](https://github.com/bamiyanapp/karuta/compare/v1.126.0...v1.126.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **renovate:** self_refをタグ全体で抽出しusesと同時に更新させる ([#2240](https://github.com/bamiyanapp/karuta/issues/2240)) ([#2256](https://github.com/bamiyanapp/karuta/issues/2256)) ([a4b0e23](https://github.com/bamiyanapp/karuta/commit/a4b0e23accfd6e41f9454f0dcf85d700366d5db9))
+
 # [1.126.0](https://github.com/bamiyanapp/karuta/compare/v1.125.0...v1.126.0) (2026-11-17)
 
 
