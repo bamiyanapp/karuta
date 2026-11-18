@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.126.1",
+    "version": "1.127.0",
     "date": "2026/11/18",
+    "body": "### Features\n\n* window.confirmを共有のConfirmDialogへ置き換える ([#2242](https://github.com/bamiyanapp/karuta/issues/2242)) ([#2261](https://github.com/bamiyanapp/karuta/issues/2261)) ([f77d4b4](https://github.com/bamiyanapp/karuta/commit/f77d4b48e449959b0e41a48fea19009d2363e454))"
+  },
+  {
+    "version": "1.126.1",
+    "date": "2026/11/18 16:27",
     "body": "### Bug Fixes\n\n* **renovate:** self_refをタグ全体で抽出しusesと同時に更新させる ([#2240](https://github.com/bamiyanapp/karuta/issues/2240)) ([#2256](https://github.com/bamiyanapp/karuta/issues/2256)) ([a4b0e23](https://github.com/bamiyanapp/karuta/commit/a4b0e23accfd6e41f9454f0dcf85d700366d5db9))"
   },
   {
