@@ -1,3 +1,10 @@
+## [1.127.1](https://github.com/bamiyanapp/karuta/compare/v1.127.0...v1.127.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **ci:** カナリー定期実行のスキャン2種が毎日失敗する問題の、karuta側を直す ([#2273](https://github.com/bamiyanapp/karuta/issues/2273)) ([#2274](https://github.com/bamiyanapp/karuta/issues/2274)) ([7f51e8f](https://github.com/bamiyanapp/karuta/commit/7f51e8fc450b57ce64df3768f651b7f28e1dfa9b))
+
 # [1.127.0](https://github.com/bamiyanapp/karuta/compare/v1.126.1...v1.127.0) (2026-11-18)
 
 
