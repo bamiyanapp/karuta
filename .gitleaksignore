@@ -1,0 +1,7 @@
+# gitleaksの誤検知を許可するフィンガープリント（issue: カナリー定期実行のシークレット遡及スキャンが毎日失敗）
+# 1行に1つ。「コミット:ファイル:ルール:行」の形式で、特定の検知だけを許可する
+#
+# AddToHomeScreenPromptが「案内を閉じた」ことをlocalStorageに保存するキー名
+# （"a2hsPromptDismissed"）であり、シークレットではない。generic-api-keyの規則が、
+# 変数名に「KEY」を含む代入を、APIキーと誤認した
+80c78e6c84ca6bf5d20686f98c297e878ba32612:frontend/src/AddToHomeScreenPrompt.jsx:generic-api-key:4
