@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.127.1",
+    "date": "2026/11/19",
+    "body": "### Bug Fixes\n\n* **ci:** カナリー定期実行のスキャン2種が毎日失敗する問題の、karuta側を直す ([#2273](https://github.com/bamiyanapp/karuta/issues/2273)) ([#2274](https://github.com/bamiyanapp/karuta/issues/2274)) ([7f51e8f](https://github.com/bamiyanapp/karuta/commit/7f51e8fc450b57ce64df3768f651b7f28e1dfa9b))"
+  },
+  {
     "version": "1.127.0",
-    "date": "2026/11/18",
+    "date": "2026/11/18 16:47",
     "body": "### Features\n\n* window.confirmを共有のConfirmDialogへ置き換える ([#2242](https://github.com/bamiyanapp/karuta/issues/2242)) ([#2261](https://github.com/bamiyanapp/karuta/issues/2261)) ([f77d4b4](https://github.com/bamiyanapp/karuta/commit/f77d4b48e449959b0e41a48fea19009d2363e454))"
   },
   {
