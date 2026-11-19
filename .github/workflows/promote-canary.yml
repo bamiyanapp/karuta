@@ -680,10 +680,12 @@ jobs:
     # ため、ここに無いスコープは「none」扱いとなり、呼び出し先の要求を上回れず
     # workflow全体がstartup_failureで起動しなくなっていた（2日分のcanary更新判定が
     # 動かなかった）
+    # MTTR台帳の更新（commit-via-pr）が、新しいブランチのpushとPRの作成・マージを行うため、
+    # contents・pull-requestsのwriteが必要。contents: readのままだと、403で毎日失敗していた
     permissions:
-      contents: read
+      contents: write
       issues: write
-      pull-requests: read
+      pull-requests: write
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.150.2
     with:
       lockfile_path: package-lock.json
