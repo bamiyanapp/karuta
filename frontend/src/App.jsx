@@ -153,6 +153,15 @@ function AppContent() {
   // 「まだ読み込んでいない」(allPhrasesForCategory.length === 0)と区別するための専用state
   const [phrasesFetchError, setPhrasesFetchError] = useState(false);
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
+  // issue #2190: 画面の主要な内容の取得失敗を、画面内のエラー表示と再試行で知らせる。
+  // 「読み込み中」「0件」と区別するため、失敗の有無を別に持つ。*RetryTokenは再試行ボタンで増やし、
+  // 取得のuseEffectを再実行する
+  const [detailFetchError, setDetailFetchError] = useState(false);
+  const [detailRetryToken, setDetailRetryToken] = useState(0);
+  const [commentsFetchError, setCommentsFetchError] = useState(false);
+  const [commentsRetryToken, setCommentsRetryToken] = useState(0);
+  const [allPhrasesFetchError, setAllPhrasesFetchError] = useState(false);
+  const [allPhrasesRetryToken, setAllPhrasesRetryToken] = useState(0);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
   const [filterCategory, setFilterCategory] = useState(''); // 全札一覧フィルタ
   // 全札一覧の種別ボタンが多すぎて探しづらい問題（issue #730）に対応するため、
@@ -452,8 +461,10 @@ function AppContent() {
     const fetchDetail = async () => {
       if (!detailPhraseId) {
         setDetailPhrase(null);
+        setDetailFetchError(false);
         return;
       }
+      setDetailFetchError(false);
       try {
         const data = await getPhrase({
           id: detailPhraseId,
@@ -467,25 +478,28 @@ function AppContent() {
         setDetailPhrase(data);
       } catch (error) {
         console.error("Error fetching phrase detail:", error);
+        setDetailFetchError(true);
       }
     };
     fetchDetail();
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, detailRetryToken]);
 
   // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
   useEffect(() => {
     const fetchComments = async () => {
       if (view === "comments" || detailPhraseId) {
+        setCommentsFetchError(false);
         try {
           const data = await getComments();
           setAllComments(data.comments || []);
         } catch (error) {
           console.error("Error fetching comments:", error);
+          setCommentsFetchError(true);
         }
       }
     };
     fetchComments();
-  }, [view, detailPhraseId]);
+  }, [view, detailPhraseId, commentsRetryToken]);
 
   const detailPhraseComments = useMemo(() => {
     if (!detailPhrase) return [];
@@ -496,16 +510,18 @@ function AppContent() {
   useEffect(() => {
     if (view === "all-phrases") {
       const fetchAllPhrases = async () => {
+        setAllPhrasesFetchError(false);
         try {
           const data = await getPhrasesList();
           setAllPhrases(data.phrases || []);
         } catch (error) {
           console.error("Error fetching all phrases:", error);
+          setAllPhrasesFetchError(true);
         }
       };
       fetchAllPhrases();
     }
-  }, [view]);
+  }, [view, allPhrasesRetryToken]);
 
   // 「もう一度」ボタン・読み札カードのクリック: 詳細画面で開いている札があれば
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
@@ -746,6 +762,8 @@ function AppContent() {
         postComment={postComment}
         postingComment={postingComment}
         detailPhraseComments={detailPhraseComments}
+        detailFetchError={detailFetchError}
+        onRetryFetchDetail={() => setDetailRetryToken((token) => token + 1)}
       />
     );
   }
@@ -784,12 +802,21 @@ function AppContent() {
         openDetail={openDetail}
         setView={setView}
         setSelectedCategories={setSelectedCategories}
+        fetchError={allPhrasesFetchError}
+        onRetryFetch={() => setAllPhrasesRetryToken((token) => token + 1)}
       />
     );
   }
 
   if (view === "comments") {
-    return <CommentsView allComments={allComments} setView={setView} />;
+    return (
+      <CommentsView
+        allComments={allComments}
+        setView={setView}
+        fetchError={commentsFetchError}
+        onRetryFetch={() => setCommentsRetryToken((token) => token + 1)}
+      />
+    );
   }
 
   if (view === "changelog") {

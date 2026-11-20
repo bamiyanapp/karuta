@@ -1,7 +1,8 @@
 import ViewHeader from "../components/ViewHeader";
 import AppVersionInfo from "../components/AppVersionInfo";
+import FetchErrorNotice from "../components/FetchErrorNotice";
 
-function CommentsView({ allComments, setView }) {
+function CommentsView({ allComments, setView, fetchError, onRetryFetch }) {
   return (
     <div className="container py-4 mx-auto">
       <ViewHeader onBack={() => setView("game")} title="指摘された内容一覧" marginBottom="mb-5" />
@@ -10,7 +11,10 @@ function CommentsView({ allComments, setView }) {
       </div>
 
       <main className="mx-auto" style={{ maxWidth: "800px" }}>
-        {allComments.length === 0 ? (
+        {allComments.length === 0 && fetchError && (
+          <FetchErrorNotice message="指摘の取得に失敗しました。" onRetry={onRetryFetch} />
+        )}
+        {allComments.length === 0 && !fetchError ? (
           <p className="text-muted text-center py-5">まだ指摘はありません。</p>
         ) : (
           <div className="row g-4">
