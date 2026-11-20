@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
 import { WS_BASE_URL } from "./config";
-import { getCategories, getPhrasesList, getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
+import { getPhrasesList, getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useThemeSetting } from "./hooks/useThemeSetting";
 import { useDocumentTitle } from "./hooks/useDocumentTitle";
+import { useCategories } from "./hooks/useCategories";
 import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
@@ -65,7 +66,6 @@ function sumCategoryCounts(categoryNames, categories) {
 
 function AppContent() {
   const notify = useNotify();
-  const [categories, setCategories] = useState([]);
   const [division, setDivision] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("division") || null;
@@ -91,6 +91,16 @@ function AppContent() {
   useEffect(() => {
     viewRef.current = view;
   }, [view]);
+  // カテゴリ一覧の取得。取得完了時点で、ゲーム画面を表示していれば、選択中のカテゴリを、
+  // 存在するものへ絞り込む。viewRefで「取得完了時点の画面」を参照する
+  const categories = useCategories({
+    onLoaded: (availableCategories) => {
+      if (availableCategories.length > 0 && viewRef.current === "game") {
+        const availableNames = availableCategories.map(cat => cat.name);
+        setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
+      }
+    },
+  });
   const [allComments, setAllComments] = useState([]);
 
   const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]);
@@ -314,43 +324,6 @@ function AppContent() {
       }
       return <span style={{ opacity: 0.3 }}> ⇅</span>;
   };
-
-  // カテゴリ一覧を取得。PWA更新直後（Service Workerがclients.claim()で制御を握った
-  // 直後のページリロード等）はfetch自体が一過性で失敗しやすいため（issue #758）、
-  // 例外発生時は即座にアラートを出さず、一定回数まで自動で再試行する。
-  // バックエンド（getCategories）はDynamoDBの全件Scanを行うため、Lambdaの
-  // コールドスタートと重なると1〜2回目の呼び出しが連続して一過性に失敗しうる
-  // （issue #1798）。レスポンスがJSON以外のエラーボディを返す場合に備え、
-  // response.okがfalseのケースも例外と同様にリトライ対象として扱う
-  //
-  // issue #1933: canaryは`canary_weight`分のトラフィックしか受けないためLambdaが
-  // コールドスタートする頻度がstableより高く、固定1秒間隔・最大3回（合計約3秒）の
-  // リトライ予算では連続失敗を使い切ってしまい、アラートが表示される事例が
-  // canaryでのみ発生していた。間隔を指数バックオフ（1秒・2秒・4秒・8秒、最大8秒で
-  // 打ち止め）にし、より長いコールドスタートの連鎖にも耐えられるようにする
-  // issue #2187: リトライはAPIクライアント（api/endpoints.jsのCATEGORIES_RETRY）が行う。
-  // ここでは、アンマウント時の中断と、全リトライが尽きたときのアラートだけを扱う
-  useEffect(() => {
-    const controller = new AbortController();
-    const fetchCategories = async () => {
-      try {
-        const data = await getCategories({ signal: controller.signal });
-        const availableCategories = data.categories || [];
-        setCategories(availableCategories);
-
-        if (availableCategories.length > 0 && viewRef.current === "game") {
-          const availableNames = availableCategories.map(cat => cat.name);
-          setSelectedCategories(prev => filterStillValidCategories(prev, availableNames));
-        }
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        console.error("Error fetching categories:", error);
-        notify({ type: "error", message: "カテゴリの取得に失敗しました。" });
-      }
-    };
-    fetchCategories();
-    return () => controller.abort();
-  }, [notify]);
 
   // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。
   // issue #474: 以前はPromise.allを使っており、選択中の1カテゴリでも取得に失敗すると
