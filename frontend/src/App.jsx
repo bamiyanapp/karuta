@@ -8,6 +8,7 @@ import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useThemeSetting } from "./hooks/useThemeSetting";
+import { useDocumentTitle } from "./hooks/useDocumentTitle";
 import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
@@ -564,25 +565,7 @@ function AppContent() {
     quizRoomActiveRef.current = !!quizRoom;
   }, [quizRoom]);
 
-  useEffect(() => {
-    if (view === "comments") {
-      document.title = "指摘一覧 | かるた読み上げ";
-    } else if (view === "changelog") {
-      document.title = "更新履歴 | かるた読み上げ";
-    } else if (view === "all-phrases") {
-      document.title = "全札一覧 | かるた読み上げ";
-    } else if (view === "share") {
-      document.title = "アプリを共有 | かるた読み上げ";
-    } else if (view === "print-efuda") {
-      document.title = `${categoryLabel}の絵札印刷 | かるた読み上げ`;
-    } else if (detailPhraseId && detailPhrase) {
-      document.title = `${detailPhrase.phrase} | ${detailPhrase.category}`;
-    } else if (categoryLabel) {
-      document.title = categoryLabel;
-    } else {
-      document.title = "かるた読み上げ";
-    }
-  }, [categoryLabel, detailPhraseId, detailPhrase, view]);
+  useDocumentTitle({ view, categoryLabel, detailPhraseId, detailPhrase });
 
   const resetGame = () => {
     setSelectedCategories([]);
