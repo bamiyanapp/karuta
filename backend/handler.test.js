@@ -54,6 +54,18 @@ describe('getCategories', () => {
     process.env.TABLE_NAME = 'TestTable';
   });
 
+  it('should aggregate categories across every page of a multi-page scan (issue #2179)', async () => {
+    ddbMock.on(ScanCommand)
+      .resolvesOnce({ Items: [{ category: 'Category1', group: 'kids' }], LastEvaluatedKey: { category: 'Category1' } })
+      .resolvesOnce({ Items: [{ category: 'Category1', group: 'kids' }] });
+
+    const response = await getCategories({});
+    const body = JSON.parse(response.body);
+
+    expect(body.categories).toHaveLength(1);
+    expect(body.categories[0].count).toBe(2);
+  });
+
   it('should return categories with their group', async () => {
     ddbMock.on(ScanCommand).resolves({
       Items: [
@@ -292,6 +304,16 @@ describe('getComments', () => {
         const body = JSON.parse(response.body);
         expect(response.statusCode).toBe(200);
         expect(body.comments[0].id).toBe(2);
+    });
+
+    it('should include comments from every page of a multi-page scan (issue #2179)', async () => {
+        ddbMock.on(ScanCommand)
+            .resolvesOnce({ Items: [{ id: 1, createdAt: '2023-01-01T00:00:00.000Z' }], LastEvaluatedKey: { id: 1 } })
+            .resolvesOnce({ Items: [{ id: 2, createdAt: '2023-01-02T00:00:00.000Z' }] });
+        const response = await getComments({});
+        const body = JSON.parse(response.body);
+        expect(body.comments.map((c) => c.id)).toEqual([2, 1]);
+        expect(ddbMock.commandCalls(ScanCommand)[1].args[0].input.ExclusiveStartKey).toEqual({ id: 1 });
     });
 
     it('should handle errors', async () => {

@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
+const { scanAll, queryAll } = require("./dynamoPagination.js"); // symlink先（dev-standards#1425、karuta#2179）
 const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
 const { sendOpsAlert } = require("./opsAlertNotifier.js"); // symlink先（issue #1144）
@@ -274,8 +275,7 @@ exports.getComments = async (event) => {
     const scanParams = {
       TableName: process.env.COMMENTS_TABLE_NAME,
     };
-    const scanResult = await docClient.send(new ScanCommand(scanParams));
-    const items = scanResult.Items || [];
+    const items = await scanAll({ ddb: docClient, ScanCommand, params: scanParams });
 
     items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -348,8 +348,7 @@ async function findPhraseItem(targetId, category) {
       "#lvl": "level",
     },
   };
-  const scanResult = await docClient.send(new ScanCommand(scanParams));
-  let items = scanResult.Items || [];
+  let items = await scanAll({ ddb: docClient, ScanCommand, params: scanParams });
 
   if (targetId) {
     return items.find(item => item.id === targetId);
@@ -515,8 +514,7 @@ exports.getPhrasesList = async (event) => {
           "#lvl": "level",
         },
       };
-      const queryResult = await docClient.send(new QueryCommand(queryParams));
-      items = queryResult.Items || [];
+      items = await queryAll({ ddb: docClient, QueryCommand, params: queryParams });
     } else {
       const scanParams = {
         TableName: process.env.TABLE_NAME,
@@ -525,8 +523,7 @@ exports.getPhrasesList = async (event) => {
           "#lvl": "level",
         },
       };
-      const scanResult = await docClient.send(new ScanCommand(scanParams));
-      items = scanResult.Items || [];
+      items = await scanAll({ ddb: docClient, ScanCommand, params: scanParams });
     }
 
     return jsonResponse(allowedOrigin, 200, { phrases: items.map(computePhraseStats) });
@@ -563,8 +560,7 @@ exports.getCategories = async (event) => {
         "#grp": "group",
       },
     };
-    const scanResult = await docClient.send(new ScanCommand(scanParams));
-    const items = scanResult.Items || [];
+    const items = await scanAll({ ddb: docClient, ScanCommand, params: scanParams });
 
     // 全フレーズに答えのデータがあるかるたは市販品ではなくオリジナルのため、
     // 実物の所持確認は不要と判断する（backend/phrases.csvのanswer列が"-"のもののみ市販品扱い）。
