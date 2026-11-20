@@ -1,3 +1,10 @@
+## [1.127.2](https://github.com/bamiyanapp/karuta/compare/v1.127.1...v1.127.2) (2026-11-20)
+
+
+### Bug Fixes
+
+* **renovate:** managerFilePatternsの正規表現を/で囲む ([#2291](https://github.com/bamiyanapp/karuta/issues/2291)) ([276d828](https://github.com/bamiyanapp/karuta/commit/276d828cb67092f0b738155abc7c02646ddd50b9)), closes [#2290](https://github.com/bamiyanapp/karuta/issues/2290)
+
 ## [1.127.1](https://github.com/bamiyanapp/karuta/compare/v1.127.0...v1.127.1) (2026-11-19)
 
 

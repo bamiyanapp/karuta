@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.127.2",
+    "date": "2026/11/20",
+    "body": "### Bug Fixes\n\n* **renovate:** managerFilePatternsの正規表現を/で囲む ([#2291](https://github.com/bamiyanapp/karuta/issues/2291)) ([276d828](https://github.com/bamiyanapp/karuta/commit/276d828cb67092f0b738155abc7c02646ddd50b9)), closes [#2290](https://github.com/bamiyanapp/karuta/issues/2290)"
+  },
+  {
     "version": "1.127.1",
-    "date": "2026/11/19",
+    "date": "2026/11/19 01:34",
     "body": "### Bug Fixes\n\n* **ci:** カナリー定期実行のスキャン2種が毎日失敗する問題の、karuta側を直す ([#2273](https://github.com/bamiyanapp/karuta/issues/2273)) ([#2274](https://github.com/bamiyanapp/karuta/issues/2274)) ([7f51e8f](https://github.com/bamiyanapp/karuta/commit/7f51e8fc450b57ce64df3768f651b7f28e1dfa9b))"
   },
   {
