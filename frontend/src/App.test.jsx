@@ -322,6 +322,58 @@ describe('App', () => {
   });
 
   // 指摘された内容を確認するリンクはトップページから全札一覧画面上部へ移設した（issue #1429）
+  // issue #2190: 画面の主要な内容の取得に失敗したら、「読み込み中」「0件」と区別して、
+  // 画面内にエラー表示と再試行ボタンを出す。再試行で復帰できる
+  it('shows an in-screen error with a retry button when the all-phrases fetch fails, and recovers on retry (issue #2190)', async () => {
+    let phrasesListShouldFail = true;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      if (url.includes('get-phrases-list')) {
+        if (phrasesListShouldFail) return { ok: false, status: 500, json: async () => ({}) };
+        return { ok: true, json: async () => ({ phrases: [{ id: 'p1', category: 'TestCat', phrase: 'RecoveredPhrase', level: '1' }] }) };
+      }
+      return { ok: false };
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/));
+    // GETは自動で3回リトライ（待機は合計約2秒）してから失敗とするため、待機時間を長めに取る
+    expect(await screen.findByText('かるたデータの取得に失敗しました。', {}, { timeout: 8000 })).toBeInTheDocument();
+    expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument();
+
+    phrasesListShouldFail = false;
+    fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+    expect(await screen.findByText(/RecoveredPhrase/, {}, { timeout: 8000 })).toBeInTheDocument();
+  });
+
+  it('shows an in-screen error with a retry button when the comments fetch fails, and recovers on retry (issue #2190)', async () => {
+    let commentsShouldFail = true;
+    fetch.mockImplementation(async (url) => {
+      if (url.includes('get-categories')) return { ok: true, json: async () => ({ categories: [] }) };
+      if (url.includes('get-phrases-list')) return { ok: true, json: async () => ({ phrases: [] }) };
+      if (url.includes('get-comments')) {
+        if (commentsShouldFail) return { ok: false, status: 500, json: async () => ({}) };
+        return { ok: true, json: async () => ({ comments: [{ id: 1, phrase: 'TestPhrase', comment: 'Fix this', category: 'TestCat', createdAt: new Date().toISOString() }] }) };
+      }
+      return { ok: false };
+    });
+    await act(async () => {
+      render(<App />);
+    });
+
+    fireEvent.click(screen.getByText(/全札一覧を見る/));
+    fireEvent.click(await screen.findByText(/指摘された内容を確認する/i));
+
+    expect(await screen.findByText('指摘の取得に失敗しました。', {}, { timeout: 8000 })).toBeInTheDocument();
+    expect(screen.queryByText('まだ指摘はありません。')).not.toBeInTheDocument();
+
+    commentsShouldFail = false;
+    fireEvent.click(screen.getByRole('button', { name: '再試行する' }));
+    expect(await screen.findByText(/TestPhrase/)).toBeInTheDocument();
+  });
+
   it('navigates to comments view from the all-phrases screen', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
