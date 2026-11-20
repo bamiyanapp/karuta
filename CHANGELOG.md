@@ -1,3 +1,10 @@
+## [1.127.5](https://github.com/bamiyanapp/karuta/compare/v1.127.4...v1.127.5) (2026-11-20)
+
+
+### Performance Improvements
+
+* **frontend:** 最初の画面とゲーム画面以外を、画面を開くまで読み込まない ([#2303](https://github.com/bamiyanapp/karuta/issues/2303)) ([f843481](https://github.com/bamiyanapp/karuta/commit/f8434814c6de5df25d1608f379b6152ca78e2489)), closes [#2186](https://github.com/bamiyanapp/karuta/issues/2186)
+
 ## [1.127.4](https://github.com/bamiyanapp/karuta/compare/v1.127.3...v1.127.4) (2026-11-20)
 
 
