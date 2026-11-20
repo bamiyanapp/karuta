@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.128.0",
+    "version": "1.129.0",
     "date": "2026/11/20",
+    "body": "### Features\n\n* **frontend:** 取得失敗時に、画面内のエラー表示と再試行ボタンを出す ([#2307](https://github.com/bamiyanapp/karuta/issues/2307)) ([4f5c5ca](https://github.com/bamiyanapp/karuta/commit/4f5c5ca78d755946183b58da5b004f2c3e3acf33)), closes [#2190](https://github.com/bamiyanapp/karuta/issues/2190)"
+  },
+  {
+    "version": "1.128.0",
+    "date": "2026/11/20 22:53",
     "body": "### Features\n\n* **frontend:** CSP対応の準備として、インラインスクリプトの外部化とE2Eの違反検知を入れる ([#2306](https://github.com/bamiyanapp/karuta/issues/2306)) ([74a7439](https://github.com/bamiyanapp/karuta/commit/74a74395b825ee2cf5456444945b2aba04b68089)), closes [#2189](https://github.com/bamiyanapp/karuta/issues/2189)"
   },
   {

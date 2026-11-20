@@ -1,3 +1,10 @@
+# [1.129.0](https://github.com/bamiyanapp/karuta/compare/v1.128.0...v1.129.0) (2026-11-20)
+
+
+### Features
+
+* **frontend:** 取得失敗時に、画面内のエラー表示と再試行ボタンを出す ([#2307](https://github.com/bamiyanapp/karuta/issues/2307)) ([4f5c5ca](https://github.com/bamiyanapp/karuta/commit/4f5c5ca78d755946183b58da5b004f2c3e3acf33)), closes [#2190](https://github.com/bamiyanapp/karuta/issues/2190)
+
 # [1.128.0](https://github.com/bamiyanapp/karuta/compare/v1.127.5...v1.128.0) (2026-11-20)
 
 
