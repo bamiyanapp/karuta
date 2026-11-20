@@ -12,17 +12,9 @@
          ノッチ・ステータスバー領域を考慮したレイアウト調整ができない（issue #840） -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>かるた読み上げ</title>
-    <script>
-      (function () {
-        try {
-          var theme = localStorage.getItem("theme") || "system";
-          var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          document.documentElement.setAttribute("data-bs-theme", isDark ? "dark" : "light");
-        } catch (e) {
-          // localStorage/matchMediaが使えない環境ではライトのまま
-        }
-      })();
-    </script>
+    <!-- issue #2189: CSPでインラインスクリプトを禁止するため、外部ファイルにしている。
+         描画前に同期実行されるよう、<head>内の通常スクリプト（defer・asyncなし）で読み込む -->
+    <script src="./theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>
