@@ -1,3 +1,10 @@
+## [1.127.4](https://github.com/bamiyanapp/karuta/compare/v1.127.3...v1.127.4) (2026-11-20)
+
+
+### Bug Fixes
+
+* **backend:** Pollyキャッシュの障害耐性・入力検証・クイズ大会の整合性を直す ([#2300](https://github.com/bamiyanapp/karuta/issues/2300)) ([10bf87d](https://github.com/bamiyanapp/karuta/commit/10bf87de64e873e379020aedef5e453ff783022c)), closes [#2181](https://github.com/bamiyanapp/karuta/issues/2181) [#2182](https://github.com/bamiyanapp/karuta/issues/2182) [#2183](https://github.com/bamiyanapp/karuta/issues/2183)
+
 ## [1.127.3](https://github.com/bamiyanapp/karuta/compare/v1.127.2...v1.127.3) (2026-11-20)
 
 
