@@ -7,6 +7,7 @@ import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
 import { useWakeLock } from "./hooks/useWakeLock";
+import { useThemeSetting } from "./hooks/useThemeSetting";
 import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
@@ -120,10 +121,7 @@ function AppContent() {
   const [lang, setLang] = useLocalStorageState("lang", "ja");
   const [voiceId, setVoiceId] = useLocalStorageState("voiceId", "Mizuki");
   const [sortOrder, setSortOrder] = useLocalStorageState("sortOrder", "random");
-  const [themeSetting, setThemeSetting] = useLocalStorageState("theme", "system");
-  const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-  });
+  const { themeSetting, setThemeSetting } = useThemeSetting();
   const [historyByCategory, setHistoryByCategory] = useSessionStorageState(HISTORY_STORAGE_KEY, {});
   // 「これまでに読み上げた札」一覧は、件数が増えると画面が長くなるためデフォルト非表示にし、
   // ボタンを押したときだけ開く（issue #548）
@@ -134,11 +132,6 @@ function AppContent() {
   // コメント投稿用の状態
   const [commentText, setCommentText] = useState("");
   const [postingComment, setPostingComment] = useState(false);
-
-  const resolvedTheme = useMemo(() => {
-    if (themeSetting !== "system") return themeSetting;
-    return systemPrefersDark ? "dark" : "light";
-  }, [themeSetting, systemPrefersDark]);
 
   const categoryKey = useMemo(() => {
     return JSON.stringify(selectedCategories.slice().sort());
@@ -590,19 +583,6 @@ function AppContent() {
       document.title = "かるた読み上げ";
     }
   }, [categoryLabel, detailPhraseId, detailPhrase, view]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
-  }, [resolvedTheme]);
-
-  // OSの配色設定(ダーク/ライト)の変更をリアルタイムに反映する
-  useEffect(() => {
-    const mediaQuery = window.matchMedia?.("(prefers-color-scheme: dark)");
-    if (!mediaQuery) return;
-    const handleChange = (e) => setSystemPrefersDark(e.matches);
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
 
   const resetGame = () => {
     setSelectedCategories([]);
