@@ -1,3 +1,10 @@
+# [1.128.0](https://github.com/bamiyanapp/karuta/compare/v1.127.5...v1.128.0) (2026-11-20)
+
+
+### Features
+
+* **frontend:** CSP対応の準備として、インラインスクリプトの外部化とE2Eの違反検知を入れる ([#2306](https://github.com/bamiyanapp/karuta/issues/2306)) ([74a7439](https://github.com/bamiyanapp/karuta/commit/74a74395b825ee2cf5456444945b2aba04b68089)), closes [#2189](https://github.com/bamiyanapp/karuta/issues/2189)
+
 ## [1.127.5](https://github.com/bamiyanapp/karuta/compare/v1.127.4...v1.127.5) (2026-11-20)
 
 
