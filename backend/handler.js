@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
+const { ValidationError, requireObject, requireString } = require("./validation.js"); // symlink先（dev-standards#1425、karuta#2182）
 const { scanAll, queryAll } = require("./dynamoPagination.js"); // symlink先（dev-standards#1425、karuta#2179）
 const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
@@ -148,7 +149,9 @@ exports.recordTime = async (event) => {
       ":time": time,
     };
 
-    if (typeof difficulty === 'number' && !isNaN(difficulty) && isFinite(difficulty)) {
+    // difficultyは「経過秒÷残り枚数」（frontend/src/hooks/useKarutaReading.js）のため、
+    // 0以上・経過秒の上限以下に収まる。範囲外の値は無視し、difficulty無しとして記録する（issue #2182）
+    if (typeof difficulty === 'number' && isFinite(difficulty) && difficulty >= 0 && difficulty <= MAX_ELAPSED_SECONDS) {
       updateExpression += ", totalDifficulty :difficulty";
       expressionAttributeValues[":difficulty"] = difficulty;
     }
@@ -230,6 +233,8 @@ exports.reportClientError = async (event) => {
 
 // コメントの過大な長さによるスパム・ストレージ濫用を防ぐための上限
 const MAX_COMMENT_LENGTH = 1000;
+// postCommentのphraseId・categoryの長さ上限。実在する札のキーより十分大きく、巨大な文字列の保存は防ぐ
+const MAX_PHRASE_KEY_LENGTH = 200;
 
 exports.postComment = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
@@ -237,24 +242,37 @@ exports.postComment = async (event) => {
     const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.postComment);
     if (limited) return limited;
 
-    const body = JSON.parse(event.body);
-    const { phraseId, category, phrase, comment } = body;
+    let input;
+    try {
+      const body = requireObject(JSON.parse(event.body));
+      input = {
+        phraseId: requireString(body.phraseId, "phraseId", { max: MAX_PHRASE_KEY_LENGTH }),
+        category: requireString(body.category, "category", { max: MAX_PHRASE_KEY_LENGTH }),
+        comment: requireString(body.comment, "comment", { max: MAX_COMMENT_LENGTH }),
+      };
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof SyntaxError) {
+        return badRequest(allowedOrigin, "Invalid input");
+      }
+      throw error;
+    }
 
-    if (
-      !phraseId ||
-      !comment ||
-      typeof comment !== 'string' ||
-      comment.length > MAX_COMMENT_LENGTH
-    ) {
-      return badRequest(allowedOrigin, "Invalid input");
+    // 札の実在を確認する。保存するphraseはクライアントの申告値ではなく、取得した札の値を使う（issue #2182）
+    const phraseResult = await docClient.send(new GetCommand({
+      TableName: process.env.TABLE_NAME,
+      Key: { category: input.category, id: input.phraseId },
+      ProjectionExpression: "phrase",
+    }));
+    if (!phraseResult.Item) {
+      return badRequest(allowedOrigin, "Phrase not found");
     }
 
     const item = {
       id: crypto.randomUUID(),
-      phraseId,
-      category,
-      phrase,
-      comment,
+      phraseId: input.phraseId,
+      category: input.category,
+      phrase: phraseResult.Item.phrase,
+      comment: input.comment,
       createdAt: new Date().toISOString(),
     };
 
@@ -388,15 +406,49 @@ async function getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId) {
   if (!pollyCacheTableName) {
     return null;
   }
-  const cachedAudio = await docClient.send(new GetCommand({
-    TableName: pollyCacheTableName,
-    Key: { id: cacheId },
-  }));
+  // キャッシュは付随機能のため、読み取りに失敗してもキャッシュミスとして扱い、合成へ進む（issue #2181）
+  let cachedAudio;
+  try {
+    cachedAudio = await docClient.send(new GetCommand({
+      TableName: pollyCacheTableName,
+      Key: { id: cacheId },
+    }));
+  } catch (error) {
+    console.error("Polly cache read failed; treating as cache miss:", error);
+    return null;
+  }
   if (!cachedAudio.Item) {
     return null;
   }
   console.log("Serving audio from cache for id:", targetId);
   return cachedAudio.Item.audioData;
+}
+
+// DynamoDBの1項目の上限は400KB。id・createdAt・ttl等の分の余裕を見て、音声（base64化後）が
+// この大きさを超える場合は、書き込みを試みない（必ず失敗するため）
+const POLLY_CACHE_MAX_AUDIO_BYTES = 380 * 1024;
+
+// getPhrase用: 合成済みの音声をキャッシュへ保存する。キャッシュは付随機能のため、
+// 保存に失敗しても例外を投げず、記録だけして音声はそのまま返せるようにする（issue #2181）
+async function savePhraseAudioToCache({ pollyCacheTableName, cacheId, audioData }) {
+  const size = Buffer.byteLength(audioData);
+  if (size > POLLY_CACHE_MAX_AUDIO_BYTES) {
+    console.warn(`Skipping Polly cache write for id ${cacheId}: audio is ${size} bytes (limit ${POLLY_CACHE_MAX_AUDIO_BYTES})`);
+    return;
+  }
+  try {
+    await docClient.send(new PutCommand({
+      TableName: pollyCacheTableName,
+      Item: {
+        id: cacheId,
+        audioData: audioData,
+        createdAt: new Date().toISOString(),
+        ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
+      },
+    }));
+  } catch (error) {
+    console.error("Polly cache write failed; returning synthesized audio anyway:", error);
+  }
 }
 
 // getPhrase用: Pollyで音声を合成し、キャッシュ有効時はDynamoDBへ保存する
@@ -413,15 +465,7 @@ async function synthesizePhraseAudio({ ssmlText, voiceId, engine, pollyCacheTabl
   const audioData = `data:audio/mp3;base64,${audioBuffer.toString("base64")}`;
 
   if (pollyCacheTableName) {
-    await docClient.send(new PutCommand({
-      TableName: pollyCacheTableName,
-      Item: {
-        id: cacheId,
-        audioData: audioData,
-        createdAt: new Date().toISOString(),
-        ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
-      },
-    }));
+    await savePhraseAudioToCache({ pollyCacheTableName, cacheId, audioData });
   }
   return audioData;
 }
