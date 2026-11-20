@@ -100,16 +100,37 @@ describe('createQuizRoom', () => {
   });
 
   it('retries room code generation on collision and gives up after the attempt limit', async () => {
-    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'TAKEN1' } });
+    ddbMock.on(PutCommand).rejects(Object.assign(new Error('cond failed'), { name: 'ConditionalCheckFailedException' }));
 
     const response = await createQuizRoom({ body: '{}' });
 
     expect(response.statusCode).toBe(500);
-    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
+    expect(ddbMock.commandCalls(PutCommand).length).toBeGreaterThan(1);
+  });
+
+  it('allocates the room code with a conditional put, so a concurrent allocation cannot overwrite an existing room (issue #2183)', async () => {
+    ddbMock.on(PutCommand).resolves({});
+
+    const response = await createQuizRoom({ body: '{}' });
+
+    expect(response.statusCode).toBe(200);
+    expect(ddbMock.commandCalls(GetCommand)).toHaveLength(0);
+    expect(ddbMock.commandCalls(PutCommand)[0].args[0].input.ConditionExpression).toBe('attribute_not_exists(roomId)');
+  });
+
+  it('retries with a new code when the conditional put loses the race (issue #2183)', async () => {
+    ddbMock.on(PutCommand)
+      .rejectsOnce(Object.assign(new Error('cond failed'), { name: 'ConditionalCheckFailedException' }))
+      .resolves({});
+
+    const response = await createQuizRoom({ body: '{}' });
+
+    expect(response.statusCode).toBe(200);
+    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(2);
   });
 
   it('handles errors', async () => {
-    ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    ddbMock.on(PutCommand).rejects(new Error('DynamoDB error'));
     const response = await createQuizRoom({ body: '{}' });
     expect(response.statusCode).toBe(500);
   });
@@ -240,6 +261,30 @@ describe('listQuizRooms', () => {
     expect(body.rooms).toEqual([]);
   });
 
+  it('stops checking connections once enough rooms with a connected admin are found (issue #2183)', async () => {
+    const items = Array.from({ length: 30 }, (_, i) => ({ roomId: `ROOM${i}`, createdAt: 1000 + i, state: {} }));
+    ddbMock.on(ScanCommand).resolves({ Items: items });
+
+    const response = await listQuizRooms({});
+
+    expect(JSON.parse(response.body).rooms).toHaveLength(5);
+    expect(ddbMock.commandCalls(QueryCommand)).toHaveLength(5);
+  });
+
+  it('keeps checking older rooms when newer ones have no connected admin (issue #2183)', async () => {
+    const items = Array.from({ length: 12 }, (_, i) => ({ roomId: `ROOM${i}`, createdAt: 1000 + i, state: {} }));
+    ddbMock.on(ScanCommand).resolves({ Items: items });
+    // 新しい7件は管理者が切断済み。残り5件に管理者がいる
+    ddbMock.on(QueryCommand).callsFake(async (input) => {
+      const n = Number(input.ExpressionAttributeValues[':roomId'].replace('ROOM', ''));
+      return { Items: n < 5 ? [{ connectionId: 'a', role: 'admin' }] : [] };
+    });
+
+    const response = await listQuizRooms({});
+
+    expect(JSON.parse(response.body).rooms.map((r) => r.roomId).sort()).toEqual(['ROOM0', 'ROOM1', 'ROOM2', 'ROOM3', 'ROOM4']);
+  });
+
   it('handles errors', async () => {
     ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
     const response = await listQuizRooms({});
@@ -335,6 +380,16 @@ describe('connectQuizRoom', () => {
       queryStringParameters: { roomId: 'NOPE01' },
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  it('rejects a room whose ttl has passed but is not yet deleted (issue #2183)', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { roomId: 'ROOM01', adminTokenHash: 'hash', ttl: Math.floor(Date.now() / 1000) - 10 } });
+    const response = await connectQuizRoom({
+      ...wsEvent(),
+      queryStringParameters: { roomId: 'ROOM01' },
+    });
+    expect(response.statusCode).toBe(404);
+    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
   });
 
   it('connects as a participant when no adminToken is given', async () => {
@@ -979,7 +1034,7 @@ describe('buzzQuizRoom', () => {
     expect(payload).toEqual({ type: 'buzz', name: 'たろう', connectionId: 'conn-participant' });
   });
 
-  it('falls back to a default label when the participant never set a name', async () => {
+  it('does not register a buzz for a participant who never set a name, and asks them to enter one (issue #2183)', async () => {
     ddbMock.on(GetCommand).resolves({
       Item: { connectionId: 'conn-participant', roomId: 'ROOM01', role: 'participant' },
     });
@@ -988,8 +1043,11 @@ describe('buzzQuizRoom', () => {
 
     await buzzQuizRoom(wsEvent({ connectionId: 'conn-participant' }));
 
-    const updateCall = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
-    expect(updateCall.ExpressionAttributeValues[':buzz'].name).toBe('名無しさん');
+    expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+    const postCalls = managementApiMock.commandCalls(PostToConnectionCommand);
+    expect(postCalls).toHaveLength(1);
+    expect(postCalls[0].args[0].input.ConnectionId).toBe('conn-participant');
+    expect(JSON.parse(Buffer.from(postCalls[0].args[0].input.Data).toString('utf-8')).type).toBe('nameError');
   });
 
   it('silently no-ops (does not broadcast) when someone has already buzzed this round', async () => {

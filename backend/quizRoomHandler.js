@@ -79,16 +79,29 @@ exports.createQuizRoom = async (event) => {
     }
     const categories = sanitizeRoomCategories(body);
 
+    // 採番は条件付き書き込みで行う（issue #2183）。事前のGetItemで空きを確認してから無条件に
+    // 書き込むと、同じコードを同時に採番した2つのリクエストのうち後勝ちで、先のルームが上書きされる
+    const adminToken = crypto.randomUUID();
+    const now = Date.now();
     let roomId = null;
-    for (let attempt = 0; attempt < MAX_CREATE_ROOM_ATTEMPTS; attempt += 1) {
+    for (let attempt = 0; attempt < MAX_CREATE_ROOM_ATTEMPTS && !roomId; attempt += 1) {
       const candidate = generateRoomCode();
-      const existing = await docClient.send(new GetCommand({
-        TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-        Key: { roomId: candidate },
-      }));
-      if (!existing.Item) {
+      try {
+        await docClient.send(new PutCommand({
+          TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
+          Item: {
+            roomId: candidate,
+            adminTokenHash: hashToken(adminToken),
+            categories,
+            state: {},
+            createdAt: now,
+            ttl: Math.floor(now / 1000) + ROOM_TTL_SECONDS,
+          },
+          ConditionExpression: "attribute_not_exists(roomId)",
+        }));
         roomId = candidate;
-        break;
+      } catch (error) {
+        if (error.name !== "ConditionalCheckFailedException") throw error;
       }
     }
     if (!roomId) {
@@ -96,20 +109,6 @@ exports.createQuizRoom = async (event) => {
         message: "ルームコードの採番に失敗しました。もう一度お試しください。",
       });
     }
-
-    const adminToken = crypto.randomUUID();
-    const now = Date.now();
-    await docClient.send(new PutCommand({
-      TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
-      Item: {
-        roomId,
-        adminTokenHash: hashToken(adminToken),
-        categories,
-        state: {},
-        createdAt: now,
-        ttl: Math.floor(now / 1000) + ROOM_TTL_SECONDS,
-      },
-    }));
 
     return jsonResponse(allowedOrigin, 200, { roomId, adminToken });
   } catch (error) {
@@ -165,21 +164,23 @@ exports.listQuizRooms = async (event) => {
 
     // issue #617: 管理者が既に切断した「幽霊ルーム」は一覧から除外する。接続テーブル側に
     // adminConnected相当のフラグを持たせconnect/disconnect時に更新する方式ではなく、
-    // 一覧取得のたびにroomId-indexで実際の接続有無を確認する。ルーム数の上限
-    // （MAX_OPEN_ROOMS_DISPLAYED）が小さいため追加Query数は限定的であり、
+    // 一覧取得のたびにroomId-indexで実際の接続有無を確認する。
     // フラグの更新漏れ（異常切断時にdisconnectQuizRoomが呼ばれない等）を
     // 気にしなくてよい利点がある
-    const roomsWithAdminPresence = await Promise.all(
-      candidates.map(async (room) => {
-        const connections = await queryRoomConnections(room.roomId);
-        const hasAdmin = connections.some((conn) => conn.role === "admin");
-        return hasAdmin ? room : null;
-      })
-    );
-
-    const rooms = roomsWithAdminPresence
-      .filter((room) => room !== null)
-      .slice(0, MAX_OPEN_ROOMS_DISPLAYED);
+    // issue #2183: 新しい順に、表示件数ぶんずつ確認し、管理者が接続中のルームが
+    // 表示件数に達した時点で打ち切る（全ルーム分のQueryを発行しない）
+    const rooms = [];
+    for (let i = 0; i < candidates.length && rooms.length < MAX_OPEN_ROOMS_DISPLAYED; i += MAX_OPEN_ROOMS_DISPLAYED) {
+      const chunk = candidates.slice(i, i + MAX_OPEN_ROOMS_DISPLAYED);
+      const checked = await Promise.all(
+        chunk.map(async (room) => {
+          const connections = await queryRoomConnections(room.roomId);
+          return connections.some((conn) => conn.role === "admin") ? room : null;
+        })
+      );
+      rooms.push(...checked.filter((room) => room !== null));
+    }
+    rooms.length = Math.min(rooms.length, MAX_OPEN_ROOMS_DISPLAYED);
 
     return jsonResponse(allowedOrigin, 200, { rooms });
   } catch (error) {
@@ -204,10 +205,7 @@ exports.checkQuizRoom = async (event) => {
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       Key: { roomId },
     }));
-    const now = Math.floor(Date.now() / 1000);
-    // listQuizRoomsと同様、TTL失効後の実削除には最大48時間程度のラグが
-    // 生じ得るため、レコードが残っていてもttlを過ぎていれば存在しない扱いにする
-    const exists = !!room.Item && (!room.Item.ttl || room.Item.ttl > now);
+    const exists = isRoomActive(room.Item);
     // 管理者セッション復帰（issue #1262）: 復帰後に読み上げ画面へ戻るには、開設時に
     // 選択されていたかるた種類（categories）が必要なため、既存の存在確認と合わせて返す
     const categories = exists ? room.Item.categories || [] : [];
@@ -217,6 +215,14 @@ exports.checkQuizRoom = async (event) => {
     return serverError(allowedOrigin, error, { includeMessage: true });
   }
 };
+
+// ルームが存在し、失効していないかを返す。listQuizRoomsと同様、TTL失効後の実削除には
+// 最大48時間程度のラグが生じ得るため、レコードが残っていてもttlを過ぎていれば存在しない扱いにする
+// （issue #2183: checkQuizRoomとconnectQuizRoomで同じ判定を使う）
+function isRoomActive(roomItem) {
+  if (!roomItem) return false;
+  return !roomItem.ttl || roomItem.ttl > Math.floor(Date.now() / 1000);
+}
 
 // WebSocket $connect。roomId（必須）はクエリパラメータで受け取り、
 // adminTokenの有無・一致で管理者/参加者の役割を判定する
@@ -231,7 +237,7 @@ exports.connectQuizRoom = withCatchAll(async (event) => {
     TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
     Key: { roomId },
   }));
-  if (!room.Item) {
+  if (!isRoomActive(room.Item)) {
     return { statusCode: 404, body: "Room not found" };
   }
 
@@ -665,9 +671,18 @@ exports.setQuizRoomName = async (event) => {
 // 再度早押しできない（excludedNamesに含まれる名前を条件付き書き込みで弾く）
 exports.buzzQuizRoom = withRoleGuard("participant", async (event, connection, connectionId) => {
   const { roomId, name } = connection;
+  // issue #2183: 名前未設定の接続を「名無しさん」として早押しさせると、複数人のポイントが
+  // 1人分に合算され、不正解時の除外も全員まとめてかかる。名前の入力を促して終える
+  if (!name) {
+    await postToConnection(buildManagementApiClient(event), connectionId, {
+      type: "nameError",
+      message: "早押しするには、先にお名前を入力してください。",
+    });
+    return { statusCode: 200, body: "" };
+  }
   const buzz = {
     connectionId,
-    name: name || "名無しさん",
+    name,
     buzzedAt: Date.now(),
   };
 
