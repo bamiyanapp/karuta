@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
+import { startCspWatch, resetCspWatch, assertNoCspViolations } from './cspGuard.js';
 import { captureScreenshot } from './screenshot.js';
 import { runAxeCheck } from './axe.js';
+
+// issue #2189: CSP違反が1件でもあれば、テストを失敗させる
+test.beforeEach(resetCspWatch);
+test.afterEach(assertNoCspViolations);
 
 // issue #576対応: E2EのJSカバレッジを引き上げるため、これまでquiz-room.spec.jsの
 // クイズ大会モードでしかカバーできていなかった通常モード（カテゴリ選択→読み上げ→
@@ -17,6 +22,7 @@ test('normal read-aloud flow (category select -> phrase -> result), then browses
   const context = await browser.newContext({ permissions: ['clipboard-write'] });
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   // print-efuda画面の「印刷する」ボタンでwindow.print()の実ダイアログを
   // 開かせないよう、ナビゲーション前に上書きしておく
@@ -161,6 +167,7 @@ test('engineer division: selects multiple categories, then prints combined efuda
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   try {
     await page.goto('/');
@@ -213,6 +220,7 @@ test('engineer division: toggles settings, records a taker, views history, and u
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   try {
     await page.goto('/');
@@ -307,6 +315,7 @@ test('engineer division result screen keeps long explanation text within the car
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   try {
     await page.goto('/');
@@ -356,6 +365,7 @@ test('print-efuda view shows an error with a retry button when the phrase list f
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   let shouldFail = true;
   await page.route('**/get-phrases-list*', async (route) => {

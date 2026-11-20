@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import getAppVersionDefine from './getAppVersionDefine.js' // symlink
 import createVersionJsonPlugin from './createVersionJsonPlugin.js' // symlink
+import { buildCsp } from './csp.js'
 
 const appVersionDefine = getAppVersionDefine(new URL('../package.json', import.meta.url))
 
@@ -44,6 +45,14 @@ export default defineConfig({
     }),
   ],
   base: "./",
+  // issue #2189: E2Eは`npm run preview`のサーバーに対して実行されるため、本番と同じCSPをここにも付け、
+  // E2Eが本番と同じ制約で動くようにする（違反はe2e/cspGuard.jsがテストの失敗にする）。
+  // ローカルのテストサーバーへ接続するためのlocalhostだけを、本番に足す
+  preview: {
+    headers: {
+      'Content-Security-Policy': buildCsp({ 'connect-src': ['http://localhost:*', 'ws://localhost:*'] }),
+    },
+  },
   // shared/ui/ErrorBoundary.jsx（symlink、issue #1113）が"react"をimportするため必要。
   // Viteは既定でシンボリックリンクの実体パス（dev-standards配下）を起点にnode_modulesを
   // 探索し、karutaにインストール済みのreactを見つけられずビルドエラーになる

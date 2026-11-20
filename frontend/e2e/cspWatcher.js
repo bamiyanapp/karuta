@@ -1,0 +1,1 @@
+../../dev-standards/shared/e2e/cspWatcher.js

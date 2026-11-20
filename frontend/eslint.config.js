@@ -11,7 +11,10 @@ export default defineConfig([
   // ios: issue #2060でCapacitorが生成したネイティブプロジェクト。
   // ios/App/App/publicはdistのコピー、cordova.js等はCapacitor/Cordova本体の
   // 配布物であり、いずれも自分で書いたコードではないため対象外とする
-  globalIgnores(['dist', 'src/changelog.json', 'coverage', 'ios']),
+  globalIgnores(['dist', 'src/changelog.json', 'coverage', 'ios',
+    // dev-standards共有物のsymlink。sonarjsに違反する書き方が残っており（dev-standards#1554）、
+    // 修正を取り込んだら、この除外を外す
+    'e2e/cspWatcher.js']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

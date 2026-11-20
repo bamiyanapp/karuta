@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { startCoverage, stopCoverage, closeContext } from './coverage.js';
+import { startCspWatch, resetCspWatch, assertNoCspViolations } from './cspGuard.js';
 import { captureScreenshot } from './screenshot.js';
 import { runAxeCheck } from './axe.js';
+
+// issue #2189: CSP違反が1件でもあれば、テストを失敗させる
+test.beforeEach(resetCspWatch);
+test.afterEach(assertNoCspViolations);
 
 // クイズ大会モード（issue #470）の管理者→参加者リアルタイム同期を、実際にデプロイ済みの
 // バックエンド（REST API + WebSocket API）に対してブラウザ2つ（別コンテキスト＝別端末相当）で検証する。
@@ -11,6 +16,7 @@ test('admin creates a quiz room and a participant sees the same card update in r
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const participantContext = await browser.newContext();
   let participantPage = null;
@@ -38,6 +44,7 @@ test('admin creates a quiz room and a participant sees the same card update in r
 
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
+    await startCspWatch(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
 
     await expect(participantPage.getByText('クイズ大会モード（参加者）')).toBeVisible();
@@ -80,6 +87,7 @@ test('participant can open and close the "read-aloud history" panel after a phra
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const participantContext = await browser.newContext();
   let participantPage = null;
@@ -101,6 +109,7 @@ test('participant can open and close the "read-aloud history" panel after a phra
 
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
+    await startCspWatch(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await expect(participantPage.getByText('クイズ大会モード（参加者）')).toBeVisible();
     await participantPage.getByPlaceholder('お名前').fill('たろう');
@@ -141,6 +150,7 @@ test('admin dismisses the room-close confirmation (room stays open) and can copy
   const adminContext = await browser.newContext({ permissions: ['clipboard-write'] });
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   try {
     await adminPage.goto('/');
@@ -188,6 +198,7 @@ test('when the admin reloads mid-game, the quiz room association is lost and the
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const participantContext = await browser.newContext();
   let participantPage = null;
@@ -209,6 +220,7 @@ test('when the admin reloads mid-game, the quiz room association is lost and the
 
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
+    await startCspWatch(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await participantPage.getByPlaceholder('お名前').fill('たろう');
     await participantPage.getByText('決定').click();
@@ -260,6 +272,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const responderContext = await browser.newContext();
   const otherContext = await browser.newContext();
@@ -286,6 +299,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // 回答者役（このラウンドで実際に早押しする本人）
     responderPage = await responderContext.newPage();
     await startCoverage(responderPage);
+    await startCspWatch(responderPage);
     await responderPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await responderPage.getByPlaceholder('お名前').fill('たろう');
     await responderPage.getByText('決定').click();
@@ -294,6 +308,7 @@ test('admin judges a buzz, and the responder vs. other participants end up in di
     // 未回答参加者役（早押しせず様子を見る側）
     otherPage = await otherContext.newPage();
     await startCoverage(otherPage);
+    await startCspWatch(otherPage);
     await otherPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await otherPage.getByPlaceholder('お名前').fill('はなこ');
     await otherPage.getByText('決定').click();
@@ -376,6 +391,7 @@ test('joining with a room code that does not exist shows an immediate error inst
   const context = await browser.newContext();
   const page = await context.newPage();
   await startCoverage(page);
+  await startCspWatch(page);
 
   try {
     await page.goto('/?view=quiz-room&roomId=NOPE99');
@@ -397,6 +413,7 @@ test('admin resets participant points (issue #615)', async ({ browser }, testInf
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const participantContext = await browser.newContext();
   let participantPage = null;
@@ -418,6 +435,7 @@ test('admin resets participant points (issue #615)', async ({ browser }, testInf
 
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
+    await startCspWatch(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await participantPage.getByPlaceholder('お名前').fill('じろう');
     await participantPage.getByText('決定').click();
@@ -462,6 +480,7 @@ test('admin closes the room, and the participant sees a closed-by-host message (
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   await startCoverage(adminPage);
+  await startCspWatch(adminPage);
 
   const participantContext = await browser.newContext();
   let participantPage = null;
@@ -483,6 +502,7 @@ test('admin closes the room, and the participant sees a closed-by-host message (
 
     participantPage = await participantContext.newPage();
     await startCoverage(participantPage);
+    await startCspWatch(participantPage);
     await participantPage.goto(`/?view=quiz-room&roomId=${roomCode}`);
     await participantPage.getByPlaceholder('お名前').fill('じろう');
     await participantPage.getByText('決定').click();
