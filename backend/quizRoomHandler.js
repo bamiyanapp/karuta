@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { scanAll } = require("./dynamoPagination.js"); // symlink先（dev-standards#1425、karuta#2179）
 const { DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { docClient, resolveAllowedOrigin } = require("./handler");
 const { jsonResponse, badRequest, serverError } = require("./httpResponse");
@@ -123,7 +124,7 @@ exports.listQuizRooms = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
     const now = Math.floor(Date.now() / 1000);
-    const result = await docClient.send(new ScanCommand({
+    const scannedRooms = await scanAll({ ddb: docClient, ScanCommand, params: {
       TableName: process.env.QUIZ_ROOMS_TABLE_NAME,
       ProjectionExpression: "roomId, createdAt, categories, #state, #ttl",
       ExpressionAttributeNames: { "#state": "state", "#ttl": "ttl" },
@@ -131,9 +132,9 @@ exports.listQuizRooms = async (event) => {
       // 削除待ちの失効済みルームを一覧から明示的に除外する
       FilterExpression: "#ttl > :now",
       ExpressionAttributeValues: { ":now": now },
-    }));
+    } });
 
-    const candidates = (result.Items || [])
+    const candidates = scannedRooms
       .map((item) => {
         const type = item.state?.type;
         const content = item.state?.content;
