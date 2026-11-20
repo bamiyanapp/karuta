@@ -22,6 +22,7 @@ import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 import { NotificationProvider, useNotify } from "./components/NotificationProvider";
 import { messageForError } from "./api/errorMessages";
+import { comparePhraseValues } from "./utils/phraseSort";
 
 // issue #2186: 最初の画面（division選択）とゲーム画面以外は、画面を開くまで読み込まない。
 // react-markdown（更新履歴）・qrcode（共有・ルーム情報）等を、初期バンドルから外すため
@@ -58,64 +59,6 @@ function sumCategoryCounts(categoryNames, categories) {
     const info = categories.find(c => c.name === name);
     return total + (info?.count || 0);
   }, 0);
-}
-
-// 初級=1000000、上級=1000001 として数値化し一貫したソートを保証
-function toLevelNum(v) {
-  if (v === '初級') return 1_000_000;
-  if (v === '上級') return 1_000_001;
-  const n = parseInt(v, 10);
-  return isNaN(n) ? 1_000_002 : n;
-}
-
-// レベル列は未設定('-')を常に末尾へ固定するため、direction に関わらない順序を
-// 早期に返す。該当しない場合はnullを返し、呼び出し側の通常比較へフォールバックする
-function compareByLevelPresence(aValue, bValue) {
-  if (aValue === '-' && bValue !== '-') return 1;
-  if (aValue !== '-' && bValue === '-') return -1;
-  if (aValue === '-' && bValue === '-') return 0;
-  return null;
-}
-
-// answer列は未設定（市販品で答えデータが無い）を常に末尾へ固定する
-function compareByAnswerPresence(aValue, bValue) {
-  const aMissing = !aValue || aValue === '-';
-  const bMissing = !bValue || bValue === '-';
-  if (aMissing && !bMissing) return 1;
-  if (!aMissing && bMissing) return -1;
-  if (aMissing && bMissing) return 0;
-  return null;
-}
-
-const NUMERIC_FALLBACK_ZERO_KEYS = new Set(['readCount', 'averageDifficulty', 'averageTime']);
-
-function normalizeSortValues(sortKey, aValue, bValue) {
-  if (sortKey === 'level') return [toLevelNum(aValue), toLevelNum(bValue)];
-  if (NUMERIC_FALLBACK_ZERO_KEYS.has(sortKey)) return [aValue || 0, bValue || 0];
-  if (sortKey === 'answer' || typeof aValue === 'string') {
-    return [(aValue || '').toLowerCase(), (bValue || '').toLowerCase()];
-  }
-  return [aValue, bValue];
-}
-
-function comparePhraseValues(a, b, sortConfig) {
-  const sortKey = sortConfig.key;
-  let aValue = a[sortKey];
-  let bValue = b[sortKey];
-
-  if (sortKey === 'level') {
-    const presenceResult = compareByLevelPresence(aValue, bValue);
-    if (presenceResult !== null) return presenceResult;
-  } else if (sortKey === 'answer') {
-    const presenceResult = compareByAnswerPresence(aValue, bValue);
-    if (presenceResult !== null) return presenceResult;
-  }
-
-  [aValue, bValue] = normalizeSortValues(sortKey, aValue, bValue);
-
-  if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-  if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-  return 0;
 }
 
 function AppContent() {
