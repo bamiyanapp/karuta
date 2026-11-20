@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
 import { WS_BASE_URL } from "./config";
@@ -11,16 +11,8 @@ import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
 import { useQuizRoomAdmin } from "./hooks/useQuizRoomAdmin";
-import DetailView from "./views/DetailView";
 import DivisionSelectView from "./views/DivisionSelectView";
 import CategorySelectView from "./views/CategorySelectView";
-import PrintEfudaView from "./views/PrintEfudaView";
-import AllPhrasesView from "./views/AllPhrasesView";
-import CommentsView from "./views/CommentsView";
-import ChangelogView from "./views/ChangelogView";
-import ShareView from "./views/ShareView";
-import QuizRoomView from "./views/QuizRoomView";
-import QuizRoomInfoView from "./views/QuizRoomInfoView";
 import QuizRoomBuzzJudgmentModal from "./components/QuizRoomBuzzJudgmentModal";
 import ResultCard from "./components/ResultCard";
 import QuizCompletionScreen from "./components/QuizCompletionScreen";
@@ -30,6 +22,17 @@ import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 import { NotificationProvider, useNotify } from "./components/NotificationProvider";
 import { messageForError } from "./api/errorMessages";
+
+// issue #2186: 最初の画面（division選択）とゲーム画面以外は、画面を開くまで読み込まない。
+// react-markdown（更新履歴）・qrcode（共有・ルーム情報）等を、初期バンドルから外すため
+const DetailView = lazy(() => import("./views/DetailView"));
+const PrintEfudaView = lazy(() => import("./views/PrintEfudaView"));
+const AllPhrasesView = lazy(() => import("./views/AllPhrasesView"));
+const CommentsView = lazy(() => import("./views/CommentsView"));
+const ChangelogView = lazy(() => import("./views/ChangelogView"));
+const ShareView = lazy(() => import("./views/ShareView"));
+const QuizRoomView = lazy(() => import("./views/QuizRoomView"));
+const QuizRoomInfoView = lazy(() => import("./views/QuizRoomInfoView"));
 
 const HISTORY_STORAGE_KEY = "historyByCategory";
 
@@ -1090,7 +1093,9 @@ function AppContent() {
 function App() {
   return (
     <NotificationProvider>
-      <AppContent />
+      <Suspense fallback={<div className="text-center py-5" role="status">読み込み中...</div>}>
+        <AppContent />
+      </Suspense>
     </NotificationProvider>
   );
 }
