@@ -97,7 +97,7 @@ jobs:
 
   promote:
     needs: resolve
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.150.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-promote-canary.yml@v2.152.0
     with:
       canary_stack_name: karuta-app-canary
       stable_stack_name: karuta-app-stable
@@ -306,14 +306,14 @@ jobs:
       # canary-status.ymlと重複していたため、共通actionへ切り出した
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.150.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.152.0
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.150.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.152.0
         with:
           stage: stable
           working-directory: backend
@@ -686,10 +686,10 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.150.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-full-scan.yml@v2.152.0
     with:
       lockfile_path: package-lock.json
-      self_ref: v2.150.3
+      self_ref: v2.152.0
 
   secret-full-scan:
     name: シークレット遡及スキャン
@@ -701,9 +701,9 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-secret-full-scan.yml@v2.150.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-secret-full-scan.yml@v2.152.0
     with:
-      self_ref: v2.150.3
+      self_ref: v2.152.0
 
   resolve-runtime-endpoints:
     name: "ランタイムスキャン対象エンドポイントを解決する"
@@ -734,14 +734,14 @@ jobs:
       # canary-status.ymlと重複していたため、共通actionへ切り出した
       - name: canaryのbackend URLを解決する
         id: canary_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.150.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.152.0
         with:
           stage: canary
           working-directory: backend
 
       - name: stableのbackend URLを解決する
         id: stable_url
-        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.150.3
+        uses: bamiyanapp/dev-standards/.github/actions/resolve-serverless-backend-url@v2.152.0
         with:
           stage: stable
           working-directory: backend
@@ -769,7 +769,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.150.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-runtime-version-scan.yml@v2.152.0
     with:
       endpoints: ${{ needs.resolve-runtime-endpoints.outputs.endpoints }}
-      self_ref: v2.150.3
+      self_ref: v2.152.0
