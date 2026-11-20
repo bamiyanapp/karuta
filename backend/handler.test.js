@@ -600,6 +600,51 @@ describe('getCongratulationAudio', () => {
             expect(putItem.ttl).toBeGreaterThan(Math.floor(Date.now() / 1000));
         });
 
+        it('キャッシュ読み取りに失敗しても、キャッシュミスとして扱い、合成した音声を200で返す（issue #2181）', async () => {
+            ddbMock.on(GetCommand).rejects(new Error('read failed'));
+            ddbMock.on(PutCommand).resolves({});
+            pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: readableAudio() });
+            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const response = await getCongratulationAudio({ queryStringParameters: {} });
+
+            expect(response.statusCode).toBe(200);
+            expect(JSON.parse(response.body).audioData).toMatch(/^data:audio\/mp3;base64,/);
+            expect(errorSpy).toHaveBeenCalled();
+            errorSpy.mockRestore();
+        });
+
+        it('キャッシュ書き込みに失敗しても、合成した音声を200で返す（issue #2181）', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).rejects(new Error('write failed'));
+            pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: readableAudio() });
+            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const response = await getCongratulationAudio({ queryStringParameters: {} });
+
+            expect(response.statusCode).toBe(200);
+            expect(JSON.parse(response.body).audioData).toMatch(/^data:audio\/mp3;base64,/);
+            expect(errorSpy).toHaveBeenCalled();
+            errorSpy.mockRestore();
+        });
+
+        it('サイズ上限を超える音声は、キャッシュ書き込みを試みず、そのまま返す（issue #2181）', async () => {
+            ddbMock.on(GetCommand).resolves({ Item: undefined });
+            ddbMock.on(PutCommand).resolves({});
+            const big = new Readable();
+            big.push(Buffer.alloc(300 * 1024)); // base64化すると約400KBになる
+            big.push(null);
+            pollyMock.on(SynthesizeSpeechCommand).resolves({ AudioStream: big });
+            const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const response = await getCongratulationAudio({ queryStringParameters: {} });
+
+            expect(response.statusCode).toBe(200);
+            expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
+            expect(warnSpy).toHaveBeenCalled();
+            warnSpy.mockRestore();
+        });
+
         it('許可外のspeechRate・langは既定値へ正規化され、同じキャッシュキーになる（キャッシュ迂回の防止）', async () => {
             ddbMock.on(GetCommand).resolves({ Item: undefined });
             ddbMock.on(PutCommand).resolves({});

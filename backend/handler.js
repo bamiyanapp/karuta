@@ -388,15 +388,49 @@ async function getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId) {
   if (!pollyCacheTableName) {
     return null;
   }
-  const cachedAudio = await docClient.send(new GetCommand({
-    TableName: pollyCacheTableName,
-    Key: { id: cacheId },
-  }));
+  // キャッシュは付随機能のため、読み取りに失敗してもキャッシュミスとして扱い、合成へ進む（issue #2181）
+  let cachedAudio;
+  try {
+    cachedAudio = await docClient.send(new GetCommand({
+      TableName: pollyCacheTableName,
+      Key: { id: cacheId },
+    }));
+  } catch (error) {
+    console.error("Polly cache read failed; treating as cache miss:", error);
+    return null;
+  }
   if (!cachedAudio.Item) {
     return null;
   }
   console.log("Serving audio from cache for id:", targetId);
   return cachedAudio.Item.audioData;
+}
+
+// DynamoDBの1項目の上限は400KB。id・createdAt・ttl等の分の余裕を見て、音声（base64化後）が
+// この大きさを超える場合は、書き込みを試みない（必ず失敗するため）
+const POLLY_CACHE_MAX_AUDIO_BYTES = 380 * 1024;
+
+// getPhrase用: 合成済みの音声をキャッシュへ保存する。キャッシュは付随機能のため、
+// 保存に失敗しても例外を投げず、記録だけして音声はそのまま返せるようにする（issue #2181）
+async function savePhraseAudioToCache({ pollyCacheTableName, cacheId, audioData }) {
+  const size = Buffer.byteLength(audioData);
+  if (size > POLLY_CACHE_MAX_AUDIO_BYTES) {
+    console.warn(`Skipping Polly cache write for id ${cacheId}: audio is ${size} bytes (limit ${POLLY_CACHE_MAX_AUDIO_BYTES})`);
+    return;
+  }
+  try {
+    await docClient.send(new PutCommand({
+      TableName: pollyCacheTableName,
+      Item: {
+        id: cacheId,
+        audioData: audioData,
+        createdAt: new Date().toISOString(),
+        ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
+      },
+    }));
+  } catch (error) {
+    console.error("Polly cache write failed; returning synthesized audio anyway:", error);
+  }
 }
 
 // getPhrase用: Pollyで音声を合成し、キャッシュ有効時はDynamoDBへ保存する
@@ -413,15 +447,7 @@ async function synthesizePhraseAudio({ ssmlText, voiceId, engine, pollyCacheTabl
   const audioData = `data:audio/mp3;base64,${audioBuffer.toString("base64")}`;
 
   if (pollyCacheTableName) {
-    await docClient.send(new PutCommand({
-      TableName: pollyCacheTableName,
-      Item: {
-        id: cacheId,
-        audioData: audioData,
-        createdAt: new Date().toISOString(),
-        ttl: Math.floor(Date.now() / 1000) + POLLY_CACHE_TTL_SECONDS,
-      },
-    }));
+    await savePhraseAudioToCache({ pollyCacheTableName, cacheId, audioData });
   }
   return audioData;
 }
