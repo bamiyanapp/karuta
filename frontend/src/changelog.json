@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.127.4",
+    "version": "1.127.5",
     "date": "2026/11/20",
+    "body": "### Performance Improvements\n\n* **frontend:** 最初の画面とゲーム画面以外を、画面を開くまで読み込まない ([#2303](https://github.com/bamiyanapp/karuta/issues/2303)) ([f843481](https://github.com/bamiyanapp/karuta/commit/f8434814c6de5df25d1608f379b6152ca78e2489)), closes [#2186](https://github.com/bamiyanapp/karuta/issues/2186)"
+  },
+  {
+    "version": "1.127.4",
+    "date": "2026/11/20 22:33",
     "body": "### Bug Fixes\n\n* **backend:** Pollyキャッシュの障害耐性・入力検証・クイズ大会の整合性を直す ([#2300](https://github.com/bamiyanapp/karuta/issues/2300)) ([10bf87d](https://github.com/bamiyanapp/karuta/commit/10bf87de64e873e379020aedef5e453ff783022c)), closes [#2181](https://github.com/bamiyanapp/karuta/issues/2181) [#2182](https://github.com/bamiyanapp/karuta/issues/2182) [#2183](https://github.com/bamiyanapp/karuta/issues/2183)"
   },
   {
