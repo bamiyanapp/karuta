@@ -338,6 +338,7 @@ describe('postComment', () => {
     });
 
     it('should post a comment', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: { phrase: 'server phrase' } });
         ddbMock.on(PutCommand).resolves({});
         const event = {
             body: JSON.stringify({
@@ -351,6 +352,33 @@ describe('postComment', () => {
         expect(response.statusCode).toBe(200);
         const body = JSON.parse(response.body);
         expect(body.message).toBe('Comment posted successfully');
+    });
+
+    it('保存するphraseは、クライアントの申告値ではなくサーバー側で取得した札の値になる（issue #2182）', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: { phrase: 'server phrase' } });
+        ddbMock.on(PutCommand).resolves({});
+        await postComment({ body: JSON.stringify({ phraseId: 'p1', category: 'c1', phrase: 'forged', comment: 'ok' }) });
+        expect(ddbMock.commandCalls(PutCommand)[0].args[0].input.Item.phrase).toBe('server phrase');
+    });
+
+    it.each([
+        ['phraseIdが文字列でない', { phraseId: { a: 1 }, category: 'c1', comment: 'ok' }],
+        ['categoryが無い', { phraseId: 'p1', comment: 'ok' }],
+        ['phraseIdが長すぎる', { phraseId: 'p'.repeat(201), category: 'c1', comment: 'ok' }],
+        ['categoryが長すぎる', { phraseId: 'p1', category: 'c'.repeat(201), comment: 'ok' }],
+        ['commentが空白のみ', { phraseId: 'p1', category: 'c1', comment: '   ' }],
+        ['commentが文字列でない', { phraseId: 'p1', category: 'c1', comment: 123 }],
+    ])('%sの場合は400で拒否し、保存しない（issue #2182）', async (_name, payload) => {
+        const response = await postComment({ body: JSON.stringify(payload) });
+        expect(response.statusCode).toBe(400);
+        expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
+    });
+
+    it('実在しない札への指摘は400で拒否し、保存しない（issue #2182）', async () => {
+        ddbMock.on(GetCommand).resolves({});
+        const response = await postComment({ body: JSON.stringify({ phraseId: 'p1', category: 'c1', comment: 'ok' }) });
+        expect(response.statusCode).toBe(400);
+        expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
     });
 
     it('should return 400 for invalid input', async () => {
@@ -380,6 +408,7 @@ describe('postComment', () => {
     });
 
     it('should accept a comment exactly at the maximum length', async () => {
+        ddbMock.on(GetCommand).resolves({ Item: { phrase: 'server phrase' } });
         ddbMock.on(PutCommand).resolves({});
         const event = {
             body: JSON.stringify({
@@ -1432,6 +1461,26 @@ describe('recordTime', () => {
         const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
         expect(updateParams.UpdateExpression).toBe('ADD readCount :one, totalTime :time');
         expect(updateParams.ExpressionAttributeValues[':difficulty']).toBeUndefined();
+    });
+
+    it.each([1e15, -1, 301, 'x', null])('範囲外のdifficulty（%s）は合計値へ加算せず、difficulty無しとして記録する（issue #2182）', async (difficulty) => {
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const response = await recordTime({ body: JSON.stringify({ id: 'p1', category: 'c1', time: 20, difficulty }) });
+
+        expect(response.statusCode).toBe(200);
+        const updateParams = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+        expect(updateParams.UpdateExpression).toBe('ADD readCount :one, totalTime :time');
+        expect(updateParams.ExpressionAttributeValues[':difficulty']).toBeUndefined();
+    });
+
+    it('difficultyの上限ちょうど（300）と0は加算する（issue #2182）', async () => {
+        ddbMock.on(UpdateCommand).resolves({});
+        for (const difficulty of [0, 300]) {
+            await recordTime({ body: JSON.stringify({ id: 'p1', category: 'c1', time: 20, difficulty }) });
+        }
+        const calls = ddbMock.commandCalls(UpdateCommand);
+        expect(calls.map((c) => c.args[0].input.ExpressionAttributeValues[':difficulty'])).toEqual([0, 300]);
     });
 
     it('should return 404 if phrase not found', async () => {

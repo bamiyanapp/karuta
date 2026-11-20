@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
+const { ValidationError, requireObject, requireString } = require("./validation.js"); // symlink先（dev-standards#1425、karuta#2182）
 const { scanAll, queryAll } = require("./dynamoPagination.js"); // symlink先（dev-standards#1425、karuta#2179）
 const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
@@ -148,7 +149,9 @@ exports.recordTime = async (event) => {
       ":time": time,
     };
 
-    if (typeof difficulty === 'number' && !isNaN(difficulty) && isFinite(difficulty)) {
+    // difficultyは「経過秒÷残り枚数」（frontend/src/hooks/useKarutaReading.js）のため、
+    // 0以上・経過秒の上限以下に収まる。範囲外の値は無視し、difficulty無しとして記録する（issue #2182）
+    if (typeof difficulty === 'number' && isFinite(difficulty) && difficulty >= 0 && difficulty <= MAX_ELAPSED_SECONDS) {
       updateExpression += ", totalDifficulty :difficulty";
       expressionAttributeValues[":difficulty"] = difficulty;
     }
@@ -230,6 +233,8 @@ exports.reportClientError = async (event) => {
 
 // コメントの過大な長さによるスパム・ストレージ濫用を防ぐための上限
 const MAX_COMMENT_LENGTH = 1000;
+// postCommentのphraseId・categoryの長さ上限。実在する札のキーより十分大きく、巨大な文字列の保存は防ぐ
+const MAX_PHRASE_KEY_LENGTH = 200;
 
 exports.postComment = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
@@ -237,24 +242,37 @@ exports.postComment = async (event) => {
     const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.postComment);
     if (limited) return limited;
 
-    const body = JSON.parse(event.body);
-    const { phraseId, category, phrase, comment } = body;
+    let input;
+    try {
+      const body = requireObject(JSON.parse(event.body));
+      input = {
+        phraseId: requireString(body.phraseId, "phraseId", { max: MAX_PHRASE_KEY_LENGTH }),
+        category: requireString(body.category, "category", { max: MAX_PHRASE_KEY_LENGTH }),
+        comment: requireString(body.comment, "comment", { max: MAX_COMMENT_LENGTH }),
+      };
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof SyntaxError) {
+        return badRequest(allowedOrigin, "Invalid input");
+      }
+      throw error;
+    }
 
-    if (
-      !phraseId ||
-      !comment ||
-      typeof comment !== 'string' ||
-      comment.length > MAX_COMMENT_LENGTH
-    ) {
-      return badRequest(allowedOrigin, "Invalid input");
+    // 札の実在を確認する。保存するphraseはクライアントの申告値ではなく、取得した札の値を使う（issue #2182）
+    const phraseResult = await docClient.send(new GetCommand({
+      TableName: process.env.TABLE_NAME,
+      Key: { category: input.category, id: input.phraseId },
+      ProjectionExpression: "phrase",
+    }));
+    if (!phraseResult.Item) {
+      return badRequest(allowedOrigin, "Phrase not found");
     }
 
     const item = {
       id: crypto.randomUUID(),
-      phraseId,
-      category,
-      phrase,
-      comment,
+      phraseId: input.phraseId,
+      category: input.category,
+      phrase: phraseResult.Item.phrase,
+      comment: input.comment,
       createdAt: new Date().toISOString(),
     };
 
