@@ -62,7 +62,7 @@
     {
       "customType": "regex",
       "description": "self_refはuses:行と同じdev-standardsバージョンを指すべきだが、Renovateのgithub-actionsマネージャーはプレーンな文字列入力であるself_ref:を検知しない。正規表現で明示的に検知対象へ加える（issue #2040・dev-standards#1316）",
-      "managerFilePatterns": ["^\\.github/workflows/.*\\.yml$"],
+      "managerFilePatterns": ["/^\\.github/workflows/.*\\.yml$/"],
       "matchStrings": ["self_ref: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "bamiyanapp/dev-standards",
       "datasourceTemplate": "github-tags"
