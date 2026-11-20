@@ -1,3 +1,10 @@
+## [1.127.3](https://github.com/bamiyanapp/karuta/compare/v1.127.2...v1.127.3) (2026-11-20)
+
+
+### Bug Fixes
+
+* **backend:** DynamoDBのScan・Queryを全ページ取得し、1MB超でのデータ欠落を防ぐ ([#2296](https://github.com/bamiyanapp/karuta/issues/2296)) ([158dfc1](https://github.com/bamiyanapp/karuta/commit/158dfc18a57d0d7ec5a26f83370c9bb6fb8a564b)), closes [#2179](https://github.com/bamiyanapp/karuta/issues/2179)
+
 ## [1.127.2](https://github.com/bamiyanapp/karuta/compare/v1.127.1...v1.127.2) (2026-11-20)
 
 
