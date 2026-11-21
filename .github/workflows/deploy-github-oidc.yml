@@ -1,0 +1,82 @@
+name: Deploy GitHub OIDC (provider + deploy role)
+run-name: Deploy GitHub OIDC
+
+# dev-standards#1363・karuta#2331（移行の段階①）。GitHub Actions用のOIDCプロバイダと、
+# karutaのデプロイ用ロールを、CloudFormationでデプロイする。
+# 鶏と卵の問題があるため、このworkflowだけは、既存の長期アクセスキーで認証する。
+# 他のworkflowをOIDCへ切り替えるのは、このworkflowの成功後（段階②・③）
+#
+# mainへのpush（テンプレートの変更時）で動くため、スマートフォンから操作しなくても反映される。
+# 手動でも実行できる（スマートフォンのGitHub Web/モバイルアプリのActionsタブから）
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/github-oidc/**"
+      - ".github/workflows/deploy-github-oidc.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-github-oidc
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "OIDCプロバイダとデプロイ用ロールをデプロイする"
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+
+      # OIDCプロバイダは、AWSアカウントに1つしか作れない。他のプロダクトのロールも使うため、
+      # karutaのスタックとは分け、削除してもプロバイダは残す（テンプレートのRetain）
+      - name: OIDCプロバイダをデプロイする
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/github-oidc/provider.yml \
+            --stack-name github-actions-oidc-provider \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: デプロイ用ロールをデプロイする
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/github-oidc/karuta-deploy-role.yml \
+            --stack-name karuta-github-deploy-role \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      # ロールのARNは、アカウントIDを含む。リポジトリへコミットせず、リポジトリ変数へ書く。
+      # 値はログへ出さない（::add-maskでマスクする）。変数の書き込みには、リポジトリの管理権限を持つ
+      # BOT_TOKENを使う（GITHUB_TOKENには、変数を書く権限が無い）
+      - name: ロールのARNをリポジトリ変数へ書く
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::BOT_TOKENが未設定のため、リポジトリ変数 AWS_DEPLOY_ROLE_ARN を書けません。"
+            exit 1
+          fi
+          role_arn=$(aws cloudformation describe-stacks \
+            --stack-name karuta-github-deploy-role \
+            --query "Stacks[0].Outputs[?OutputKey=='RoleArn'].OutputValue" \
+            --output text)
+          echo "::add-mask::${role_arn}"
+          if gh api "repos/${REPO}/actions/variables/AWS_DEPLOY_ROLE_ARN" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/${REPO}/actions/variables/AWS_DEPLOY_ROLE_ARN" \
+              -f name=AWS_DEPLOY_ROLE_ARN -f value="${role_arn}" > /dev/null
+          else
+            gh api -X POST "repos/${REPO}/actions/variables" \
+              -f name=AWS_DEPLOY_ROLE_ARN -f value="${role_arn}" > /dev/null
+          fi
+          echo "リポジトリ変数 AWS_DEPLOY_ROLE_ARN を更新しました（値は表示しません）。"

@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  GitHub Actions用のOIDCプロバイダ（AWSアカウントに1つだけ作れる）。
+  dev-standards#1363・karuta#2331。他のプロダクトのロールからも使うため、
+  スタックを削除してもプロバイダは残す（DeletionPolicy: Retain）
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      # AWSは、GitHubのOIDCプロバイダについて、ルートCAで検証するため、サムプリントは実質使われない。
+      # 古いテンプレートの検証で必須とされることがあるため、GitHubが公開している値を置く
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+Outputs:
+  ProviderArn:
+    Description: GitHub Actions用のOIDCプロバイダのARN（各プロダクトのロールが、ImportValueで参照する）
+    Value: !Ref GitHubOidcProvider
+    Export:
+      Name: github-actions-oidc-provider-arn
