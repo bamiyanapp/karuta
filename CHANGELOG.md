@@ -1,3 +1,10 @@
+# [1.130.0](https://github.com/bamiyanapp/karuta/compare/v1.129.0...v1.130.0) (2026-11-21)
+
+
+### Features
+
+* **infra:** GitHub Actions用のOIDCプロバイダとデプロイ用ロールを追加する ([#2332](https://github.com/bamiyanapp/karuta/issues/2332)) ([debd623](https://github.com/bamiyanapp/karuta/commit/debd6232f508b75aa9f190b4c72da9e8a6abfb53)), closes [#2331](https://github.com/bamiyanapp/karuta/issues/2331)
+
 # [1.129.0](https://github.com/bamiyanapp/karuta/compare/v1.128.0...v1.129.0) (2026-11-20)
 
 
