@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
 import { WS_BASE_URL } from "./config";
-import { getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
@@ -24,9 +23,9 @@ import SettingsFooter from "./components/SettingsFooter";
 import AppVersionInfo from "./components/AppVersionInfo";
 import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
-import { NotificationProvider, useNotify } from "./components/NotificationProvider";
-import { messageForError } from "./api/errorMessages";
+import { NotificationProvider } from "./components/NotificationProvider";
 import { useAllPhrasesList } from "./hooks/useAllPhrasesList";
+import { usePhraseDetail } from "./hooks/usePhraseDetail";
 
 // issue #2186: 最初の画面（division選択）とゲーム画面以外は、画面を開くまで読み込まない。
 // react-markdown（更新履歴）・qrcode（共有・ルーム情報）等を、初期バンドルから外すため
@@ -66,7 +65,6 @@ function sumCategoryCounts(categoryNames, categories) {
 }
 
 function AppContent() {
-  const notify = useNotify();
   const [division, setDivision] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("division") || null;
@@ -80,8 +78,6 @@ function AppContent() {
     const params = new URLSearchParams(window.location.search);
     return params.get("id");
   });
-  const [detailPhraseCategory, setDetailPhraseCategory] = useState(null);
-  const [detailPhrase, setDetailPhrase] = useState(null);
 
   // 指摘一覧表示用の状態
   const [view, setView] = useState(() => {
@@ -102,7 +98,6 @@ function AppContent() {
       }
     },
   });
-  const [allComments, setAllComments] = useState([]);
 
   // 選択中のカテゴリの札一覧。phrasesFetchErrorは、選択中のカテゴリのうち1件でも取得に失敗したか
   // （issue #474。「まだ読み込んでいない」と区別する）
@@ -112,10 +107,6 @@ function AppContent() {
   // issue #2190: 画面の主要な内容の取得失敗を、画面内のエラー表示と再試行で知らせる。
   // 「読み込み中」「0件」と区別するため、失敗の有無を別に持つ。*RetryTokenは再試行ボタンで増やし、
   // 取得のuseEffectを再実行する
-  const [detailFetchError, setDetailFetchError] = useState(false);
-  const [detailRetryToken, setDetailRetryToken] = useState(0);
-  const [commentsFetchError, setCommentsFetchError] = useState(false);
-  const [commentsRetryToken, setCommentsRetryToken] = useState(0);
   const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
   const [cardRevealDelay, setCardRevealDelay] = useLocalStorageState("cardRevealDelay", 3000, (v) => parseInt(v, 10));
   // issue #1001で「ゆっくり」の値を70%→75%へ引き上げたが、既に70%を選択済みだった
@@ -134,8 +125,6 @@ function AppContent() {
   const [draftCategories, setDraftCategories] = useState([]);
 
   // コメント投稿用の状態
-  const [commentText, setCommentText] = useState("");
-  const [postingComment, setPostingComment] = useState(false);
 
   const categoryKey = useMemo(() => {
     return JSON.stringify(selectedCategories.slice().sort());
@@ -148,6 +137,33 @@ function AppContent() {
   const isMultiCategorySelection = useMemo(() => {
     return selectedCategories.length > 1;
   }, [selectedCategories]);
+
+  // 札の詳細・指摘一覧のデータ（issue #2192）。detailPhraseIdはURL同期のためここに残す
+  const {
+    detailPhrase,
+    detailPhraseCategory,
+    detailPhraseComments,
+    allComments,
+    detailFetchError,
+    commentsFetchError,
+    retryFetchDetail,
+    retryFetchComments,
+    commentText,
+    setCommentText,
+    postingComment,
+    postComment,
+    openDetail,
+    closeDetail,
+  } = usePhraseDetail({
+    view,
+    detailPhraseId,
+    setDetailPhraseId,
+    repeatCount,
+    speechRate,
+    lang,
+    voiceId,
+    isMultiCategorySelection,
+  });
 
   const categoriesForDivision = useMemo(() => {
     if (division !== "kids" && division !== "engineer") return [];
@@ -261,56 +277,6 @@ function AppContent() {
       return <span style={{ opacity: 0.3 }}> ⇅</span>;
   };
 
-  // 詳細データの取得
-  useEffect(() => {
-    const fetchDetail = async () => {
-      if (!detailPhraseId) {
-        setDetailPhrase(null);
-        setDetailFetchError(false);
-        return;
-      }
-      setDetailFetchError(false);
-      try {
-        const data = await getPhrase({
-          id: detailPhraseId,
-          category: detailPhraseCategory || undefined,
-          repeatCount,
-          speechRate,
-          lang,
-          voiceId,
-          announceCategory: isMultiCategorySelection,
-        });
-        setDetailPhrase(data);
-      } catch (error) {
-        console.error("Error fetching phrase detail:", error);
-        setDetailFetchError(true);
-      }
-    };
-    fetchDetail();
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, detailRetryToken]);
-
-  // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (view === "comments" || detailPhraseId) {
-        setCommentsFetchError(false);
-        try {
-          const data = await getComments();
-          setAllComments(data.comments || []);
-        } catch (error) {
-          console.error("Error fetching comments:", error);
-          setCommentsFetchError(true);
-        }
-      }
-    };
-    fetchComments();
-  }, [view, detailPhraseId, commentsRetryToken]);
-
-  const detailPhraseComments = useMemo(() => {
-    if (!detailPhrase) return [];
-    return allComments.filter(c => c.phraseId === detailPhrase.id);
-  }, [allComments, detailPhrase]);
-
   // 「もう一度」ボタン・読み札カードのクリック: 詳細画面で開いている札があれば
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
   // 処理自体はuseKarutaReading側が持つ（issue #607）
@@ -318,27 +284,6 @@ function AppContent() {
     const target = detailPhrase || currentPhrase;
     if (target && target.audioData) {
       queueRepeatAudio(target.audioData);
-    }
-  };
-
-  const postComment = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-
-    setPostingComment(true);
-    try {
-      await postCommentApi({
-        phraseId: detailPhrase.id,
-        category: detailPhrase.category,
-        phrase: detailPhrase.phrase,
-        comment: commentText,
-      });
-      notify({ type: "success", message: "指摘内容を送信しました。ありがとうございます。" });
-      setCommentText("");
-    } catch (error) {
-      notify({ type: "error", message: messageForError(error) });
-    } finally {
-      setPostingComment(false);
     }
   };
 
@@ -491,17 +436,6 @@ function AppContent() {
     setView("game");
   };
 
-  const openDetail = (id, category) => {
-    setDetailPhraseId(id);
-    setDetailPhraseCategory(category || null);
-    window.scrollTo(0, 0);
-  };
-
-  const closeDetail = () => {
-    setDetailPhraseId(null);
-    setDetailPhraseCategory(null);
-  };
-
   // ゲーム画面以外の各画面（詳細・絵札印刷・全札一覧・指摘一覧・更新履歴・クイズ大会・
   // division/カテゴリ選択）へのルーティング。Appコンポーネント本体の複雑度を抑えるため、
   // 該当する画面が無ければnullを返すだけの即時実行関数へ分岐をまとめている
@@ -520,7 +454,7 @@ function AppContent() {
         postingComment={postingComment}
         detailPhraseComments={detailPhraseComments}
         detailFetchError={detailFetchError}
-        onRetryFetchDetail={() => setDetailRetryToken((token) => token + 1)}
+        onRetryFetchDetail={retryFetchDetail}
       />
     );
   }
@@ -571,7 +505,7 @@ function AppContent() {
         allComments={allComments}
         setView={setView}
         fetchError={commentsFetchError}
-        onRetryFetch={() => setCommentsRetryToken((token) => token + 1)}
+        onRetryFetch={retryFetchComments}
       />
     );
   }
