@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.130.0",
+    "date": "2026/11/21",
+    "body": "### Features\n\n* **infra:** GitHub Actions用のOIDCプロバイダとデプロイ用ロールを追加する ([#2332](https://github.com/bamiyanapp/karuta/issues/2332)) ([debd623](https://github.com/bamiyanapp/karuta/commit/debd6232f508b75aa9f190b4c72da9e8a6abfb53)), closes [#2331](https://github.com/bamiyanapp/karuta/issues/2331)"
+  },
+  {
     "version": "1.129.0",
-    "date": "2026/11/20",
+    "date": "2026/11/20 23:02",
     "body": "### Features\n\n* **frontend:** 取得失敗時に、画面内のエラー表示と再試行ボタンを出す ([#2307](https://github.com/bamiyanapp/karuta/issues/2307)) ([4f5c5ca](https://github.com/bamiyanapp/karuta/commit/4f5c5ca78d755946183b58da5b004f2c3e3acf33)), closes [#2190](https://github.com/bamiyanapp/karuta/issues/2190)"
   },
   {
