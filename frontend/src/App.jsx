@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import "./App.css";
 import karutaImage from "./assets/karuta_inubou.png";
 import { WS_BASE_URL } from "./config";
-import { getPhrasesList, getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
+import { getPhrase, getComments, postComment as postCommentApi } from "./api/endpoints";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useSessionStorageState } from "./hooks/useSessionStorageState";
 import { useUrlQuerySync, parseCategoriesParam } from "./hooks/useUrlQuerySync";
@@ -26,7 +26,7 @@ import StableSwitchLink from "./components/StableSwitchLink";
 import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 import { NotificationProvider, useNotify } from "./components/NotificationProvider";
 import { messageForError } from "./api/errorMessages";
-import { comparePhraseValues } from "./utils/phraseSort";
+import { useAllPhrasesList } from "./hooks/useAllPhrasesList";
 
 // issue #2186: 最初の画面（division選択）とゲーム画面以外は、画面を開くまで読み込まない。
 // react-markdown（更新履歴）・qrcode（共有・ルーム情報）等を、初期バンドルから外すため
@@ -107,7 +107,8 @@ function AppContent() {
   // 選択中のカテゴリの札一覧。phrasesFetchErrorは、選択中のカテゴリのうち1件でも取得に失敗したか
   // （issue #474。「まだ読み込んでいない」と区別する）
   const { allPhrasesForCategory, phrasesFetchError, retryFetchPhrasesList } = useCategoryPhrases(selectedCategories);
-  const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
+  // 全札一覧画面の取得・ソート・絞り込み・検索（issue #2192）
+  const allPhrasesList = useAllPhrasesList(view, categories);
   // issue #2190: 画面の主要な内容の取得失敗を、画面内のエラー表示と再試行で知らせる。
   // 「読み込み中」「0件」と区別するため、失敗の有無を別に持つ。*RetryTokenは再試行ボタンで増やし、
   // 取得のuseEffectを再実行する
@@ -115,14 +116,6 @@ function AppContent() {
   const [detailRetryToken, setDetailRetryToken] = useState(0);
   const [commentsFetchError, setCommentsFetchError] = useState(false);
   const [commentsRetryToken, setCommentsRetryToken] = useState(0);
-  const [allPhrasesFetchError, setAllPhrasesFetchError] = useState(false);
-  const [allPhrasesRetryToken, setAllPhrasesRetryToken] = useState(0);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // ソート設定
-  const [filterCategory, setFilterCategory] = useState(''); // 全札一覧フィルタ
-  // 全札一覧の種別ボタンが多すぎて探しづらい問題（issue #730）に対応するため、
-  // まず「こども向け/エンジニア向け」で絞り込んでから種別ボタンを表示する
-  const [filterDivision, setFilterDivision] = useState('');
-  const [searchQuery, setSearchQuery] = useState(''); // 全札一覧テキスト検索
   const [repeatCount, setRepeatCount] = useLocalStorageState("repeatCount", 2, (v) => parseInt(v, 10));
   const [cardRevealDelay, setCardRevealDelay] = useLocalStorageState("cardRevealDelay", 3000, (v) => parseInt(v, 10));
   // issue #1001で「ゆっくり」の値を70%→75%へ引き上げたが、既に70%を選択済みだった
@@ -261,66 +254,9 @@ function AppContent() {
     return pages;
   }, [allPhrasesForCategory]);
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const sortedPhrases = useMemo(() => {
-    let sortableItems = [...allPhrases];
-    if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => comparePhraseValues(a, b, sortConfig));
-    }
-    return sortableItems;
-  }, [allPhrases, sortConfig]);
-
-  const uniqueCategories = useMemo(() => {
-    return [...new Set(allPhrases.map(p => p.category))].sort((a, b) => a.localeCompare(b, 'ja'));
-  }, [allPhrases]);
-
-  // allPhrases（get-phrases-list由来）自体にはgroupフィールドが無いため、
-  // getCategories由来のcategories（division選択でも使っているgroup情報を持つ）と
-  // カテゴリ名で突き合わせる。group不明時は既定値である"kids"扱いにする
-  // （backend/handler.jsのgetCategoriesの既定値と合わせる）
-  const categoryGroupMap = useMemo(() => {
-    const map = new Map();
-    categories.forEach(cat => map.set(cat.name, cat.group));
-    return map;
-  }, [categories]);
-
-  const visibleCategories = useMemo(() => {
-    if (!filterDivision) return uniqueCategories;
-    return uniqueCategories.filter(name => (categoryGroupMap.get(name) || "kids") === filterDivision);
-  }, [uniqueCategories, filterDivision, categoryGroupMap]);
-
-  const categoryCount = useMemo(() => {
-    const counts = {};
-    allPhrases.forEach(p => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
-    });
-    return counts;
-  }, [allPhrases]);
-
-  const filteredPhrases = useMemo(() => {
-    let items = sortedPhrases;
-    if (filterCategory) {
-      items = items.filter(p => p.category === filterCategory);
-    }
-    const trimmedQuery = searchQuery.trim().toLowerCase();
-    if (trimmedQuery) {
-      items = items.filter(p =>
-        [p.phrase, p.kana, p.answer].some(field => (field || '').toLowerCase().includes(trimmedQuery))
-      );
-    }
-    return items;
-  }, [sortedPhrases, filterCategory, searchQuery]);
-
   const renderSortArrow = (key) => {
-      if (sortConfig.key === key) {
-          return sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
+      if (allPhrasesList.sortConfig.key === key) {
+          return allPhrasesList.sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
       }
       return <span style={{ opacity: 0.3 }}> ⇅</span>;
   };
@@ -374,23 +310,6 @@ function AppContent() {
     if (!detailPhrase) return [];
     return allComments.filter(c => c.phraseId === detailPhrase.id);
   }, [allComments, detailPhrase]);
-
-  // 全札一覧の取得
-  useEffect(() => {
-    if (view === "all-phrases") {
-      const fetchAllPhrases = async () => {
-        setAllPhrasesFetchError(false);
-        try {
-          const data = await getPhrasesList();
-          setAllPhrases(data.phrases || []);
-        } catch (error) {
-          console.error("Error fetching all phrases:", error);
-          setAllPhrasesFetchError(true);
-        }
-      };
-      fetchAllPhrases();
-    }
-  }, [view, allPhrasesRetryToken]);
 
   // 「もう一度」ボタン・読み札カードのクリック: 詳細画面で開いている札があれば
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
@@ -624,24 +543,24 @@ function AppContent() {
   if (view === "all-phrases") {
     return (
       <AllPhrasesView
-        allPhrases={allPhrases}
-        filterCategory={filterCategory}
-        setFilterCategory={setFilterCategory}
-        filterDivision={filterDivision}
-        setFilterDivision={setFilterDivision}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        uniqueCategories={visibleCategories}
-        categoryCount={categoryCount}
-        filteredPhrases={filteredPhrases}
+        allPhrases={allPhrasesList.allPhrases}
+        filterCategory={allPhrasesList.filterCategory}
+        setFilterCategory={allPhrasesList.setFilterCategory}
+        filterDivision={allPhrasesList.filterDivision}
+        setFilterDivision={allPhrasesList.setFilterDivision}
+        searchQuery={allPhrasesList.searchQuery}
+        setSearchQuery={allPhrasesList.setSearchQuery}
+        uniqueCategories={allPhrasesList.visibleCategories}
+        categoryCount={allPhrasesList.categoryCount}
+        filteredPhrases={allPhrasesList.filteredPhrases}
         renderSortArrow={renderSortArrow}
-        handleSort={handleSort}
-        sortConfig={sortConfig}
+        handleSort={allPhrasesList.handleSort}
+        sortConfig={allPhrasesList.sortConfig}
         openDetail={openDetail}
         setView={setView}
         setSelectedCategories={setSelectedCategories}
-        fetchError={allPhrasesFetchError}
-        onRetryFetch={() => setAllPhrasesRetryToken((token) => token + 1)}
+        fetchError={allPhrasesList.fetchError}
+        onRetryFetch={allPhrasesList.retryFetch}
       />
     );
   }
