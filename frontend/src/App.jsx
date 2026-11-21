@@ -26,6 +26,7 @@ import QuizRoomActionsPanel from "./components/QuizRoomActionsPanel";
 import { NotificationProvider } from "./components/NotificationProvider";
 import { useAllPhrasesList } from "./hooks/useAllPhrasesList";
 import { usePhraseDetail } from "./hooks/usePhraseDetail";
+import { useCategorySelection } from "./hooks/useCategorySelection";
 
 // issue #2186: 最初の画面（division選択）とゲーム画面以外は、画面を開くまで読み込まない。
 // react-markdown（更新履歴）・qrcode（共有・ルーム情報）等を、初期バンドルから外すため
@@ -53,15 +54,6 @@ function filterStillValidCategories(prev, availableNames) {
   if (prev.length === 0) return prev;
   const stillValid = prev.filter(cat => availableNames.includes(cat));
   return stillValid.length !== prev.length ? stillValid : prev;
-}
-
-// 指定したカテゴリ名一覧について、対応するcount（枚数）の合計を求める
-// （絵札印刷の上限バリデーション用）
-function sumCategoryCounts(categoryNames, categories) {
-  return categoryNames.reduce((total, name) => {
-    const info = categories.find(c => c.name === name);
-    return total + (info?.count || 0);
-  }, 0);
 }
 
 function AppContent() {
@@ -122,8 +114,6 @@ function AppContent() {
   // ボタンを押したときだけ開く（issue #548）
   const [showHistory, setShowHistory] = useState(false);
 
-  const [draftCategories, setDraftCategories] = useState([]);
-
   // コメント投稿用の状態
 
   const categoryKey = useMemo(() => {
@@ -170,24 +160,25 @@ function AppContent() {
     return categories.filter(cat => cat.group === division);
   }, [categories, division]);
 
-  // 印刷対象の合計枚数（PDF出力の上限バリデーション用）。countが未設定の
-  // カテゴリ（古いAPIレスポンス等）は0枚として扱い、上限チェックに影響させない
-  const draftCardCount = useMemo(() => {
-    return draftCategories.reduce((total, name) => {
-      const cat = categories.find(c => c.name === name);
-      return total + (cat?.count || 0);
-    }, 0);
-  }, [draftCategories, categories]);
-
-  // 答えのデータがある（＝市販品でなくオリジナルの）かるたは所持確認が不要なため、
-  // 選択中のかるたのうち実際に所持確認が必要なものだけを抽出する
-  const draftCategoriesRequiringPossessionCheck = useMemo(() => {
-    return draftCategories.filter(name => {
-      const cat = categories.find(c => c.name === name);
-      // フィールド未設定時は従来どおり所持確認が必要な扱いとする
-      return cat ? cat.requiresPossessionCheck !== false : true;
-    });
-  }, [draftCategories, categories]);
+  // かるた選択画面の下書き・決定/印刷ボタン（issue #2192）。division・selectedCategoriesはURL同期のためここに残す
+  const {
+    draftCategories,
+    draftCardCount,
+    draftCategoriesRequiringPossessionCheck,
+    clearDraftCategories,
+    selectDivision,
+    goBackToDivisionSelect,
+    toggleDraftCategory,
+    handleDecideClick,
+    handlePrintEfudaClick,
+  } = useCategorySelection({
+    division,
+    setDivision,
+    categories,
+    setSelectedCategories,
+    setView,
+    maxPrintCards: MAX_EFUDA_PRINT_CARDS,
+  });
 
   const currentHistory = useMemo(() => {
     return categoryKey ? (historyByCategory[categoryKey] || []) : [];
@@ -365,7 +356,7 @@ function AppContent() {
 
   const resetGame = () => {
     setSelectedCategories([]);
-    setDraftCategories([]);
+    clearDraftCategories();
     setDetailPhraseId(null);
     resetReadingState();
   };
@@ -377,51 +368,6 @@ function AppContent() {
     }));
     resetCategoryScores();
     resetReadingState();
-  };
-
-  const selectDivision = (div) => {
-    setDivision(div);
-    setDraftCategories([]);
-  };
-
-  const goBackToDivisionSelect = () => {
-    setDivision(null);
-    setDraftCategories([]);
-  };
-
-  const toggleDraftCategory = (cat) => {
-    if (division === "kids") {
-      // こども向けは1件しか選べない仕様のため、決定ボタン・確認モーダルを
-      // 経由せずワンタップで読み上げ画面に遷移する
-      setSelectedCategories([cat]);
-      setDraftCategories([]);
-      setView("game");
-      return;
-    }
-    setDraftCategories(prev => {
-      if (prev.includes(cat)) return prev.filter(c => c !== cat);
-      // 追加後の合計枚数が上限を超える場合は選択自体をブロックする
-      // （PDF出力が破綻しない範囲に選択可能な種別を制限するバリデーション）
-      const catInfo = categories.find(c => c.name === cat);
-      const currentCount = sumCategoryCounts(prev, categories);
-      if (currentCount + (catInfo?.count || 0) > MAX_EFUDA_PRINT_CARDS) {
-        return prev;
-      }
-      return [...prev, cat];
-    });
-  };
-
-  const handleDecideClick = () => {
-    if (draftCategories.length === 0) return;
-    setSelectedCategories(draftCategories);
-    setDraftCategories([]);
-    setView("game");
-  };
-
-  const handlePrintEfudaClick = () => {
-    if (draftCategories.length === 0) return;
-    setSelectedCategories(draftCategories);
-    setView("print-efuda");
   };
 
   // かるた選択画面から印刷画面へ直接遷移した場合（issue #636）はカテゴリを
