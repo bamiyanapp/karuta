@@ -4,7 +4,7 @@ import { unlockAudioPlayback, playSharedAudio, playQuizSfx, playJudgmentSfx, pla
 const audioInstances = [];
 let audioPlayImpl = () => Promise.resolve();
 
-// App.test.jsxと同様の理由でアロー関数ではなく通常の関数式を使う（newで呼び出すため）
+// App*.test.jsxと同様の理由でアロー関数ではなく通常の関数式を使う（newで呼び出すため）
 window.Audio = vi.fn().mockImplementation(function (src) {
   this.src = src;
   this.play = vi.fn(() => {
