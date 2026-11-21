@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  karutaのGitHub Actionsが、OIDCで引き受けるデプロイ用のロール（dev-standards#1363・karuta#2331）。
+  権限は、現行のIAMユーザー（直接のポリシー＋グループ）の範囲内。karutaが使うサービスのみ付ける
+
+Resources:
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: karuta-github-deploy
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !ImportValue github-actions-oidc-provider-arn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              # 呼び出し元リポジトリのmainブランチに限定する。ブランチを限定しないと、
+              # 任意のPRブランチから、このロールを引き受けられる
+              StringLike:
+                token.actions.githubusercontent.com:sub: repo:bamiyanapp/karuta:ref:refs/heads/main
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudFrontFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/IAMFullAccess
+      Policies:
+        # CloudFront Key Value Storeの読み書き（canary_weight・force_stableの値）。
+        # 現行のIAMユーザーは、同じ操作ができている
+        - PolicyName: cloudfront-key-value-store
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: cloudfront-keyvaluestore:*
+                Resource: "*"
+
+Outputs:
+  RoleArn:
+    Description: デプロイ用のロールのARN（アカウントIDを含むため、ログへ出さず、リポジトリ変数へ書く）
+    Value: !GetAtt DeployRole.Arn
