@@ -1,0 +1,52 @@
+name: Verify AWS OIDC
+run-name: Verify AWS OIDC
+
+# dev-standards#1363・karuta#2331（移行の段階②）。OIDCで、デプロイ用ロールを引き受けられることを、
+# 副作用なしで確認する。既存のworkflowは、まだ長期アクセスキーを使う（切り替えは段階③）。
+# このworkflowは、長期アクセスキーを使わない。ロールを引き受け、読み取りのAPIを1つ呼ぶだけ
+#
+# このworkflow自体の変更時に、mainへのpushで自動で動く。手動でも実行できる
+# （スマートフォンのGitHub Web/モバイルアプリのActionsタブから）
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/verify-aws-oidc.yml"
+  workflow_dispatch: {}
+
+# id-token: writeは、複合アクションからは宣言できないため、jobに書く。
+# jobにpermissionsを書くと、書かなかった権限は無しになる。contents: readも、あわせて書く
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify:
+    name: "OIDCでロールを引き受けて、読み取りAPIを呼ぶ"
+    runs-on: ubuntu-latest
+    steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: 引き受けたロールと、読み取りAPIを確認する
+        run: |
+          set -eu
+          {
+            echo "## OIDCの確認"
+            # アカウントIDを含むARNは、表示しない。ロール名と、一時クレデンシャルかどうかだけ出す
+            arn=$(aws sts get-caller-identity --query Arn --output text)
+            if echo "$arn" | grep -q ':assumed-role/karuta-github-deploy/'; then
+              echo "- 引き受けたロール: karuta-github-deploy（OIDC）"
+            else
+              echo "- 引き受けたロール: 想定外（karuta-github-deploy ではない）"
+              exit 1
+            fi
+            if [ -n "${AWS_SESSION_TOKEN:-}" ]; then echo "- 一時クレデンシャル（セッショントークン）: あり"; else echo "- 一時クレデンシャル: なし"; exit 1; fi
+            # デプロイで使うCloudFormationの読み取り（副作用なし）
+            status=$(aws cloudformation describe-stacks --stack-name karuta-app-stable --query 'Stacks[0].StackStatus' --output text)
+            echo "- 読み取りAPI（CloudFormation）: karuta-app-stable は ${status}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
