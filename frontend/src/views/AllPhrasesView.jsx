@@ -13,7 +13,6 @@ function AllPhrasesView({
   uniqueCategories,
   categoryCount,
   filteredPhrases,
-  renderSortArrow,
   handleSort,
   sortConfig,
   openDetail,
@@ -33,6 +32,14 @@ function AllPhrasesView({
   // 「すべて」ボタンの件数は、選択中のdivisionに属する種別だけの合計にする
   // （division未選択時はuniqueCategoriesが全種別のためallPhrases.length相当になる）
   const visibleTotal = uniqueCategories.reduce((sum, cat) => sum + (categoryCount[cat] || 0), 0);
+  // 現在のソート列には向き（▲▼）、それ以外には並べ替えできることを示す記号（⇅）を出す
+  const renderSortArrow = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
+    }
+    return <span style={{ opacity: 0.3 }}> ⇅</span>;
+  };
+
   const getAriaSort = (key) => {
     if (sortConfig.key !== key) return 'none';
     return sortConfig.direction === 'asc' ? 'ascending' : 'descending';

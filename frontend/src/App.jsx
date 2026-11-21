@@ -255,13 +255,6 @@ function AppContent() {
     return pages;
   }, [allPhrasesForCategory]);
 
-  const renderSortArrow = (key) => {
-      if (allPhrasesList.sortConfig.key === key) {
-          return allPhrasesList.sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
-      }
-      return <span style={{ opacity: 0.3 }}> ⇅</span>;
-  };
-
   // 「もう一度」ボタン・読み札カードのクリック: 詳細画面で開いている札があれば
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
   // 処理自体はuseKarutaReading側が持つ（issue #607）
@@ -427,7 +420,6 @@ function AppContent() {
         uniqueCategories={allPhrasesList.visibleCategories}
         categoryCount={allPhrasesList.categoryCount}
         filteredPhrases={allPhrasesList.filteredPhrases}
-        renderSortArrow={renderSortArrow}
         handleSort={allPhrasesList.handleSort}
         sortConfig={allPhrasesList.sortConfig}
         openDetail={openDetail}
