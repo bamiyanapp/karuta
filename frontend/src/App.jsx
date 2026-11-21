@@ -10,6 +10,7 @@ import { useWakeLock } from "./hooks/useWakeLock";
 import { useThemeSetting } from "./hooks/useThemeSetting";
 import { useDocumentTitle } from "./hooks/useDocumentTitle";
 import { useCategories } from "./hooks/useCategories";
+import { useCategoryPhrases } from "./hooks/useCategoryPhrases";
 import { setGameplayActive } from "./gameplayActivity";
 import { useKarutaReading } from "./hooks/useKarutaReading";
 import { usePlayerScores } from "./hooks/usePlayerScores";
@@ -103,10 +104,9 @@ function AppContent() {
   });
   const [allComments, setAllComments] = useState([]);
 
-  const [allPhrasesForCategory, setAllPhrasesForCategory] = useState([]);
-  // issue #474: 選択中のカテゴリのうち1件でも取得に失敗したかどうか。
-  // 「まだ読み込んでいない」(allPhrasesForCategory.length === 0)と区別するための専用state
-  const [phrasesFetchError, setPhrasesFetchError] = useState(false);
+  // 選択中のカテゴリの札一覧。phrasesFetchErrorは、選択中のカテゴリのうち1件でも取得に失敗したか
+  // （issue #474。「まだ読み込んでいない」と区別する）
+  const { allPhrasesForCategory, phrasesFetchError, retryFetchPhrasesList } = useCategoryPhrases(selectedCategories);
   const [allPhrases, setAllPhrases] = useState([]); // 全札一覧用
   // issue #2190: 画面の主要な内容の取得失敗を、画面内のエラー表示と再試行で知らせる。
   // 「読み込み中」「0件」と区別するため、失敗の有無を別に持つ。*RetryTokenは再試行ボタンで増やし、
@@ -324,47 +324,6 @@ function AppContent() {
       }
       return <span style={{ opacity: 0.3 }}> ⇅</span>;
   };
-
-  // カテゴリが選択されたら、選択中の全カテゴリの札IDリストを取得して結合する。
-  // issue #474: 以前はPromise.allを使っており、選択中の1カテゴリでも取得に失敗すると
-  // 全体がrejectしてallPhrasesForCategoryが空配列にリセットされていた（カテゴリ数が
-  // 多い「全カテゴリ選択」ほど並列リクエスト数が増え、個々の失敗確率も上がるため
-  // 発生しやすかった）。Promise.allSettledに変更し、失敗したカテゴリがあっても
-  // 成功分はそのまま反映しつつ、phrasesFetchErrorで失敗の有無だけ別途知らせる。
-  // phrasesFetchRetryTokenは「再試行する」ボタンから同じカテゴリ構成のまま
-  // 再フェッチを起動するためだけのstateで、値自体に意味はない
-  const [phrasesFetchRetryToken, setPhrasesFetchRetryToken] = useState(0);
-  useEffect(() => {
-    const fetchPhrasesList = async () => {
-      if (selectedCategories.length === 0) {
-        setAllPhrasesForCategory([]);
-        setPhrasesFetchError(false);
-        return;
-      }
-      const settled = await Promise.allSettled(
-        selectedCategories.map(async (cat) => {
-          const data = await getPhrasesList(cat);
-          return data.phrases || [];
-        })
-      );
-      const succeeded = settled.filter((r) => r.status === "fulfilled").flatMap((r) => r.value);
-      const failedCount = settled.filter((r) => r.status === "rejected").length;
-      settled.forEach((r, i) => {
-        if (r.status === "rejected") {
-          console.error(`Error fetching phrases for category "${selectedCategories[i]}":`, r.reason);
-        }
-      });
-      setAllPhrasesForCategory(succeeded);
-      setPhrasesFetchError(failedCount > 0);
-      // 選択中の全カテゴリが失敗した場合（部分的な失敗ではなく完全な失敗）のみ、
-      // 従来どおり通知で知らせる。1カテゴリの失敗程度では通知を出さない
-      if (failedCount > 0 && succeeded.length === 0) {
-        notify({ type: "error", message: "かるたデータの取得に失敗しました。もう一度お試しください。" });
-      }
-    };
-    fetchPhrasesList();
-  }, [selectedCategories, phrasesFetchRetryToken, notify]);
-  const retryFetchPhrasesList = () => setPhrasesFetchRetryToken((token) => token + 1);
 
   // 詳細データの取得
   useEffect(() => {
