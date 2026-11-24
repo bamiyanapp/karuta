@@ -2,7 +2,7 @@
 
 このファイルは`promote-canary.yml`のstatus job（1日1回のスケジュール実行、issue #1809）が自動更新する。手動で編集しないこと。
 
-最終更新日時: 2026-11-23 06:07:15 JST。
+最終更新日時: 2026-11-24 11:07:47 JST。
 
 | 項目 | 値 |
 |---|---|
@@ -12,7 +12,7 @@
 | canaryスタックが存在するか | false |
 | stableの最終更新 | （stableスタックが存在しない） |
 | stableの配信中バージョン | 1.130.0 |
-| 次回のpromote-canary.yml cron発火予定 | 2026-11-24 00:00:00 JST |
-| 直近のpromote-canary.yml実行 | [run 45069318183](https://github.com/bamiyanapp/karuta/actions/runs/45069318183)（2026-11-23 05:57:19 JST、結果: （取得できなかった）） |
+| 次回のpromote-canary.yml cron発火予定 | 2026-11-25 00:00:00 JST |
+| 直近のpromote-canary.yml実行 | [run 45309397271](https://github.com/bamiyanapp/karuta/actions/runs/45309397271)（2026-11-24 11:02:11 JST、結果: （取得できなかった）） |
 
 canaryスタックは現在存在しない。マージ済みでキュー待ち（canary_queue_pending=true）であれば、次回のpromote-canary.yml実行で最新main HEADがcanaryへデプロイされる。
