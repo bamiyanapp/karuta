@@ -77,7 +77,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: infra依存パッケージをインストールする
         working-directory: infra
@@ -180,7 +180,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       # issue #1601: npm workspaces構成（issue #608）ではルートに単一の
       # package-lock.jsonしかなく、サブディレクトリ内で個別にnpm ciを
@@ -725,7 +725,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: 依存パッケージをインストールする
         run: npm ci

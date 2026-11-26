@@ -56,7 +56,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       # issue #1601: npm workspaces構成（issue #608）ではルートに単一の
       # package-lock.jsonしかないため、依存インストールはリポジトリルートで

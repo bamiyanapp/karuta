@@ -82,7 +82,7 @@ jobs:
         uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.180.2
         with:
           working-directory: backend
-          node-version: 22
+          node-version: 26
           deploy-command: npx osls deploy --stage ${{ inputs.stage }}
           workspaces: true
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

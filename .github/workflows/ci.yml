@@ -44,7 +44,7 @@ jobs:
       self_ref: v2.180.2
       frontend_dir: frontend
       backend_dir: backend
-      node_version: "22" # backend Lambdaランタイムnodejs22.x（issue #609）・CD（issue #610）と統一する
+      node_version: "26" # backend Lambdaランタイムnodejs26.x（issue #609）・CD（issue #610）と統一する
       enable_e2e_test: true
       enable_standards_check: true
       workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで一括実行する
@@ -282,7 +282,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: README.mdのdev-standardsバージョン表示を再生成する
         run: node scripts/docs/generate-dev-standards-version.js
@@ -333,7 +333,7 @@ jobs:
         if: steps.filter.outputs.frontend == 'true'
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: 依存パッケージをインストールする
         if: steps.filter.outputs.frontend == 'true'

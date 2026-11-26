@@ -37,7 +37,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: infra依存パッケージをインストールする
         working-directory: infra

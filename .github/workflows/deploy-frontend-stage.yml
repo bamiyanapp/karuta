@@ -44,7 +44,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
 
       - name: 依存パッケージをインストールする
         run: npm ci # npm workspaces構成（issue #608）。リポジトリルートで一括実行する
