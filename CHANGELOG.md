@@ -1,3 +1,10 @@
+# [1.131.0](https://github.com/bamiyanapp/karuta/compare/v1.130.0...v1.131.0) (2026-11-26)
+
+
+### Features
+
+* **ci:** Node.js 26へ全参照を揃える ([#2378](https://github.com/bamiyanapp/karuta/issues/2378)) ([dc7c416](https://github.com/bamiyanapp/karuta/commit/dc7c4165bee18b64f16c55473e14a7e3874b33ba)), closes [#2377](https://github.com/bamiyanapp/karuta/issues/2377)
+
 # [1.130.0](https://github.com/bamiyanapp/karuta/compare/v1.129.0...v1.130.0) (2026-11-21)
 
 
