@@ -70,7 +70,7 @@ jobs:
           working-directory: github-pages-migration
           build-command: sed -i "s|__NEW_URL__|https://${{ steps.resolve.outputs.domain }}/|" index.html
           artifact-path: github-pages-migration
-          node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
+          node-version: 26 # backend Lambdaランタイムnodejs26.x・CI（issue #610）と統一する
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
       - name: GitHub Pages URLを表示する
         run: |
@@ -110,7 +110,7 @@ jobs:
         uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.180.2
         with:
           working-directory: backend
-          node-version: 22 # backend Lambdaランタイムnodejs22.x・CI（issue #610）と統一する
+          node-version: 26 # backend Lambdaランタイムnodejs26.x・CI（issue #610）と統一する
           deploy-command: npx osls deploy
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -145,7 +145,7 @@ jobs:
       - name: Node.jsをセットアップする
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - name: infra依存パッケージをインストールする
         working-directory: infra
         run: npm ci
