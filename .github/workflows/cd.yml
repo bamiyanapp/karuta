@@ -21,6 +21,9 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.184.0
     with:
       enable_release: true
+      # semantic-release v26はNode 26.13以上が必須（karuta#2377・#2390）。
+      # reusable-cdの既定（22）のままだと、リリースが失敗する
+      semantic_release_node_version: "26"
       enable_changelog_json: true
       changelog_json_output_path: frontend/src/changelog.json
       enable_shared_release_config: true
