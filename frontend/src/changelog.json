@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.131.0",
+    "version": "1.131.1",
     "date": "2026/11/26",
+    "body": "### Bug Fixes\n\n* **cd:** run semantic-release v26 on Node 26 ([#2393](https://github.com/bamiyanapp/karuta/issues/2393)) ([ae22bcc](https://github.com/bamiyanapp/karuta/commit/ae22bccde69d833cac271925961256908953ea08)), closes [#2377](https://github.com/bamiyanapp/karuta/issues/2377)"
+  },
+  {
+    "version": "1.131.0",
+    "date": "2026/11/26 01:20",
     "body": "### Features\n\n* **ci:** Node.js 26へ全参照を揃える ([#2378](https://github.com/bamiyanapp/karuta/issues/2378)) ([dc7c416](https://github.com/bamiyanapp/karuta/commit/dc7c4165bee18b64f16c55473e14a7e3874b33ba)), closes [#2377](https://github.com/bamiyanapp/karuta/issues/2377)"
   },
   {

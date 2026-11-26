@@ -1,3 +1,9 @@
+## [1.131.1](https://github.com/bamiyanapp/karuta/compare/v1.131.0...v1.131.1) (2026-11-26)
+
+### Bug Fixes
+
+* **cd:** run semantic-release v26 on Node 26 ([#2393](https://github.com/bamiyanapp/karuta/issues/2393)) ([ae22bcc](https://github.com/bamiyanapp/karuta/commit/ae22bccde69d833cac271925961256908953ea08)), closes [#2377](https://github.com/bamiyanapp/karuta/issues/2377)
+
 # [1.131.0](https://github.com/bamiyanapp/karuta/compare/v1.130.0...v1.131.0) (2026-11-26)
 
 
