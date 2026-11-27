@@ -30,7 +30,7 @@ jobs:
           submodules: true
 
       - name: 🚀 Deploy Infra (osls, Serverless Framework v3 OSS fork)
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.186.2
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-serverless@v2.187.1
         with:
           working-directory: infra
           node-version: 26
@@ -145,9 +145,9 @@ jobs:
       # issue #2386（dev-standards#1615）: デプロイ後に、本番のセキュリティヘッダーを実測する。
       # 警告のみで、失敗にしない。デプロイ後の失敗は、ロールバックの判断を要するため
       - name: 本番のセキュリティヘッダーを実測する
-        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.186.2
+        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.187.1
         with:
-          self_ref: v2.186.2
+          self_ref: v2.187.1
           urls: |
             https://${{ steps.domain.outputs.domain }}/
             https://${{ steps.domain.outputs.domain }}/stable/
