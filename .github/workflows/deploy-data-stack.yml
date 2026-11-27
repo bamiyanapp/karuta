@@ -1,0 +1,83 @@
+name: Deploy Data Stack (manual)
+run-name: Deploy Data Stack (manual, ${{ inputs.action }})
+
+# issue #2264: データスタック（backend/serverless-data.yml、スタック名karuta-data-shared）を
+# 更新する。DynamoDBテーブルの削除保護のように、リソースの設定を後から変える用途に使う。
+# 通常のosls deployは使わず、CloudFormationのchange setで、置き換え（Replacement）が
+# 無いことを確認してから実行する。
+#
+# 【使い方（二段階）】
+# 1. action: preview で実行する。change setを作るだけで、実際の変更はしない。
+#    Job Summaryの各リソースのActionとReplacementを確認する
+# 2. Replacementが「False」または無ければ、action: execute で再実行する
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "preview: change setを作って内容を確認するのみ（安全）。execute: 作成済みのchange setを実行する"
+        required: true
+        type: choice
+        options:
+          - preview
+          - execute
+
+permissions:
+  contents: read
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ap-northeast-1
+  STACK_NAME: karuta-data-shared
+  CHANGE_SET_NAME: karuta-data-update
+
+jobs:
+  update:
+    name: "データスタックを更新する"
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウトする
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Node.jsをセットアップする
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: backend依存パッケージをインストールする
+        working-directory: backend
+        run: npm ci
+
+      - name: change setを作成して内容を確認する（previewのみ）
+        if: inputs.action == 'preview'
+        working-directory: backend
+        run: |
+          set -eu -o pipefail
+          npx osls package --config serverless-data.yml --stage shared --package .serverless-data-package
+          aws cloudformation delete-change-set --stack-name "$STACK_NAME" --change-set-name "$CHANGE_SET_NAME" 2>/dev/null || true
+          aws cloudformation create-change-set \
+            --stack-name "$STACK_NAME" \
+            --change-set-name "$CHANGE_SET_NAME" \
+            --change-set-type UPDATE \
+            --template-body file://.serverless-data-package/cloudformation-template-update-stack.json
+          aws cloudformation wait change-set-create-complete --stack-name "$STACK_NAME" --change-set-name "$CHANGE_SET_NAME"
+          {
+            echo "## change setの内容"
+            echo ""
+            echo "| リソース | Action | Replacement |"
+            echo "| --- | --- | --- |"
+            aws cloudformation describe-change-set --stack-name "$STACK_NAME" --change-set-name "$CHANGE_SET_NAME" \
+              --query 'Changes[].ResourceChange.[LogicalResourceId,Action,Replacement]' --output text \
+              | awk -F'\t' '{printf "| %s | %s | %s |\n", $1, $2, $3}'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: change setを実行する（executeのみ）
+        if: inputs.action == 'execute'
+        run: |
+          set -eu -o pipefail
+          aws cloudformation execute-change-set --stack-name "$STACK_NAME" --change-set-name "$CHANGE_SET_NAME"
+          aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 'Stacks[0].StackStatus' --output text | tee -a "$GITHUB_STEP_SUMMARY"
