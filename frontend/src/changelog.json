@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.134.0",
+    "version": "1.134.1",
     "date": "2026/11/27",
+    "body": "### Bug Fixes\n\n* **backend:** stop returning internal error messages in 500 responses ([#2421](https://github.com/bamiyanapp/karuta/issues/2421)) ([f7a9973](https://github.com/bamiyanapp/karuta/commit/f7a99731d0085cbdf0d8873407e03d94b86b0044)), closes [#2180](https://github.com/bamiyanapp/karuta/issues/2180)"
+  },
+  {
+    "version": "1.134.0",
+    "date": "2026/11/27 06:37",
     "body": "### Features\n\n* **frontend:** enable max-lines and add meta description ([#2412](https://github.com/bamiyanapp/karuta/issues/2412)) ([4f56abc](https://github.com/bamiyanapp/karuta/commit/4f56abc61e15088a34ed5a1814039bf4d9e7a72b)), closes [#2265](https://github.com/bamiyanapp/karuta/issues/2265) [#2184](https://github.com/bamiyanapp/karuta/issues/2184)"
   },
   {
