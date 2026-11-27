@@ -176,7 +176,7 @@ jobs:
       iam_actions_mode: warn
       enable_security_headers_check: true
       security_headers_files: infra/serverless.yml
-      security_headers_mode: warn
+      security_headers_mode: fail
       enable_eslint_rules_check: true
       eslint_rules_check_mode: fail
       # Markdownドキュメント間の丸ごとコピペ重複を検知する

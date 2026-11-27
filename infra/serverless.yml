@@ -107,11 +107,15 @@ resources:
       Properties:
         ResponseHeadersPolicyConfig:
           Name: karuta-security-headers
-          Comment: "issue #2386: CSP以外のセキュリティヘッダー"
+          Comment: "issue #2386: セキュリティヘッダー（CSP含む）"
           SecurityHeadersConfig:
             StrictTransportSecurity:
               AccessControlMaxAgeSec: 31536000
               IncludeSubdomains: false # *.cloudfront.netの既定ドメインのため、サブドメインへは広げない
+              Override: true
+            # 値の正本はfrontend/csp.js。frontend/src/csp.sync.test.jsが、この文字列との一致を検査する
+            ContentSecurityPolicy:
+              ContentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.execute-api.ap-northeast-1.amazonaws.com wss://*.execute-api.ap-northeast-1.amazonaws.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
               Override: true
             ContentTypeOptions:
               Override: true
