@@ -96,6 +96,32 @@ resources:
                 StringEquals:
                   AWS:SourceArn: !Sub "arn:aws:cloudfront::${aws:accountId}:distribution/${FrontendDistribution.Id}"
 
+    # issue #2386（dev-standards#1615の実測で、本番にセキュリティヘッダーが1つも付いていないと判明）。
+    # 第一段として、CSP以外の4つを付ける。CSPは、適用した瞬間にstable・canaryの両方へ効くため、
+    # フロントエンドのインラインスクリプトの外部化とE2Eでの違反確認を終えてから、別に入れる
+    # （dev-standards docs/security-headers-pattern.md「展開の順序」）。
+    # X-Content-Type-Optionsのnosniffは、S3のContent-Typeが誤っているファイルを、ブラウザが
+    # 拒否するようになる。デプロイ後に、dev-standardsのverify-security-headersで実測する
+    SecurityHeadersPolicy:
+      Type: AWS::CloudFront::ResponseHeadersPolicy
+      Properties:
+        ResponseHeadersPolicyConfig:
+          Name: karuta-security-headers
+          Comment: "issue #2386: CSP以外のセキュリティヘッダー"
+          SecurityHeadersConfig:
+            StrictTransportSecurity:
+              AccessControlMaxAgeSec: 31536000
+              IncludeSubdomains: false # *.cloudfront.netの既定ドメインのため、サブドメインへは広げない
+              Override: true
+            ContentTypeOptions:
+              Override: true
+            ReferrerPolicy:
+              ReferrerPolicy: strict-origin-when-cross-origin
+              Override: true
+            FrameOptions:
+              FrameOption: DENY
+              Override: true
+
     FrontendDistribution:
       Type: AWS::CloudFront::Distribution
       Properties:
@@ -117,6 +143,7 @@ resources:
             TargetOriginId: FrontendS3Origin
             ViewerProtocolPolicy: redirect-to-https
             Compress: true
+            ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
             # AWSマネージドポリシー「CachingOptimized」。静的サイトなので
             # オリジン側のキャッシュ制御ヘッダーに従ってCloudFront側でも
             # 効率よくキャッシュする既定値として適切
