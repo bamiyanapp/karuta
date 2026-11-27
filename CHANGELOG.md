@@ -1,3 +1,9 @@
+# [1.132.0](https://github.com/bamiyanapp/karuta/compare/v1.131.1...v1.132.0) (2026-11-27)
+
+### Features
+
+* **infra:** add security headers (HSTS, nosniff, Referrer-Policy, X-Frame-Options) to CloudFront ([#2404](https://github.com/bamiyanapp/karuta/issues/2404)) ([8fa8988](https://github.com/bamiyanapp/karuta/commit/8fa8988c49308c232e524255985ff945f1a9e0c4)), closes [#2386](https://github.com/bamiyanapp/karuta/issues/2386)
+
 ## [1.131.1](https://github.com/bamiyanapp/karuta/compare/v1.131.0...v1.131.1) (2026-11-26)
 
 ### Bug Fixes
