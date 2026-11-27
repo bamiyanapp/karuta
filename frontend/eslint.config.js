@@ -68,6 +68,9 @@ export default defineConfig([
       // lintスクリプトの`--max-warnings 0`により、warn severityにしても
       // 実質errorと同じ強制力になっていたため、severity自体もerrorへ揃えた）
       complexity: ['error', 15],
+      // issue #2265: ファイルサイズ（実効行数）。規約値は300だが、現状の最大（useQuizRoomAdmin.test.jsxの1256行）
+      // を上限にして有効にし、分割に合わせて段階的に下げる（ラチェット）
+      'max-lines': ['error', { max: 1300, skipBlankLines: true, skipComments: true }],
       ...sonarjs.configs.recommended.rules,
     },
   },
