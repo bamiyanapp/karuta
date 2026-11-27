@@ -112,7 +112,7 @@ exports.createQuizRoom = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { roomId, adminToken });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -184,7 +184,7 @@ exports.listQuizRooms = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { rooms });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -212,7 +212,7 @@ exports.checkQuizRoom = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { exists, categories });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 

@@ -338,7 +338,7 @@ exports.getCongratulationAudio = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { audioData }, { credentials: true });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -536,7 +536,7 @@ exports.getPhrase = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, responseBody, { credentials: true });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -643,7 +643,7 @@ exports.getCategories = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { categories }, { credentials: true });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
