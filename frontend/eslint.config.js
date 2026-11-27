@@ -103,17 +103,13 @@ export default defineConfig([
     },
   },
   {
-    // issue #2242: 共有のConfirmDialog（dev-standardsのsymlink）は、背景（::backdrop）の
-    // クリックで閉じるため<dialog>へonClickを付けている。キーボードの操作は、ネイティブの
-    // <dialog>が持つEscキー（onCancel）で足りる。共有ファイルのためここでは直せず、
-    // このファイル限定でa11yの2規則を外す（dev-standards側の対応はdev-standards#1490）
-    // NotificationProviderも同様に、Providerとhook（useNotify）・定数を同じファイルでexportする
+    // issue #2295: ConfirmDialogのa11y例外は、dev-standards#1530（背景クリックをaddEventListenerで受ける実装）
+    // で不要になったため削除した。
+    // 共有のNotificationProvider（dev-standardsのsymlink）は、Providerとhook（useNotify）・定数を同じファイルでexportする
     // ため、react-refresh/only-export-componentsも外す（dev-standards#1490で追う）
-    files: ['src/components/ConfirmDialog.jsx', 'src/components/NotificationProvider.jsx'],
+    files: ['src/components/NotificationProvider.jsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
-      'jsx-a11y-x/click-events-have-key-events': 'off',
-      'jsx-a11y-x/no-noninteractive-element-interactions': 'off',
     },
   },
   {
