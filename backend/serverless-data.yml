@@ -62,9 +62,23 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: phraseId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        # issue #2191: 札の詳細画面が、その札の指摘だけを新しい順に引くためのGSI
+        GlobalSecondaryIndexes:
+          - IndexName: phraseId-createdAt-index
+            KeySchema:
+              - AttributeName: phraseId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
