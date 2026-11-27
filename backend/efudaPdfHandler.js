@@ -85,7 +85,7 @@ exports.generateEfudaPdf = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { jobId });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };
 
@@ -211,6 +211,6 @@ exports.getEfudaPdfStatus = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { status: "IN_PROGRESS" });
   } catch (error) {
-    return serverError(allowedOrigin, error, { includeMessage: true });
+    return serverError(allowedOrigin, error);
   }
 };

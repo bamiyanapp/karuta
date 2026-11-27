@@ -157,6 +157,14 @@ describe('getCategories', () => {
     expect(response.statusCode).toBe(500);
   });
 
+  it('does not leak the internal error message in the 500 response body (issue #2180)', async () => {
+    ddbMock.on(ScanCommand).rejects(new Error('arn:aws:dynamodb:secret-table'));
+    const response = await getCategories({});
+    expect(response.statusCode).toBe(500);
+    expect(JSON.parse(response.body)).toEqual({ message: 'Internal Server Error' });
+    expect(response.body).not.toContain('secret-table');
+  });
+
   it('treats a Scan response with no Items field as empty, returning the default category', async () => {
     ddbMock.on(ScanCommand).resolves({});
 
