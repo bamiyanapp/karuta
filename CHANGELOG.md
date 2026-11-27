@@ -1,3 +1,9 @@
+# [1.136.0](https://github.com/bamiyanapp/karuta/compare/v1.135.0...v1.136.0) (2026-11-27)
+
+### Features
+
+* **backend:** add phraseId GSI query and audio=false for the detail screen ([#2426](https://github.com/bamiyanapp/karuta/issues/2426)) ([47e7504](https://github.com/bamiyanapp/karuta/commit/47e7504c6f0b9eb1a4ae77828764b8a60b7d3396)), closes [#2191](https://github.com/bamiyanapp/karuta/issues/2191)
+
 # [1.135.0](https://github.com/bamiyanapp/karuta/compare/v1.134.1...v1.135.0) (2026-11-27)
 
 ### Features

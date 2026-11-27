@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.135.0",
+    "version": "1.136.0",
     "date": "2026/11/27",
+    "body": "### Features\n\n* **backend:** add phraseId GSI query and audio=false for the detail screen ([#2426](https://github.com/bamiyanapp/karuta/issues/2426)) ([47e7504](https://github.com/bamiyanapp/karuta/commit/47e7504c6f0b9eb1a4ae77828764b8a60b7d3396)), closes [#2191](https://github.com/bamiyanapp/karuta/issues/2191)"
+  },
+  {
+    "version": "1.135.0",
+    "date": "2026/11/27 23:22",
     "body": "### Features\n\n* **infra:** add Content-Security-Policy to the CloudFront headers policy ([#2425](https://github.com/bamiyanapp/karuta/issues/2425)) ([ab06fe8](https://github.com/bamiyanapp/karuta/commit/ab06fe8a0bffe46e746e96ee5eb9f2b62deec4a6)), closes [#2386](https://github.com/bamiyanapp/karuta/issues/2386)"
   },
   {
