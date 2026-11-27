@@ -1,0 +1,35 @@
+name: Verify security headers
+run-name: Verify security headers (manual)
+
+# issue #2386（dev-standards#1615）: 本番のセキュリティヘッダーを、いつでも手動で実測する。
+# インフラのデプロイ（deploy-infra.yml）の後にも、同じ検査が走る。このworkflowは、
+# デプロイ無しで、現状を確かめたいとき（ヘッダーの変更後の確認・定期確認）に使う。
+# スマートフォンのGitHub Web・モバイルアプリのActionsタブから実行できる。結果は、Job Summaryの表で見る
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: "本番のセキュリティヘッダーを実測する"
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    steps:
+      - name: CloudFrontのドメインを解決する
+        id: domain
+        run: |
+          set -eu
+          DOMAIN=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionDomainName'].OutputValue" --output text)
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+      - name: 本番のセキュリティヘッダーを実測する
+        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.186.2
+        with:
+          self_ref: v2.186.2
+          urls: |
+            https://${{ steps.domain.outputs.domain }}/
+            https://${{ steps.domain.outputs.domain }}/stable/
