@@ -1,3 +1,9 @@
+# [1.135.0](https://github.com/bamiyanapp/karuta/compare/v1.134.1...v1.135.0) (2026-11-27)
+
+### Features
+
+* **infra:** add Content-Security-Policy to the CloudFront headers policy ([#2425](https://github.com/bamiyanapp/karuta/issues/2425)) ([ab06fe8](https://github.com/bamiyanapp/karuta/commit/ab06fe8a0bffe46e746e96ee5eb9f2b62deec4a6)), closes [#2386](https://github.com/bamiyanapp/karuta/issues/2386)
+
 ## [1.134.1](https://github.com/bamiyanapp/karuta/compare/v1.134.0...v1.134.1) (2026-11-27)
 
 ### Bug Fixes
