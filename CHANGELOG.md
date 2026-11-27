@@ -1,3 +1,9 @@
+# [1.134.0](https://github.com/bamiyanapp/karuta/compare/v1.133.0...v1.134.0) (2026-11-27)
+
+### Features
+
+* **frontend:** enable max-lines and add meta description ([#2412](https://github.com/bamiyanapp/karuta/issues/2412)) ([4f56abc](https://github.com/bamiyanapp/karuta/commit/4f56abc61e15088a34ed5a1814039bf4d9e7a72b)), closes [#2265](https://github.com/bamiyanapp/karuta/issues/2265) [#2184](https://github.com/bamiyanapp/karuta/issues/2184)
+
 # [1.133.0](https://github.com/bamiyanapp/karuta/compare/v1.132.0...v1.133.0) (2026-11-27)
 
 ### Features
