@@ -1,5 +1,4 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { ScanCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
 const { jsonResponse, badRequest, notFound, tooManyRequests, serverError } = require("./httpResponse");
 const { ValidationError, requireObject, requireString } = require("./validation.js"); // symlink先（dev-standards#1425、karuta#2182）
@@ -8,29 +7,11 @@ const { RATE_LIMITS, isWithinIpLimit, isWithinGlobalLimit, rejectIfIpLimitExceed
 const { buildClientErrorLogPayload, buildClientErrorAlertMessage } = require("./clientErrorReporting.js"); // symlink先（issue #1113, #1144）
 const { sendOpsAlert } = require("./opsAlertNotifier.js"); // symlink先（issue #1144）
 
-const dynamoClient = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const { docClient } = require("./dynamoClient"); // 共有のDynamoDBクライアント（issue #2185）
+const { resolveAllowedOrigin } = require("./cors"); // issue #2185
+const { streamToBuffer } = require("./streamToBuffer"); // issue #2185
 const pollyClient = new PollyClient({ region: "ap-northeast-1" });
 const crypto = require("crypto");
-
-// フロントエンド（本番CloudFront・移行前のGitHub Pages）およびローカル開発サーバーの
-// オリジンのみ許可し、CORSを介した第三者からの無制限なAPI呼び出し（Amazon Pollyの
-// 課金濫用等）を防ぐ
-const ALLOWED_ORIGINS = [
-  "https://d2o6qgma31ysgl.cloudfront.net", // 本番フロントエンド（issue #1332でGitHub Pagesから移行）
-  "https://bamiyanapp.github.io", // 移行ページ（kill switch、issue #1332）。配信中は残す
-  "http://localhost:5173", // npm run dev（Vite開発サーバー）
-  "http://localhost:4173", // npm run preview（Viteプレビューサーバー）
-];
-
-function resolveAllowedOrigin(event) {
-  const requestOrigin = event?.headers?.origin || event?.headers?.Origin;
-  return ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
-}
-
-// efudaPdfHandler.js（絵札PDFのサーバーサイド生成）から再利用するため公開する
-exports.docClient = docClient;
-exports.resolveAllowedOrigin = resolveAllowedOrigin;
 
 function escapeSsml(text) {
   return String(text)
@@ -671,13 +652,3 @@ exports.getCategories = async (event) => {
   }
 };
 
-async function streamToBuffer(stream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    stream.on("data", (chunk) => chunks.push(chunk));
-    stream.on("error", reject);
-    stream.on("end", () => resolve(Buffer.concat(chunks)));
-  });
-}
-
-exports.streamToBuffer = streamToBuffer;

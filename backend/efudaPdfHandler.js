@@ -3,7 +3,9 @@ const { QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
 const { S3Client, PutObjectCommand, HeadObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const { docClient, resolveAllowedOrigin, streamToBuffer } = require("./handler");
+const { docClient } = require("./dynamoClient");
+const { resolveAllowedOrigin } = require("./cors");
+const { streamToBuffer } = require("./streamToBuffer");
 const { jsonResponse, badRequest, serverError } = require("./httpResponse");
 const { RATE_LIMITS, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 // @sparticuz/chromium・puppeteer-coreはESM専用パッケージ（"type": "module"）のため、
