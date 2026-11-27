@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.134.1",
+    "version": "1.135.0",
     "date": "2026/11/27",
+    "body": "### Features\n\n* **infra:** add Content-Security-Policy to the CloudFront headers policy ([#2425](https://github.com/bamiyanapp/karuta/issues/2425)) ([ab06fe8](https://github.com/bamiyanapp/karuta/commit/ab06fe8a0bffe46e746e96ee5eb9f2b62deec4a6)), closes [#2386](https://github.com/bamiyanapp/karuta/issues/2386)"
+  },
+  {
+    "version": "1.134.1",
+    "date": "2026/11/27 23:09",
     "body": "### Bug Fixes\n\n* **backend:** stop returning internal error messages in 500 responses ([#2421](https://github.com/bamiyanapp/karuta/issues/2421)) ([f7a9973](https://github.com/bamiyanapp/karuta/commit/f7a99731d0085cbdf0d8873407e03d94b86b0044)), closes [#2180](https://github.com/bamiyanapp/karuta/issues/2180)"
   },
   {
