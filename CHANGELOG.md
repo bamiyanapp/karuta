@@ -1,3 +1,9 @@
+# [1.133.0](https://github.com/bamiyanapp/karuta/compare/v1.132.0...v1.133.0) (2026-11-27)
+
+### Features
+
+* **infra:** enable DynamoDB deletion protection and add data-stack update workflow ([#2411](https://github.com/bamiyanapp/karuta/issues/2411)) ([f625eb0](https://github.com/bamiyanapp/karuta/commit/f625eb012185610f385eccdb08ac8e1dd2867bee)), closes [#2264](https://github.com/bamiyanapp/karuta/issues/2264)
+
 # [1.132.0](https://github.com/bamiyanapp/karuta/compare/v1.131.1...v1.132.0) (2026-11-27)
 
 ### Features
