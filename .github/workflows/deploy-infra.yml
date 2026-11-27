@@ -141,3 +141,13 @@ jobs:
             echo ""
             echo "issue #1322の受け入れ基準の確認（CloudFront Functions重み付けルーティング）は、\`https://${DOMAIN}/\`へ複数回ブラウザでアクセスし、約10%の確率で\`canary\`のCookieが付与されること・2回目以降はCookieの値通りに固定されることを確認すること。"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # issue #2386（dev-standards#1615）: デプロイ後に、本番のセキュリティヘッダーを実測する。
+      # 警告のみで、失敗にしない。デプロイ後の失敗は、ロールバックの判断を要するため
+      - name: 本番のセキュリティヘッダーを実測する
+        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.186.2
+        with:
+          self_ref: v2.186.2
+          urls: |
+            https://${{ steps.domain.outputs.domain }}/
+            https://${{ steps.domain.outputs.domain }}/stable/
