@@ -169,7 +169,7 @@ jobs:
       # - メールアドレス: dev-standards#1491（uses:の@v2.x.yを誤検知する）の修正後（v2.150.1）に有効化
       enable_dynamodb_protection_check: true
       dynamodb_protection_files: "backend/serverless.yml\nbackend/serverless-data.yml"
-      dynamodb_protection_mode: warn
+      dynamodb_protection_mode: fail
       enable_iam_actions_check: true
       iam_actions_serverless_file: backend/serverless.yml
       iam_actions_source_dirs: backend

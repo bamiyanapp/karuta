@@ -52,6 +52,7 @@ resources:
         BillingMode: PAY_PER_REQUEST
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
+        DeletionProtectionEnabled: true
     CommentsTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Retain
@@ -67,6 +68,7 @@ resources:
         BillingMode: PAY_PER_REQUEST
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
+        DeletionProtectionEnabled: true
     PollyCacheTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Retain
