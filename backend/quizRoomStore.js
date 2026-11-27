@@ -16,7 +16,7 @@
 
 const { GetCommand, QueryCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
-const { docClient } = require("./handler");
+const { docClient } = require("./dynamoClient");
 const shared = require("./webSocketBroadcast.js"); // symlink先（issue #1234）
 
 function tableName() {

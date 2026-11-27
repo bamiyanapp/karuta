@@ -2,7 +2,8 @@ const crypto = require("crypto");
 const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { scanAll } = require("./dynamoPagination.js"); // symlink先（dev-standards#1425、karuta#2179）
 const { DeleteConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
-const { docClient, resolveAllowedOrigin } = require("./handler");
+const { docClient } = require("./dynamoClient");
+const { resolveAllowedOrigin } = require("./cors");
 const { jsonResponse, badRequest, serverError } = require("./httpResponse");
 const { RATE_LIMITS, rejectIfIpLimitExceeded } = require("./rateLimit"); // issue #2188
 const {
