@@ -324,6 +324,24 @@ describe('getComments', () => {
         expect(ddbMock.commandCalls(ScanCommand)[1].args[0].input.ExclusiveStartKey).toEqual({ id: 1 });
     });
 
+    it('queries the phraseId GSI, newest first, when phraseId is given (issue #2191)', async () => {
+        ddbMock.on(QueryCommand).resolves({ Items: [{ id: 2, phraseId: 'p1' }, { id: 1, phraseId: 'p1' }] });
+        const response = await getComments({ queryStringParameters: { phraseId: 'p1' } });
+        expect(response.statusCode).toBe(200);
+        expect(JSON.parse(response.body).comments.map((c) => c.id)).toEqual([2, 1]);
+        const input = ddbMock.commandCalls(QueryCommand)[0].args[0].input;
+        expect(input.IndexName).toBe('phraseId-createdAt-index');
+        expect(input.ExpressionAttributeValues).toEqual({ ':phraseId': 'p1' });
+        expect(input.ScanIndexForward).toBe(false);
+        expect(ddbMock.commandCalls(ScanCommand)).toHaveLength(0);
+    });
+
+    it('rejects an over-long phraseId with 400 instead of querying (issue #2191)', async () => {
+        const response = await getComments({ queryStringParameters: { phraseId: 'x'.repeat(201) } });
+        expect(response.statusCode).toBe(400);
+        expect(ddbMock.commandCalls(QueryCommand)).toHaveLength(0);
+    });
+
     it('should handle errors', async () => {
         ddbMock.on(ScanCommand).rejects(new Error('DynamoDB error'));
         const response = await getComments({});
@@ -770,6 +788,19 @@ describe('getPhrase', () => {
         const expectedTtl = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
         expect(putParams.Item.ttl).toBeGreaterThan(Math.floor(Date.now() / 1000));
         expect(putParams.Item.ttl).toBeCloseTo(expectedTtl, -1);
+    });
+
+    it('does not read the cache or call Polly, and omits audioData, when audio=false (issue #2191)', async () => {
+        ddbMock.on(ScanCommand).resolves({
+            Items: [{ id: 'p1', category: 'c1', phrase: 'phrase 1', level: '1' }],
+        });
+        const response = await getPhrase({ queryStringParameters: { id: 'p1', audio: 'false' } });
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.id).toBe('p1');
+        expect(body).not.toHaveProperty('audioData');
+        expect(ddbMock.commandCalls(GetCommand)).toHaveLength(0);
+        expect(pollyMock.commandCalls(SynthesizeSpeechCommand)).toHaveLength(0);
     });
 
     it('includes explanation in the response, along with answer (issue #763)', async () => {

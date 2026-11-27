@@ -51,6 +51,7 @@ provider:
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.commentsTableName}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.commentsTableName}/index/* # 追加（issue #2191。GSIのQuery）
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.pollyCacheTableName} # 追加
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.rateLimitTableName} # 追加（issue #2188）
         - Effect: Allow

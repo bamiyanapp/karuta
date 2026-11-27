@@ -287,9 +287,28 @@ exports.postComment = async (event) => {
   }
 };
 
+// 指摘テーブルのGSI（phraseIdで引き、createdAtで並べる。issue #2191）。serverless-data.ymlで定義する
+const COMMENTS_BY_PHRASE_INDEX = "phraseId-createdAt-index";
+
 exports.getComments = async (event) => {
   const allowedOrigin = resolveAllowedOrigin(event);
   try {
+    const params = event.queryStringParameters || {};
+    // phraseIdの指定があれば、GSIをQueryして、その札の指摘だけを新しい順で返す（issue #2191）。
+    // 指定が無ければ、従来どおり全件を返す
+    if (params.phraseId) {
+      const phraseId = requireString(params.phraseId, "phraseId", { max: MAX_PHRASE_KEY_LENGTH });
+      const queryParams = {
+        TableName: process.env.COMMENTS_TABLE_NAME,
+        IndexName: COMMENTS_BY_PHRASE_INDEX,
+        KeyConditionExpression: "phraseId = :phraseId",
+        ExpressionAttributeValues: { ":phraseId": phraseId },
+        ScanIndexForward: false,
+      };
+      const queried = await queryAll({ ddb: docClient, QueryCommand, params: queryParams });
+      return jsonResponse(allowedOrigin, 200, { comments: queried });
+    }
+
     const scanParams = {
       TableName: process.env.COMMENTS_TABLE_NAME,
     };
@@ -299,6 +318,9 @@ exports.getComments = async (event) => {
 
     return jsonResponse(allowedOrigin, 200, { comments: items });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return badRequest(allowedOrigin, "Invalid input");
+    }
     return serverError(allowedOrigin, error);
   }
 };
@@ -499,8 +521,10 @@ exports.getPhrase = async (event) => {
       `${targetId}-${repeatCount}-${speechRate}-${lang}-${announceCategory}-${voiceId}-${JSON.stringify([level, speechPhrase, selectedItem.category])}`
     ).digest("hex");
 
-    let audioData = await getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId);
-    if (!audioData) {
+    // audio=falseのときは、音声のキャッシュ参照・合成をしない（詳細画面は表示だけで音声が要らない。issue #2191）
+    const withAudio = params.audio !== "false";
+    let audioData = withAudio ? await getCachedPhraseAudio(pollyCacheTableName, cacheId, targetId) : undefined;
+    if (withAudio && !audioData) {
       // キャッシュミス（Polly合成を行う場合）のみ、回数を数える（issue #2188）。
       // キャッシュヒットは課金が発生しないため数えない
       const limited = await rejectIfIpLimitExceeded(event, allowedOrigin, RATE_LIMITS.getPhraseSynthesis);
@@ -528,7 +552,7 @@ exports.getPhrase = async (event) => {
       kana: selectedItem.kana,
       answer: selectedItem.answer,
       explanation: selectedItem.explanation,
-      audioData: audioData,
+      audioData, // audio=falseのときはundefinedで、JSON化の際に省かれる（issue #2191）
       readCount: stats.readCount || 0,
       averageTime: stats.averageTime || 0,
       averageDifficulty: stats.averageDifficulty || 0,
