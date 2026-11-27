@@ -1,7 +1,12 @@
 [
   {
-    "version": "1.133.0",
+    "version": "1.134.0",
     "date": "2026/11/27",
+    "body": "### Features\n\n* **frontend:** enable max-lines and add meta description ([#2412](https://github.com/bamiyanapp/karuta/issues/2412)) ([4f56abc](https://github.com/bamiyanapp/karuta/commit/4f56abc61e15088a34ed5a1814039bf4d9e7a72b)), closes [#2265](https://github.com/bamiyanapp/karuta/issues/2265) [#2184](https://github.com/bamiyanapp/karuta/issues/2184)"
+  },
+  {
+    "version": "1.133.0",
+    "date": "2026/11/27 06:28",
     "body": "### Features\n\n* **infra:** enable DynamoDB deletion protection and add data-stack update workflow ([#2411](https://github.com/bamiyanapp/karuta/issues/2411)) ([f625eb0](https://github.com/bamiyanapp/karuta/commit/f625eb012185610f385eccdb08ac8e1dd2867bee)), closes [#2264](https://github.com/bamiyanapp/karuta/issues/2264)"
   },
   {
