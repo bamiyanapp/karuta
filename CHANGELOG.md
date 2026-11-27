@@ -1,3 +1,9 @@
+## [1.134.1](https://github.com/bamiyanapp/karuta/compare/v1.134.0...v1.134.1) (2026-11-27)
+
+### Bug Fixes
+
+* **backend:** stop returning internal error messages in 500 responses ([#2421](https://github.com/bamiyanapp/karuta/issues/2421)) ([f7a9973](https://github.com/bamiyanapp/karuta/commit/f7a99731d0085cbdf0d8873407e03d94b86b0044)), closes [#2180](https://github.com/bamiyanapp/karuta/issues/2180)
+
 # [1.134.0](https://github.com/bamiyanapp/karuta/compare/v1.133.0...v1.134.0) (2026-11-27)
 
 ### Features
