@@ -178,7 +178,7 @@ jobs:
       security_headers_files: infra/serverless.yml
       security_headers_mode: warn
       enable_eslint_rules_check: true
-      eslint_rules_check_mode: warn
+      eslint_rules_check_mode: fail
       # Markdownドキュメント間の丸ごとコピペ重複を検知する
       # （bamiyanapp/dev-standards#586）。duplication_thresholdと同様、
       # 導入直後のためレポート表示のみとする
