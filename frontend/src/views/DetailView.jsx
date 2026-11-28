@@ -2,12 +2,26 @@ import ViewHeader from "../components/ViewHeader";
 import AppVersionInfo from "../components/AppVersionInfo";
 import FetchErrorNotice from "../components/FetchErrorNotice";
 
+// 「読み上げる」ボタン。音声は押されたときに取得するため、取得中は、二重タップを防いで表示を変える（issue #2191）
+function RepeatButton({ onClick, loading }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="btn btn-lg px-5 py-3 fw-bold rounded-pill shadow btn-karuta"
+    >
+      {loading ? "読み込み中..." : "読み上げる"}
+    </button>
+  );
+}
+
 // 詳細画面本体（読み込み中はDetailView側で「読み込み中...」を出すため、
 // ここはdetailPhraseが確定してから呼ばれる前提）。DetailView本体の複雑度を
 // 抑えるため、別関数として切り出している
 function renderDetailContent({
   detailPhrase,
   repeatPhrase,
+  repeatLoading,
   commentText,
   setCommentText,
   postComment,
@@ -48,12 +62,7 @@ function renderDetailContent({
         <div className="mb-4 fs-6 text-dark">{detailPhrase.explanation}</div>
       )}
       <div className="mb-5">
-        <button
-          onClick={repeatPhrase}
-          className="btn btn-lg px-5 py-3 fw-bold rounded-pill shadow btn-karuta"
-        >
-          読み上げる
-        </button>
+        <RepeatButton onClick={repeatPhrase} loading={repeatLoading} />
       </div>
 
     {detailPhraseComments && detailPhraseComments.length > 0 && (
@@ -99,6 +108,7 @@ function DetailView({
   categoryLabel,
   closeDetail,
   repeatPhrase,
+  repeatLoading,
   commentText,
   setCommentText,
   postComment,
@@ -127,6 +137,7 @@ function DetailView({
           renderDetailContent({
             detailPhrase,
             repeatPhrase,
+            repeatLoading,
             commentText,
             setCommentText,
             postComment,

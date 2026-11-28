@@ -54,7 +54,40 @@ describe('usePhraseDetail', () => {
     await waitFor(() => expect(result.current.detailPhrase).toEqual(PHRASE));
     await waitFor(() => expect(result.current.allComments).toHaveLength(2));
     expect(result.current.detailPhraseComments.map((c) => c.id)).toEqual(['c1']);
-    expect(getPhrase).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repeatCount: 2, lang: 'ja', announceCategory: false }));
+    // 詳細画面は、表示だけのため音声を取得せず、読み上げ設定も送らない。指摘は、その札だけをphraseIdで取得する（issue #2191）
+    expect(getPhrase).toHaveBeenCalledWith({ id: 'p1', category: undefined, audio: false });
+    expect(getComments).toHaveBeenCalledWith({ phraseId: 'p1' });
+  });
+
+  it('fetches the audio on demand with the current reading settings, and reuses it for the same settings (issue #2191)', async () => {
+    getPhrase.mockResolvedValue(PHRASE);
+    getComments.mockResolvedValue({ comments: [] });
+    const { result } = setup({ detailPhraseId: 'p1' });
+    await waitFor(() => expect(result.current.detailPhrase).toEqual(PHRASE));
+    getPhrase.mockClear();
+    getPhrase.mockResolvedValue({ ...PHRASE, audioData: 'data:audio/mp3;base64,AAA' });
+    let audio;
+    await act(async () => { audio = await result.current.loadDetailAudio(); });
+    expect(audio).toBe('data:audio/mp3;base64,AAA');
+    expect(getPhrase).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repeatCount: 2, speechRate: '80%', lang: 'ja', voiceId: 'Mizuki', announceCategory: false }));
+    expect(getPhrase.mock.calls[0][0]).not.toHaveProperty('audio');
+    getPhrase.mockClear();
+    await act(async () => { audio = await result.current.loadDetailAudio(); });
+    expect(audio).toBe('data:audio/mp3;base64,AAA');
+    expect(getPhrase).not.toHaveBeenCalled();
+  });
+
+  it('notifies and returns null when the on-demand audio fetch fails (issue #2191)', async () => {
+    getPhrase.mockResolvedValue(PHRASE);
+    getComments.mockResolvedValue({ comments: [] });
+    const { result } = setup({ detailPhraseId: 'p1' });
+    await waitFor(() => expect(result.current.detailPhrase).toEqual(PHRASE));
+    getPhrase.mockRejectedValue(new Error('boom'));
+    let audio;
+    await act(async () => { audio = await result.current.loadDetailAudio(); });
+    expect(audio).toBeNull();
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    expect(result.current.detailAudioLoading).toBe(false);
   });
 
   it('fetches the comments for the comments view without a detail', async () => {
@@ -62,6 +95,8 @@ describe('usePhraseDetail', () => {
     const { result } = setup({ view: 'comments' });
     await waitFor(() => expect(result.current.allComments).toHaveLength(2));
     expect(getPhrase).not.toHaveBeenCalled();
+    // 指摘一覧画面は、全件を取得する
+    expect(getComments).toHaveBeenCalledWith({});
   });
 
   it('flags the detail fetch error and recovers on retry (issue #2190)', async () => {

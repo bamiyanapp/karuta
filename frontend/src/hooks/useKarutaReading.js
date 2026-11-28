@@ -570,6 +570,7 @@ export function useKarutaReading({
     isReadingLastPhrase,
     playKaruta,
     queueRepeatAudio,
+    unlockAudioPlaybackOnce,
     stopReading,
     revealCurrentResult,
     resetReadingState,

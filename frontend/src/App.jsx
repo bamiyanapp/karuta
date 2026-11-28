@@ -136,6 +136,8 @@ function AppContent() {
     setCommentText,
     postingComment,
     postComment,
+    detailAudioLoading,
+    loadDetailAudio,
     openDetail,
     closeDetail,
   } = usePhraseDetail({
@@ -196,6 +198,7 @@ function AppContent() {
     isReadingLastPhrase,
     playKaruta,
     queueRepeatAudio,
+    unlockAudioPlaybackOnce,
     stopReading,
     revealCurrentResult,
     resetReadingState,
@@ -259,9 +262,17 @@ function AppContent() {
   // それを、無ければ現在読み上げ中の札を対象にする。実際にキューへ積んで再生する
   // 処理自体はuseKarutaReading側が持つ（issue #607）
   const repeatPhrase = async () => {
-    const target = detailPhrase || currentPhrase;
-    if (target && target.audioData) {
-      queueRepeatAudio(target.audioData);
+    if (detailPhrase) {
+      // 詳細画面の音声は、押されたときに取得する（issue #2191）。タップ→通信→再生の順になるため、
+      // iOS Safariの自動再生制限を避けるよう、共有<audio>要素を、タップの中で同期的に解錠しておく
+      unlockAudioPlaybackOnce();
+      if (detailAudioLoading) return;
+      const audioData = await loadDetailAudio();
+      if (audioData) queueRepeatAudio(audioData);
+      return;
+    }
+    if (currentPhrase && currentPhrase.audioData) {
+      queueRepeatAudio(currentPhrase.audioData);
     }
   };
 
@@ -381,6 +392,7 @@ function AppContent() {
         categoryLabel={categoryLabel}
         closeDetail={closeDetail}
         repeatPhrase={repeatPhrase}
+        repeatLoading={detailAudioLoading}
         commentText={commentText}
         setCommentText={setCommentText}
         postComment={postComment}

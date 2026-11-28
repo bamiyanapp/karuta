@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getPhrase, getComments, postComment as postCommentApi } from "../api/endpoints";
 import { messageForError } from "../api/errorMessages";
 import { useNotify } from "../components/NotificationProvider";
@@ -30,6 +30,9 @@ export function usePhraseDetail({
   const [commentsRetryToken, setCommentsRetryToken] = useState(0);
   const [commentText, setCommentText] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+  // 「読み上げる」用の音声。詳細データとは別に、押されたときの読み上げ設定で取得し、同じ設定なら使い回す
+  const [detailAudioLoading, setDetailAudioLoading] = useState(false);
+  const detailAudioCacheRef = useRef({ key: null, audioData: null });
 
   // 詳細データの取得
   useEffect(() => {
@@ -41,14 +44,11 @@ export function usePhraseDetail({
       }
       setDetailFetchError(false);
       try {
+        // 詳細画面は表示だけで、音声は要らない。音声は「読み上げる」が押されたときに取得する（issue #2191）
         const data = await getPhrase({
           id: detailPhraseId,
           category: detailPhraseCategory || undefined,
-          repeatCount,
-          speechRate,
-          lang,
-          voiceId,
-          announceCategory: isMultiCategorySelection,
+          audio: false,
         });
         setDetailPhrase(data);
       } catch (error) {
@@ -57,7 +57,7 @@ export function usePhraseDetail({
       }
     };
     fetchDetail();
-  }, [detailPhraseId, detailPhraseCategory, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection, detailRetryToken]);
+  }, [detailPhraseId, detailPhraseCategory, detailRetryToken]);
 
   // 指摘一覧の取得（指摘一覧画面のほか、詳細画面で既存の指摘を表示するためにも使う）
   useEffect(() => {
@@ -65,7 +65,9 @@ export function usePhraseDetail({
       if (view === "comments" || detailPhraseId) {
         setCommentsFetchError(false);
         try {
-          const data = await getComments();
+          // 指摘一覧画面は全件。詳細画面は、その札の指摘だけをGSI経由で取得する（issue #2191）。
+          // 画面側の絞り込み（detailPhraseComments）は、旧バックエンドとの組み合わせのために残す
+          const data = await getComments(view === "comments" ? {} : { phraseId: detailPhraseId });
           setAllComments(data.comments || []);
         } catch (error) {
           console.error("Error fetching comments:", error);
@@ -80,6 +82,33 @@ export function usePhraseDetail({
     if (!detailPhrase) return [];
     return allComments.filter((c) => c.phraseId === detailPhrase.id);
   }, [allComments, detailPhrase]);
+
+
+  // 詳細画面の「読み上げる」用の音声を取得する（issue #2191）。失敗時は通知して、nullを返す
+  const loadDetailAudio = async () => {
+    if (!detailPhrase) return null;
+    const key = JSON.stringify([detailPhrase.id, detailPhrase.category, repeatCount, speechRate, lang, voiceId, isMultiCategorySelection]);
+    if (detailAudioCacheRef.current.key === key) return detailAudioCacheRef.current.audioData;
+    setDetailAudioLoading(true);
+    try {
+      const data = await getPhrase({
+        id: detailPhrase.id,
+        category: detailPhrase.category,
+        repeatCount,
+        speechRate,
+        lang,
+        voiceId,
+        announceCategory: isMultiCategorySelection,
+      });
+      detailAudioCacheRef.current = { key, audioData: data.audioData || null };
+      return data.audioData || null;
+    } catch (error) {
+      notify({ type: "error", message: messageForError(error) });
+      return null;
+    } finally {
+      setDetailAudioLoading(false);
+    }
+  };
 
   const postComment = async (e) => {
     e.preventDefault();
@@ -126,6 +155,8 @@ export function usePhraseDetail({
     setCommentText,
     postingComment,
     postComment,
+    detailAudioLoading,
+    loadDetailAudio,
     openDetail,
     closeDetail,
   };
