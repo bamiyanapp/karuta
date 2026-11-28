@@ -47,10 +47,13 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page-url }}
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
@@ -116,14 +119,11 @@ jobs:
           node-version: 26 # backend Lambdaランタイムnodejs26.x・CI（issue #610）と統一する
           deploy-command: npx osls deploy
           workspaces: true # npm workspaces構成（issue #608）。依存インストールをリポジトリルートで行う
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: 🌱 データベースへ初期データを投入する
         working-directory: backend
         run: node seed.js
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   # issue #1449（#1326を置き換え）: canaryへのデプロイをmainマージ毎から日次
   # バッチへ変更する。mainへのマージ時はKVSのcanary_queue_pendingをtrueに
@@ -137,10 +137,13 @@ jobs:
     if: success() && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
