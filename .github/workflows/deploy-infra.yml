@@ -16,8 +16,10 @@ on:
         type: boolean
         default: false
 
+# issue #2331（段階③A）: AWSの認証を、長期アクセスキーからOIDCへ切り替えた
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy:
@@ -36,8 +38,8 @@ jobs:
           node-version: 26
           deploy-command: npx osls deploy --config serverless.yml --stage shared
           workspaces: true
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
       - name: CloudFrontドメイン名を表示する
         id: domain
@@ -47,9 +49,6 @@ jobs:
           DOMAIN=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null | grep "FrontendDistributionDomainName" | sed -E 's/^[^:]*: *//')
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "CloudFront domain: https://${DOMAIN}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: KVS初期値を投入する（issue #1322）
         # canary_weight（既定10）・force_stable（既定false）が未設定の場合のみ初期値を
@@ -90,9 +89,6 @@ jobs:
           # がcanaryのデプロイ・削除に合わせて更新する。canaryスタックが存在しない
           # 状態で/canary/へ明示アクセスした際のstableへのフォールバック判定に使う
           seed_default "canary_exists" "false"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: 動作確認用プレースホルダーアセットを配置する（issue #1321/#1322）
         if: inputs.seed_verification_assets
@@ -124,9 +120,6 @@ jobs:
             aws s3 cp "/tmp/${VARIANT}-index.html" "s3://${BUCKET}/${VARIANT}/index.html" --content-type text/html
             echo "${VARIANT}/index.html を配置した"
           done
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: デプロイ結果の概要を出力する
         run: |
