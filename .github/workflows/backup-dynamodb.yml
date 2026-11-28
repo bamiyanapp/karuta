@@ -15,8 +15,10 @@ run-name: Backup DynamoDB Tables (manual)
 on:
   workflow_dispatch: {}
 
+# issue #2331（段階③B）: AWSの認証を、長期アクセスキーからOIDCへ切り替えた
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   backup:
@@ -28,6 +30,4 @@ jobs:
         ["karuta-phrases", "karuta-comments", "karuta-polly-cache",
         "karuta-quiz-rooms", "karuta-quiz-room-connections"]
       aws_region: ap-northeast-1 # backend/serverless.ymlのprovider.regionと統一する
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      role_to_assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}

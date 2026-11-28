@@ -18,8 +18,10 @@ run-name: Clear force_stable (manual)
 on:
   workflow_dispatch: {}
 
+# issue #2331（段階③B）: AWSの認証を、長期アクセスキーからOIDCへ切り替えた
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   resolve:
@@ -29,6 +31,12 @@ jobs:
       domain: ${{ steps.resolve.outputs.domain }}
       kvs_arn: ${{ steps.resolve.outputs.kvs_arn }}
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
@@ -54,9 +62,6 @@ jobs:
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
           echo "Domain: ${DOMAIN}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   clear:
     needs: resolve
@@ -65,9 +70,7 @@ jobs:
       kvs_arn: ${{ needs.resolve.outputs.kvs_arn }}
       kvs_key: force_stable
       value: "false"
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      role_to_assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
 
   verify:
     name: "反映を確認する"
