@@ -15,15 +15,19 @@ on:
 
 permissions:
   contents: read
+  # issue #2331（段階③A）: AWSの認証を、長期アクセスキーからOIDCへ切り替えた
+  id-token: write
 
 jobs:
   set-weight:
     name: "canary_weightを設定する"
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
@@ -57,8 +61,6 @@ jobs:
           aws cloudfront-keyvaluestore put-key --region us-east-1 --kvs-arn "$KVS_ARN" --if-match "$ETAG" --key "canary_weight" --value "${{ inputs.weight }}" >/dev/null
           echo "canary_weight を ${{ inputs.weight }} に設定した"
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-northeast-1
 
       - name: 概要を出力する
