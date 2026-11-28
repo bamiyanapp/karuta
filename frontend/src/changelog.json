@@ -1,7 +1,12 @@
 [
   {
+    "version": "1.137.0",
+    "date": "2026/11/28",
+    "body": "### Features\n\n* **frontend:** fetch detail without audio and load audio on demand ([#2445](https://github.com/bamiyanapp/karuta/issues/2445)) ([ca74aaf](https://github.com/bamiyanapp/karuta/commit/ca74aaf05935b1053748c248ff10e3000d9daf31)), closes [#2191](https://github.com/bamiyanapp/karuta/issues/2191)"
+  },
+  {
     "version": "1.136.0",
-    "date": "2026/11/27",
+    "date": "2026/11/27 23:31",
     "body": "### Features\n\n* **backend:** add phraseId GSI query and audio=false for the detail screen ([#2426](https://github.com/bamiyanapp/karuta/issues/2426)) ([47e7504](https://github.com/bamiyanapp/karuta/commit/47e7504c6f0b9eb1a4ae77828764b8a60b7d3396)), closes [#2191](https://github.com/bamiyanapp/karuta/issues/2191)"
   },
   {

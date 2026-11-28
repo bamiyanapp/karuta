@@ -1,3 +1,9 @@
+# [1.137.0](https://github.com/bamiyanapp/karuta/compare/v1.136.0...v1.137.0) (2026-11-28)
+
+### Features
+
+* **frontend:** fetch detail without audio and load audio on demand ([#2445](https://github.com/bamiyanapp/karuta/issues/2445)) ([ca74aaf](https://github.com/bamiyanapp/karuta/commit/ca74aaf05935b1053748c248ff10e3000d9daf31)), closes [#2191](https://github.com/bamiyanapp/karuta/issues/2191)
+
 # [1.136.0](https://github.com/bamiyanapp/karuta/compare/v1.135.0...v1.136.0) (2026-11-27)
 
 ### Features
