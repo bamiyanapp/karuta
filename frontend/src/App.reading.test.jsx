@@ -398,10 +398,21 @@ describe('App', () => {
     fireEvent.click(await screen.findByText(/これまでに読み上げた札を表示する/));
     fireEvent.click(await screen.findByText('詳細・報告 →'));
 
+    // 詳細画面を開くときは、音声を取得しない（issue #2191）
     await waitFor(() => {
       const getPhraseCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
       expect(getPhraseCall).toBeDefined();
-      expect(getPhraseCall[0]).toContain('announceCategory=true');
+      expect(getPhraseCall[0]).toContain('audio=false');
+    });
+
+    // 「読み上げる」が押されたときに、読み上げ設定つきで音声を取得する
+    fetch.mockClear();
+    fireEvent.click(await screen.findByText('読み上げる'));
+    await waitFor(() => {
+      const replayCall = fetch.mock.calls.find(([url]) => url.includes('/get-phrase?'));
+      expect(replayCall).toBeDefined();
+      expect(replayCall[0]).toContain('announceCategory=true');
+      expect(replayCall[0]).not.toContain('audio=false');
     });
 
     randomSpy.mockRestore();

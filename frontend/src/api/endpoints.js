@@ -22,16 +22,19 @@ export const getPhrasesList = (category, options) =>
 
 // 札の詳細と読み上げ音声。パラメータの並びは、従来のURLと同じにしている
 export const getPhrase = (
-  { id, category, repeatCount, speechRate, lang, voiceId, announceCategory },
+  { id, category, repeatCount, speechRate, lang, voiceId, announceCategory, audio },
   options
 ) =>
   get("get-phrase", {
     retry: NO_RETRY,
     ...options,
-    params: { id, category, repeatCount, speechRate, lang, voiceId, announceCategory },
+    // audio: falseのときは、音声の取得・合成をしない（表示だけの詳細画面向け。issue #2191）
+    params: { id, category, repeatCount, speechRate, lang, voiceId, announceCategory, audio },
   });
 
-export const getComments = (options) => get("get-comments", options);
+// phraseIdを指定すると、その札の指摘だけを新しい順で返す（issue #2191）。指定が無ければ全件
+export const getComments = ({ phraseId } = {}, options) =>
+  get("get-comments", { ...options, params: { phraseId } });
 
 export const postComment = (body, options) => api.post("post-comment", { ...options, body });
 
