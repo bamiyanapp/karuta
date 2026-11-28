@@ -1,0 +1,87 @@
+name: Cleanup Branches (manual)
+run-name: Cleanup Branches (manual, dry_run=${{ inputs.dry_run }})
+
+# issue #2442: マージ・クローズ済みのPRのブランチが大量に残る。スマホのGitHub画面では、1本ずつしか消せない。
+# 候補を一覧にして、まとめて削除する。既定はdry_run（削除せず、候補と理由を表にするだけ）。
+#
+# 削除する条件（どちらか。開いているPRのheadは、常に残す）:
+#   A. 閉じた（マージ・クローズ済みの）PRのheadだったブランチ
+#   B. 既定ブランチへ完全にマージ済み（ahead_by == 0）のブランチ
+# 残すもの: 既定ブランチ・保護されたブランチ・開いているPRのhead・keep_regexに一致するブランチ。
+# 上の条件に当たらない未マージのブランチ（データ用のe2e-screenshots等）は、「要確認」として一覧に出すだけ
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true: 削除せず、候補を一覧にするだけ（安全）。false: 候補を削除する"
+        type: boolean
+        default: true
+      keep_regex:
+        description: "削除しないブランチ名の正規表現（Claudeの作業用ブランチ・データ用ブランチ）"
+        type: string
+        default: '^(claude/dev-efficiency-improvements-.*|e2e-screenshots|docs-diagrams.*|gh-pages)$'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: "不要なブランチを一覧にして、削除する"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      DRY_RUN: ${{ inputs.dry_run }}
+      KEEP_REGEX: ${{ inputs.keep_regex }}
+    steps:
+      - name: 候補を一覧にして、削除する
+        run: |
+          set -eu -o pipefail
+          DEFAULT=$(gh api "repos/$REPO" --jq .default_branch)
+          gh api --paginate "repos/$REPO/branches" --jq '.[] | "\(.name)\t\(.protected)"' > branches.tsv
+          gh pr list --repo "$REPO" --state open --limit 1000 --json headRefName --jq '.[].headRefName' | sort -u > open-heads.txt
+          gh pr list --repo "$REPO" --state closed --limit 3000 --json headRefName --jq '.[].headRefName' | sort -u > closed-heads.txt
+          echo "ブランチ総数: $(wc -l < branches.tsv)、開いているPR: $(wc -l < open-heads.txt)、閉じたPRのhead: $(wc -l < closed-heads.txt)"
+
+          : > delete.txt; : > review.txt; : > keep.txt
+          while IFS=$'\t' read -r name protected; do
+            if [ "$name" = "$DEFAULT" ] || [ "$protected" = "true" ]; then echo "$name	既定ブランチ・保護" >> keep.txt; continue; fi
+            if grep -qxF -- "$name" open-heads.txt; then echo "$name	開いているPRのhead" >> keep.txt; continue; fi
+            if [[ "$name" =~ $KEEP_REGEX ]]; then echo "$name	keep_regexに一致" >> keep.txt; continue; fi
+            if grep -qxF -- "$name" closed-heads.txt; then echo "$name	閉じたPRのhead" >> delete.txt; continue; fi
+            ahead=$(gh api "repos/$REPO/compare/$DEFAULT...$name" --jq .ahead_by 2>/dev/null </dev/null || echo "?")
+            if [ "$ahead" = "0" ]; then echo "$name	既定ブランチへマージ済み" >> delete.txt; else echo "$name	未マージ（ahead=$ahead、PRなし）" >> review.txt; fi
+          done < branches.tsv
+
+          {
+            echo "## 削除する候補（$(wc -l < delete.txt)本）"
+            echo ""
+            echo "| ブランチ | 理由 |"; echo "| --- | --- |"
+            awk -F'\t' '{printf "| `%s` | %s |\n", $1, $2}' delete.txt
+            echo ""
+            echo "## 要確認（未マージで、PRも無い。削除しない。$(wc -l < review.txt)本）"
+            echo ""
+            echo "| ブランチ | 状態 |"; echo "| --- | --- |"
+            awk -F'\t' '{printf "| `%s` | %s |\n", $1, $2}' review.txt
+            echo ""
+            echo "## 残すもの（$(wc -l < keep.txt)本）"
+            echo ""
+            echo "| ブランチ | 理由 |"; echo "| --- | --- |"
+            awk -F'\t' '{printf "| `%s` | %s |\n", $1, $2}' keep.txt
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "dry_runのため、削除しない。削除するには、dry_run: false で再実行する"
+            exit 0
+          fi
+
+          deleted=0; failed=0
+          while IFS=$'\t' read -r name _; do
+            if gh api -X DELETE "repos/$REPO/git/refs/heads/$name" >/dev/null 2>&1; then
+              deleted=$((deleted + 1))
+            else
+              failed=$((failed + 1)); echo "削除に失敗: $name"
+            fi
+          done < delete.txt
+          echo "削除した: ${deleted}本、失敗: ${failed}本" | tee -a "$GITHUB_STEP_SUMMARY"
