@@ -57,6 +57,8 @@ permissions:
   # （issue #1609）
   pull-requests: write
   actions: read
+  # issue #2331（段階③A）: AWSの認証を、長期アクセスキーからOIDCへ切り替えた
+  id-token: write
 
 jobs:
   resolve:
@@ -69,6 +71,11 @@ jobs:
     outputs:
       kvs_arn: ${{ steps.kvs.outputs.kvs_arn }}
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
@@ -91,9 +98,6 @@ jobs:
           INFO=$(npx osls info --config serverless.yml --stage shared --verbose 2>/dev/null)
           KVS_ARN=$(echo "$INFO" | grep "RoutingKeyValueStoreArn" | sed -E 's/^[^:]*: *//')
           echo "kvs_arn=${KVS_ARN}" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   promote:
     needs: resolve
@@ -148,9 +152,7 @@ jobs:
         npm run build:canary --workspace=frontend
       infra_stack_name: karuta-infra-shared
       canary_exists_kvs_key: canary_exists # issue #1489
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      role_to_assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
 
   status:
     name: "運用状態を可視化する"
@@ -167,10 +169,13 @@ jobs:
     # まとめることで一覧の見やすさを改善する
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
         with:
@@ -715,10 +720,13 @@ jobs:
     outputs:
       endpoints: ${{ steps.resolve.outputs.endpoints }}
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
+      - name: OIDCでAWSの一時クレデンシャルを取得する
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
       - name: チェックアウトする
         uses: actions/checkout@v7
 
