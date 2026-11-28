@@ -1,0 +1,1 @@
+normal read-aloud flow (category select -> phrase -> result), then browses print/reference views (issue #576)
