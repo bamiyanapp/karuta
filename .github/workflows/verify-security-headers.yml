@@ -27,9 +27,9 @@ jobs:
           DOMAIN=$(aws cloudformation describe-stacks --stack-name karuta-infra-shared --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionDomainName'].OutputValue" --output text)
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
       - name: 本番のセキュリティヘッダーを実測する
-        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.192.0
+        uses: bamiyanapp/dev-standards/.github/actions/verify-security-headers@v2.193.0
         with:
-          self_ref: v2.192.0
+          self_ref: v2.193.0
           urls: |
             https://${{ steps.domain.outputs.domain }}/
             https://${{ steps.domain.outputs.domain }}/stable/
