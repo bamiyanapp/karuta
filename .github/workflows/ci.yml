@@ -39,9 +39,9 @@ jobs:
     # reusable-ci.ymlの自己参照チェックアウトが新規必須入力self_ref経由の
     # 値を使う方式に変わった。呼び出し元（本workflow）が、下記uses:行の
     # refと同じ値をself_refとして渡す必要がある
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.191.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.192.0
     with:
-      self_ref: v2.191.1
+      self_ref: v2.192.0
       frontend_dir: frontend
       backend_dir: backend
       node_version: "26" # backend Lambdaランタイムnodejs26.x（issue #609）・CD（issue #610）と統一する
@@ -228,7 +228,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.191.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.192.0
 
   dependency-deprecation-scan:
     name: 依存deprecatedスキャン
@@ -236,11 +236,11 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.191.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-dependency-deprecation-scan.yml@v2.192.0
     with:
       lockfile_path: package-lock.json
       direct_only: true
-      self_ref: v2.191.1
+      self_ref: v2.192.0
 
   # dev-standards#1371。serverless.ymlのLambdaランタイム（backend/serverless.yml）の、
   # サポート終了を、週次で確認する。PR時の検査（standards-check）は、PRが出ない間は動かない。
@@ -252,9 +252,9 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-lambda-runtime-eol-scan.yml@v2.191.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-lambda-runtime-eol-scan.yml@v2.192.0
     with:
-      self_ref: v2.191.1
+      self_ref: v2.192.0
 
   # issue #1914。README.mdのdev-standardsバージョン表示（issue #1898/#1899）は
   # npm run docs:generate経由の手動実行専用で、CIからは一切呼ばれていなかった。
