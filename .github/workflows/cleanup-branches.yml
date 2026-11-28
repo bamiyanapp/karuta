@@ -17,9 +17,9 @@ on:
         type: boolean
         default: true
       keep_regex:
-        description: "削除しないブランチ名の正規表現（Claudeの作業用ブランチ・データ用ブランチ）"
+        description: "削除しないブランチ名の正規表現（Claudeの作業用ブランチ・データ用ブランチ・リリース用のrelease）"
         type: string
-        default: '^(claude/dev-efficiency-improvements-.*|e2e-screenshots|docs-diagrams.*|gh-pages)$'
+        default: '^(claude/dev-efficiency-improvements-.*|e2e-screenshots|docs-diagrams.*|gh-pages|release|chore/release-.*)$'
 
 permissions:
   contents: write
